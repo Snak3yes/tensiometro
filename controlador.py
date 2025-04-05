@@ -10,8 +10,11 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QHBoxLayout, QPushButton, QLabel, QSlider, QGroupBox,
                             QGridLayout, QLineEdit, QComboBox, QProgressBar,
                             QFrame, QPushButton)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QObject
 from PyQt6.QtGui import QFont, QColor, QPalette, QIcon
+
+# Importa a biblioteca grbl-streamer
+from grbl_streamer import GrblStreamer
 
 # Configuração de logging para diagnóstico
 logging.basicConfig(
@@ -294,6 +297,12 @@ class GRBLCommunicationThread(QThread):
         except Exception as e:
             logger.error(f"Erro ao analisar status: {e}", exc_info=True)
 
+class SignalEmitter(QObject):
+    """Classe para emitir sinais Qt de dentro da biblioteca grbl-streamer"""
+    response_received = pyqtSignal(str)
+    status_update = pyqtSignal(dict)
+    error_message = pyqtSignal(str)
+
 class DirectionalButton(QPushButton):
     """Botão direcional com setas para controle intuitivo de movimento"""
     def __init__(self, direction, parent=None):
@@ -319,19 +328,11 @@ class DirectionalButton(QPushButton):
         font.setBold(True)
         font.setPointSize(20)
         self.setFont(font)
-        
-        # Configuração para repetição automática - ajustada para ser mais lenta e estável
-        self.setAutoRepeat(True)
-        self.setAutoRepeatDelay(500)   # Aumentado para 500ms - espera mais antes de começar a repetir
-        self.setAutoRepeatInterval(150)  # Aumentado para 150ms - repete mais lentamente
 
 class JogButton(QPushButton):
     """Botão personalizado para movimentos jog"""
     def __init__(self, text, parent=None):
         super().__init__(text, parent)
-        self.setAutoRepeat(True)
-        self.setAutoRepeatDelay(500)    # Aumentado para 500ms
-        self.setAutoRepeatInterval(150)  # Aumentado para 150ms
         
         # Estilização
         self.setMinimumSize(60, 60)
@@ -502,43 +503,43 @@ class JogController:
         # Solicita status atualizado
         QTimer.singleShot(50, lambda: self.comm_thread.send_command("?", priority=True))
 
+
 class GRBLController(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Controle CNC GRBL Avançado")
-        self.setGeometry(100, 100, 1000, 700)  # Janela maior para acomodar os controles adicionais
+        self.setGeometry(100, 100, 1000, 700)
         
-        # Criar thread de comunicação
-        self.comm_thread = GRBLCommunicationThread()
-
-        self.jog_controller = JogController(self.comm_thread)
+        # Inicialização do sistema de comunicação
+        self.signals = SignalEmitter()
+        self.grbl = None
+        self.is_connected = False
+        self.current_position = {'x': 0, 'y': 0, 'z': 0}
+        self.machine_status = "Desconectado"
+        self.last_command = ""
+        self.last_response = ""
+        self.last_error = ""
         
-        # Conectar os sinais da thread
-        self.comm_thread.response_received.connect(self.on_response_received)
-        self.comm_thread.status_update.connect(self.on_status_update)
-        self.comm_thread.position_update.connect(self.on_position_update)
-        self.comm_thread.error_message.connect(self.on_error_message)
+        # Controle de jog contínuo
+        self.jogging = False
+        self.current_jog_axis = None
+        self.current_jog_direction = None
         
-        # Iniciar a thread
-        self.comm_thread.start()
+        # Estado da máquina
+        self.current_motion_mode = "G91"  # Começa em modo relativo
+        
+        # Conectar os sinais
+        self.signals.response_received.connect(self.on_response_received)
+        self.signals.status_update.connect(self.on_status_update)
+        self.signals.error_message.connect(self.on_error_message)
         
         # Configuração da interface
         self.init_ui()
         
-        # Estado da máquina
-        self.machine_status = "Desconectado"
-        
-        # Flag para indicar se estamos em modo de jog
-        self.jog_mode_active = False
-        
         # Timer para atualizar o status da interface
         self.ui_timer = QTimer(self)
         self.ui_timer.timeout.connect(self.update_ui_state)
-        self.ui_timer.start(300)  # Atualiza a cada 300ms (mais frequente)
-        
-        # Configura a máquina em modo relativo no início
-        # Isso ajuda a evitar mudanças de modo durante operações de jog
-        self.current_motion_mode = "G91"
+        self.ui_timer.start(300)  # Atualiza a cada 300ms
         
     def init_ui(self):
         # Widget central
@@ -587,7 +588,7 @@ class GRBLController(QMainWindow):
         self.x_plus_button.pressed.connect(lambda: self.start_jog("X", 1))
         self.x_plus_button.released.connect(self.stop_jog)
         
-        self.x_distance = QLineEdit("1")  # Distância reduzida para movimentos mais precisos
+        self.x_distance = QLineEdit("1")
         self.x_distance.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         x_control_layout.addWidget(self.x_minus_button)
@@ -608,7 +609,7 @@ class GRBLController(QMainWindow):
         self.y_plus_button.pressed.connect(lambda: self.start_jog("Y", 1))
         self.y_plus_button.released.connect(self.stop_jog)
         
-        self.y_distance = QLineEdit("1")  # Distância reduzida para movimentos mais precisos
+        self.y_distance = QLineEdit("1")
         self.y_distance.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         y_control_layout.addWidget(self.y_minus_button)
@@ -617,33 +618,33 @@ class GRBLController(QMainWindow):
         
         axis_layout.addLayout(y_control_layout, 1, 1)
         
-        # NOVO: Controle direcional em formato de teclado numérico (8, 4, 6, 2)
+        # Controle direcional em formato de teclado numérico (8, 4, 6, 2)
         directional_group = QGroupBox("Controle Direcional")
         directional_layout = QGridLayout()
         
-        self.dir_up_button = DirectionalButton("up")  # 8 no numpad (Y+)
-        self.dir_left_button = DirectionalButton("left")  # 4 no numpad (X-)
-        self.dir_right_button = DirectionalButton("right")  # 6 no numpad (X+)
-        self.dir_down_button = DirectionalButton("down")  # 2 no numpad (Y-)
+        self.dir_up_button = DirectionalButton("up")
+        self.dir_left_button = DirectionalButton("left")
+        self.dir_right_button = DirectionalButton("right")
+        self.dir_down_button = DirectionalButton("down")
         
-        # Conectar eventos de pressionar/soltar para movimentos imediatos
-        self.dir_up_button.pressed.connect(lambda: self.start_jog("Y", 1, priority=True))
-        self.dir_up_button.released.connect(self.stop_jog)
+        # Conectar eventos de pressionar/soltar para movimentos contínuos
+        self.dir_up_button.pressed.connect(lambda: self.start_continuous_jog("Y", 1))
+        self.dir_up_button.released.connect(self.stop_continuous_jog)
         
-        self.dir_down_button.pressed.connect(lambda: self.start_jog("Y", -1, priority=True))
-        self.dir_down_button.released.connect(self.stop_jog)
+        self.dir_down_button.pressed.connect(lambda: self.start_continuous_jog("Y", -1))
+        self.dir_down_button.released.connect(self.stop_continuous_jog)
         
-        self.dir_left_button.pressed.connect(lambda: self.start_jog("X", -1, priority=True))
-        self.dir_left_button.released.connect(self.stop_jog)
+        self.dir_left_button.pressed.connect(lambda: self.start_continuous_jog("X", -1))
+        self.dir_left_button.released.connect(self.stop_continuous_jog)
         
-        self.dir_right_button.pressed.connect(lambda: self.start_jog("X", 1, priority=True))
-        self.dir_right_button.released.connect(self.stop_jog)
+        self.dir_right_button.pressed.connect(lambda: self.start_continuous_jog("X", 1))
+        self.dir_right_button.released.connect(self.stop_continuous_jog)
         
         # Organização em grade para parecer com teclado numérico
-        directional_layout.addWidget(self.dir_up_button, 0, 1)  # Cima (8)
-        directional_layout.addWidget(self.dir_left_button, 1, 0)  # Esquerda (4)
-        directional_layout.addWidget(self.dir_right_button, 1, 2)  # Direita (6)
-        directional_layout.addWidget(self.dir_down_button, 2, 1)  # Baixo (2)
+        directional_layout.addWidget(self.dir_up_button, 0, 1)
+        directional_layout.addWidget(self.dir_left_button, 1, 0)
+        directional_layout.addWidget(self.dir_right_button, 1, 2)
+        directional_layout.addWidget(self.dir_down_button, 2, 1)
         
         # Jog step - valor incremental para os botões direcionais
         step_layout = QHBoxLayout()
@@ -663,7 +664,7 @@ class GRBLController(QMainWindow):
         axis_layout.addWidget(QLabel("Velocidade:"), 4, 0, Qt.AlignmentFlag.AlignRight)
         
         feed_layout = QHBoxLayout()
-        self.feed_rate = QLineEdit("1000")  # Valor maior para movimentos mais rápidos
+        self.feed_rate = QLineEdit("1000")
         self.feed_rate.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Slider para controle de velocidade
@@ -688,15 +689,15 @@ class GRBLController(QMainWindow):
         axis_layout.addWidget(QLabel("Modo:"), 5, 0, Qt.AlignmentFlag.AlignRight)
         
         mode_layout = QHBoxLayout()
-        self.mode_absolute = QPushButton("Absoluto (G90)")
+        self.mode_absolute = QPushButton("Passo a Passo (G90)")
         self.mode_absolute.setCheckable(True)
         self.mode_absolute.clicked.connect(lambda: self.set_motion_mode("G90"))
-        
-        self.mode_relative = QPushButton("Relativo (G91)")
+
+        self.mode_relative = QPushButton("Contínuo (G91)")
         self.mode_relative.setCheckable(True)
         self.mode_relative.setChecked(True)  # Começa em modo relativo
         self.mode_relative.clicked.connect(lambda: self.set_motion_mode("G91"))
-        
+
         mode_layout.addWidget(self.mode_absolute)
         mode_layout.addWidget(self.mode_relative)
         
@@ -713,15 +714,20 @@ class GRBLController(QMainWindow):
         
         self.zero_button = QPushButton("Zerar Posição (G92)")
         self.zero_button.clicked.connect(self.set_zero)
+
+        self.reset_button = QPushButton("Reset Alarme")
+        self.reset_button.setStyleSheet("background-color: orange; color: white; font-weight: bold;")
+        self.reset_button.clicked.connect(self.reset_alarm)
         
-        self.stop_button = QPushButton("PARAR (!")
+        self.stop_button = QPushButton("PARAR (!)")
         self.stop_button.setStyleSheet("background-color: red; color: white; font-weight: bold;")
         self.stop_button.clicked.connect(self.emergency_stop)
         
         control_buttons_layout.addWidget(self.home_button, 0, 0)
         control_buttons_layout.addWidget(self.unlock_button, 0, 1)
         control_buttons_layout.addWidget(self.zero_button, 1, 0)
-        control_buttons_layout.addWidget(self.stop_button, 1, 1)
+        control_buttons_layout.addWidget(self.reset_button, 1, 1)  # Novo botão de reset
+        control_buttons_layout.addWidget(self.stop_button, 2, 0, 1, 2)  # Ocupa duas colunas
         
         axis_layout.addLayout(control_buttons_layout, 6, 0, 1, 2)
         
@@ -790,8 +796,8 @@ class GRBLController(QMainWindow):
         control_status_layout.addWidget(status_group)
         
         # Proporção entre painéis de controle e status
-        control_status_layout.setStretch(0, 3)  # Controle
-        control_status_layout.setStretch(1, 2)  # Status
+        control_status_layout.setStretch(0, 3)
+        control_status_layout.setStretch(1, 2)
         
         main_layout.addLayout(control_status_layout)
         
@@ -805,18 +811,34 @@ class GRBLController(QMainWindow):
         # Atualizar portas
         self.refresh_ports()
 
-    def _resume_after_stop(self):
-        """Método auxiliar para enviar comando de retomada após parada"""
+    def reset_alarm(self):
+        """Reset o estado de alarme e libera a máquina para movimento"""
+        if not self.is_connected or not self.grbl:
+            return
+            
         try:
-            # Verifica se a máquina está em estado Hold e envia comando para retomar
-            if "Hold" in self.comm_thread.machine_state:
-                logger.debug("Enviando comando de retomada após parada")
-                self.comm_thread.send_command("~", priority=True)
-                
-            # Solicita status para atualizar interface
-            self.comm_thread.send_command("?", priority=True)
+            logger.debug("Resetando alarme")
+            
+            # Sequência completa de reset para garantir que o alarme seja cancelado
+            # 1. Envia comando kill alarm
+            self.grbl.send_immediately("$X")
+            
+            # 2. Pausa breve e mais comandos para garantir a recuperação
+            QTimer.singleShot(150, lambda: self.grbl.send_immediately("~"))  # Resume
+            
+            # 3. Restaura o modo de movimento atual
+            QTimer.singleShot(300, lambda: self.grbl.send_immediately(self.current_motion_mode))
+            
+            # 4. Soft reset para caso de falha dos comandos acima
+            QTimer.singleShot(400, lambda: self.grbl.send_immediately("\x18"))  # Ctrl+X (soft reset)
+            
+            # 5. Restaura novamente o modo após soft reset
+            QTimer.singleShot(600, lambda: self.grbl.send_immediately(self.current_motion_mode))
+            
+            self.statusBar.showMessage("Reset de alarme enviado, máquina deve estar pronta em breve")
         except Exception as e:
-            logger.error(f"Erro ao retomar após parada: {e}", exc_info=True)
+            logger.error(f"Erro ao resetar alarme: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro: {str(e)}")
         
     def refresh_ports(self):
         """Detecta automaticamente as portas seriais disponíveis"""
@@ -839,7 +861,8 @@ class GRBLController(QMainWindow):
             self.statusBar.showMessage(f"Portas encontradas: {', '.join(available_ports)}")
     
     def toggle_connection(self):
-        if not self.comm_thread.is_connected:
+        """Conecta/desconecta da máquina CNC"""
+        if not self.is_connected:
             try:
                 port = self.port_combo.currentText()
                 if not port:
@@ -849,53 +872,166 @@ class GRBLController(QMainWindow):
                 # Mensagem de status
                 self.statusBar.showMessage(f"Conectando à porta {port}...")
                 
-                # Configuração de porta similar ao consumo_lib.py
-                serial_port = serial.Serial(port, 115200, timeout=0.5)
-                time.sleep(0.5)  # Aguarda a inicialização básica
+                # CORREÇÃO: Inicializar a comunicação com o GRBL usando a API correta da biblioteca
+                def grbl_callback(eventstring, *data):
+                    """Callback para eventos do GrblStreamer"""
+                    logger.debug(f"GRBL evento: {eventstring}, dados: {data}")
+                    
+                    # Processar eventos específicos
+                    if eventstring == "on_stateupdate":
+                        # Formato: on_stateupdate(state, mpos, wpos)
+                        if len(data) >= 3:
+                            state = data[0]
+                            machine_pos = data[1]  # (x, y, z)
+                            
+                            # Atualiza estado da máquina
+                            self.machine_status = state
+                            
+                            # Atualiza posição
+                            if len(machine_pos) >= 3:
+                                self.current_position = {
+                                    'x': machine_pos[0],
+                                    'y': machine_pos[1],
+                                    'z': machine_pos[2] if len(machine_pos) > 2 else 0
+                                }
+                                self.signals.status_update.emit(self.current_position)
+                    
+                    elif eventstring == "on_processed_command":
+                        # Respostas a comandos
+                        if len(data) >= 2:
+                            response = data[1]
+                            self.signals.response_received.emit(str(response))
+                    
+                    elif eventstring == "on_error":
+                        # Mensagens de erro
+                        if data:
+                            error_msg = str(data[0])
+                            self.signals.error_message.emit(error_msg)
                 
-                # Inicializar GRBL - similar ao consumo_lib.py
-                logger.info("Enviando comando de inicialização")
-                serial_port.write(b"\r\n\r\n")
-                time.sleep(0.5)
+                # Inicializa com o callback
+                self.grbl = GrblStreamer(grbl_callback)
                 
-                # Limpar buffer
-                logger.info("Limpando buffer de entrada")
-                serial_port.flushInput()  # Usa flushInput como em consumo_lib
+                # Configura logging (opcional)
+                self.grbl.setup_logging()
                 
-                # Configurar a thread
-                logger.info("Configurando thread de comunicação")
-                self.comm_thread.set_serial_port(serial_port)
+                # Conecta usando o método correto
+                self.grbl.cnect(port, 115200)
                 
-                # Enviar comandos de configuração
-                logger.info("Enviando comando de desbloqueio")
-                self.comm_thread.send_command("$X", priority=True)
-                time.sleep(0.1)  # Pequeno delay para processamento do comando
+                # Desbloqueia a máquina
+                self.grbl.send_immediately("$X")
                 
                 # Iniciar em modo relativo para jog
-                logger.info("Configurando modo relativo")
-                self.comm_thread.send_command("G91", priority=True)
+                self.grbl.send_immediately("G91")
                 self.mode_relative.setChecked(True)
                 self.mode_absolute.setChecked(False)
                 
-                # Confirmar conexão bem-sucedida
-                logger.info("Conexão estabelecida com sucesso")
+                # Inicia verificação de status
+                self.grbl.poll_start()
+                
+                # Atualizar o estado da interface
+                self.is_connected = True
+                self.machine_status = "Idle"  # Estado inicial presumido
                 self.connect_button.setText("Desconectar")
                 self.machine_state_label.setText("Conectado")
                 self.statusBar.showMessage(f"Conectado ao GRBL na porta {port}")
                 self.toggle_controls(True)
-                
+                    
             except Exception as e:
                 logger.error(f"Erro ao conectar: {str(e)}", exc_info=True)
                 self.statusBar.showMessage(f"Erro: {str(e)}")
         else:
             # Desconectar
-            logger.info("Desconectando")
-            self.comm_thread.disconnect()
+            self._stop_jog_and_movements()
             
+            if self.grbl:
+                try:
+                    # Parar verificação de status
+                    self.grbl.poll_stop()
+                    
+                    # Desconectar
+                    self.grbl.disconnect()
+                    self.grbl = None
+                except Exception as e:
+                    logger.error(f"Erro ao desconectar: {str(e)}", exc_info=True)
+            
+            self.is_connected = False
+            self.machine_status = "Desconectado"
             self.connect_button.setText("Conectar")
             self.machine_state_label.setText("Desconectado")
             self.statusBar.showMessage("Desconectado")
             self.toggle_controls(False)
+    
+    def _setup_callbacks(self):
+        """Configura callbacks para eventos do GrblStreamer"""
+        if not self.grbl:
+            return
+            
+        # Configurar callbacks para o grbl-streamer
+        # (A API exata pode variar com base na implementação da biblioteca)
+        self.grbl.register_status_callback(self._on_status_update)
+        self.grbl.register_response_callback(self._on_response_received)
+        self.grbl.register_error_callback(self._on_error_message)
+    
+    def _start_status_polling(self):
+        """Inicia polling periódico de status"""
+        if not self.is_connected or not self.grbl:
+            return
+            
+        # Criar thread de consulta de status (se a lib não fizer isso automaticamente)
+        self.status_thread = threading.Thread(target=self._status_polling_thread, daemon=True)
+        self.status_thread.start()
+    
+    def _status_polling_thread(self):
+        """Thread para consulta periódica de status"""
+        while self.is_connected and self.grbl:
+            try:
+                # Requisição de status ao GRBL a cada 200ms
+                self.grbl.get_status()
+                time.sleep(0.2)
+            except Exception as e:
+                logger.error(f"Erro na consulta de status: {str(e)}", exc_info=True)
+                time.sleep(0.5)  # Maior intervalo em caso de erro
+    
+    def _on_status_update(self, status_data):
+        """Callback quando o status é atualizado pelo grbl-streamer"""
+        try:
+            # Interpretar os dados de status recebidos do grbl-streamer
+            # (O formato exato pode variar com base na implementação da biblioteca)
+            
+            # Obtém o estado da máquina
+            state = status_data.get('state', 'Unknown')
+            
+            # Obtém a posição
+            position = status_data.get('position', {})
+            if position:
+                self.current_position = {
+                    'x': position.get('x', 0),
+                    'y': position.get('y', 0),
+                    'z': position.get('z', 0)
+                }
+            
+            # Emite sinais para atualizar a interface
+            self.machine_status = state
+            self.signals.status_update.emit(self.current_position)
+            
+        except Exception as e:
+            logger.error(f"Erro ao processar status: {str(e)}", exc_info=True)
+    
+    def _on_response_received(self, response):
+        """Callback quando uma resposta é recebida pelo grbl-streamer"""
+        try:
+            self.last_response = response
+            self.signals.response_received.emit(response)
+        except Exception as e:
+            logger.error(f"Erro ao processar resposta: {str(e)}", exc_info=True)
+    
+    def _on_error_message(self, error):
+        """Callback quando um erro é recebido pelo grbl-streamer"""
+        try:
+            self.last_error = error
+            self.signals.error_message.emit(error)
+        except Exception as e:
+            logger.error(f"Erro ao processar mensagem de erro: {str(e)}", exc_info=True)
     
     def toggle_controls(self, enabled):
         """Habilita/desabilita os controles com base no estado de conexão"""
@@ -932,52 +1068,40 @@ class GRBLController(QMainWindow):
         # Console de comandos
         self.command_input.setEnabled(enabled)
         self.send_button.setEnabled(enabled)
-        
+    
     def update_ui_state(self):
         """Atualiza o estado da interface com base no status da máquina"""
-        # Colorir o status da máquina
+        # Atualizar texto de status
+        self.machine_state_label.setText(self.machine_status)
+        
+        # Habilitar/desabilitar botão de reset com base no estado
+        is_alarm = self.machine_status == "Alarm"
+        self.reset_button.setEnabled(is_alarm)
+        
+        # Colorir o status da máquina e aplicar estilo ao botão de reset
         if self.machine_status == "Idle":
             self.machine_state_label.setStyleSheet("color: green;")
-        elif self.machine_status == "Run":
+            self.reset_button.setStyleSheet("background-color: #E0E0E0; color: black;")
+        elif self.machine_status == "Run" or self.machine_status == "Jog":
             self.machine_state_label.setStyleSheet("color: blue;")
+            self.reset_button.setStyleSheet("background-color: #E0E0E0; color: black;")
         elif self.machine_status == "Alarm":
             self.machine_state_label.setStyleSheet("color: red;")
+            self.reset_button.setStyleSheet("background-color: orange; color: white; font-weight: bold;")
         elif self.machine_status == "Hold":
             self.machine_state_label.setStyleSheet("color: orange;")
+            self.reset_button.setStyleSheet("background-color: #E0E0E0; color: black;")
         else:
             self.machine_state_label.setStyleSheet("")
+            self.reset_button.setStyleSheet("background-color: #E0E0E0; color: black;")
             
-    def toggle_fast_mode(self):
-        """Ativa/desativa o modo rápido (desabilita verificação de porta)"""
-        if self.fast_mode_check.isChecked():
-            # Desativar verificação de porta para movimentos mais rápidos
-            self.comm_thread.send_command("$10=0", priority=True)
-            self.statusBar.showMessage("Modo rápido ativado (verificação de porta desativada)")
-        else:
-            # Reativar verificação de porta
-            self.comm_thread.send_command("$10=1", priority=True)
-            self.statusBar.showMessage("Modo rápido desativado (verificação de porta ativada)")
-            
-    def set_motion_mode(self, mode):
-        """Define o modo de movimento (absoluto ou relativo)"""
-        if mode == "G90":
-            self.mode_absolute.setChecked(True)
-            self.mode_relative.setChecked(False)
-        else:
-            self.mode_absolute.setChecked(False)
-            self.mode_relative.setChecked(True)
-            
-        # Atualiza o modo atual
-        self.current_motion_mode = mode
-            
-        # Enviar comando para a máquina
-        self.comm_thread.send_command(mode)
-        self.last_command_label.setText(mode)
-        
+        # Atualizar display de posição
+        self.position_display.update_position(self.current_position)
+    
     def update_feed_rate(self, value):
         """Atualiza o campo de texto quando o slider muda"""
         self.feed_rate.setText(str(value))
-        
+    
     def update_feed_slider(self):
         """Atualiza o slider quando o campo de texto muda"""
         try:
@@ -987,131 +1111,372 @@ class GRBLController(QMainWindow):
             self.feed_slider.setValue(value)
         except ValueError:
             pass
-        
-    def start_jog(self, axis, direction, priority=False):
-        """Inicia movimento jog para um eixo"""
+    
+    def toggle_fast_mode(self):
+        """Ativa/desativa o modo rápido (desabilita verificação de porta)"""
+        if not self.is_connected or not self.grbl:
+            return
+            
         try:
-            logger.debug(f"Iniciando jog: eixo={axis}, direção={direction}")
-            
-            # Delega o jogging para o controlador dedicado
-            self.jog_controller.start_jog(axis, direction)
-            
+            if self.fast_mode_check.isChecked():
+                # Desativar verificação de porta para movimentos mais rápidos
+                self.grbl.send_immediately("$10=0")
+                self.statusBar.showMessage("Modo rápido ativado (verificação de porta desativada)")
+            else:
+                # Reativar verificação de porta
+                self.grbl.send_immediately("$10=1")
+                self.statusBar.showMessage("Modo rápido desativado (verificação de porta ativada)")
         except Exception as e:
-            logger.error(f"Erro ao iniciar movimento: {e}", exc_info=True)
-            self.statusBar.showMessage(f"Erro ao iniciar movimento: {str(e)}")
+            logger.error(f"Erro ao alternar modo rápido: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro: {str(e)}")
+    
+    def set_motion_mode(self, mode):
+        """Define o modo de movimento (absoluto/passo a passo ou relativo/contínuo)"""
+        if not self.is_connected or not self.grbl:
+            return
+            
+        if mode == "G90":
+            self.mode_absolute.setChecked(True)
+            self.mode_relative.setChecked(False)
+            self.mode_absolute.setText("Passo a Passo (G90)")
+            self.mode_relative.setText("Contínuo (G91)")
+        else:
+            self.mode_absolute.setChecked(False)
+            self.mode_relative.setChecked(True)
+            self.mode_absolute.setText("Passo a Passo (G90)")
+            self.mode_relative.setText("Contínuo (G91)")
+            
+        # Atualiza o modo atual
+        self.current_motion_mode = mode
+            
+        # Envia o comando para a máquina
+        self.grbl.send_immediately(mode)
+        self.last_command = mode
+        self.last_command_label.setText(mode)
         
-    def _continue_jog(self, axis, direction, priority):
-        """Continua o processo de jog após verificações iniciais"""
+        # Atualiza a mensagem de status com o novo modo
+        self.statusBar.showMessage(f"Modo de movimento alterado para {mode}")
+    
+    def start_jog(self, axis, direction):
+        """Inicia movimento jog para um eixo (movimento discreto)"""
+        if not self.is_connected or not self.grbl:
+            return
+            
         try:
+            logger.debug(f"Iniciando jog discreto: eixo={axis}, direção={direction}")
+            
             # Determina a distância de movimento
             if axis == "X":
-                distance = float(self.x_distance.text())
-            elif axis == "Y":
-                distance = float(self.y_distance.text())
-            else:
-                # Para outros casos, usa o jog_step
-                distance = float(self.jog_step.text())
+                distance = float(self.x_distance.text()) * direction
+                command = f"G91\nG0 X{distance} F{self.feed_rate.text()}"
+            else:  # Y
+                distance = float(self.y_distance.text()) * direction
+                command = f"G91\nG0 Y{distance} F{self.feed_rate.text()}"
                 
-            # Aplica direção
-            if direction < 0:
-                distance = -distance
-                
-            # Obtém a velocidade
-            feed_rate = float(self.feed_rate.text())
-            
-            logger.debug(f"Parâmetros de jog: distância={distance}, velocidade={feed_rate}")
-            
-            # Garante que estamos em modo relativo para jog - sem bloquear a UI
-            if self.current_motion_mode != "G91":
-                logger.debug("Mudando para modo relativo (G91)")
-                self.comm_thread.send_command("G91", priority=True)
-                self.current_motion_mode = "G91"
-                self.mode_relative.setChecked(True)
-                self.mode_absolute.setChecked(False)
-            
-            # Monta o comando G-code
-            g_command = "G0" if priority else "G1"
-            
-            if axis == "X":
-                gcode = f"{g_command} X{distance} F{feed_rate}"
-            else:
-                gcode = f"{g_command} Y{distance} F{feed_rate}"
-                
-            logger.info(f"Enviando comando jog: {gcode}")
-            
             # Envia o comando
-            self.comm_thread.send_command(gcode, priority=priority)
-            self.last_command_label.setText(gcode)
-        except Exception as e:
-            logger.error(f"Erro ao continuar movimento: {e}", exc_info=True)
-            self.statusBar.showMessage(f"Erro ao continuar movimento: {str(e)}")
+            self.grbl.send_gcode(command)
+            self.last_command = command
+            self.last_command_label.setText(command)
             
+        except Exception as e:
+            logger.error(f"Erro ao iniciar jog: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro ao iniciar movimento: {str(e)}")
+    
     def stop_jog(self):
         """Para o movimento jog quando o botão é liberado"""
-        try:
-            logger.debug("Parando movimento jog")
+        # Para movimento discreto, não precisamos fazer nada especial
+        pass
+
+    def _continue_jog_movement(self, axis, direction, distance, feed_rate):
+        """Continua o movimento jog enviando comandos incrementais pequenos"""
+        if not self.is_connected or not self.grbl or not self.jogging:
+            if hasattr(self, 'jog_timer') and self.jog_timer.isActive():
+                self.jog_timer.stop()
+            return
             
-            # Delega para o controlador
-            self.jog_controller.stop_jog()
+        # Cria o comando para continuar o movimento
+        if axis.upper() == 'X':
+            jog_command = f"G00 X{distance} F{feed_rate}"
+        else:  # Y
+            jog_command = f"G00 Y{distance} F{feed_rate}"
+            
+        # Envia o comando usando o método disponível
+        try:
+            self.grbl.send_immediately(jog_command)
+        except Exception as e:
+            logger.error(f"Erro ao continuar jog: {str(e)}", exc_info=True)
+            if hasattr(self, 'jog_timer') and self.jog_timer.isActive():
+                self.jog_timer.stop()
+
+    def _continue_jog(self):
+        """Envia comandos contínuos de movimento enquanto o botão está pressionado"""
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Cria um novo comando usando G1 (movimento linear) em vez de G0
+            # G1 é mais suave para movimentos contínuos
+            if self.jog_axis.upper() == 'X':
+                command = f"G1 X{self.jog_direction * self.jog_step_size} F{self.jog_feed_rate}"
+            else:  # Y
+                command = f"G1 Y{self.jog_direction * self.jog_step_size} F{self.jog_feed_rate}"
+                
+            # Envia o comando sem interromper fluxos anteriores
+            self.grbl.send_immediately(command)
+                
+        except Exception as e:
+            logger.error(f"Erro ao continuar jog: {str(e)}", exc_info=True)
+            self.jog_timer.stop()
+    
+    def start_continuous_jog(self, axis, direction):
+        """
+        Inicia movimento passo a passo (G90) ou contínuo (G91), dependendo do modo atual.
+        """
+        if not self.is_connected or not self.grbl:
+            return
+        
+        # Para qualquer jog anterior antes de iniciar o novo
+        self.stop_continuous_jog()
+        time.sleep(0.05)  # Pequena pausa para garantir que o GRBL processe o comando de parada
+        
+        try:
+            # Obtém o modo atual (G90 = Absoluto, G91 = Relativo)
+            is_absolute_mode = (self.current_motion_mode == "G90")
+            
+            logger.debug(f"Iniciando jog: eixo={axis}, direção={direction}, modo={'G90 (Absoluto/Passo a Passo)' if is_absolute_mode else 'G91 (Relativo/Contínuo)'}")
+            
+            # Obtém a velocidade e o tamanho do passo
+            try:
+                feed_rate = int(self.feed_rate.text())
+                feed_rate = max(100, min(feed_rate, 5000))  # Limita a velocidade para segurança
+            except ValueError:
+                feed_rate = 500  # Valor seguro padrão
+            
+            try:
+                step_size = float(self.jog_step.text())
+                step_size = max(0.1, min(step_size, 10))  # Limita o tamanho do passo entre 0.1 e 10mm
+            except ValueError:
+                step_size = 1.0  # Valor padrão seguro
+                
+            # Movimento com base no modo atual
+            if is_absolute_mode:
+                # G90 MODO ABSOLUTO/PASSO A PASSO: Movimento incremental relativo à posição atual
+                # CORREÇÃO: Primeiro garantimos que estamos em modo relativo para o movimento
+                self.grbl.send_immediately("G91")
+                
+                # Calcula a distância de movimento baseada no passo configurado
+                distance = step_size * direction
+                
+                # Cria um comando de movimento incremental apesar de estar em modo G90 na interface
+                if axis.upper() == 'X':
+                    jog_command = f"G0 X{distance} F{feed_rate}"
+                else:  # Y
+                    jog_command = f"G0 Y{distance} F{feed_rate}"
+                    
+                # Envia o comando de movimento incremental
+                self.grbl.send_immediately(jog_command)
+                self.last_command = jog_command
+                self.last_command_label.setText(jog_command)
+                
+                # Restaura o modo absoluto ao final do movimento
+                QTimer.singleShot(100, lambda: self.grbl.send_immediately("G90"))
+                
+                # Não define estado de jogging, pois é uma operação única
+                self.jogging = False
+                
+            else:
+                # G91 MODO RELATIVO/CONTÍNUO: Movimento contínuo enquanto o botão é pressionado
+                # Usar o comando $J= para jog contínuo
+                distance_continuous = 50 * direction  # Distância grande o suficiente para movimento contínuo
+                
+                if axis.upper() == 'X':
+                    jog_command = f"$J=G91 X{distance_continuous} F{feed_rate}"
+                else:  # Y
+                    jog_command = f"$J=G91 Y{distance_continuous} F{feed_rate}"
+                    
+                # Imediatamente envia o comando de jog
+                self.grbl.send_immediately(jog_command)
+                self.last_command = jog_command
+                self.last_command_label.setText(jog_command)
+                
+                # Define flags de controle apenas para modo contínuo
+                self.jogging = True
+                self.current_jog_axis = axis
+                self.current_jog_direction = direction
+                        
+        except Exception as e:
+            logger.error(f"Erro ao iniciar jog: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro ao iniciar movimento: {str(e)}")
+
+    def stop_continuous_jog(self):
+        """
+        Para o movimento jog contínuo quando o botão é liberado.
+        No modo G90, esta função não faz nada pois o movimento é único.
+        """
+        if not self.is_connected or not self.grbl or not self.jogging:
+            return
+            
+        logger.debug("Parando jog contínuo")
+        
+        try:
+            # Comando de feed hold para parar imediatamente
+            self.grbl.send_immediately("!")
+            
+            # Imediatamente após, envia comando de ciclo contínuo para liberar o hold
+            QTimer.singleShot(50, lambda: self.grbl.send_immediately("~"))
+            
+            # Limpa o estado de jog
+            self.jogging = False
+            self.current_jog_axis = None
+            self.current_jog_direction = None
             
         except Exception as e:
-            logger.error(f"Erro ao parar movimento: {e}", exc_info=True)
-            self.statusBar.showMessage(f"Erro ao parar movimento: {str(e)}")
-        
+            logger.error(f"Erro ao parar jog contínuo: {str(e)}", exc_info=True)
+
+
+    def _stop_jog_and_movements(self):
+        """Para todos os movimentos ativos"""
+        if hasattr(self, 'jog_timer') and self.jog_timer.isActive():
+            self.jog_timer.stop()
+            
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Envia comando de parada
+            self.grbl.send_immediately("!")
+        except Exception as e:
+            logger.error(f"Erro ao parar movimentos: {str(e)}", exc_info=True)
+
+    def _send_resume_after_stop(self):
+        """Envia comando de retomada após parada"""
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Enviar comando de retomada usando o método correto
+            self.grbl.send_realtime("~")
+            
+        except Exception as e:
+            logger.error(f"Erro ao enviar comando de retomada: {str(e)}", exc_info=True)
+    
     def home(self):
         """Envia comando para ir para home"""
-        self.comm_thread.send_command("$H")
-        self.last_command_label.setText("$H (Home)")
-        
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Usar send_immediately
+            self.grbl.send_immediately("$H")
+            self.last_command = "$H"
+            self.last_command_label.setText("$H (Home)")
+        except Exception as e:
+            logger.error(f"Erro ao enviar comando home: {str(e)}", exc_info=True)
+
     def unlock(self):
         """Desbloqueia a máquina após um alarme"""
-        self.comm_thread.send_command("$X", priority=True)
-        self.last_command_label.setText("$X (Unlock)")
-        
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Usar send_immediately
+            self.grbl.send_immediately("$X")
+            self.last_command = "$X"
+            self.last_command_label.setText("$X (Unlock)")
+        except Exception as e:
+            logger.error(f"Erro ao enviar comando de desbloqueio: {str(e)}", exc_info=True)
+    
     def set_zero(self):
         """Define a posição atual como zero para todos os eixos"""
-        self.comm_thread.send_command("G92 X0 Y0")
-        self.last_command_label.setText("G92 X0 Y0 (Set Zero)")
-        
+        if not self.is_connected or not self.grbl:
+            return
+            
+        try:
+            # Usar send_immediately
+            self.grbl.send_immediately("G92 X0 Y0")
+            self.last_command = "G92 X0 Y0"
+            self.last_command_label.setText("G92 X0 Y0 (Set Zero)")
+        except Exception as e:
+            logger.error(f"Erro ao definir posição zero: {str(e)}", exc_info=True)
+    
     def emergency_stop(self):
-        """Para todos os movimentos imediatamente"""
-        self.comm_thread.send_command("!", priority=True)
-        self.statusBar.showMessage("PARADA DE EMERGÊNCIA acionada!")
-        self.last_command_label.setText("! (Parada de Emergência)")
+        """Para todos os movimentos imediatamente e coloca a máquina em estado seguro"""
+        if not self.is_connected or not self.grbl:
+            return
         
+        try:
+            logger.debug("Executando parada de emergência")
+            
+            # Para qualquer timer ativo
+            if hasattr(self, 'jog_timer') and self.jog_timer.isActive():
+                self.jog_timer.stop()
+            
+            # Sequência robusta de parada
+            # 1. Feed hold imediato (!)
+            self.grbl.send_immediately("!")
+            
+            # 2. Soft reset para garantir parada completa
+            QTimer.singleShot(100, lambda: self.grbl.send_immediately("\x18"))  # Ctrl+X
+            
+            # Reset completo de estado
+            self.jogging = False
+            self.current_jog_axis = None
+            self.current_jog_direction = None
+            
+            self.last_command = "! (Parada de Emergência)"
+            self.last_command_label.setText("! (Parada de Emergência)")
+            self.statusBar.showMessage("PARADA DE EMERGÊNCIA acionada! Use o botão 'Reset Alarme' para continuar.")
+            
+            # Destaca o botão de reset para orientar o usuário
+            self.reset_button.setStyleSheet("background-color: orange; color: white; font-weight: bold; font-size: 14px; border: 2px solid red;")
+            
+        except Exception as e:
+            logger.error(f"Erro na parada de emergência: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro: {str(e)}")
+    
     def send_command(self):
         """Envia um comando G-code personalizado"""
+        if not self.is_connected or not self.grbl:
+            return
+            
         command = self.command_input.text()
-        if command:
-            self.comm_thread.send_command(command)
+        if not command:
+            return
+            
+        try:
+            # Usar send_immediately em vez de send_gcode
+            self.grbl.send_immediately(command)
+            self.last_command = command
             self.last_command_label.setText(command)
             self.command_input.clear()
-            
+        except Exception as e:
+            logger.error(f"Erro ao enviar comando: {str(e)}", exc_info=True)
+            self.statusBar.showMessage(f"Erro ao enviar comando: {str(e)}")
+    
     def on_response_received(self, response):
-        """Manipula a resposta recebida da thread de comunicação"""
+        """Manipula a resposta recebida"""
         self.last_response_label.setText(response)
         self.comm_log.setText(response)
-        
-    def on_status_update(self, status):
-        """Atualiza o status da máquina na interface"""
-        # Extrai o estado da máquina (ex: <Idle|...> => "Idle")
-        if status.startswith('<') and '|' in status:
-            state = status[1:status.find('|')]
-            self.machine_status = state
-            self.machine_state_label.setText(state)
-        
-    def on_position_update(self, position):
+    
+    def on_status_update(self, position):
         """Atualiza a exibição de posição na interface"""
+        # Esta função é chamada pelo sinal emitido no _on_status_update
         self.position_display.update_position(position)
-        
+    
     def on_error_message(self, error):
         """Exibe mensagem de erro na barra de status"""
         self.statusBar.showMessage(error)
-        
+    
     def closeEvent(self, event):
         """Manipula o evento de fechamento da janela"""
-        self.comm_thread.running = False  # Sinaliza que a thread deve terminar
-        self.comm_thread.wait(1000)       # Espera até 1 segundo pela thread
+        # Para todos os movimentos e desconecta
+        if self.is_connected and self.grbl:
+            self._stop_jog_and_movements()
+            try:
+                self.grbl.close()
+            except Exception:
+                pass
+                
         event.accept()
 
 if __name__ == "__main__":

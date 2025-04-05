@@ -4,5 +4,6 @@ Objetivo da aplicação:
 - Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL instalado e estão sendo usados apenas os eixos x e y.
 - A comunicação com o Arduino acontece via USB por comunicação serial.
 - Vamos usar como referência o firmaware GRBL para desenvolver nossas funcionalidades.
+- Como biblioteca principal deve ser usado a lib grbl-streamer que já possui funcionalidades bem implementadas e testadas.
 
 

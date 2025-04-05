@@ -17,7 +17,7 @@ class ImageViewerWidget(QWidget):
         super().__init__(parent)
         self.layout = QVBoxLayout(self)
         
-        # Label para exibir a imagem
+        # Label para exibir a imagemgit
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setText("Nenhuma imagem capturada")

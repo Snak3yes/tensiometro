@@ -27,6 +27,12 @@ class CNCAOIController:
     def connect_cnc(self, port=None, baudrate=115200):
         """Conecta à máquina CNC."""
         return self.cnc.connect(port, baudrate)
+    
+    def disconnect_cnc(self):
+        """Desconecta da máquina CNC."""
+        if self.cnc.is_connected:
+            return self.cnc.disconnect()
+        return True
         
     def connect_camera(self, camera_id=0):
         """Conecta à câmera."""

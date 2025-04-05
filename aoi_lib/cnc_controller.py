@@ -1,99 +1,8 @@
 import time
 import serial
 import serial.tools.list_ports
-from threading import Thread
-from queue import Queue, PriorityQueue
 import threading
-
-class GRBLCommunicationThread(Thread):
-    """
-    Thread para comunicação com o controlador GRBL.
-    """
-    
-    def __init__(self):
-        super().__init__()
-        self.daemon = True
-        self.serial_port = None
-        self.running = False
-        self.command_queue = PriorityQueue()
-        self.lock = threading.Lock()
-        
-        # Eventos simulados
-        self.response_received = EventEmitter()
-        self.status_update = EventEmitter()
-        self.position_update = EventEmitter()
-        self.error_message = EventEmitter()
-    
-    def set_serial_port(self, serial_port):
-        """Define a porta serial para comunicação."""
-        self.serial_port = serial_port
-        self.running = True
-    
-    def run(self):
-        """Método principal da thread."""
-        while True:
-            if not self.running or not self.serial_port:
-                time.sleep(0.1)
-                continue
-            
-            # Processar comandos na fila
-            try:
-                if not self.command_queue.empty():
-                    priority, command = self.command_queue.get(block=False)
-                    with self.lock:
-                        self.serial_port.write((command + "\n").encode())
-                    self.command_queue.task_done()
-                
-                # Ler respostas
-                if self.serial_port.in_waiting:
-                    with self.lock:
-                        response = self.serial_port.readline().decode().strip()
-                    
-                    if response:
-                        self.response_received.emit(response)
-                        
-                        # Processar atualizações de status e posição
-                        if response.startswith('<'):
-                            self.status_update.emit(response)
-                            self._parse_position(response)
-                        elif response.startswith('error:'):
-                            self.error_message.emit(response)
-            except Exception as e:
-                self.error_message.emit(str(e))
-            
-            time.sleep(0.01)
-    
-    def _parse_position(self, status_string):
-        """Analisa a string de status para extrair a posição."""
-        try:
-            parts = status_string.split('|')
-            for part in parts:
-                if part.startswith('MPos:') or part.startswith('WPos:'):
-                    coords = part.split(':')[1].split(',')
-                    position = {'x': float(coords[0]), 'y': float(coords[1]), 'z': float(coords[2])}
-                    self.position_update.emit(position)
-                    break
-        except Exception:
-            pass
-    
-    def send_command(self, command, priority=False):
-        """
-        Envia um comando para a fila.
-        
-        Args:
-            command: O comando GCODE
-            priority: Se True, o comando tem prioridade
-        """
-        priority_level = 0 if priority else 1
-        self.command_queue.put((priority_level, command))
-    
-    def disconnect(self):
-        """Desconecta a thread."""
-        self.running = False
-        if self.serial_port and self.serial_port.is_open:
-            self.serial_port.close()
-        self.serial_port = None
-
+from grbl_streamer import GrblStreamer  # Importa a biblioteca grbl-streamer
 
 class EventEmitter:
     """
@@ -190,29 +99,35 @@ class EventEmitter:
         else:
             return event_name in self.callbacks and bool(self.callbacks[event_name])
 
-
 class GRBLCNCController:
     """
     Classe para controlar uma máquina CNC usando GRBL.
-    Adaptada do código existente para ser usada como biblioteca.
+    Implementada usando a biblioteca grbl-streamer.
     """
     
     def __init__(self):
         """Inicializa o controlador CNC."""
-        self.comm_thread = GRBLCommunicationThread()
-        self.comm_thread.response_received.connect(self._on_response_received)
-        self.comm_thread.status_update.connect(self._on_status_update)
-        self.comm_thread.position_update.connect(self._on_position_update)
-        self.comm_thread.error_message.connect(self._on_error_message)
-        
+        self.grbl = None
+        self.lock = threading.Lock()
         self.is_connected = False
         self.current_position = {'x': 0, 'y': 0, 'z': 0}
         self.machine_status = "Disconnected"
         self.last_response = ""
         self.last_error = ""
         
-        # Inicia a thread de comunicação
-        self.comm_thread.start()
+        # Eventos para comunicação assíncrona
+        self.response_received = EventEmitter()
+        self.status_update = EventEmitter()
+        self.position_update = EventEmitter()
+        self.error_message = EventEmitter()
+        
+        # Thread para consulta periódica de status
+        self.status_thread = None
+        self.running = False
+        
+        # Controle de jog contínuo
+        self.jogging = False
+        self.current_jog_command = None
         
     def connect(self, port=None, baudrate=115200):
         """
@@ -230,38 +145,80 @@ class GRBLCNCController:
             if port is None:
                 ports = [p.device for p in serial.tools.list_ports.comports()]
                 if not ports:
+                    self.last_error = "Nenhuma porta serial encontrada"
                     return False
                 port = ports[0]
                 
-            serial_port = serial.Serial(port, baudrate, timeout=0.5)
-            time.sleep(0.5)
+            # Inicializa e configura o GrblStreamer
+            self.grbl = GrblStreamer(port=port, baud=baudrate)
             
-            # Inicializar GRBL
-            serial_port.write(b"\r\n\r\n")
-            time.sleep(0.5)
-            serial_port.flushInput()
+            # Configura callbacks para eventos do GrblStreamer
+            self._setup_callbacks()
             
-            # Configurar thread
-            self.comm_thread.set_serial_port(serial_port)
+            # Desbloqueia a máquina
+            self.send_command("$X", priority=True)
             
-            # Desbloquear e configurar
-            self.comm_thread.send_command("$X", priority=True)
+            # Inicia thread de consulta de status
+            self.running = True
+            self.status_thread = threading.Thread(target=self._status_polling_thread, daemon=True)
+            self.status_thread.start()
             
             self.is_connected = True
+            self.machine_status = "Idle"  # Estado inicial presumido
             return True
             
         except Exception as e:
             self.last_error = str(e)
             return False
+    
+    def _setup_callbacks(self):
+        """
+        Configura callbacks para eventos do GrblStreamer.
+        Esta função deve ser adaptada com base na API real da biblioteca.
+        """
+        # Configuração para receber atualizações de status da máquina
+        self.grbl.register_status_callback(self._on_status_update)
+        
+        # Configuração para receber respostas de comandos
+        self.grbl.register_response_callback(self._on_response_received)
+        
+        # Configuração para receber notificações de erro
+        self.grbl.register_error_callback(self._on_error_message)
             
+    def _status_polling_thread(self):
+        """Thread para consulta periódica de status."""
+        while self.running and self.is_connected:
+            try:
+                # Requisição de status ao GRBL a cada 200ms
+                if self.grbl:
+                    self.grbl.get_status()
+                time.sleep(0.2)
+            except Exception:
+                time.sleep(0.5)  # Maior intervalo em caso de erro
+                
     def disconnect(self):
         """Desconecta da máquina CNC."""
-        self.comm_thread.disconnect()
+        # Garante que o jog é parado antes de desconectar
+        if self.jogging:
+            self.stop_continuous_jog()
+            
+        self.running = False
+        if self.status_thread:
+            self.status_thread.join(1.0)  # Espera até 1 segundo pela thread
+            
+        if self.grbl:
+            try:
+                self.grbl.close()
+                self.grbl = None
+            except Exception as e:
+                self.last_error = str(e)
+                
         self.is_connected = False
+        self.machine_status = "Disconnected"
         
     def is_moving(self):
         """Verifica se a máquina está em movimento."""
-        return self.machine_status == "Run"
+        return self.machine_status == "Run" or self.machine_status == "Jog"
         
     def wait_for_idle(self, timeout=30):
         """
@@ -296,7 +253,7 @@ class GRBLCNCController:
             return False
             
         # Muda para modo absoluto
-        self.comm_thread.send_command("G90", priority=True)
+        self.send_command("G90", priority=True)
         
         # Constrói o comando
         command = "G1"
@@ -307,7 +264,7 @@ class GRBLCNCController:
         command += f" F{feed_rate}"
         
         # Envia o comando
-        self.comm_thread.send_command(command)
+        self.send_command(command)
         return True
         
     def move_relative(self, x=0, y=0, feed_rate=1000):
@@ -322,21 +279,82 @@ class GRBLCNCController:
             return False
             
         # Muda para modo relativo
-        self.comm_thread.send_command("G91", priority=True)
+        self.send_command("G91", priority=True)
         
         # Constrói o comando
         command = f"G1 X{x} Y{y} F{feed_rate}"
         
         # Envia o comando
-        self.comm_thread.send_command(command)
+        self.send_command(command)
         return True
+
+    def start_continuous_jog(self, axis, direction, feed_rate=1000):
+        """
+        Inicia um movimento jog contínuo em um eixo específico.
+        O movimento continua até que stop_continuous_jog seja chamado.
+        
+        Args:
+            axis: Eixo a mover ('X' ou 'Y')
+            direction: Direção do movimento (1 ou -1)
+            feed_rate: Velocidade em mm/min
+            
+        Returns:
+            bool: True se o comando foi iniciado com sucesso
+        """
+        if not self.is_connected or self.jogging:
+            return False
+            
+        # Para qualquer movimento anterior e garante modo relativo
+        self.emergency_stop()
+        time.sleep(0.1)  # Pequena pausa para garantir que o GRBL processou o comando de parada
+        self.send_command("~", priority=True)  # Retoma após parada
+        self.send_command("G91", priority=True)  # Modo relativo
+        
+        # Em GRBL 1.1, podemos usar o comando de jog para movimento contínuo
+        # A sintaxe é: $J=G91 X[dist] Y[dist] F[feed]
+        distance = 1000 * direction  # Distância grande para simular movimento contínuo
+        
+        if axis.upper() == 'X':
+            jog_command = f"$J=G91 X{distance} F{feed_rate}"
+        else:  # assume Y
+            jog_command = f"$J=G91 Y{distance} F{feed_rate}"
+            
+        self.jogging = True
+        self.current_jog_command = jog_command
+        
+        # Envia comando de jog com máxima prioridade
+        success = self.send_command(jog_command, priority=True)
+        
+        return success
+        
+    def stop_continuous_jog(self):
+        """
+        Para o movimento jog contínuo atual.
+        
+        Returns:
+            bool: True se o comando foi enviado com sucesso
+        """
+        if not self.is_connected or not self.jogging:
+            return False
+            
+        # O comando para cancelar jog no GRBL é o feed cancel (!)
+        success = self.send_command("!", priority=True)
+        
+        # Após um breve intervalo, envia comando de retomada para liberar a máquina
+        time.sleep(0.1)
+        self.send_command("~", priority=True)
+        
+        self.jogging = False
+        self.current_jog_command = None
+        
+        return success
         
     def home(self):
         """Envia a máquina para a posição home."""
         if not self.is_connected:
             return False
             
-        self.comm_thread.send_command("$H")
+        self.send_command("$H")
         return True
         
     def set_zero(self):
@@ -344,7 +362,7 @@ class GRBLCNCController:
         if not self.is_connected:
             return False
             
-        self.comm_thread.send_command("G92 X0 Y0")
+        self.send_command("G92 X0 Y0")
         return True
         
     def unlock(self):
@@ -352,7 +370,7 @@ class GRBLCNCController:
         if not self.is_connected:
             return False
             
-        self.comm_thread.send_command("$X", priority=True)
+        self.send_command("$X", priority=True)
         return True
         
     def emergency_stop(self):
@@ -360,7 +378,8 @@ class GRBLCNCController:
         if not self.is_connected:
             return False
             
-        self.comm_thread.send_command("!", priority=True)
+        self.grbl.send_realtime_command("!")
+        self.jogging = False  # Atualiza o estado de jog
         return True
         
     def send_command(self, command, priority=False):
@@ -371,25 +390,59 @@ class GRBLCNCController:
             command: Comando G-code
             priority: True para enviar com prioridade
         """
-        if not self.is_connected:
+        if not self.is_connected or not self.grbl:
             return False
             
-        self.comm_thread.send_command(command, priority)
-        return True
-        
+        try:
+            # Comandos de controle realtime (!, ~, ?) são tratados especialmente
+            if command in ["!", "~", "?"]:
+                self.grbl.send_realtime_command(command)
+            # Comandos prioritários são enviados com prioridade
+            elif priority:
+                self.grbl.send_priority_command(command)
+            # Comandos normais
+            else:
+                self.grbl.send_gcode(command)
+            return True
+        except Exception as e:
+            self.last_error = str(e)
+            self.error_message.emit(str(e))
+            return False
+            
     def _on_response_received(self, response):
         """Callback quando uma resposta é recebida."""
         self.last_response = response
+        self.response_received.emit(response)
         
-    def _on_status_update(self, status):
-        """Callback quando o status é atualizado."""
-        if status.startswith('<') and '|' in status:
-            self.machine_status = status[1:status.find('|')]
+    def _on_status_update(self, status_data):
+        """
+        Callback quando o status da máquina é atualizado.
         
-    def _on_position_update(self, position):
-        """Callback quando a posição é atualizada."""
-        self.current_position = position
+        Args:
+            status_data: Dados de status do GrblStreamer
+        """
+        # Processa os dados de status recebidos do GrblStreamer
+        # A estrutura exata depende da implementação da biblioteca
+        
+        # Extrai o estado da máquina do status
+        state = status_data.get('state', 'Unknown')
+        self.machine_status = state
+        
+        # Extrai a posição
+        position = status_data.get('position', {})
+        if position:
+            self.current_position = {
+                'x': position.get('x', 0),
+                'y': position.get('y', 0),
+                'z': position.get('z', 0)
+            }
+            self.position_update.emit(self.current_position)
+        
+        # Formata os dados para manter compatibilidade com código existente
+        status_string = f"<{state}|MPos:{self.current_position['x']:.3f},{self.current_position['y']:.3f},{self.current_position['z']:.3f}>"
+        self.status_update.emit(status_string)
         
     def _on_error_message(self, error):
         """Callback quando ocorre um erro."""
         self.last_error = error
+        self.error_message.emit(error)

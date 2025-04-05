@@ -1,0 +1,9 @@
+aoi_lib/
+├── __init__.py                 # Torna a pasta um pacote Python
+├── cnc_controller.py           # Classes para controle da CNC
+├── camera_controller.py        # Classes para controle da câmera
+├── position_manager.py         # Classes para gerenciamento de posições
+├── aoi_controller.py           # Classe principal integradora (CNCAOIController)
+└── utils/
+    ├── __init__.py             # Subpacote para utilitários
+    └── config_manager.py       # Utilitários para configuração
