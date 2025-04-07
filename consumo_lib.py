@@ -10,6 +10,7 @@ from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QImage, QFont
 
 from aoi_lib import CNCAOIController, InspectionPosition
+from grbl_streamer import GrblStreamer
 
 class ImageViewerWidget(QWidget):
     """Widget para exibir imagens capturadas pela câmera"""
@@ -152,18 +153,372 @@ class SequenceControlWidget(QWidget):
         # Grupo de arquivo
         file_group = QGroupBox("Salvar/Carregar")
         file_layout = QVBoxLayout()
-        
-        self.save_btn = QPushButton("Salvar Programa")
-        self.load_btn = QPushButton("Carregar Programa")
-        
+        self.save_btn = QPushButton("Salvar Programa (JSON)")
+        self.load_btn = QPushButton("Carregar Programa (JSON)")
+        self.save_gcode_btn = QPushButton("Exportar para G-CODE")
+        self.load_gcode_btn = QPushButton("Importar de G-CODE")
         file_layout.addWidget(self.save_btn)
         file_layout.addWidget(self.load_btn)
+        file_layout.addWidget(self.save_gcode_btn)
+        file_layout.addWidget(self.load_gcode_btn)
         
         file_group.setLayout(file_layout)
         
         self.layout.addWidget(sequence_group)
         self.layout.addWidget(file_group)
         self.layout.addStretch()
+
+class PositionRegistryWidget(QWidget):
+    """Widget for showing registered positions"""
+    def __init__(self, controller, parent=None):
+        super().__init__(parent)
+        self.controller = controller
+        self.positions = []  # List of registered positions
+        self.setup_ui()
+        
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Title
+        title_label = QLabel("Registered Positions")
+        title_font = QFont()
+        title_font.setBold(True)
+        title_label.setFont(title_font)
+        layout.addWidget(title_label)
+        
+        # Registered positions table
+        self.positions_table = QTableWidget(0, 3)
+        self.positions_table.setHorizontalHeaderLabels(["Name", "X (mm)", "Y (mm)"])
+        self.positions_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        layout.addWidget(self.positions_table)
+        
+        # Buttons
+        buttons_layout = QHBoxLayout()
+        
+        self.delete_button = QPushButton("Delete Selected")
+        self.delete_button.clicked.connect(self.delete_position)
+        
+        self.create_sequence_btn = QPushButton("Create Sequence")
+        
+        buttons_layout.addWidget(self.delete_button)
+        buttons_layout.addWidget(self.create_sequence_btn)
+        
+        layout.addLayout(buttons_layout)
+        
+    def add_position(self, name, x, y, image=None):
+        """Add a position to the registry"""
+        # Create position object
+        position = {
+            'name': name,
+            'x': x,
+            'y': y,
+            'image': image,
+        }
+        
+        # Add to internal list
+        self.positions.append(position)
+        
+        # Add to table
+        row = self.positions_table.rowCount()
+        self.positions_table.insertRow(row)
+        self.positions_table.setItem(row, 0, QTableWidgetItem(name))
+        self.positions_table.setItem(row, 1, QTableWidgetItem(f"{x:.3f}"))
+        self.positions_table.setItem(row, 2, QTableWidgetItem(f"{y:.3f}"))
+        
+    def delete_position(self):
+        """Delete selected position"""
+        selected_rows = self.positions_table.selectedItems()
+        if not selected_rows:
+            return
+            
+        row = selected_rows[0].row()
+        if row >= 0 and row < len(self.positions):
+            del self.positions[row]
+            self.positions_table.removeRow(row)
+            
+    def clear_positions(self):
+        """Clear all positions"""
+        self.positions.clear()
+        while self.positions_table.rowCount() > 0:
+            self.positions_table.removeRow(0)
+
+class CameraPreviewWidget(QWidget):
+    """Widget for displaying camera preview and capturing images"""
+    image_captured = pyqtSignal(object, str)  # Emits the captured image and position name
+    
+    def __init__(self, controller, parent=None):
+        super().__init__(parent)
+        self.controller = controller
+        self.current_image = None
+        self.preview_timer = QTimer(self)
+        self.preview_timer.timeout.connect(self.update_preview)
+        self.setup_ui()
+        
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Preview area
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.image_label.setText("Camera Preview")
+        self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
+        self.image_label.setMinimumSize(400, 300)
+        
+        # Camera controls
+        controls_layout = QHBoxLayout()
+        
+        self.start_preview_btn = QPushButton("Start Preview")
+        self.start_preview_btn.clicked.connect(self.start_preview)
+        
+        self.stop_preview_btn = QPushButton("Stop Preview")
+        self.stop_preview_btn.clicked.connect(self.stop_preview)
+        self.stop_preview_btn.setEnabled(False)
+        
+        controls_layout.addWidget(self.start_preview_btn)
+        controls_layout.addWidget(self.stop_preview_btn)
+        
+        # Position capture layout
+        capture_layout = QHBoxLayout()
+        
+        self.position_name = QLineEdit()
+        self.position_name.setPlaceholderText("Position Name")
+        
+        self.capture_button = QPushButton("Capture Image & Register Position")
+        self.capture_button.clicked.connect(self.capture_image)
+        
+        capture_layout.addWidget(self.position_name)
+        capture_layout.addWidget(self.capture_button)
+        
+        layout.addWidget(self.image_label)
+        layout.addLayout(controls_layout)
+        layout.addLayout(capture_layout)
+        
+    def start_preview(self):
+        """Start camera preview"""
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Error", "Camera not connected")
+            return
+            
+        self.preview_timer.start(100)  # Update every 100ms
+        self.start_preview_btn.setEnabled(False)
+        self.stop_preview_btn.setEnabled(True)
+        
+    def stop_preview(self):
+        """Stop camera preview"""
+        self.preview_timer.stop()
+        self.start_preview_btn.setEnabled(True)
+        self.stop_preview_btn.setEnabled(False)
+        
+    def update_preview(self):
+        """Update the camera preview"""
+        try:
+            image = self.controller.camera.capture()
+            if image is not None:
+                self.display_image(image)
+                self.current_image = image
+        except Exception as e:
+            print(f"Error updating preview: {e}")
+            self.stop_preview()
+            
+    def capture_image(self):
+        """Capture an image and emit signal with position name"""
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Error", "Camera not connected")
+            return
+            
+        position_name = self.position_name.text()
+        if not position_name:
+            QMessageBox.warning(self, "Error", "Please enter a position name")
+            return
+            
+        try:
+            image = self.controller.camera.capture()
+            if image is not None:
+                self.display_image(image)
+                self.current_image = image
+                self.image_captured.emit(image, position_name)
+                self.position_name.clear()
+            else:
+                QMessageBox.warning(self, "Error", "Failed to capture image")
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Capture error: {e}")
+            
+    def display_image(self, image):
+        """Display an image in the preview area"""
+        if image is None:
+            return
+            
+        h, w, c = image.shape
+        bytes_per_line = 3 * w
+        q_img = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
+        pixmap = QPixmap.fromImage(q_img)
+        
+        # Scale if needed
+        if pixmap.width() > 400 or pixmap.height() > 300:
+            pixmap = pixmap.scaled(400, 300, Qt.AspectRatioMode.KeepAspectRatio)
+            
+        self.image_label.setPixmap(pixmap)
+
+class MovementControlWidget(QWidget):
+    """Widget for controlling CNC movement (jog)"""
+    def __init__(self, controller, parent=None):
+        super().__init__(parent)
+        self.controller = controller
+        self.setup_ui()
+        
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Group box for movement controls
+        movement_group = QGroupBox("Movement Controls")
+        movement_layout = QGridLayout()
+        
+        # Directional control buttons
+        self.up_button = QPushButton("↑")
+        self.down_button = QPushButton("↓")
+        self.left_button = QPushButton("←")
+        self.right_button = QPushButton("→")
+        
+        # Style the buttons
+        for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
+            btn.setMinimumSize(50, 50)
+            font = QFont()
+            font.setBold(True)
+            font.setPointSize(16)
+            btn.setFont(font)
+        
+        # Connect press/release events for continuous movement
+        self.up_button.pressed.connect(lambda: self.start_movement("Y", 1))
+        self.up_button.released.connect(self.stop_movement)
+        self.down_button.pressed.connect(lambda: self.start_movement("Y", -1))
+        self.down_button.released.connect(self.stop_movement)
+        self.left_button.pressed.connect(lambda: self.start_movement("X", -1))
+        self.left_button.released.connect(self.stop_movement)
+        self.right_button.pressed.connect(lambda: self.start_movement("X", 1))
+        self.right_button.released.connect(self.stop_movement)
+        
+        # Add buttons to grid
+        movement_layout.addWidget(self.up_button, 0, 1)
+        movement_layout.addWidget(self.left_button, 1, 0)
+        movement_layout.addWidget(self.right_button, 1, 2)
+        movement_layout.addWidget(self.down_button, 2, 1)
+        
+        # Step size and feed rate controls
+        step_layout = QHBoxLayout()
+        step_layout.addWidget(QLabel("Step Size:"))
+        self.step_size = QLineEdit("1.0")
+        step_layout.addWidget(self.step_size)
+        step_layout.addWidget(QLabel("mm"))
+        
+        feed_layout = QHBoxLayout()
+        feed_layout.addWidget(QLabel("Feed Rate:"))
+        self.feed_rate = QLineEdit("1000")
+        feed_layout.addWidget(self.feed_rate)
+        feed_layout.addWidget(QLabel("mm/min"))
+        
+        # Add step and feed rate controls
+        movement_layout.addLayout(step_layout, 3, 0, 1, 3)
+        movement_layout.addLayout(feed_layout, 4, 0, 1, 3)
+        
+        # Movement mode (G90/G91)
+        mode_layout = QHBoxLayout()
+        self.mode_absolute = QPushButton("Passo a Passo (G90)")
+        self.mode_absolute.setCheckable(True)
+        self.mode_absolute.clicked.connect(lambda: self.set_motion_mode("G90"))
+        
+        self.mode_relative = QPushButton("Contínuo (G91)")
+        self.mode_relative.setCheckable(True)
+        self.mode_relative.setChecked(True)  # Default to relative mode
+        self.mode_relative.clicked.connect(lambda: self.set_motion_mode("G91"))
+        
+        mode_layout.addWidget(self.mode_absolute)
+        mode_layout.addWidget(self.mode_relative)
+        movement_layout.addLayout(mode_layout, 5, 0, 1, 3)
+        
+        movement_group.setLayout(movement_layout)
+        layout.addWidget(movement_group)
+        
+    def start_movement(self, axis, direction):
+        """Inicia movimento no eixo e direção especificados"""
+        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Error", "CNC not connected")
+            return
+            
+        try:
+            step_size = float(self.step_size.text())
+            feed_rate = float(self.feed_rate.text())
+            
+            # Verifica o modo atual
+            is_absolute_mode = self.mode_absolute.isChecked()
+            
+            if is_absolute_mode:
+                # Modo passo a passo - envia comando de passo único
+                
+                # Primeiro garante que estamos em modo relativo para o movimento
+                self.controller.cnc.grbl.send_immediately("G91")
+                
+                # Cria comando de movimento com distância especificada
+                distance = step_size * direction
+                if axis.upper() == 'X':
+                    command = f"G0 X{distance} F{feed_rate}"
+                else:  # Y
+                    command = f"G0 Y{distance} F{feed_rate}"
+                    
+                # Envia o comando
+                self.controller.cnc.grbl.send_immediately(command)
+                
+                # Retorna ao modo absoluto após o movimento
+                QTimer.singleShot(100, lambda: self.controller.cnc.grbl.send_immediately("G90"))
+                
+            else:
+                # Modo contínuo - usa comando $J=
+                
+                # Calcula uma distância grande para movimento contínuo
+                distance = 100 * direction
+                
+                # Cria comando de jog
+                if axis.upper() == 'X':
+                    command = f"$J=G91 X{distance} F{feed_rate}"
+                else:  # Y
+                    command = f"$J=G91 Y{distance} F{feed_rate}"
+                    
+                # Envia o comando
+                self.controller.cnc.grbl.send_immediately(command)
+                
+        except Exception as e:
+            QMessageBox.warning(self, "Error", f"Error starting movement: {str(e)}")
+            
+    def stop_movement(self):
+        """Para o movimento"""
+        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
+            return
+            
+        try:
+            # Envia comando de feed hold para parar movimento
+            self.controller.cnc.grbl.send_immediately("!")
+            
+            # Após uma breve pausa, envia comando resume para liberar o estado hold
+            QTimer.singleShot(100, lambda: self.controller.cnc.grbl.send_immediately("~"))
+            
+        except Exception as e:
+            print(f"Error stopping movement: {e}")
+            
+    def set_motion_mode(self, mode):
+        """Set the motion mode (G90/G91)"""
+        if not self.controller.cnc.is_connected:
+            return
+            
+        if mode == "G90":
+            self.mode_absolute.setChecked(True)
+            self.mode_relative.setChecked(False)
+        else:
+            self.mode_absolute.setChecked(False)
+            self.mode_relative.setChecked(True)
+            
+        try:
+            self.controller.cnc.send_command(mode)
+        except Exception as e:
+            print(f"Error setting motion mode: {e}")
 
 class AOIControllerApp(QMainWindow):
     """Aplicação principal para controle do sistema AOI"""
@@ -271,6 +626,8 @@ class AOIControllerApp(QMainWindow):
         self.sequence_widget.stop_sequence_btn.clicked.connect(self.stop_sequence)
         self.sequence_widget.save_btn.clicked.connect(self.save_program)
         self.sequence_widget.load_btn.clicked.connect(self.load_program)
+        self.sequence_widget.save_gcode_btn.clicked.connect(self.save_gcode)
+        self.sequence_widget.load_gcode_btn.clicked.connect(self.load_gcode)
         
         left_layout.addWidget(self.sequence_widget)
         
@@ -294,6 +651,35 @@ class AOIControllerApp(QMainWindow):
         
         right_panel.addTab(results_widget, "Resultados")
         
+        # MOVER PARA AQUI: Adicionar a aba de Câmera & Movimento (após definir right_panel)
+        # Tab para Camera & Movement
+        camera_movement_tab = QWidget()
+        camera_movement_layout = QHBoxLayout(camera_movement_tab)
+        
+        # Left side: controls and position registry
+        cm_left_panel = QWidget()
+        cm_left_layout = QVBoxLayout(cm_left_panel)
+        
+        # Movement controls 
+        self.movement_widget = MovementControlWidget(self.controller)
+        cm_left_layout.addWidget(self.movement_widget)
+        
+        # Position registry
+        self.position_registry = PositionRegistryWidget(self.controller)
+        self.position_registry.create_sequence_btn.clicked.connect(self.create_sequence_from_registry)
+        cm_left_layout.addWidget(self.position_registry)
+        
+        # Right side: camera preview
+        self.camera_preview = CameraPreviewWidget(self.controller)
+        self.camera_preview.image_captured.connect(self.on_image_captured)
+        
+        # Add left and right panels to the camera movement tab
+        camera_movement_layout.addWidget(cm_left_panel, 1)
+        camera_movement_layout.addWidget(self.camera_preview, 2)
+        
+        # Agora é seguro adicionar a nova aba ao right_panel que já foi definido
+        right_panel.addTab(camera_movement_tab, "Câmera & Movimento")
+        
         # Adiciona painéis ao splitter
         splitter.addWidget(left_panel)
         splitter.addWidget(right_panel)
@@ -303,6 +689,149 @@ class AOIControllerApp(QMainWindow):
         
         # Barra de status
         self.statusBar().showMessage("Pronto para conectar")
+
+    def save_gcode(self):
+        """Salva a sequência atual como arquivo G-CODE"""
+        if not self.current_sequence:
+            QMessageBox.warning(self, "Aviso", "Crie uma sequência primeiro")
+            return
+            
+        from aoi_lib.gcode_manager import GCodeManager
+        gcode_manager = GCodeManager()
+        
+        filename, _ = QFileDialog.getSaveFileName(
+            self, "Salvar como G-CODE", "", "Arquivos G-CODE (*.gcode *.nc *.ngc)"
+        )
+        
+        if filename:
+            if not filename.lower().endswith(('.gcode', '.nc', '.ngc')):
+                filename += '.gcode'
+                
+            if gcode_manager.save_gcode_to_file(self.current_sequence, filename):
+                self.statusBar().showMessage(f"G-CODE salvo em {filename}")
+            else:
+                QMessageBox.critical(self, "Erro", "Falha ao salvar o arquivo G-CODE")
+
+    def on_image_captured(self, image, position_name):
+        """Handle captured image and register position"""
+        # Display in image viewer
+        self.image_viewer.display_image(image, f"Image: {position_name}")
+        
+        # Get current position
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Error", "CNC not connected")
+            return
+            
+        current_pos = self.controller.cnc.get_current_position()
+        
+        # Register position with image
+        self.position_registry.add_position(
+            position_name, 
+            current_pos['x'], 
+            current_pos['y'], 
+            image
+        )
+        
+        self.statusBar().showMessage(f"Position '{position_name}' registered at X:{current_pos['x']:.3f}, Y:{current_pos['y']:.3f}")
+
+    def create_sequence_from_registry(self):
+        """Create a sequence from registered positions"""
+        if not self.position_registry.positions:
+            QMessageBox.warning(self, "Warning", "No positions registered")
+            return
+            
+        # Get sequence name
+        sequence_name = self.sequence_widget.sequence_name.text()
+        if not sequence_name:
+            QMessageBox.warning(self, "Warning", "Please enter a sequence name")
+            return
+            
+        # Clear existing positions in the position list widget
+        self.position_list_widget.clear_positions()
+        
+        # Create positions for the sequence
+        positions = []
+        for pos in self.position_registry.positions:
+            # Create position object with camera parameters
+            camera_params = {"has_image": pos['image'] is not None}
+            
+            inspection_pos = InspectionPosition(
+                pos['name'], 
+                pos['x'], 
+                pos['y'],
+                camera_params
+            )
+            positions.append(inspection_pos)
+            
+            # Also add to the position list widget
+            self.position_list_widget.add_position(inspection_pos)
+            
+        # Create the sequence
+        self.current_sequence = self.controller.create_sequence(sequence_name, positions)
+        
+        # Update UI
+        self.sequence_widget.sequence_status.setText(f"Created: {len(positions)} positions")
+        self.statusBar().showMessage(f"Sequence '{sequence_name}' created with {len(positions)} positions")
+        
+        # Ask if user wants to save as G-CODE
+        reply = QMessageBox.question(
+            self, 
+            "Save G-CODE", 
+            "Do you want to save this sequence as G-CODE?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            self.save_gcode()
+
+    def load_gcode(self):
+        """Carrega uma sequência a partir de um arquivo G-CODE"""
+        from aoi_lib.gcode_manager import GCodeManager
+        gcode_manager = GCodeManager()
+        
+        filename, _ = QFileDialog.getOpenFileName(
+            self, "Abrir G-CODE", "", "Arquivos G-CODE (*.gcode *.nc *.ngc)"
+        )
+        
+        if filename:
+            # Carrega o G-CODE
+            result = gcode_manager.read_gcode_file(filename)
+            
+            if result:
+                # Limpa posições atuais
+                self.position_list_widget.clear_positions()
+                
+                # Cria sequência a partir dos dados do G-CODE
+                positions = []
+                for pos_data in result['positions']:
+                    # Cria objeto de posição
+                    position = InspectionPosition(
+                        pos_data['name'], 
+                        pos_data['x'], 
+                        pos_data['y'],
+                        pos_data['camera_params']
+                    )
+                    
+                    # Adiciona à lista visual
+                    self.position_list_widget.add_position(position)
+                    
+                    # Adiciona à lista interna
+                    positions.append(position)
+                
+                # Cria a sequência
+                self.current_sequence = self.controller.create_sequence(
+                    result['sequence_name'], positions
+                )
+                
+                # Atualiza interface
+                self.sequence_widget.sequence_name.setText(result['sequence_name'])
+                self.sequence_widget.sequence_status.setText(
+                    f"Carregada do G-CODE: {len(positions)} posições"
+                )
+                
+                self.statusBar().showMessage(f"G-CODE carregado de {filename}")
+            else:
+                QMessageBox.critical(self, "Erro", "Falha ao carregar o arquivo G-CODE")
         
     def refresh_ports(self):
         """Atualiza a lista de portas seriais disponíveis"""
@@ -323,13 +852,21 @@ class AOIControllerApp(QMainWindow):
             self.statusBar().showMessage("Nenhuma porta serial encontrada")
             
     def connect_cnc(self):
-        """Conecta à máquina CNC"""
-        if self.controller.cnc.is_connected:
+        """Conecta à máquina CNC usando a biblioteca grbl-streamer"""
+        if hasattr(self.controller.cnc, 'is_connected') and self.controller.cnc.is_connected:
             # Desconectar
-            self.controller.cnc.disconnect()
-            self.connect_cnc_btn.setText("Conectar CNC")
-            self.cnc_status.setText("Desconectado")
-            self.statusBar().showMessage("CNC desconectada")
+            try:
+                if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
+                    self.controller.cnc.grbl.poll_stop()
+                    self.controller.cnc.grbl.disconnect()
+                    self.controller.cnc.grbl = None
+                    
+                self.controller.cnc.is_connected = False
+                self.connect_cnc_btn.setText("Conectar CNC")
+                self.cnc_status.setText("Desconectado")
+                self.statusBar().showMessage("CNC desconectada")
+            except Exception as e:
+                self.statusBar().showMessage(f"Erro ao desconectar: {str(e)}")
         else:
             # Conectar
             port = self.cnc_port_combo.currentText()
@@ -339,12 +876,55 @@ class AOIControllerApp(QMainWindow):
                 
             self.statusBar().showMessage(f"Conectando à CNC na porta {port}...")
             
-            if self.controller.connect_cnc(port):
+            try:
+                # Define função de callback para eventos do GrblStreamer
+                def grbl_callback(eventstring, *data):
+                    if eventstring == "on_stateupdate":
+                        if len(data) >= 3:
+                            state = data[0]
+                            mpos = data[1]
+                            wpos = data[2]
+                            
+                            # Atualiza estado da máquina
+                            self.controller.cnc.machine_status = state
+                            
+                            # Atualiza posição
+                            if mpos and len(mpos) >= 3:
+                                self.controller.cnc.current_position = {
+                                    'x': mpos[0],
+                                    'y': mpos[1],
+                                    'z': mpos[2] if len(mpos) > 2 else 0
+                                }
+                
+                # CORREÇÃO: Inicializa o GrblStreamer com callback, SEM passar 'port' ao construtor
+                self.controller.cnc.grbl = GrblStreamer(grbl_callback)
+                
+                # Configura logging (opcional)
+                self.controller.cnc.grbl.setup_logging()
+                
+                # Conecta à porta usando o método correto cnect() (não connect)
+                self.controller.cnc.grbl.cnect(port, 115200)
+                
+                # Desbloqueia a máquina
+                self.controller.cnc.grbl.send_immediately("$X")
+                
+                # Inicia em modo relativo para jog
+                self.controller.cnc.grbl.send_immediately("G91")
+                
+                # Inicia verificação de status
+                self.controller.cnc.grbl.poll_start()
+                
+                # Atualiza o estado da conexão
+                self.controller.cnc.is_connected = True
+                self.controller.cnc.machine_status = "Idle"  # Estado inicial presumido
+                
+                # Atualiza UI
                 self.connect_cnc_btn.setText("Desconectar CNC")
                 self.cnc_status.setText("Conectado")
                 self.statusBar().showMessage(f"CNC conectada na porta {port}")
-            else:
-                QMessageBox.critical(self, "Erro", f"Falha ao conectar à CNC: {self.controller.cnc.last_error}")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "Erro", f"Falha ao conectar a CNC: {str(e)}")
                 
     def connect_camera(self):
         """Conecta à câmera"""
@@ -438,43 +1018,59 @@ class AOIControllerApp(QMainWindow):
         self.sequence_widget.sequence_status.setText(f"Criada: {len(positions)} posições")
         
     def run_sequence(self):
-        """Executa a sequência atual"""
+        """Executes the current sequence"""
         if not self.current_sequence:
-            QMessageBox.warning(self, "Aviso", "Crie uma sequência primeiro")
+            QMessageBox.warning(self, "Warning", "Create a sequence first")
             return
             
         if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Aviso", "CNC não conectada")
+            QMessageBox.warning(self, "Warning", "CNC not connected")
             return
             
         if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
-            QMessageBox.warning(self, "Aviso", "Câmera não conectada")
+            QMessageBox.warning(self, "Warning", "Camera not connected")
             return
             
-        # Limpa resultados anteriores
+        # Clear previous results
         self.results_table.setRowCount(0)
         
-        # Configura UI para execução
+        # Configure UI for execution
         self.is_running_sequence = True
         self.sequence_widget.run_sequence_btn.setEnabled(False)
         self.sequence_widget.stop_sequence_btn.setEnabled(True)
-        self.sequence_widget.sequence_status.setText("Executando...")
+        self.sequence_widget.sequence_status.setText("Executing...")
         
-        # Inicia a execução
+        # Start execution
         try:
-            self.statusBar().showMessage(f"Executando sequência '{self.current_sequence.name}'...")
+            self.statusBar().showMessage(f"Executing sequence '{self.current_sequence.name}'...")
             
-            # Nesta versão de GUI, usaremos um thread separado para executar a sequência
+            # Use a thread to run the sequence
             self.run_thread = SequenceRunnerThread(self.controller, self.current_sequence.name)
-            self.run_thread.image_captured.connect(self.on_image_captured)
+            self.run_thread.image_captured.connect(self.on_sequence_image_captured)
             self.run_thread.sequence_completed.connect(self.on_sequence_completed)
             self.run_thread.sequence_error.connect(self.on_sequence_error)
             self.run_thread.start()
             
         except Exception as e:
-            self.statusBar().showMessage(f"Erro ao executar sequência: {str(e)}")
-            self.sequence_widget.sequence_status.setText("Erro")
+            self.statusBar().showMessage(f"Error executing sequence: {str(e)}")
+            self.sequence_widget.sequence_status.setText("Error")
             self.on_sequence_completed()
+
+    def on_sequence_image_captured(self, result):
+        """Called when an image is captured during sequence execution"""
+        position = result["position"]
+        image = result["image"]
+        timestamp = result["timestamp"]
+        
+        # Display the image
+        self.image_viewer.display_image(image, f"Position: {position.name} ({position.x:.3f}, {position.y:.3f})")
+        
+        # Add to results table
+        row = self.results_table.rowCount()
+        self.results_table.insertRow(row)
+        self.results_table.setItem(row, 0, QTableWidgetItem(position.name))
+        self.results_table.setItem(row, 1, QTableWidgetItem(time.strftime("%H:%M:%S", time.localtime(timestamp))))
+        self.results_table.setItem(row, 2, QTableWidgetItem("Captured"))
             
     def stop_sequence(self):
         """Para a execução da sequência atual"""

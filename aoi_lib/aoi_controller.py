@@ -28,6 +28,42 @@ class CNCAOIController:
         """Conecta à máquina CNC."""
         return self.cnc.connect(port, baudrate)
     
+    def run_gcode_file(self, filename, callback=None):
+        """
+        Executa um arquivo G-CODE diretamente
+        
+        Args:
+            filename: Caminho do arquivo G-CODE
+            callback: Função chamada após cada captura
+        """
+        from aoi_lib.gcode_manager import GCodeManager
+        gcode_manager = GCodeManager()
+        
+        # Carrega o G-CODE para uma sequência temporária
+        gcode_data = gcode_manager.read_gcode_file(filename)
+        
+        if not gcode_data:
+            raise ValueError(f"Erro ao carregar arquivo G-CODE: {filename}")
+        
+        # Cria posições a partir dos dados do G-CODE
+        positions = []
+        for pos_data in gcode_data['positions']:
+            position = InspectionPosition(
+                pos_data['name'], 
+                pos_data['x'], 
+                pos_data['y'],
+                pos_data['camera_params']
+            )
+            positions.append(position)
+        
+        # Cria sequência temporária
+        temp_sequence = InspectionSequence(gcode_data['sequence_name'])
+        for pos in positions:
+            temp_sequence.add_position(pos)
+        
+        # Executa a sequência
+        return self.run_sequence(temp_sequence.name, callback)
+    
     def disconnect_cnc(self):
         """Desconecta da máquina CNC."""
         if self.cnc.is_connected:
