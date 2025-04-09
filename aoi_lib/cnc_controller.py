@@ -4,6 +4,11 @@ import serial.tools.list_ports
 import threading
 from grbl_streamer import GrblStreamer  # Importa a biblioteca grbl-streamer
 
+import logging
+# Se ainda não existir, defina um logger para esta classe:
+logger = logging.getLogger("GRBLCNCController")
+logger.setLevel(logging.DEBUG)
+
 class EventEmitter:
     """
     Sistema de eventos para comunicação assíncrona.
@@ -128,6 +133,7 @@ class GRBLCNCController:
         # Controle de jog contínuo
         self.jogging = False
         self.current_jog_command = None
+        self.steps_to_mm_factor = 1.0
         
     def connect(self, port=None, baudrate=115200):
         """
@@ -238,8 +244,14 @@ class GRBLCNCController:
         return True
         
     def get_current_position(self):
-        """Retorna a posição atual da máquina."""
-        return self.current_position.copy()
+        """
+        Retorna a posição atual do CNC.
+        Certifica-se de retornar uma cópia do dicionário para evitar alteração acidental.
+        """
+        logger.debug(f"get_current_position: Retornando posição atual: {self.current_position if hasattr(self, 'current_position') else 'desconhecida'}")
+        if hasattr(self, 'current_position'):
+            return self.current_position.copy()
+        return {'x': 0, 'y': 0, 'z': 0}
         
     def move_to_absolute_position(self, x=None, y=None, feed_rate=1000):
         """
@@ -415,31 +427,32 @@ class GRBLCNCController:
         self.response_received.emit(response)
         
     def _on_status_update(self, status_data):
-        """
-        Callback quando o status da máquina é atualizado.
+        """Callback quando o status da máquina é atualizado."""
+        logger.debug(">> _on_status_update chamado com status_data: %s", status_data)
         
-        Args:
-            status_data: Dados de status do GrblStreamer
-        """
-        # Processa os dados de status recebidos do GrblStreamer
-        # A estrutura exata depende da implementação da biblioteca
-        
-        # Extrai o estado da máquina do status
+        # Extrai o estado da máquina
         state = status_data.get('state', 'Unknown')
         self.machine_status = state
+        logger.debug("Estado da máquina extraído: %s", state)
         
-        # Extrai a posição
-        position = status_data.get('position', {})
+        # Extrai a posição (espera-se um dicionário com chaves 'x', 'y' e 'z')
+        position = status_data.get('position', None)
         if position:
-            self.current_position = {
+            new_position = {
                 'x': position.get('x', 0),
                 'y': position.get('y', 0),
                 'z': position.get('z', 0)
             }
+            logger.debug("Posição extraída: %s", new_position)
+            if new_position['x'] == 0 and new_position['y'] == 0:
+                logger.warning("As coordenadas X e Y continuam 0 mesmo após movimento. status_data recebido: %s", status_data)
+            self.current_position = new_position
             self.position_update.emit(self.current_position)
+        else:
+            logger.warning("status_data não contém a chave 'position': %s", status_data)
         
-        # Formata os dados para manter compatibilidade com código existente
         status_string = f"<{state}|MPos:{self.current_position['x']:.3f},{self.current_position['y']:.3f},{self.current_position['z']:.3f}>"
+        logger.debug("String de status formada: %s", status_string)
         self.status_update.emit(status_string)
         
     def _on_error_message(self, error):

@@ -286,13 +286,20 @@ class GRBLCommunicationThread(QThread):
                     'z': float(z)
                 }
                 
-                # Emite atualização apenas se a posição mudou significativamente (> 0.001mm)
-                if (abs(position['x'] - self.last_position['x']) > 0.001 or
+                # Verifica se houve mudança significativa na posição para log
+                position_changed = (
+                    abs(position['x'] - self.last_position['x']) > 0.001 or
                     abs(position['y'] - self.last_position['y']) > 0.001 or
-                    abs(position['z'] - self.last_position['z']) > 0.001):
-                    
-                    self.position_update.emit(position)
-                    self.last_position = position
+                    abs(position['z'] - self.last_position['z']) > 0.001
+                )
+                
+                # Se houve mudança significativa, registra no log
+                if position_changed:
+                    logger.info(f"POSIÇÃO ALTERADA: {self.last_position} → {position}")
+                
+                # Sempre emite a atualização e atualiza a última posição
+                self.position_update.emit(position)
+                self.last_position = position
         
         except Exception as e:
             logger.error(f"Erro ao analisar status: {e}", exc_info=True)

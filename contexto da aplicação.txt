@@ -5,51 +5,13 @@ Objetivo da aplicação:
 - A comunicação com o Arduino acontece via USB por comunicação serial.
 - Vamos usar como referência o firmaware GRBL para desenvolver nossas funcionalidades.
 - Como biblioteca principal deve ser usado a lib grbl-streamer que já possui funcionalidades bem implementadas e testadas.
+- implementação de sistema de calibração
 
 Implemnentação atual:
-- adicionar a funcionalidade de criação de programa.
-- implementar as funcionalidades de movimentação no arquivo consumo_lib.py.
-- criar uma rotina para guardar posições e captura de imagens usando a interface da aplicação.
-- durante o ciclo de start a operação deve ser algo como:
-	Usuário seleciona o "programa" (posições definidas pelo usuário para executar as ações de movimentação)
-	START (inicio do ciclo automático)
-		Mover para a posição do fiducial 1
-			inicia o movimento
-			 confirma a chagada na posição
-			sistema captura imagem
-			 confirma a captura da imagem
-		Mover para a posição do fiducial 2
-			inicia o movimento
-			 confirma a chagada na posição
-			sistema captura imagem
-			 confirma a captura da imagem
-		fazer a compensação das posições mecânicas em relação aos valores lidos nas imagens dos fiduciais.
-			processamento interno das imagens e cálculos necessários de posição e ângulo da imagem.
-		iniciar a captura das imagens da placa
-			captura do frame 1
-				inicia o movimento
-				 confirma a chagada na posição
-				sistema captura imagem
-				 confirma a captura da imagem
-			captura do frame 2
-				inicia o movimento
-				 confirma a chagada na posição
-				sistema captura imagem
-				 confirma a captura da imagem
-			captura do frame 3
-				inicia o movimento
-				 confirma a chagada na posição
-				sistema captura imagem
-				 confirma a captura da imagem
-			[...]
-			captura do frame n
-				inicia o movimento
-				 confirma a chagada na posição
-				sistema captura imagem
-				 confirma a captura da imagem
-		finaliza a etapa de captura das imagem
-		realiza os processos internos de inspeção de defeitos baseados nas imagens capturadas.
-		retorna o resultado da inspeção
-		se aprovado libera a placa e reinicia o ciclo
-		se reprovado exibe os erros e aguarda o julgamento do operador.
-		[maiores detalhes durante o decorrer do desenvolvimento]
+
+# correção do número referente a posição atual
+- o número exibido no deslocamento não condiz com o deslocamento realizado.
+- fisicamente o deslocamento medido no físico está correto o valor setado no campo "step size" é exatamente o registrado fisicamente quando clicado nas setas para fazer o deslocamento passo a passo.
+- mas o valor registrado nos campos x e y dentro de "posição atual" não está de acordo com o deslocamento.
+- quando é feito o primeiro movimento em x, por exemplo, o y recebe um valor como se tivesse sido movido sendo que ele não foi movido. o mesmo comportamento acontece se for movido o y inicialmente, o x recebe um valor como se tivesse sido movido mas não foi. esse comportamento acontece no primeiro movimento após iniciar a aplicação.
+

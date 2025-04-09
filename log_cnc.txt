@@ -1,22 +1,1129 @@
 PS C:\Users\sense\PycharmProjects\cnc_aoi> & c:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/consumo_lib.py
-Traceback (most recent call last):
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 678, in <module>
-    window = AOIControllerApp()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 189, in __init__
-    self.setup_ui()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 276, in setup_ui
-    self.sequence_widget = SequenceControlWidget()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 169, in __init__
-    self.save_gcode_btn.clicked.connect(self.save_gcode)
-AttributeError: 'SequenceControlWidget' object has no attribute 'save_gcode'. Did you mean: 'save_gcode_btn'?
-PS C:\Users\sense\PycharmProjects\cnc_aoi> & c:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/consumo_lib.py
-Traceback (most recent call last):
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 678, in <module>
-    window = AOIControllerApp()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 189, in __init__
-    self.setup_ui()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 276, in setup_ui
-    self.sequence_widget = SequenceControlWidget()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 169, in __init__
-    self.save_gcode_btn.clicked.connect(self.save_gcode)
-AttributeError: 'SequenceControlWidget' object has no attribute 'save_gcode'. Did you mean: 'save_gcode_btn'?
+2025-04-08 18:24:38,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:38,052 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:38,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:38,552 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:39,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:39,053 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:39,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:39,552 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:40,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:40,051 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:40,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:40,555 - consumo_lib - DEBUG - update_position_display: CNC não conectada.
+2025-04-08 18:24:40,780 - consumo_lib - DEBUG - CALLBACK: Evento 'on_settings_downloaded' recebido com data: ({130: {'val': '1000', 'cmt': 'width'}, 131: {'val': '1000', 'cmt': 'height'}},)
+2025-04-08 18:24:40,780 - consumo_lib - DEBUG - CALLBACK: Evento 'on_hash_stateupdate' recebido com data: ({'G54': (0, 0, 0), 'G55': (0, 0, 0), 'G56': (0, 0, 0), 'G57': (0, 0, 0), 'G58': (0, 0, 0), 'G59': (0, 0, 0), 'G28': (0, 0, 0), 'G30': (0, 0, 0), 'G92': (0, 0, 0), 'TLO': 0, 'PRB': (0, 0, 0)},)
+2025-04-08 18:24:40,781 - consumo_lib - DEBUG - CALLBACK: Evento 'on_gcode_parser_stateupdate' recebido com data: (['0', '54', '17', '21', '90', '94', '0', '0', '5', '0', '99', '0'],)
+2025-04-08 18:24:40,781 - consumo_lib - DEBUG - CONEXÃO: Conectando à porta COM8
+2025-04-08 18:24:40,781 - consumo_lib - DEBUG - CALLBACK: Evento 'on_log' recebido com data: (<LogRecord: GrblStreamer, 10, C:\Users\sense\PycharmProjects\cnc_aoi\.venv\lib\site-packages\grbl_streamer\__init__.py, 402, "mygrbl: Setting up interface on COM8">,)
+2025-04-08 18:24:40,781 - consumo_lib - DEBUG - CALLBACK: Evento 'on_log' recebido com data: (<LogRecord: GrblStreamer.interface, 20, C:\Users\sense\PycharmProjects\cnc_aoi\.venv\lib\site-packages\grbl_streamer\interface.py, 65, "%s: connecting to %s with baudrate %i">,)
+2025-04-08 18:24:40,784 - consumo_lib - DEBUG - CONEXÃO: Enviando comando de desbloqueio $X
+2025-04-08 18:24:40,784 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$X\n',)
+2025-04-08 18:24:40,784 - consumo_lib - DEBUG - CALLBACK: Comando enviado: $X
+
+2025-04-08 18:24:40,785 - consumo_lib - DEBUG - CONEXÃO: Configurando modo relativo G91
+2025-04-08 18:24:40,785 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:24:40,785 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:24:40,785 - consumo_lib - DEBUG - CONEXÃO: Iniciando polling de status
+2025-04-08 18:24:41,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:41,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:41,053 - consumo_lib - DEBUG - update_position_display: nenhuma posição anterior registrada.
+2025-04-08 18:24:41,556 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:41,556 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:41,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:42,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:42,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:42,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:42,328 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ("Grbl 1.1h ['$' for help]",)
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_job_completed' recebido com data: ()
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_feed_change' recebido com data: (None,)
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_progress_percent' recebido com data: (0,)
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_log' recebido com data: (<LogRecord: GrblStreamer, 10, C:\Users\sense\PycharmProjects\cnc_aoi\.venv\lib\site-packages\grbl_streamer\__init__.py, 953, "mygrbl: Grbl has booted!">,)  
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_boot' recebido com data: ()
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$$\n',)
+2025-04-08 18:24:42,329 - consumo_lib - DEBUG - CALLBACK: Comando enviado: $$
+
+2025-04-08 18:24:42,331 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$0=10',)
+2025-04-08 18:24:42,331 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$1=25',)
+2025-04-08 18:24:42,332 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$2=0',)
+2025-04-08 18:24:42,332 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$3=1',)
+2025-04-08 18:24:42,333 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$4=0',)
+2025-04-08 18:24:42,334 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$5=0',)
+2025-04-08 18:24:42,334 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$6=0',)
+2025-04-08 18:24:42,334 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$10=0',)
+2025-04-08 18:24:42,336 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$11=0.010',)
+2025-04-08 18:24:42,337 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$12=0.002',)
+2025-04-08 18:24:42,337 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$13=0',)
+2025-04-08 18:24:42,337 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$20=0',)
+2025-04-08 18:24:42,339 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$21=0',)
+2025-04-08 18:24:42,339 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$22=0',)
+2025-04-08 18:24:42,340 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$23=0',)
+2025-04-08 18:24:42,341 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$24=25.000',)
+2025-04-08 18:24:42,341 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$25=500.000',)
+2025-04-08 18:24:42,343 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$26=250',)
+2025-04-08 18:24:42,344 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$27=1.000',)
+2025-04-08 18:24:42,344 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$30=1000',)
+2025-04-08 18:24:42,345 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$31=0',)
+2025-04-08 18:24:42,345 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$32=0',)
+2025-04-08 18:24:42,346 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$100=40.000',)
+2025-04-08 18:24:42,347 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$101=40.000',)
+2025-04-08 18:24:42,349 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$102=250.000',)
+2025-04-08 18:24:42,350 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$110=500.000',)
+2025-04-08 18:24:42,352 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$111=500.000',)
+2025-04-08 18:24:42,353 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$112=500.000',)
+2025-04-08 18:24:42,354 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$120=10.000',)
+2025-04-08 18:24:42,354 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$121=10.000',)
+2025-04-08 18:24:42,355 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$122=10.000',)
+2025-04-08 18:24:42,357 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$130=200.000',)
+2025-04-08 18:24:42,358 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$131=200.000',)
+2025-04-08 18:24:42,359 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$132=200.000',)
+2025-04-08 18:24:42,359 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:24:42,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:42,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:42,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:43,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:43,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:43,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:43,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:43,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:43,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:44,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:44,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:44,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:44,556 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:44,556 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:44,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:45,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:45,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:45,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:45,556 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:45,556 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:45,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:46,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:46,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:46,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:46,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:46,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:46,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:47,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:47,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:47,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:47,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:47,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:47,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:48,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:48,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:48,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:48,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:48,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:48,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:48,914 - consumo_lib - INFO - CALIBRAÇÃO: Configurando steps/mm para 40.0
+2025-04-08 18:24:49,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:49,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:49,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:49,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:49,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:49,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:50,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:50,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:50,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:50,307 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$100=40.000\n',)
+2025-04-08 18:24:50,307 - consumo_lib - DEBUG - CALLBACK: Comando enviado: $100=40.000
+
+2025-04-08 18:24:50,309 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:24:50,408 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$101=40.000\n',)
+2025-04-08 18:24:50,408 - consumo_lib - DEBUG - CALLBACK: Comando enviado: $101=40.000
+
+2025-04-08 18:24:50,411 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:24:50,556 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:50,556 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:50,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:51,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:51,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:51,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:51,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:51,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:51,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:52,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:52,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:52,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:52,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:52,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:52,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:53,056 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:53,056 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:53,056 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:53,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:53,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:53,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:54,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:54,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:54,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:54,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:54,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:54,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:55,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:55,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:55,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:55,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:55,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:55,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:56,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:56,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:56,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:56,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:56,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:56,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:57,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:57,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:57,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:57,557 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:57,557 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:57,557 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:58,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:58,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:58,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:58,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:58,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:58,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:59,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:59,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:59,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:24:59,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:24:59,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:24:59,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:00,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:00,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:00,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:00,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:00,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:00,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:01,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:01,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:01,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:01,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:01,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:01,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:02,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:02,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:02,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:02,216 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:02,216 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:02,216 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:02,216 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:02,216 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:02,216 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:02,217 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:02,217 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:02,217 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:02,218 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:02,266 - consumo_lib - DEBUG - CALLBACK: Evento 'on_feed_change' recebido com data: (1000.0,)
+2025-04-08 18:25:02,267 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:02,267 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:02,270 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:02,318 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:02,318 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:02,320 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:02,363 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:02,363 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:02,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:02,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-04-08 18:25:02,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 0, 'y': 0, 'z': 0}      
+2025-04-08 18:25:02,718 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=0, Atual=0
+2025-04-08 18:25:02,718 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:02,718 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:02,718 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:02,718 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:02,725 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.075, 0.0))
+2025-04-08 18:25:02,725 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.075, 0.0)      
+2025-04-08 18:25:02,725 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
+2025-04-08 18:25:02,725 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 0, 'y': 0, 'z': 0} → {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:02,725 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:03,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:03,051 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:03,051 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 0, 'y': 0, 'z': 0} para {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:03,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:03,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:03,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:04,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:04,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:04,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:04,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:04,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:04,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:05,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:05,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:05,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:05,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:05,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:05,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:06,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:06,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:06,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:06,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:06,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:06,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:07,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,116 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:07,117 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,117 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:07,117 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:07,117 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:07,118 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-10.0 F1000.0
+2025-04-08 18:25:07,118 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:07,118 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:07,118 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:07,120 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:07,167 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-10.0F1000.0\n',)
+2025-04-08 18:25:07,167 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-10.0F1000.0
+
+2025-04-08 18:25:07,170 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:07,185 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:07,186 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:07,218 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:07,218 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:07,219 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:07,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:07,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:07,619 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=1.075, Atual=1.075
+2025-04-08 18:25:07,619 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:07,619 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:07,619 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:07,619 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:07,625 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 8.8, 0.0))
+2025-04-08 18:25:07,625 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 8.8, 0.0)        
+2025-04-08 18:25:07,625 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.075, 'z': 0.0} → {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:07,626 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:08,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:08,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:08,052 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.075, 'z': 0.0} para {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:08,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:08,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:08,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:09,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:09,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:09,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:09,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:09,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:09,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:10,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:10,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,551 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,856 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:10,856 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:10,857 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:10,859 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:10,907 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:10,907 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:10,910 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:10,950 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:10,951 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:10,957 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:10,957 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:10,959 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:11,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:11,051 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:11,051 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:11,357 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=8.8, Atual=8.8
+2025-04-08 18:25:11,357 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:11,357 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:11,357 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:11,357 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:11,362 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.075, 0.0))
+2025-04-08 18:25:11,362 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.075, 0.0)      
+2025-04-08 18:25:11,362 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 8.8, 'z': 0.0} → {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:11,362 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:11,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:11,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:11,552 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 8.8, 'z': 0.0} para {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:12,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:12,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:12,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:12,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:12,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:12,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:13,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:13,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,722 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:13,722 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:13,722 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:13,722 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:13,723 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:13,723 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-10.0 F1000.0
+2025-04-08 18:25:13,723 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:13,723 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:13,723 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:13,725 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:13,774 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-10.0F1000.0\n',)
+2025-04-08 18:25:13,774 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-10.0F1000.0
+
+2025-04-08 18:25:13,777 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:13,792 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:13,793 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:13,824 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:13,824 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:13,826 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:14,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:14,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:14,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:14,224 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=1.075, Atual=1.075
+2025-04-08 18:25:14,224 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:14,224 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:14,224 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:14,224 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:14,229 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 8.8, 0.0))
+2025-04-08 18:25:14,229 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 8.8, 0.0)        
+2025-04-08 18:25:14,229 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.075, 'z': 0.0} → {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:14,229 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:14,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:14,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:14,556 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.075, 'z': 0.0} para {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:15,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:15,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:15,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:15,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:15,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:15,551 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:16,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,263 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:16,263 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,263 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:16,263 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:16,264 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:16,264 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:16,264 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:16,264 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:16,264 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:16,266 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:16,314 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:16,314 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:16,318 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:16,358 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:16,358 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:16,364 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:16,364 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:16,366 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:16,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:16,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:16,764 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=8.8, Atual=8.8
+2025-04-08 18:25:16,764 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:16,764 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:16,764 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:16,764 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:16,769 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.1, 0.0))
+2025-04-08 18:25:16,769 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.1, 0.0)        
+2025-04-08 18:25:16,769 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 8.8, 'z': 0.0} → {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:16,769 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:17,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:17,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:17,055 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 8.8, 'z': 0.0} para {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:17,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:17,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:17,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:18,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:18,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,685 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:18,685 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:18,685 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:18,685 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:18,686 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:18,686 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-10.0 F1000.0
+2025-04-08 18:25:18,686 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:18,686 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:18,687 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:18,688 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:18,736 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-10.0F1000.0\n',)
+2025-04-08 18:25:18,736 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-10.0F1000.0
+
+2025-04-08 18:25:18,739 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:18,761 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:18,762 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:18,786 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:18,786 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:18,787 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:19,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:19,056 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:19,056 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:19,186 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=1.1, Atual=1.1
+2025-04-08 18:25:19,186 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:19,186 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:19,186 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:19,186 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:19,191 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 8.825, 0.0))
+2025-04-08 18:25:19,191 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 8.825, 0.0)      
+2025-04-08 18:25:19,191 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.1, 'z': 0.0} → {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:19,191 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:19,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:19,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:19,554 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.1, 'z': 0.0} para {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:20,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:20,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:20,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:20,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:20,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:20,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:21,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,126 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:21,126 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,126 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:21,126 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:21,126 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:21,127 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:21,127 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:21,127 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:21,127 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:21,129 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:21,178 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:21,178 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:21,182 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:21,190 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:21,190 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:21,228 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:21,228 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:21,230 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:21,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:21,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:21,628 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=8.825, Atual=8.825
+2025-04-08 18:25:21,628 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:21,628 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:21,628 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:21,628 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:21,633 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.075, 0.0))
+2025-04-08 18:25:21,633 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.075, 0.0)      
+2025-04-08 18:25:21,633 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 8.825, 'z': 0.0} → {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:21,633 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:22,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:22,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:22,053 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 8.825, 'z': 0.0} para {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:22,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:22,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:22,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:23,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,492 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:23,493 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-10.0 F1000.0
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:23,493 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:23,495 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:23,544 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-10.0F1000.0\n',)
+2025-04-08 18:25:23,544 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-10.0F1000.0
+
+2025-04-08 18:25:23,547 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:23,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:23,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:23,585 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:23,585 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:23,593 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:23,593 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:23,594 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:23,994 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=1.075, Atual=1.075
+2025-04-08 18:25:23,994 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:23,994 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:23,994 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:23,994 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:23,998 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 8.825, 0.0))
+2025-04-08 18:25:23,998 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 8.825, 0.0)      
+2025-04-08 18:25:23,998 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.075, 'z': 0.0} → {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:23,999 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:24,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:24,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:24,053 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.075, 'z': 0.0} para {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:24,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:24,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:24,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:25,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:25,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,551 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,882 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:25,883 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:25,883 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:25,885 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:25,933 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:25,933 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:25,936 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:25,968 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:25,968 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:25,983 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:25,983 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:25,984 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:26,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:26,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:26,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.825, 'z': 0.0}
+2025-04-08 18:25:26,383 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=8.825, Atual=8.825
+2025-04-08 18:25:26,384 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:26,384 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:26,384 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:26,384 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:26,389 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.1, 0.0))
+2025-04-08 18:25:26,389 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.1, 0.0)        
+2025-04-08 18:25:26,389 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 8.825, 'z': 0.0} → {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:26,389 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:26,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:26,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:26,552 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 8.825, 'z': 0.0} para {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:27,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:27,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:27,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:27,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:27,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:27,551 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:28,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:28,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,586 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:28,587 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-10.0 F1000.0
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:28,587 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:28,589 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:28,638 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-10.0F1000.0\n',)
+2025-04-08 18:25:28,638 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-10.0F1000.0
+
+2025-04-08 18:25:28,641 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:28,648 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:28,648 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:28,688 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:28,689 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:28,691 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:29,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:29,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:29,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.1, 'z': 0.0}
+2025-04-08 18:25:29,088 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=1.1, Atual=1.1
+2025-04-08 18:25:29,088 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:29,088 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:29,088 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:29,088 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:29,093 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 8.8, 0.0))
+2025-04-08 18:25:29,093 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 8.8, 0.0)        
+2025-04-08 18:25:29,093 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.1, 'z': 0.0} → {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:29,093 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:29,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:29,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:29,552 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.1, 'z': 0.0} para {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:30,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:30,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,931 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:30,931 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:30,932 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:30,932 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:30,932 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:30,932 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y10.0 F1000.0
+2025-04-08 18:25:30,932 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:30,933 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:30,933 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:30,934 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:30,982 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y10.0F1000.0\n',)
+2025-04-08 18:25:30,982 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y10.0F1000.0
+
+2025-04-08 18:25:30,986 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:30,991 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:30,992 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:31,032 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:31,032 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:31,034 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:31,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:31,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:31,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 8.8, 'z': 0.0}
+2025-04-08 18:25:31,432 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=8.8, Atual=8.8
+2025-04-08 18:25:31,432 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:31,432 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:31,432 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:31,432 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:31,437 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 1.075, 0.0))
+2025-04-08 18:25:31,437 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 1.075, 0.0)      
+2025-04-08 18:25:31,437 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 8.8, 'z': 0.0} → {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:31,437 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
+2025-04-08 18:25:31,437 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:31,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:31,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:31,555 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 8.8, 'z': 0.0} para {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:32,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:32,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:32,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:32,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:32,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:32,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:33,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:33,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:33,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:33,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:33,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:33,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:34,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:34,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:34,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:34,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:34,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:34,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:35,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:35,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:35,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:35,556 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:35,556 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:35,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:36,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:36,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,668 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:36,668 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:36,668 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y20.0 F1000.0
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:36,669 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:36,671 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:36,719 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y20.0F1000.0\n',)
+2025-04-08 18:25:36,719 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y20.0F1000.0
+
+2025-04-08 18:25:36,722 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:36,769 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:36,769 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:36,770 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:36,770 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:36,771 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:37,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:37,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:37,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 1.075, 'z': 0.0}
+2025-04-08 18:25:37,169 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=1.075, Atual=1.075
+2025-04-08 18:25:37,169 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:37,169 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:37,170 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:37,170 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:37,175 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 11.1, 0.0))
+2025-04-08 18:25:37,175 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 11.1, 0.0)       
+2025-04-08 18:25:37,175 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 1.075, 'z': 0.0} → {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:37,175 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:37,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:37,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:37,553 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 1.075, 'z': 0.0} para {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:38,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:38,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:38,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:38,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:38,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:38,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:39,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:39,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:39,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:39,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:39,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:39,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:40,051 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,051 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,466 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:40,466 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,466 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:40,466 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:40,466 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:40,467 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-20.0 F1000.0
+2025-04-08 18:25:40,467 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:40,467 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:40,467 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:40,468 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:40,517 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-20.0F1000.0\n',)
+2025-04-08 18:25:40,517 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-20.0F1000.0
+
+2025-04-08 18:25:40,521 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:40,530 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:40,530 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:40,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:40,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:40,567 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:40,567 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:40,568 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:40,968 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=11.1, Atual=11.1
+2025-04-08 18:25:40,968 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:40,968 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:40,968 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:40,968 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:40,973 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 28.8, 0.0))
+2025-04-08 18:25:40,973 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 28.8, 0.0)       
+2025-04-08 18:25:40,973 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 11.1, 'z': 0.0} → {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:40,973 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:41,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:41,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:41,053 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 11.1, 'z': 0.0} para {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:41,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:41,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:41,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:42,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:42,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:42,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:42,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:42,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:42,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:43,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:43,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,916 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:43,916 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:43,917 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:43,917 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:43,917 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:43,917 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y20.0 F1000.0
+2025-04-08 18:25:43,918 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:43,918 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:43,918 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:43,919 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:43,968 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y20.0F1000.0\n',)
+2025-04-08 18:25:43,968 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y20.0F1000.0
+
+2025-04-08 18:25:43,971 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:44,004 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:44,004 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:44,019 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:44,019 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:44,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:44,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:44,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:44,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.8, 'z': 0.0}
+2025-04-08 18:25:44,419 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=28.8, Atual=28.8
+2025-04-08 18:25:44,419 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:44,419 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:44,419 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:44,419 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:44,424 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 11.1, 0.0))
+2025-04-08 18:25:44,424 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 11.1, 0.0)       
+2025-04-08 18:25:44,424 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 28.8, 'z': 0.0} → {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:44,424 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:44,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:44,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:44,555 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 28.8, 'z': 0.0} para {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:45,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:45,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:45,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:45,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:45,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:45,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:46,056 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:46,056 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:46,057 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:46,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:46,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:46,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:47,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,198 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:47,198 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-20.0 F1000.0
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:47,199 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:47,201 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:47,249 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-20.0F1000.0\n',)
+2025-04-08 18:25:47,249 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-20.0F1000.0
+
+2025-04-08 18:25:47,252 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:47,299 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:47,299 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:47,301 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:47,316 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:47,316 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:47,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:47,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:47,699 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=11.1, Atual=11.1
+2025-04-08 18:25:47,699 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:47,699 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:47,699 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:47,699 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:47,704 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 28.825, 0.0))
+2025-04-08 18:25:47,704 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 28.825, 0.0)     
+2025-04-08 18:25:47,704 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 11.1, 'z': 0.0} → {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:47,705 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:48,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:48,051 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:48,051 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 11.1, 'z': 0.0} para {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:48,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:48,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:48,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:49,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:49,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:49,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:49,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:49,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:49,556 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:50,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,481 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:50,481 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,481 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y20.0 F1000.0
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:50,482 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:50,484 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:50,532 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y20.0F1000.0\n',)
+2025-04-08 18:25:50,532 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y20.0F1000.0
+
+2025-04-08 18:25:50,536 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:50,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:50,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 28.825, 'z': 0.0}
+2025-04-08 18:25:50,582 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:50,582 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:50,583 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:50,590 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:50,590 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:50,982 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=28.825, Atual=28.825
+2025-04-08 18:25:50,982 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:50,982 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:50,982 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:50,983 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:50,987 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 11.1, 0.0))
+2025-04-08 18:25:50,987 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 11.1, 0.0)       
+2025-04-08 18:25:50,988 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 28.825, 'z': 0.0} → {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:50,988 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:51,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:51,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:51,054 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 28.825, 'z': 0.0} para {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:51,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:51,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:51,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:52,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:52,056 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:52,056 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:52,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:52,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:52,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,055 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:53,055 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,055 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:53,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,717 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=1
+2025-04-08 18:25:53,717 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:53,717 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:53,717 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:53,718 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:53,718 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y20.0 F1000.0
+2025-04-08 18:25:53,718 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:53,718 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:53,718 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:53,737 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:53,768 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y20.0F1000.0\n',)
+2025-04-08 18:25:53,768 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y20.0F1000.0
+
+2025-04-08 18:25:53,771 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:53,817 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:53,817 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:53,819 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:53,819 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:53,820 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:54,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:54,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:54,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 11.1, 'z': 0.0}
+2025-04-08 18:25:54,218 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y+: Original=11.1, Atual=11.1
+2025-04-08 18:25:54,218 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:54,218 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:54,218 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:54,219 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:54,223 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 31.075, 0.0))
+2025-04-08 18:25:54,223 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 31.075, 0.0)     
+2025-04-08 18:25:54,223 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 11.1, 'z': 0.0} → {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:54,224 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:54,551 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:54,551 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:54,551 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 11.1, 'z': 0.0} para {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:55,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:55,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:55,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:55,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:55,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:55,554 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:56,053 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:56,053 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:56,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:56,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:56,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:56,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:57,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,053 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,553 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:57,553 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,553 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,845 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-08 18:25:57,846 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:57,846 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Absoluto (G90)
+2025-04-08 18:25:57,846 - consumo_lib - DEBUG - MOVIMENTO: Enviando sequência de comandos para movimento absoluto
+2025-04-08 18:25:57,846 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G91
+2025-04-08 18:25:57,846 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G1 Y-20.0 F1000.0
+2025-04-08 18:25:57,846 - consumo_lib - DEBUG - MOVIMENTO: Programado envio de comando: G90
+2025-04-08 18:25:57,847 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-04-08 18:25:57,847 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G91
+
+2025-04-08 18:25:57,848 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:57,896 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01Y-20.0F1000.0\n',)
+2025-04-08 18:25:57,896 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G01Y-20.0F1000.0
+
+2025-04-08 18:25:57,900 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:57,916 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-08 18:25:57,916 - consumo_lib - DEBUG - MOVIMENTO: Modo absoluto, ignorando comando de parada
+2025-04-08 18:25:57,947 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G90\n',)
+2025-04-08 18:25:57,947 - consumo_lib - DEBUG - CALLBACK: Comando enviado: G90
+
+2025-04-08 18:25:57,948 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:58,051 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:58,051 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:58,051 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 31.075, 'z': 0.0}
+2025-04-08 18:25:58,347 - consumo_lib - INFO - VERIFICAÇÃO: Movimento Y-: Original=31.075, Atual=31.075
+2025-04-08 18:25:58,347 - consumo_lib - WARNING - VERIFICAÇÃO: Posição y NÃO MUDOU após comando!
+2025-04-08 18:25:58,348 - consumo_lib - DEBUG - VERIFICAÇÃO: Enviando comando de status ? para atualizar posição
+2025-04-08 18:25:58,348 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('?\n',)
+2025-04-08 18:25:58,348 - consumo_lib - DEBUG - CALLBACK: Comando enviado: ?
+
+2025-04-08 18:25:58,353 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0, 0, 0), (3.625, 48.8, 0.0))
+2025-04-08 18:25:58,353 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0, 0, 0), wpos=(3.625, 48.8, 0.0)       
+2025-04-08 18:25:58,353 - consumo_lib - INFO - POSIÇÃO ALTERADA: {'x': 3.625, 'y': 31.075, 'z': 0.0} → {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:58,354 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-08 18:25:58,554 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:58,554 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:58,554 - consumo_lib - DEBUG - update_position_display: posição mudou de {'x': 3.625, 'y': 31.075, 'z': 0.0} para {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:59,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:59,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:59,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:59,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:25:59,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:25:59,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:00,052 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:26:00,052 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:00,052 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:00,552 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:26:00,552 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:00,552 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:01,054 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:26:01,054 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:01,054 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:01,555 - consumo_lib - DEBUG - Timer fired: atualizando tela de posição da head.
+2025-04-08 18:26:01,555 - consumo_lib - DEBUG - update_position_display: posição obtida do CNC: {'x': 3.625, 'y': 48.8, 'z': 0.0}
+2025-04-08 18:26:01,555 - consumo_lib - WARNING - update_position_display: posição inalterada: {'x': 3.625, 'y': 48.8, 'z': 0.0}

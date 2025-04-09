@@ -1,0 +1,57 @@
+Objetivo da aplicação:
+- Criação de uma lib para ser usada como base para a construção de uma máquina de inspeção automática (AOI).
+- Essa lib será usada no desenvolvimento do sistema que vai fazer o controle de uma cnc para fazer a captura e processamento das imagens da placa que será inspecionada.
+- Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL instalado e estão sendo usados apenas os eixos x e y.
+- A comunicação com o Arduino acontece via USB por comunicação serial.
+- Vamos usar como referência o firmaware GRBL para desenvolver nossas funcionalidades.
+- Como biblioteca principal deve ser usado a lib grbl-streamer que já possui funcionalidades bem implementadas e testadas.
+
+Implemnentação atual:
+
+- nesse momento as funcionalidades abaixo já foram implementadas e agora estamos apenas corrigindo problemas pontuais.
+- adicionar a funcionalidade de criação de programa.
+- implementar as funcionalidades de movimentação no arquivo consumo_lib.py.
+- criar uma rotina para guardar posições e captura de imagens usando a interface da aplicação.
+- durante o ciclo de start a operação deve ser algo como:
+	Usuário seleciona o "programa" (posições definidas pelo usuário para executar as ações de movimentação)
+	START (inicio do ciclo automático)
+		Mover para a posição do fiducial 1
+			inicia o movimento
+			 confirma a chagada na posição
+			sistema captura imagem
+			 confirma a captura da imagem
+		Mover para a posição do fiducial 2
+			inicia o movimento
+			 confirma a chagada na posição
+			sistema captura imagem
+			 confirma a captura da imagem
+		fazer a compensação das posições mecânicas em relação aos valores lidos nas imagens dos fiduciais.
+			processamento interno das imagens e cálculos necessários de posição e ângulo da imagem.
+		iniciar a captura das imagens da placa
+			captura do frame 1
+				inicia o movimento
+				 confirma a chagada na posição
+				sistema captura imagem
+				 confirma a captura da imagem
+			captura do frame 2
+				inicia o movimento
+				 confirma a chagada na posição
+				sistema captura imagem
+				 confirma a captura da imagem
+			captura do frame 3
+				inicia o movimento
+				 confirma a chagada na posição
+				sistema captura imagem
+				 confirma a captura da imagem
+			[...]
+			captura do frame n
+				inicia o movimento
+				 confirma a chagada na posição
+				sistema captura imagem
+				 confirma a captura da imagem
+		finaliza a etapa de captura das imagem
+		realiza os processos internos de inspeção de defeitos baseados nas imagens capturadas.
+		retorna o resultado da inspeção
+		se aprovado libera a placa e reinicia o ciclo
+		se reprovado exibe os erros e aguarda o julgamento do operador.
+		[maiores detalhes durante o decorrer do desenvolvimento]
