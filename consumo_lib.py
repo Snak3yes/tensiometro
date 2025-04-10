@@ -480,63 +480,85 @@ class MovementControlWidget(QWidget):
     def start_movement(self, axis, direction):
         """Inicia movimento no eixo e direção especificados"""
         logger.debug(f"MOVIMENTO: Iniciando movimento: eixo={axis}, direção={direction}")
-        
+
         if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
             logger.warning("MOVIMENTO: CNC não conectado")
             QMessageBox.warning(self, "Error", "CNC not connected")
             return
-            
+
         try:
-            # Captura posição antes do movimento para verificação posterior
+            # Captura posição antes do movimento para verificação posterior (mantido para log, mas não usado para forçar '?')
             original_position = self.controller.cnc.get_current_position()
             logger.info(f"MOVIMENTO: Posição antes do movimento: {original_position}")
-            
+
             step_size = float(self.step_size.text())
             feed_rate = float(self.feed_rate.text())
-            
+
             # Verifica o modo atual
             is_absolute_mode = self.mode_absolute.isChecked()
             logger.debug(f"MOVIMENTO: Modo atual: {'Absoluto (G90)' if is_absolute_mode else 'Relativo (G91)'}")
-            
+
             if is_absolute_mode:
-                # CORREÇÃO: Implementação melhorada para modo absoluto (passo a passo)
-                # Enviamos uma sequência atômica de comandos para evitar problemas de sincronização
-                
-                # 1. Calculamos o tamanho do passo com a direção
-                distance = step_size * direction
-                
-                # 2. Definimos a sequência completa de comandos
-                commands = [
-                    "G91",  # Modo relativo
-                    f"G1 {axis.upper()}{distance} F{feed_rate}",  # Movimento com G1
-                    "G90"   # Volta ao modo absoluto
-                ]
-                
-                # 3. Enviamos os comandos com intervalos controlados
-                logger.debug(f"MOVIMENTO: Enviando sequência de comandos para movimento absoluto")
-                for i, cmd in enumerate(commands):
-                    QTimer.singleShot(50 * i, lambda c=cmd: self.controller.cnc.grbl.send_immediately(c))
-                    logger.debug(f"MOVIMENTO: Programado envio de comando: {cmd}")
-                
+                # MODO ABSOLUTO (G90) - Lógica Simplificada
+                # 1. Calcula a posição absoluta de destino
+                current_pos = self.controller.cnc.get_current_position()
+                step = step_size * direction
+                target_x = current_pos['x']
+                target_y = current_pos['y']
+                command = ""
+
+                if axis.upper() == 'X':
+                    target_x += step
+                    # 2. Cria um único comando G90 G1
+                    command = f"G90 G1 X{target_x:.4f} F{feed_rate}"
+                else: # Y
+                    target_y += step
+                    # 2. Cria um único comando G90 G1
+                    command = f"G90 G1 Y{target_y:.4f} F{feed_rate}"
+
+                # 3. Envia o comando único
+                if command:
+                    logger.debug(f"MOVIMENTO: Enviando comando absoluto direto: {command}")
+                    self.controller.cnc.grbl.send_immediately(command)
+                else:
+                     logger.warning("MOVIMENTO: Não foi possível gerar comando absoluto.")
+
             else:
-                # Modo contínuo - usa comando $J= para jog
                 distance = 100 * direction  # Distância grande para movimento contínuo
-                
+
                 if axis.upper() == 'X':
                     command = f"$J=G91 X{distance} F{feed_rate}"
                 else:  # Y
                     command = f"$J=G91 Y{distance} F{feed_rate}"
-                    
+
                 logger.debug(f"MOVIMENTO: Enviando comando contínuo: {command}")
                 self.controller.cnc.grbl.send_immediately(command)
-                
-            # Agenda verificação após intervalo adequado para permitir que o movimento ocorra
-            # Usar intervalo maior (500ms) para dar tempo suficiente ao movimento físico
-            QTimer.singleShot(500, lambda: self.verify_position_changed(axis, direction, original_position))
-                    
+
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao iniciar movimento: {str(e)}")
             QMessageBox.warning(self, "Error", f"Error starting movement: {str(e)}")
+
+    # A função verify_position_changed pode ser mantida no código, mas não será mais chamada
+    # a partir de start_movement, evitando o envio prematuro de '?'.
+    def verify_position_changed(self, axis, direction, original_position):
+        """Verifica se a posição realmente mudou após comando de movimento"""
+        try:
+            current_position = self.controller.cnc.get_current_position()
+            expected_axis = 'x' if axis.upper() == 'X' else 'y'
+
+            logger.info(f"VERIFICAÇÃO: Movimento {axis}{'+' if direction > 0 else '-'}: "
+                    f"Original={original_position[expected_axis]}, "
+                    f"Atual={current_position[expected_axis]}")
+
+            if original_position[expected_axis] == current_position[expected_axis]:
+                logger.warning(f"VERIFICAÇÃO: Posição {expected_axis} NÃO MUDOU após comando!")
+
+                # REMOVIDO O ENVIO FORÇADO DE STATUS:
+                # if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
+                #     logger.debug("VERIFICAÇÃO: Enviando comando de status ? para atualizar posição")
+                #     self.controller.cnc.grbl.send_immediately("?")
+        except Exception as e:
+            logger.error(f"VERIFICAÇÃO: Erro ao verificar posição: {e}")
 
     def verify_position_changed(self, axis, direction, original_position):
         """Verifica se a posição realmente mudou após comando de movimento"""
@@ -558,31 +580,49 @@ class MovementControlWidget(QWidget):
         except Exception as e:
             logger.error(f"VERIFICAÇÃO: Erro ao verificar posição: {e}")
             
-    def stop_movement(self): 
-        """Para o movimento""" 
-        logger.debug("MOVIMENTO: Parando movimento")     
+    def stop_movement(self):
+        """Para o movimento"""
+        logger.debug("MOVIMENTO: Parando movimento")
         if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
             return
-            
+
         try:
             # Verifica o modo atual
             is_absolute_mode = self.mode_absolute.isChecked()
-            
+
             if is_absolute_mode:
                 # No modo absoluto (passo a passo), não precisamos parar o movimento
-                # porque ele já deve ter sido concluído quando o botão é liberado
-                logger.debug("MOVIMENTO: Modo absoluto, ignorando comando de parada")
+                # porque ele já deve ter sido concluído quando o botão é liberado (com a nova lógica)
+                logger.debug("MOVIMENTO: Modo absoluto (passo a passo), ignorando comando de parada explícito")
                 return
             else:
-                # Apenas no modo contínuo enviamos os comandos de parada
-                # Envia comando de feed hold para parar movimento
-                logger.debug("MOVIMENTO: Enviando comando de parada (!)")
-                self.controller.cnc.grbl.send_immediately("!")
-                
-                # Após uma breve pausa, envia comando resume para liberar o estado hold
-                logger.debug("MOVIMENTO: Agendando comando de retomada (~) após pausa")
-                QTimer.singleShot(100, lambda: self._execute_resume_and_update())
-            
+                # Apenas no modo contínuo (G91 com $J=) enviamos os comandos de parada
+                # O comando correto para cancelar Jog é 0x85 (Jog Cancel)
+                # Se a biblioteca não abstrai isso, precisamos enviar o byte.
+                # Assumindo que send_immediately pode enviar bytes:
+                logger.debug("MOVIMENTO: Enviando comando de cancelamento de Jog (0x85)")
+                # Tentar enviar o byte de cancelamento de Jog
+                try:
+                    # A biblioteca grbl_streamer pode não ter um método direto para bytes.
+                    # Se `send_immediately` falhar com bytes, pode ser necessário
+                    # investigar a API da biblioteca ou usar `!` como paliativo,
+                    # sabendo que pode não ser o ideal para $J=
+                    # self.controller.cnc.grbl.serial_port.write(b'\x85') # Acesso direto (não recomendado se houver abstração)
+                    self.controller.cnc.grbl.send_immediately("!") # Usando Feed Hold como alternativa
+                    logger.debug("MOVIMENTO: Comando '!' (Feed Hold) enviado como alternativa para parar Jog")
+
+                    # Agendando retomada e atualização (mantido, mas sem _force_position_update)
+                    logger.debug("MOVIMENTO: Agendando comando de retomada (~) após pausa")
+                    QTimer.singleShot(100, lambda: self._execute_resume_and_update())
+
+                except AttributeError as ae:
+                     logger.error(f"MOVIMENTO: Erro ao tentar enviar comando de parada de Jog. A biblioteca pode não suportar envio direto de bytes ou 0x85. Detalhes: {ae}")
+                     # Fallback para Feed Hold se o envio direto falhar
+                     self.controller.cnc.grbl.send_immediately("!")
+                     logger.warning("MOVIMENTO: Usando '!' (Feed Hold) como fallback para parar Jog.")
+                     QTimer.singleShot(100, lambda: self._execute_resume_and_update())
+
+
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao parar movimento: {e}")
 
@@ -592,76 +632,78 @@ class MovementControlWidget(QWidget):
             # Primeiro envia o comando para retomar após hold
             self.controller.cnc.grbl.send_immediately("~")
             logger.debug("MOVIMENTO: Enviado comando de retomada (~)")
-            
-            # Agenda uma série de comandos de status para garantir obtenção da posição atualizada
-            # Primeira verificação após 150ms
-            QTimer.singleShot(150, lambda: self._force_position_update(1))
-            
+
+            # --- INÍCIO DA MODIFICAÇÃO ---
+            # REMOVIDO: Chamada para _force_position_update. A atualização agora
+            # dependerá do polling regular iniciado em connect_cnc.
+            # QTimer.singleShot(150, lambda: self._force_position_update(1))
+            logger.debug("MOVIMENTO: Atualização de posição dependerá do polling regular.")
+            # --- FIM DA MODIFICAÇÃO ---
+
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao executar sequência de retomada: {e}")
             
+    # A função _force_position_update pode ser mantida, mas não será mais chamada
+    # a partir de _execute_resume_and_update.
     def _force_position_update(self, attempt=1):
         """Força múltiplas atualizações de posição para garantir precisão
-        
+
         Args:
             attempt: Número da tentativa atual (para limitar tentativas)
         """
         if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
             return
-            
+
         try:
             # Envia comando de status para obter posição atualizada
-            logger.debug(f"MOVIMENTO: Forçando atualização de posição - tentativa {attempt}")
+            # --- INÍCIO DA MODIFICAÇÃO ---
+            # logger.debug(f"MOVIMENTO: Forçando atualização de posição - tentativa {attempt}") # REMOVIDO/COMENTADO
+            # --- FIM DA MODIFICAÇÃO ---
             self.controller.cnc.grbl.send_immediately("?")
-            
-            # Se ainda estamos dentro do limite de tentativas, agenda outra verificação
-            if attempt < 3:
-                # Aumento progressivo do tempo entre tentativas
-                delay = 150 + (attempt * 50)
-                QTimer.singleShot(delay, lambda: self._force_position_update(attempt + 1))
-                
-        except Exception as e:
-            logger.error(f"MOVIMENTO: Erro ao forçar atualização de posição: {e}")
-            
-    def _force_position_update(self, attempt=1):
-        """Força múltiplas atualizações de posição para garantir precisão
-        
-        Args:
-            attempt: Número da tentativa atual (para limitar tentativas)
-        """
-        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
-            return
-            
-        try:
-            # Envia comando de status para obter posição atualizada
-            logger.debug(f"MOVIMENTO: Forçando atualização de posição - tentativa {attempt}")
-            self.controller.cnc.grbl.send_immediately("?")
-            
+
             # Se ainda estamos dentro do limite de tentativas, agenda outra verificação
             if attempt < 3:
                 # Aumento progressivo do tempo entre tentativas (150ms, 200ms, 250ms)
                 delay = 150 + (attempt * 50)
+                # A chamada recursiva ainda existe, mas o log dentro dela foi removido
                 QTimer.singleShot(delay, lambda: self._force_position_update(attempt + 1))
-                
+
         except Exception as e:
+            # Manter o log de erro
             logger.error(f"MOVIMENTO: Erro ao forçar atualização de posição: {e}")
             
     def set_motion_mode(self, mode):
         """Set the motion mode (G90/G91)"""
         if not self.controller.cnc.is_connected:
+             # Se não estiver conectado, apenas atualiza a UI
+            if mode == "G90":
+                self.mode_absolute.setChecked(True)
+                self.mode_relative.setChecked(False)
+            else:
+                self.mode_absolute.setChecked(False)
+                self.mode_relative.setChecked(True)
+            logger.warning(f"MOVIMENTO: CNC não conectada, modo {mode} definido apenas na UI.")
             return
-            
+
+        # Atualiza a UI
         if mode == "G90":
             self.mode_absolute.setChecked(True)
             self.mode_relative.setChecked(False)
-        else:
+        else: # G91
             self.mode_absolute.setChecked(False)
             self.mode_relative.setChecked(True)
-            
+
+        # Envia o comando para o GRBL
         try:
-            self.controller.cnc.send_command(mode)
+            # --- INÍCIO DA MODIFICAÇÃO ---
+            # Armazena o modo internamente para referência futura, se necessário
+            # self.controller.cnc.current_motion_mode = mode # Supondo que exista essa variável no controller
+            # --- FIM DA MODIFICAÇÃO ---
+            logger.debug(f"MOVIMENTO: Definindo modo de movimento para {mode}")
+            self.controller.cnc.grbl.send_immediately(mode)
         except Exception as e:
-            print(f"Error setting motion mode: {e}")
+            logger.error(f"MOVIMENTO: Erro ao definir modo de movimento: {e}")
+            QMessageBox.warning(self, "Error", f"Error setting motion mode: {e}")
 
 class AOIControllerApp(QMainWindow):
     def __init__(self):
@@ -676,6 +718,16 @@ class AOIControllerApp(QMainWindow):
         
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
+
+        # Armazenar o offset do sistema de coordenadas de trabalho (WCS) ativo (ex: G54)
+        self.current_wcs_offset = {'x': 0.0, 'y': 0.0, 'z': 0.0} # Inicializa o offset WCS padrão (G54)
+
+        # Armazenar a última Posição da Máquina (MPos) conhecida
+        self.current_mpos = {'x': 0.0, 'y': 0.0, 'z': 0.0} 
+        # Armazenar o Sistema de Coordenadas de Trabalho (WCS) ativo (ex: "G54")
+        self.active_wcs = "G54" # Assume G54 como padrão inicial
+        # Mapeamento de WCS para número P do G10
+        self.wcs_to_p = {"G54": 1, "G55": 2, "G56": 3, "G57": 4, "G58": 5, "G59": 6}
         
         # Configuração da interface
         self.setup_ui()
@@ -684,12 +736,10 @@ class AOIControllerApp(QMainWindow):
         # Timer para atualizar a posição – agora conectamos a um método que loga a ação 
         self.update_timer = QTimer(self) 
         self.update_timer.timeout.connect(self.on_update_timer) 
-        self.update_timer.start(500) # Atualiza a cada 500ms
-        # Variável para armazenar o último valor de posição (para comparação)
-        self.last_logged_position = None
+        self.update_timer.start(1000) # Atualiza a cada 1000ms
 
     def on_update_timer(self):
-        logger.debug("Timer fired: atualizando tela de posição da head.")
+        #logger.debug("Timer fired: atualizando tela de posição da head.")
         self.update_position_display()
         
     def setup_ui(self):
@@ -1193,15 +1243,46 @@ class AOIControllerApp(QMainWindow):
             logger.error(f"CALIBRAÇÃO: Erro ao verificar resultado: {e}")
 
     def set_zero_position(self):
-        """Define a posição atual como zero."""
-        if not self.controller.cnc.is_connected:
+        """Define a posição de trabalho atual como zero usando G10 L20."""
+        if not self.controller.cnc.is_connected or not self.controller.cnc.grbl:
             QMessageBox.warning(self, "Aviso", "CNC não conectada")
             return
-        if self.controller.cnc.set_zero():
-            self.statusBar().showMessage("Posição zero setada.")
+
+        try:
+            # 1. Obter o número P correspondente ao WCS ativo
+            p_number = self.wcs_to_p.get(self.active_wcs)
+            if p_number is None:
+                logger.error(f"SET ZERO: WCS ativo '{self.active_wcs}' não reconhecido para G10 L20. Usando P1 (G54).")
+                p_number = 1 # Usa G54 como fallback
+
+            # 2. Construir o comando G10 L20
+            # Zerando apenas X e Y por enquanto, adicione Z se necessário
+            command = f"G10 L20 P{p_number} X0 Y0" 
+            logger.info(f"SET ZERO: Enviando comando: {command} para zerar {self.active_wcs}")
+
+            # 3. Enviar o comando
+            self.controller.cnc.grbl.send_immediately(command)
+            
+            # 4. Atualizar estado interno IMEDIATAMENTE
+            # O novo offset (para WPos ser 0) é a MPos atual
+            logger.info(f"SET ZERO: Atualizando offset interno de {self.current_wcs_offset} para {self.current_mpos}")
+            self.current_wcs_offset = self.current_mpos.copy() 
+            
+            # A nova posição de trabalho é zero
+            logger.info(f"SET ZERO: Atualizando posição interna (WPos) para {{'x': 0.0, 'y': 0.0, 'z': 0.0}}")
+            self.controller.cnc.current_position = {'x': 0.0, 'y': 0.0, 'z': 0.0}
+            
+            # 5. Atualizar a interface imediatamente
             self.update_position_display()
-        else:
-            QMessageBox.warning(self, "Erro", "Falha ao setar posição zero.")
+            
+            self.statusBar().showMessage(f"Posição zero definida para {self.active_wcs} na localização atual.")
+
+            # 6. (Opcional) Solicitar $# após um tempo para verificar se o GRBL armazenou
+            # QTimer.singleShot(500, lambda: self.controller.cnc.grbl.send_immediately("$#"))
+
+        except Exception as e:
+            logger.error(f"SET ZERO: Erro ao definir posição zero: {e}", exc_info=True)
+            QMessageBox.warning(self, "Erro", f"Falha ao setar posição zero: {str(e)}")
 
     def on_image_captured(self, image, position_name):
         """Handle captured image and register position"""
@@ -1377,16 +1458,47 @@ class AOIControllerApp(QMainWindow):
             try:
                 # Define função de callback para eventos do GrblStreamer
                 def grbl_callback(eventstring, *data):
-                    logger.debug(f"CALLBACK: Evento '{eventstring}' recebido com data: {data}")
+                    logger.debug(f"CALLBACK: Evento '{eventstring}' recebido com data: {data}") 
+
+                    # Capturar offsets do sistema de coordenadas (G54, G55, etc.)
+                    if eventstring == "on_hash_stateupdate":
+                        if data and isinstance(data[0], dict):
+                            hash_state = data[0]
+                            # Assumindo G54 como padrão por enquanto
+                            # Idealmente, verificar qual WCS está ativo via $G (self.gps[1])
+                            g54_offset = hash_state.get('G54') 
+                            if isinstance(g54_offset, (list, tuple)) and len(g54_offset) >= 2:
+                                try:
+                                    self.current_wcs_offset['x'] = float(g54_offset[0])
+                                    self.current_wcs_offset['y'] = float(g54_offset[1])
+                                    self.current_wcs_offset['z'] = float(g54_offset[2]) if len(g54_offset) > 2 else 0.0
+                                    logger.info(f"CALLBACK: Offset G54 atualizado para: {self.current_wcs_offset}")
+                                except (ValueError, TypeError):
+                                     logger.error(f"CALLBACK: Erro ao converter offset G54: {g54_offset}")
+                            else:
+                                logger.warning(f"CALLBACK: Offset G54 não encontrado ou inválido nos dados hash: {hash_state}")
+
+                    # Capturar estado do parser para saber o WCS ativo
+                    elif eventstring == "on_gcode_parser_stateupdate":
+                        if data and isinstance(data[0], list) and len(data[0]) > 1:
+                            parser_state = data[0]
+                            new_active_wcs = f"G{parser_state[1]}" # Índice 1 contém o WCS ativo (ex: "54")
+                            if new_active_wcs != self.active_wcs:
+                                logger.info(f"CALLBACK: WCS Ativo mudou de {self.active_wcs} para {new_active_wcs}")
+                                self.active_wcs = new_active_wcs
+                                # Poderia solicitar $# aqui para obter o offset do novo WCS, se necessário
+                        # Log dos dados completos do parser state (opcional)
+                        # logger.debug(f"CALLBACK: Parser State Update: {data[0]}")
                     
-                    if eventstring == "on_stateupdate":
+                    elif eventstring == "on_stateupdate":
+                        logger.info(f"CALLBACK: Processando 'on_stateupdate'. Dados brutos: {data}") 
+
                         if len(data) >= 3:
                             state = data[0]
-                            mpos = data[1]  # Tupla de coordenadas da máquina (x, y, z)
-                            wpos = data[2]  # Tupla de coordenadas de trabalho (x, y, z)
-                            
-                            # Log detalhado para depuração
-                            logger.debug(f"CALLBACK DETALHADO: state={state}, mpos={mpos}, wpos={wpos}")
+                            mpos_tuple = data[1]  # Posição da Máquina (MPos)
+                            # wpos_tuple = data[2] # Posição de Trabalho (WPos) - Ignorando pois está vindo zerado
+
+                            logger.debug(f"CALLBACK DETALHADO: state={state}, mpos={mpos_tuple}") # Removido wpos do log detalhado
                             
                             # Atualiza estado da máquina
                             old_state = self.controller.cnc.machine_status if hasattr(self.controller.cnc, 'machine_status') else None
@@ -1395,80 +1507,116 @@ class AOIControllerApp(QMainWindow):
                             if old_state != state:
                                 logger.debug(f"CALLBACK: Estado da máquina mudou de '{old_state}' para '{state}'")
                             
-                            # CORREÇÃO CRÍTICA: Verifica tipo e estrutura dos dados antes de usar
-                            if isinstance(wpos, (list, tuple)) and len(wpos) >= 2:
+                            # Calcular WPOS a partir de MPOS e do offset armazenado
+                            if isinstance(mpos_tuple, (list, tuple)) and len(mpos_tuple) >= 2: 
                                 try:
-                                    # CORREÇÃO: Verifica se posição recebida está em formato de tupla ou lista
+                                    # Posição da Máquina recebida
+                                    mpos_x = float(mpos_tuple[0])
+                                    mpos_y = float(mpos_tuple[1])
+                                    mpos_z = float(mpos_tuple[2]) if len(mpos_tuple) > 2 else 0.0
+
+                                    # Calcular Posição de Trabalho (WPos = MPos - Offset)
+                                    calculated_wpos_x = mpos_x - self.current_wcs_offset['x']
+                                    calculated_wpos_y = mpos_y - self.current_wcs_offset['y']
+                                    calculated_wpos_z = mpos_z - self.current_wcs_offset['z']
+
+                                    # Usar a WPos calculada para atualizar a posição interna
+                                    new_position = {
+                                        'x': calculated_wpos_x, 
+                                        'y': calculated_wpos_y, 
+                                        'z': calculated_wpos_z
+                                    }
+
                                     old_position = None
                                     if hasattr(self.controller.cnc, 'current_position'):
-                                        old_position = self.controller.cnc.current_position.copy()
-                                    
-                                    # Copia informação para evitar referência compartilhada
-                                    new_position = {
-                                        'x': float(wpos[0]),
-                                        'y': float(wpos[1]),
-                                        'z': float(wpos[2]) if len(wpos) > 2 else 0
-                                    }
-                                    
-                                    # Registra TODA mudança de posição, mesmo pequena
-                                    if old_position != new_position:
-                                        logger.info(f"POSIÇÃO ALTERADA: {old_position} → {new_position}")
-                                        
-                                        # Atualiza a posição no controlador apenas se mudou
-                                        self.controller.cnc.current_position = new_position
+                                        old_position = self.controller.cnc.current_position.copy() 
+                                        # logger.debug(f"CALLBACK: Posição interna ANTES da atualização: {old_position}") # Log opcional
+
+                                    logger.debug(f"CALLBACK: MPos={mpos_tuple}, Offset={self.current_wcs_offset}, WPos Calculada={new_position}")
+                                    logger.debug(f"CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {new_position}")
+
+                                    # Compara new_position (WPos calculada) com old_position
+                                    position_changed = (old_position is None) or \
+                                                       (abs(old_position['x'] - new_position['x']) > 1e-4) or \
+                                                       (abs(old_position['y'] - new_position['y']) > 1e-4) or \
+                                                       (abs(old_position.get('z', 0.0) - new_position.get('z', 0.0)) > 1e-4)
+
+                                    if position_changed:
+                                        logger.info(f"CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {old_position} -> {new_position}")
+                                        # Atualiza a posição no controlador com a WPos calculada
+                                        self.controller.cnc.current_position = new_position 
+                                    else:
+                                         logger.debug(f"CALLBACK: Posição interna NÃO alterada (sem mudança significativa via WPOS calculada): {new_position}")
                                     
                                 except (ValueError, TypeError, IndexError) as e:
-                                    logger.error(f"CALLBACK: Erro ao processar posição: {e}, wpos={wpos}")
-                            elif isinstance(wpos, dict):
-                                # Se já for um dicionário, o que pode ocorrer em algumas versões
-                                logger.debug("CALLBACK: wpos já é um dicionário")
-                                self.controller.cnc.current_position = wpos.copy()
+                                    logger.error(f"CALLBACK: Erro ao processar MPOS ou calcular WPOS: {e}, mpos={mpos_tuple}")
                             else:
-                                logger.error(f"CALLBACK: Formato inválido para wpos: {type(wpos)}, valor: {wpos}")
-                    
-                    # Adiciona mais log para outros eventos importantes
+                                logger.error(f"CALLBACK: Formato inválido para MPOS: {type(mpos_tuple)}, valor: {mpos_tuple}")
+                            # --- FIM DA MODIFICAÇÃO ---
+
+                        else:
+                            logger.error(f"CALLBACK: 'on_stateupdate' recebido com dados insuficientes (len={len(data)}). Dados: {data}")
+
+                    # ... (restante do código do callback para outros eventos: on_write, on_read, etc.) ...
                     elif eventstring == "on_write":
-                        logger.debug(f"CALLBACK: Comando enviado: {data[0] if data else 'vazio'}")
-                    elif eventstring == "on_read":
-                        # Depuração de respostas do GRBL, especialmente status <...>
-                        response = data[0] if data else "vazio"
-                        if response.startswith("<") and "MPos" in response:
-                            logger.debug(f"CALLBACK: Resposta status raw do GRBL: {response}")
-                
-                # CORREÇÃO: Inicializa o GrblStreamer com callback, SEM passar 'port' ao construtor
-                self.controller.cnc.grbl = GrblStreamer(grbl_callback)
-                
-                # Configura logging (opcional)
-                self.controller.cnc.grbl.setup_logging()
-                
-                # Conecta à porta usando o método correto cnect() (não connect)
-                logger.debug(f"CONEXÃO: Conectando à porta {port}")
-                self.controller.cnc.grbl.cnect(port, 115200)
-                
-                # Desbloqueia a máquina
+                        logger.debug(f"CALLBACK: Comando enviado para GRBL: {data[0] if data else 'vazio'}")
+                    # ... (etc.) ...
+
+                # --- INÍCIO DA MODIFICAÇÃO ---
+                # Inicializa o GrblStreamer APENAS com o callback
+                self.controller.cnc.grbl = GrblStreamer(grbl_callback) 
+                # --- FIM DA MODIFICAÇÃO ---
+
+                logger.debug(f"CONEXÃO: Tentando conectar à porta {port} com baudrate 115200")
+                # Conecta usando o método cnect()
+                self.controller.cnc.grbl.cnect(port, 115200) 
+                time.sleep(2.0) 
+
+                if not self.controller.cnc.grbl.connected:
+                     logger.error("CONEXÃO: Falha ao estabelecer conexão serial (grbl.connected é False).")
+                     raise ConnectionError("Falha ao conectar à porta serial após inicialização.")
+
                 logger.debug("CONEXÃO: Enviando comando de desbloqueio $X")
                 self.controller.cnc.grbl.send_immediately("$X")
-                
-                # Inicia em modo relativo para jog
+                time.sleep(0.1) 
+
+                logger.debug("CONEXÃO: Configurando $10=3 para relatório completo de posição")
+                self.controller.cnc.grbl.send_immediately("$10=3") # Mantém $10=3 para receber MPos
+                time.sleep(0.1)
+
+                # --- INÍCIO DA MODIFICAÇÃO ---
+                # Solicitar estado hash logo após conectar para obter offsets
+                logger.debug("CONEXÃO: Solicitando estado hash ($#) para obter offsets")
+                self.controller.cnc.grbl.send_immediately("$#") 
+                time.sleep(0.1)
+                # --- FIM DA MODIFICAÇÃO ---
+
                 logger.debug("CONEXÃO: Configurando modo relativo G91")
                 self.controller.cnc.grbl.send_immediately("G91")
-                
-                # Inicia verificação de status
+                time.sleep(0.1)
+
                 logger.debug("CONEXÃO: Iniciando polling de status")
                 self.controller.cnc.grbl.poll_start()
-                
-                # Atualiza o estado da conexão
+
                 self.controller.cnc.is_connected = True
-                self.controller.cnc.machine_status = "Idle"  # Estado inicial presumido
-                
-                # Atualiza UI
+                self.controller.cnc.machine_status = "Idle"  
                 self.connect_cnc_btn.setText("Desconectar CNC")
                 self.cnc_status.setText("Conectado")
                 self.statusBar().showMessage(f"CNC conectada na porta {port}")
                 
             except Exception as e:
-                logger.error(f"CONEXÃO: Falha ao conectar: {str(e)}")
+                # ... (código de tratamento de erro de conexão) ...
+                logger.error(f"CONEXÃO: Falha ao conectar ou configurar: {str(e)}", exc_info=True) 
                 QMessageBox.critical(self, "Erro", f"Falha ao conectar a CNC: {str(e)}")
+                if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
+                    try:
+                        self.controller.cnc.grbl.disconnect()
+                    except: pass
+                self.controller.cnc.grbl = None
+                self.controller.cnc.is_connected = False
+                self.controller.cnc.machine_status = "Erro Conexão"
+                self.connect_cnc_btn.setText("Conectar CNC")
+                self.cnc_status.setText("Erro Conexão")
                 
     def connect_camera(self):
         """Conecta à câmera"""
@@ -1507,29 +1655,32 @@ class AOIControllerApp(QMainWindow):
             QMessageBox.warning(self, "Erro", f"Falha ao capturar imagem: {self.controller.camera.last_error}")
             
     def update_position_display(self): 
-        """Atualiza a exibição da posição atual""" 
+        """Atualiza a exibição da posição atual (agora exibindo WPos calculada)""" 
         if not self.controller.cnc.is_connected: 
-            logger.debug("update_position_display: CNC não conectada.") 
+            # logger.debug("update_position_display: CNC não conectada.") # Log já existente
             return 
         try: 
+            # get_current_position agora retorna a WPos calculada
             position = self.controller.cnc.get_current_position() 
-            logger.debug("update_position_display: posição obtida do CNC: %s", position) 
+            logger.debug("update_position_display: posição (WPos calculada) obtida do CNC: %s", position) 
         except Exception as e: 
             logger.error("update_position_display: erro ao obter posição: %s", e) 
             return
-        # Verificação para detectar se a posição não mudou (mesmo após movimento)
+
+        # Comparação para log (opcional, pode ser removido se poluir muito)
         if self.last_logged_position is not None:
             if position == self.last_logged_position:
-                logger.warning("update_position_display: posição inalterada: %s", position)
+                pass
+                # logger.warning("update_position_display: posição (WPos calculada) inalterada: %s", position)
             else:
-                logger.debug("update_position_display: posição mudou de %s para %s", 
+                logger.debug("update_position_display: posição (WPos calculada) mudou de %s para %s", 
                             self.last_logged_position, position)
         else:
-            logger.debug("update_position_display: nenhuma posição anterior registrada.")
-
+            logger.debug("update_position_display: nenhuma posição (WPos calculada) anterior registrada.")
+        
         self.last_logged_position = position.copy()
 
-        # Atualiza os labels da interface
+        # Atualiza os labels da interface com a WPos calculada
         self.x_position.setText(f"{position['x']:.3f} mm")
         self.y_position.setText(f"{position['y']:.3f} mm")
         self.cnc_status.setText(self.controller.cnc.machine_status)

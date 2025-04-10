@@ -250,6 +250,8 @@ class GRBLCNCController:
         """
         logger.debug(f"get_current_position: Retornando posição atual: {self.current_position if hasattr(self, 'current_position') else 'desconhecida'}")
         if hasattr(self, 'current_position'):
+            # current_position é um dicionário com chaves 'x', 'y' e 'z'
+            # Retorna uma cópia para evitar alterações acidentais
             return self.current_position.copy()
         return {'x': 0, 'y': 0, 'z': 0}
         
