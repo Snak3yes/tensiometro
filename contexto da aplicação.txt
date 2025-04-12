@@ -1,10 +1,10 @@
 Objetivo da aplicação:
-- Criação de uma lib para ser usada como base para a construção de uma máquina de inspeção automática (AOI).
-- Essa lib será usada no desenvolvimento do sistema que vai fazer o controle de uma cnc para fazer a captura e processamento das imagens da placa que será inspecionada.
-- Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL instalado e estão sendo usados apenas os eixos x e y.
+- Criação de um sistema completo de AOI (máquina de inspeção automática).
+- Esse sistema deve ter como uma das suas funcionalidades fazer todo o controle da cnc que será usada para fazer as movimentações da head para a captura das imagens que serão rpocessadas para inspecionar defeitos em placas de circuito eletrônico.
+- Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL v1.1 instalado e estão sendo usados apenas os eixos x e y (por enquanto).
 - A comunicação com o Arduino acontece via USB por comunicação serial.
-- Vamos usar como referência o firmaware GRBL para desenvolver nossas funcionalidades.
-- Como biblioteca principal deve ser usado a lib grbl-streamer que já possui funcionalidades bem implementadas e testadas.
-- implementação de sistema de calibração ok
+- Vamos usar como referência o firmaware GRBL v1.1 para desenvolver nossas funcionalidades.
+- Como biblioteca principal deve ser usado a lib grbl-stream que já possui funcionalidades bem implementadas e testadas para enviar comando diretamente ao grbl.
+
 
 

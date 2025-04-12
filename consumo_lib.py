@@ -472,6 +472,14 @@ class MovementControlWidget(QWidget):
         # Add step and feed rate controls
         movement_layout.addLayout(step_layout, 3, 0, 1, 3)
         movement_layout.addLayout(feed_layout, 4, 0, 1, 3)
+
+        self.go_to_zero_btn = QPushButton("Go to Zero")
+        self.go_to_zero_btn.clicked.connect(self.go_to_zero)
+        self.go_to_zero_btn.setMinimumHeight(40)  # Altura mínima para facilitar o clique
+        font = QFont()
+        font.setBold(True)
+        self.go_to_zero_btn.setFont(font)
+        movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)  # Posiciona abaixo dos controles existentes
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
@@ -554,6 +562,67 @@ class MovementControlWidget(QWidget):
 
     # A função verify_position_changed pode ser mantida no código, mas não será mais chamada
     # a partir de start_movement, evitando o envio prematuro de '?'.
+
+    def go_to_zero(self):
+        """
+        Move a máquina para a posição zero de trabalho (WPos).
+        Realiza verificações de segurança e tratamento de estados.
+        """
+        logger.debug("GO_TO_ZERO: Iniciando movimento para posição zero")
+        
+        # Verifica se a CNC está conectada
+        if not hasattr(self.controller.cnc, 'is_connected') or not self.controller.cnc.is_connected:
+            logger.warning("GO_TO_ZERO: CNC não conectada")
+            QMessageBox.warning(self, "Erro", "CNC não conectada")
+            return False
+        
+        try:
+            # Verifica se a máquina está pronta para movimento (não em alarme ou movimento)
+            current_status = self.controller.cnc.machine_status
+            if current_status == "Alarm":
+                logger.warning("GO_TO_ZERO: Máquina em estado de alarme, não pode mover")
+                QMessageBox.warning(self, "Erro", "Máquina em estado de alarme. Desbloqueie primeiro.")
+                return False
+            
+            if current_status in ["Run", "Jog"]:
+                logger.warning(f"GO_TO_ZERO: Máquina está ocupada ({current_status}), aguarde")
+                QMessageBox.warning(self, "Aviso", "Máquina está em movimento. Aguarde ou cancele a operação atual.")
+                return False
+                
+            # Obter a velocidade de avanço atual do campo feed_rate
+            try:
+                feed_rate = float(self.feed_rate.text())
+            except (ValueError, TypeError):
+                feed_rate = 1000  # Valor padrão se houver erro na conversão
+                logger.warning(f"GO_TO_ZERO: Erro ao converter feed_rate, usando padrão {feed_rate}")
+                
+            # Configura o modo absoluto e move para zero
+            logger.info(f"GO_TO_ZERO: Enviando movimento para zero com feed_rate={feed_rate}")
+            
+            # Primeiro garante modo absoluto (G90)
+            self.controller.cnc.grbl.send_immediately("G90")
+            
+            # Pequena pausa para garantir que o modo foi definido
+            time.sleep(0.1)
+            
+            # Movimento para o ponto zero absoluto (trabalho)
+            command = f"G1 X0 Y0 F{feed_rate}"
+            self.controller.cnc.grbl.send_immediately(command)
+            
+            # Log do sucesso e atualização do status
+            logger.info("GO_TO_ZERO: Comando enviado com sucesso")
+            main_window = self.window()
+            if hasattr(main_window, 'statusBar'):
+                main_window.statusBar().showMessage("Movendo para posição zero")
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"GO_TO_ZERO: Erro ao enviar comando de movimento: {str(e)}", exc_info=True)
+            QMessageBox.warning(self, "Erro", f"Falha ao mover para posição zero: {str(e)}")
+            return False
+
+
     def verify_position_changed(self, axis, direction, original_position):
         """Verifica se a posição realmente mudou após comando de movimento"""
         try:
