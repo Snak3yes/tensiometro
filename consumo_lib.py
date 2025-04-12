@@ -441,6 +441,20 @@ class MovementControlWidget(QWidget):
         movement_layout.addWidget(self.left_button, 1, 0)
         movement_layout.addWidget(self.right_button, 1, 2)
         movement_layout.addWidget(self.down_button, 2, 1)
+
+        # Botão de Emergency Stop / Reset
+        self.emergency_stop_button = QPushButton("STOP")
+        self.emergency_stop_button.setCheckable(True) # Torna o botão toggle
+        self.emergency_stop_button.setMinimumSize(100, 40)
+        font_stop = QFont()
+        font_stop.setBold(True)
+        self.emergency_stop_button.setFont(font_stop)
+        # Estilo inicial (vermelho)
+        self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
+        self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle) # Conecta ao handler
+
+        # Adiciona o botão ao layout, centralizado abaixo dos direcionais
+        movement_layout.addWidget(self.emergency_stop_button, 1, 1, Qt.AlignmentFlag.AlignCenter) # Coloca no centro (linha 1, coluna 1)
         
         # Step size and feed rate controls
         step_layout = QHBoxLayout()
@@ -704,6 +718,86 @@ class MovementControlWidget(QWidget):
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao definir modo de movimento: {e}")
             QMessageBox.warning(self, "Error", f"Error setting motion mode: {e}")
+
+    def on_emergency_stop_toggle(self, checked):
+        """
+        Manipula o clique no botão Emergency Stop/Reset.
+        """
+        if not hasattr(self.controller.cnc, 'is_connected') or not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Erro", "CNC não conectada")
+            self.emergency_stop_button.setChecked(not checked)
+            return
+            
+        if checked:
+            # Botão foi pressionado para entrar no modo RESET
+            logger.info("EMERGENCY STOP: Botão pressionado. Enviando Soft Reset.")
+            if self.controller.cnc.send_soft_reset():
+                # Configura visual do botão para Reset
+                self.emergency_stop_button.setText("Reset")
+                self.emergency_stop_button.setStyleSheet("background-color: orange; color: black;")
+                
+                # Atualiza status
+                main_window = self.window()
+                if hasattr(main_window, 'statusBar'):
+                    main_window.statusBar().showMessage("Máquina parada. Clique em Reset para desbloquear.")
+            else:
+                # Soft reset falhou, reverte o botão
+                logger.error("EMERGENCY STOP: Falha ao enviar Soft Reset")
+                QMessageBox.critical(self, "Erro", "Falha ao enviar comando de parada")
+                self.emergency_stop_button.setChecked(False)
+        else:
+            # Botão foi pressionado para sair do modo RESET
+            logger.info("RESET: Botão pressionado para desbloquear. Enviando $X.")
+            if self.controller.cnc.unlock():
+                # Configura visual do botão para STOP
+                self.emergency_stop_button.setText("STOP")
+                self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
+                
+                # Atualiza status
+                main_window = self.window()
+                if hasattr(main_window, 'statusBar'):
+                    main_window.statusBar().showMessage("Máquina desbloqueada e pronta.")
+                    
+                # Solicita atualização de status para verificar nova condição
+                QTimer.singleShot(200, lambda: self.controller.cnc.grbl.send_immediately("?"))
+            else:
+                # Desbloqueio falhou, reverte o botão
+                logger.error("RESET: Falha ao enviar comando de desbloqueio")
+                QMessageBox.critical(self, "Erro", "Falha ao desbloquear a máquina")
+                self.emergency_stop_button.setChecked(True)
+
+
+    def _auto_unlock_after_reset(self):
+        """Executa sequência automática de desbloqueio após reset de emergência"""
+        logger.info("AUTO UNLOCK: Iniciando sequência de desbloqueio automático após reset")
+        
+        try:
+            # 1. Envia comando de desbloqueio
+            self.controller.cnc.grbl.send_immediately("$X")
+            logger.info("AUTO UNLOCK: Comando $X enviado")
+            
+            # 2. Pequena pausa
+            QTimer.singleShot(200, lambda: self._check_if_unlocked())
+        except Exception as e:
+            logger.error(f"AUTO UNLOCK: Erro ao enviar comando de desbloqueio: {e}")
+            main_window = self.window()
+            if hasattr(main_window, 'statusBar'):
+                main_window.statusBar().showMessage(f"Erro no desbloqueio automático: {e}")
+
+    def _check_if_unlocked(self):
+        """Verifica se o desbloqueio foi bem-sucedido e restaura configurações se necessário"""
+        try:
+            # Solicita status para conferir se saiu do alarme
+            self.controller.cnc.grbl.send_immediately("?")
+            
+            # Exibe mensagem de sucesso
+            main_window = self.window()
+            if hasattr(main_window, 'statusBar'):
+                main_window.statusBar().showMessage("Sistema parado e desbloqueado automaticamente.")
+                
+            logger.info("AUTO UNLOCK: Sequência de desbloqueio automático concluída")
+        except Exception as e:
+            logger.error(f"AUTO UNLOCK: Erro ao verificar status após desbloqueio: {e}")
 
 class AOIControllerApp(QMainWindow):
     def __init__(self):
@@ -1247,38 +1341,54 @@ class AOIControllerApp(QMainWindow):
         if not self.controller.cnc.is_connected or not self.controller.cnc.grbl:
             QMessageBox.warning(self, "Aviso", "CNC não conectada")
             return
-
         try:
-            # 1. Obter o número P correspondente ao WCS ativo
+            # 1. Captura a MPos MAIS RECENTE armazenada ANTES de enviar o G10
+            #    Garante que estamos usando a posição correta para calcular o novo offset.
+            #    Usamos self.current_mpos que é atualizado pelo callback on_stateupdate.
+            mpos_correcta_no_zeramento = self.current_mpos.copy() # Captura a MPos atual armazenada
+            logger.info(f"SET ZERO: MPos capturada para zeramento: {mpos_correcta_no_zeramento}")
+
+            # Verifica se a MPos capturada parece válida (não apenas zeros se esperamos algo diferente)
+            # Este é um check adicional, pode ser ajustado ou removido se causar problemas.
+            if mpos_correcta_no_zeramento['x'] == 0.0 and mpos_correcta_no_zeramento['y'] == 0.0 and (self.last_logged_position and (self.last_logged_position['x'] != 0.0 or self.last_logged_position['y'] != 0.0)):
+                 logger.warning(f"SET ZERO: MPos capturada ({mpos_correcta_no_zeramento}) parece zerada, mas a última posição exibida era {self.last_logged_position}. Verifique a atualização de self.current_mpos.")
+                 # Poderia até abortar aqui ou pedir confirmação, mas vamos prosseguir por enquanto.
+
+            # 2. Obter o número P correspondente ao WCS ativo (Ex: G54 -> P1)
             p_number = self.wcs_to_p.get(self.active_wcs)
             if p_number is None:
                 logger.error(f"SET ZERO: WCS ativo '{self.active_wcs}' não reconhecido para G10 L20. Usando P1 (G54).")
                 p_number = 1 # Usa G54 como fallback
 
-            # 2. Construir o comando G10 L20
-            # Zerando apenas X e Y por enquanto, adicione Z se necessário
-            command = f"G10 L20 P{p_number} X0 Y0" 
+            # 3. Construir o comando G10 L20
+            # Zerando apenas X e Y por enquanto. Adicione Z se necessário: Z{mpos_correcta_no_zeramento['z']:.4f}
+            # O comando G10 L20 Pn X0 Y0 diz ao GRBL: "Ajuste o offset do WCS 'n' para que a MPos *atual* corresponda a WPos X0 Y0"
+            command = f"G10 L20 P{p_number} X0 Y0"
             logger.info(f"SET ZERO: Enviando comando: {command} para zerar {self.active_wcs}")
 
-            # 3. Enviar o comando
+            # 4. Enviar o comando G10 L20 para o GRBL
             self.controller.cnc.grbl.send_immediately(command)
-            
-            # 4. Atualizar estado interno IMEDIATAMENTE
-            # O novo offset (para WPos ser 0) é a MPos atual
-            logger.info(f"SET ZERO: Atualizando offset interno de {self.current_wcs_offset} para {self.current_mpos}")
-            self.current_wcs_offset = self.current_mpos.copy() 
-            
-            # A nova posição de trabalho é zero
-            logger.info(f"SET ZERO: Atualizando posição interna (WPos) para {{'x': 0.0, 'y': 0.0, 'z': 0.0}}")
-            self.controller.cnc.current_position = {'x': 0.0, 'y': 0.0, 'z': 0.0}
-            
-            # 5. Atualizar a interface imediatamente
-            self.update_position_display()
-            
+
+            # 5. Atualizar o offset interno da APLICAÇÃO
+            # O novo offset que a aplicação deve usar para calcular WPos = MPos - Offset
+            # é exatamente a MPos que a máquina tinha no momento do comando G10.
+            logger.info(f"SET ZERO: Atualizando offset interno de {self.current_wcs_offset} para {mpos_correcta_no_zeramento}")
+            self.current_wcs_offset = mpos_correcta_no_zeramento # ATUALIZAÇÃO CORRETA DO OFFSET INTERNO
+
+            # 6. Atualizar a posição interna da APLICAÇÃO (WPos) para zero
+            # Isso força a exibição a mostrar (0,0) imediatamente.
+            new_wpos = {'x': 0.0, 'y': 0.0, 'z': 0.0} # A WPos deve ser zero agora
+            logger.info(f"SET ZERO: Forçando posição interna (WPos) para {new_wpos}")
+            self.controller.cnc.current_position = new_wpos
+
+            # 7. Atualizar a interface gráfica imediatamente com a WPos zerada
+            self.update_position_display() # Chama a função que atualiza os labels X e Y
+
             self.statusBar().showMessage(f"Posição zero definida para {self.active_wcs} na localização atual.")
 
-            # 6. (Opcional) Solicitar $# após um tempo para verificar se o GRBL armazenou
-            # QTimer.singleShot(500, lambda: self.controller.cnc.grbl.send_immediately("$#"))
+            # 8. (Opcional) Solicitar $# ou $G após um tempo para verificar se o GRBL processou
+            QTimer.singleShot(500, lambda: self.controller.cnc.grbl.send_immediately("$#"))
+            QTimer.singleShot(600, lambda: self.controller.cnc.grbl.send_immediately("$G"))
 
         except Exception as e:
             logger.error(f"SET ZERO: Erro ao definir posição zero: {e}", exc_info=True)
@@ -1464,31 +1574,64 @@ class AOIControllerApp(QMainWindow):
                     if eventstring == "on_hash_stateupdate":
                         if data and isinstance(data[0], dict):
                             hash_state = data[0]
-                            # Assumindo G54 como padrão por enquanto
-                            # Idealmente, verificar qual WCS está ativo via $G (self.gps[1])
-                            g54_offset = hash_state.get('G54') 
-                            if isinstance(g54_offset, (list, tuple)) and len(g54_offset) >= 2:
-                                try:
-                                    self.current_wcs_offset['x'] = float(g54_offset[0])
-                                    self.current_wcs_offset['y'] = float(g54_offset[1])
-                                    self.current_wcs_offset['z'] = float(g54_offset[2]) if len(g54_offset) > 2 else 0.0
-                                    logger.info(f"CALLBACK: Offset G54 atualizado para: {self.current_wcs_offset}")
-                                except (ValueError, TypeError):
-                                     logger.error(f"CALLBACK: Erro ao converter offset G54: {g54_offset}")
-                            else:
-                                logger.warning(f"CALLBACK: Offset G54 não encontrado ou inválido nos dados hash: {hash_state}")
 
+                            # Processar G54 APENAS se o WCS ativo for G54
+                            # Isso evita que a resposta tardia do $# sobrescreva um offset
+                            # que foi definido manualmente via G10 L20 para G54.
+                            if self.active_wcs == "G54": 
+                                g54_offset_data = hash_state.get('G54') 
+                                if isinstance(g54_offset_data, (list, tuple)) and len(g54_offset_data) >= 2:
+                                    try:
+                                        new_offset_x = float(g54_offset_data[0])
+                                        new_offset_y = float(g54_offset_data[1])
+                                        new_offset_z = float(g54_offset_data[2]) if len(g54_offset_data) > 2 else 0.0
+                                        
+                                        # Atualiza o offset interno
+                                        self.current_wcs_offset['x'] = new_offset_x
+                                        self.current_wcs_offset['y'] = new_offset_y
+                                        self.current_wcs_offset['z'] = new_offset_z
+                                        logger.info(f"CALLBACK: Offset G54 (de $#) atualizado para: {self.current_wcs_offset} (WCS ativo é G54)")
+                                    except (ValueError, TypeError):
+                                         logger.error(f"CALLBACK: Erro ao converter offset G54 de $#: {g54_offset_data}")
+                                else:
+                                    logger.warning(f"CALLBACK: Offset G54 não encontrado ou inválido nos dados hash para WCS ativo G54: {hash_state}")
+                            else:
+                                logger.debug(f"CALLBACK: Ignorando atualização de offset G54 de $# porque WCS ativo é {self.active_wcs}")
+                            # TODO: Se precisar suportar outros WCS (G55-G59), adicionar lógica similar aqui
+                
                     # Capturar estado do parser para saber o WCS ativo
                     elif eventstring == "on_gcode_parser_stateupdate":
+                        # ... (código existente para atualizar self.active_wcs) ...
                         if data and isinstance(data[0], list) and len(data[0]) > 1:
                             parser_state = data[0]
-                            new_active_wcs = f"G{parser_state[1]}" # Índice 1 contém o WCS ativo (ex: "54")
+                            # O índice 1 contém o WCS ativo (ex: "54", "55", etc.)
+                            # O índice 0 contém o modo de movimento (ex: "1" para G1)
+                            # O índice 4 contém o modo de distância (ex: "90" para G90)
+                            new_active_wcs = f"G{parser_state[1]}" 
+                            new_motion_mode = f"G{parser_state[0]}"
+                            new_distance_mode = f"G{parser_state[4]}"
+
                             if new_active_wcs != self.active_wcs:
                                 logger.info(f"CALLBACK: WCS Ativo mudou de {self.active_wcs} para {new_active_wcs}")
                                 self.active_wcs = new_active_wcs
-                                # Poderia solicitar $# aqui para obter o offset do novo WCS, se necessário
-                        # Log dos dados completos do parser state (opcional)
-                        # logger.debug(f"CALLBACK: Parser State Update: {data[0]}")
+                                # Ao mudar o WCS, seria ideal buscar o offset correspondente via $#
+                                # ou ter todos os offsets armazenados. Por enquanto, apenas logamos.
+                                # self.controller.cnc.grbl.send_immediately("$#") # Cuidado com loops
+
+                            # Atualiza estado interno da aplicação sobre modos G90/G91
+                            # Isso garante que a UI e a lógica de movimento estejam sincronizadas
+                            # com o estado real do GRBL reportado por $G.
+                            if hasattr(self, 'movement_widget'): # Verifica se o widget existe
+                                if new_distance_mode == "G90":
+                                    if not self.movement_widget.mode_absolute.isChecked():
+                                        logger.info("CALLBACK ($G): Sincronizando UI para G90 (Absoluto)")
+                                        self.movement_widget.mode_absolute.setChecked(True)
+                                        self.movement_widget.mode_relative.setChecked(False)
+                                elif new_distance_mode == "G91":
+                                     if not self.movement_widget.mode_relative.isChecked():
+                                        logger.info("CALLBACK ($G): Sincronizando UI para G91 (Relativo)")
+                                        self.movement_widget.mode_absolute.setChecked(False)
+                                        self.movement_widget.mode_relative.setChecked(True)
                     
                     elif eventstring == "on_stateupdate":
                         logger.info(f"CALLBACK: Processando 'on_stateupdate'. Dados brutos: {data}") 
@@ -1545,14 +1688,11 @@ class AOIControllerApp(QMainWindow):
                                         logger.info(f"CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {old_position} -> {new_position}")
                                         # Atualiza a posição no controlador com a WPos calculada
                                         self.controller.cnc.current_position = new_position 
-                                    else:
-                                         logger.debug(f"CALLBACK: Posição interna NÃO alterada (sem mudança significativa via WPOS calculada): {new_position}")
                                     
                                 except (ValueError, TypeError, IndexError) as e:
                                     logger.error(f"CALLBACK: Erro ao processar MPOS ou calcular WPOS: {e}, mpos={mpos_tuple}")
                             else:
                                 logger.error(f"CALLBACK: Formato inválido para MPOS: {type(mpos_tuple)}, valor: {mpos_tuple}")
-                            # --- FIM DA MODIFICAÇÃO ---
 
                         else:
                             logger.error(f"CALLBACK: 'on_stateupdate' recebido com dados insuficientes (len={len(data)}). Dados: {data}")

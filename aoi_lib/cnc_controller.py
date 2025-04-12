@@ -380,21 +380,62 @@ class GRBLCNCController:
         return True
         
     def unlock(self):
-        """Desbloqueia a máquina."""
-        if not self.is_connected:
+        """Envia o comando de desbloqueio ($X) para o GRBL."""
+        if not self.is_connected or not self.grbl:
+            logger.warning("UNLOCK: CNC não conectada.")
             return False
+        try:
+            logger.info("UNLOCK: Enviando comando de desbloqueio ($X)")
             
-        self.send_command("$X", priority=True)
-        return True
+            # A biblioteca tem um método dedicado para killalarm
+            self.grbl.killalarm()
+            
+            logger.info("UNLOCK: Comando de desbloqueio enviado.")
+            return True
+        except Exception as e:
+            logger.error(f"UNLOCK: Erro ao enviar comando de desbloqueio: {e}", exc_info=True)
+            return False
         
     def emergency_stop(self):
-        """Para todos os movimentos imediatamente."""
-        if not self.is_connected:
+        """Para todos os movimentos imediatamente (Feed Hold)."""
+        if not self.is_connected or not self.grbl:
+            logger.warning("EMERGENCY STOP: CNC não conectada.")
             return False
+        try:
+            logger.info("EMERGENCY STOP: Enviando comando Feed Hold (!)")
+
+            # CORREÇÃO: Usar send_immediately() em vez de send_realtime_command()
+            self.grbl.send_immediately("!")            
+
+            self.jogging = False  # Atualiza o estado de jog, pois o movimento parou
+            self.machine_status = "Hold" # Estado esperado após '!' é Hold
+            logger.info("EMERGENCY STOP: Comando Feed Hold (!) enviado. Estado esperado: Hold.")
+            return True
+        except Exception as e:
+            logger.error(f"EMERGENCY STOP: Erro ao enviar comando Feed Hold (!): {e}", exc_info=True)
+            return False
+    
+    def send_soft_reset(self):
+        """Envia um comando de Soft Reset (Ctrl+X) para o GRBL."""
+        if not self.is_connected or not self.grbl:
+            logger.warning("SOFT RESET: CNC não conectada.")
+            return False
+        try:
+            # O Soft Reset no GRBL é o caractere Ctrl+X (código ASCII 0x18 ou 24 em decimal)
+            logger.info("SOFT RESET: Enviando comando Soft Reset (Ctrl+X)")
             
-        self.grbl.send_realtime_command("!")
-        self.jogging = False  # Atualiza o estado de jog
-        return True
+            # Utiliza o método send_immediately() com o caractere adequado
+            self.grbl.send_immediately("\x18")
+            
+            self.jogging = False # Assume que o reset também para o jog
+            self.machine_status = "Alarm" # O estado esperado após reset é Alarme
+            logger.info("SOFT RESET: Comando enviado. Estado esperado: Alarm.")
+            return True
+        except Exception as e:
+            # Loga o erro se ocorrer
+            logger.error(f"SOFT RESET: Erro ao enviar comando Soft Reset: {e}", exc_info=True)
+            return False
+
         
     def send_command(self, command, priority=False):
         """
@@ -410,13 +451,10 @@ class GRBLCNCController:
         try:
             # Comandos de controle realtime (!, ~, ?) são tratados especialmente
             if command in ["!", "~", "?"]:
-                self.grbl.send_realtime_command(command)
+                self.grbl.send_immediately(command)
             # Comandos prioritários são enviados com prioridade
             elif priority:
-                self.grbl.send_priority_command(command)
-            # Comandos normais
-            else:
-                self.grbl.send_gcode(command)
+                self.grbl.send_immediately(command)
             return True
         except Exception as e:
             self.last_error = str(e)

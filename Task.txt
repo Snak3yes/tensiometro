@@ -1,0 +1,16 @@
+# história de usuário
+
+Deve existir um botão que faça a parada imediata dos movimentos dos eixos a qualquer momento.
+
+Esse botão deve ser adicionado na interface e deve estar localizado dentro dos controles de movimento.
+
+este botão deve ser toogle (stop/reset). ele deve iniciar em stop, quando clicado pela primeira vez parar a movimentação de todos os eixos e mudar o texto escrito para reset, e quando clicado novamente deve reestabelecer a comunicação com o arduino grbl e mudar seu nome novamente para stop.
+
+# Solicitações:
+ok - adicionar botão de emergency stop na região de controle de movimento
+- o botão de emercengy stop deve ser toogle para fazer o reset depois de pressionado.
+- quando clicado no reset a comunicação com o arduino deve ser reestabelecida.
+
+
+
+

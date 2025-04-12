@@ -5,13 +5,6 @@ Objetivo da aplicação:
 - A comunicação com o Arduino acontece via USB por comunicação serial.
 - Vamos usar como referência o firmaware GRBL para desenvolver nossas funcionalidades.
 - Como biblioteca principal deve ser usado a lib grbl-streamer que já possui funcionalidades bem implementadas e testadas.
-- implementação de sistema de calibração
+- implementação de sistema de calibração ok
 
-Implemnentação atual:
-
-# correção do número referente a posição atual
-- o número exibido no deslocamento não condiz com o deslocamento realizado.
-- fisicamente o deslocamento medido no físico está correto o valor setado no campo "step size" é exatamente o registrado fisicamente quando clicado nas setas para fazer o deslocamento passo a passo.
-- mas o valor registrado nos campos x e y dentro de "posição atual" não está de acordo com o deslocamento.
-- quando é feito o primeiro movimento em x, por exemplo, o y recebe um valor como se tivesse sido movido sendo que ele não foi movido. o mesmo comportamento acontece se for movido o y inicialmente, o x recebe um valor como se tivesse sido movido mas não foi. esse comportamento acontece no primeiro movimento após iniciar a aplicação.
 
