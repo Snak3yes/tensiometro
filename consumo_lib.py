@@ -4,9 +4,9 @@ import time
 import numpy as np
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QLabel, QGroupBox, QGridLayout, QLineEdit, 
-                            QComboBox, QListWidget, QListWidgetItem, QFileDialog, QMessageBox, QTabWidget,
+                            QComboBox, QListWidget, QCheckBox, QListWidgetItem, QFileDialog, QMessageBox, QTabWidget,
                             QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QDialog)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent
 from PyQt6.QtGui import QPixmap, QImage, QFont, QAction
 
 from aoi_lib import CNCAOIController, InspectionPosition
@@ -480,6 +480,17 @@ class MovementControlWidget(QWidget):
         font.setBold(True)
         self.go_to_zero_btn.setFont(font)
         movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)  # Posiciona abaixo dos controles existentes
+
+        # Botão para deslocar a head para posição de trabalho definida pelo usuário (WPos)
+        self.go_to_position_btn = QPushButton("Go to Position")
+        self.go_to_position_btn.setToolTip("Ir para posição de trabalho específica (WPos)")
+        self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
+        movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
+
+        # Checkbox para habilitar/desabilitar controle via teclado
+        self.keyboard_control_checkbox = QCheckBox("Enable Keyboard Control")
+        self.keyboard_control_checkbox.setChecked(False)
+        movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
@@ -546,15 +557,9 @@ class MovementControlWidget(QWidget):
                      logger.warning("MOVIMENTO: Não foi possível gerar comando absoluto.")
 
             else:
-                distance = 100 * direction  # Distância grande para movimento contínuo
-
-                if axis.upper() == 'X':
-                    command = f"$J=G91 X{distance} F{feed_rate}"
-                else:  # Y
-                    command = f"$J=G91 Y{distance} F{feed_rate}"
-
-                logger.debug(f"MOVIMENTO: Enviando comando contínuo: {command}")
-                self.controller.cnc.grbl.send_immediately(command)
+                # MODO CONTÍNUO: dispara jog via controller
+                logger.debug(f"MOVIMENTO: Iniciando jog contínuo: eixo={axis}, direção={direction}, feed_rate={feed_rate}")
+                self.controller.cnc.start_continuous_jog(axis, direction, feed_rate)
 
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao iniciar movimento: {str(e)}")
@@ -679,35 +684,99 @@ class MovementControlWidget(QWidget):
                 logger.debug("MOVIMENTO: Modo absoluto (passo a passo), ignorando comando de parada explícito")
                 return
             else:
-                # Apenas no modo contínuo (G91 com $J=) enviamos os comandos de parada
-                # O comando correto para cancelar Jog é 0x85 (Jog Cancel)
-                # Se a biblioteca não abstrai isso, precisamos enviar o byte.
-                # Assumindo que send_immediately pode enviar bytes:
-                logger.debug("MOVIMENTO: Enviando comando de cancelamento de Jog (0x85)")
-                # Tentar enviar o byte de cancelamento de Jog
-                try:
-                    # A biblioteca grbl_streamer pode não ter um método direto para bytes.
-                    # Se `send_immediately` falhar com bytes, pode ser necessário
-                    # investigar a API da biblioteca ou usar `!` como paliativo,
-                    # sabendo que pode não ser o ideal para $J=
-                    # self.controller.cnc.grbl.serial_port.write(b'\x85') # Acesso direto (não recomendado se houver abstração)
-                    self.controller.cnc.grbl.send_immediately("!") # Usando Feed Hold como alternativa
-                    logger.debug("MOVIMENTO: Comando '!' (Feed Hold) enviado como alternativa para parar Jog")
-
-                    # Agendando retomada e atualização (mantido, mas sem _force_position_update)
-                    logger.debug("MOVIMENTO: Agendando comando de retomada (~) após pausa")
-                    QTimer.singleShot(100, lambda: self._execute_resume_and_update())
-
-                except AttributeError as ae:
-                     logger.error(f"MOVIMENTO: Erro ao tentar enviar comando de parada de Jog. A biblioteca pode não suportar envio direto de bytes ou 0x85. Detalhes: {ae}")
-                     # Fallback para Feed Hold se o envio direto falhar
-                     self.controller.cnc.grbl.send_immediately("!")
-                     logger.warning("MOVIMENTO: Usando '!' (Feed Hold) como fallback para parar Jog.")
-                     QTimer.singleShot(100, lambda: self._execute_resume_and_update())
+                # MODO CONTÍNUO: interrompe jog via controller
+                logger.debug("MOVIMENTO: Parando jog contínuo via controller.stop_continuous_jog()")
+                self.controller.cnc.stop_continuous_jog()
 
 
         except Exception as e:
             logger.error(f"MOVIMENTO: Erro ao parar movimento: {e}")
+
+    def show_go_to_dialog(self):
+        """Exibe diálogo para coletar coordenadas de destino (WPos)."""
+        from PyQt6.QtWidgets import QDialog, QLabel, QLineEdit, QHBoxLayout, QPushButton, QMessageBox
+        from PyQt6.QtGui import QDoubleValidator
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Go to Position")
+        dialog.setModal(True)
+        layout = QGridLayout(dialog)
+
+        # Captura a posição de trabalho atual (WPos) para pré‑preencher os campos
+        try:
+            current = self.controller.cnc.get_current_position()
+        except Exception:
+            current = {'x': 0.0, 'y': 0.0}
+
+        layout.addWidget(QLabel("X (mm):"), 0, 0)
+        x_input = QLineEdit()
+        x_input.setValidator(QDoubleValidator(-10000.0, 10000.0, 4, x_input))
+        x_input.setText(f"{current.get('x', 0.0):.3f}")
+        layout.addWidget(x_input, 0, 1)
+
+        layout.addWidget(QLabel("Y (mm):"), 1, 0)
+        y_input = QLineEdit()
+        y_input.setValidator(QDoubleValidator(-10000.0, 10000.0, 4, y_input))
+        y_input.setText(f"{current.get('y', 0.0):.3f}")
+        layout.addWidget(y_input, 1, 1)
+
+        btn_layout = QHBoxLayout()
+        ok_btn = QPushButton("OK")
+        cancel_btn = QPushButton("Cancel")
+        btn_layout.addWidget(ok_btn)
+        btn_layout.addWidget(cancel_btn)
+        layout.addLayout(btn_layout, 2, 0, 1, 2)
+
+        ok_btn.clicked.connect(dialog.accept)
+        cancel_btn.clicked.connect(dialog.reject)
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            try:
+                x = float(x_input.text())
+                y = float(y_input.text())
+                self.go_to_position(x, y)
+            except ValueError:
+                QMessageBox.warning(self, "Erro", "Valores inválidos para X ou Y")
+
+    def go_to_position(self, x, y):
+        """Realiza movimento para a posição absoluta de trabalho (WPos)."""
+        from PyQt6.QtWidgets import QMessageBox
+        from PyQt6.QtCore import QTimer
+
+        # 1. Verifica se há conexão
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Erro", "CNC não conectada")
+            return
+
+        # 2. Verifica se a máquina está livre
+        status = self.controller.cnc.machine_status
+        if status in ("Alarm", "Run", "Jog"):
+            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
+            return
+
+        # 3. Guarda modo de distância atual (G90 ou G91)
+        prev_mode = "G90" if self.mode_absolute.isChecked() else "G91"
+
+        # 4. Obtém feed rate
+        try:
+            feed_rate = float(self.feed_rate.text())
+        except:
+            feed_rate = 1000
+
+        # 5. Vai para modo absoluto e dispara o movimento
+        self.controller.cnc.grbl.send_immediately("G90")
+        time.sleep(0.05)
+        cmd = f"G1 X{x:.4f} Y{y:.4f} F{feed_rate:.0f}"
+        self.controller.cnc.grbl.send_immediately(cmd)
+
+        # 6. Feedback na barra de status
+        main_win = self.window()
+        if hasattr(main_win, "statusBar"):
+            main_win.statusBar().showMessage(f"Movendo para X:{x:.3f}, Y:{y:.3f}")
+
+        # 7. Restaura modo anterior e agenda atualização de posição
+        QTimer.singleShot(100, lambda: self.controller.cnc.grbl.send_immediately(prev_mode))
+        QTimer.singleShot(200, lambda: main_win.update_position_display())
 
     def _execute_resume_and_update(self):
         """Executa o resumo após parada e força atualização de posição em sequência"""
@@ -901,6 +970,49 @@ class AOIControllerApp(QMainWindow):
         self.update_timer.timeout.connect(self.on_update_timer) 
         self.update_timer.start(1000) # Atualiza a cada 1000ms
 
+        # Capturar eventos de teclado para movimentação de qualquer widget:
+        # instala o filter globalmente na aplicação
+        app = QApplication.instance()
+        if app:
+            app.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        """
+        Intercepta eventos de teclado e dispara start/stop de movimento
+        se a opção estiver habilitada.
+        """
+        # KeyPress
+        if event.type() == QEvent.Type.KeyPress and self.movement_widget.keyboard_control_checkbox.isChecked():
+            if hasattr(event, 'isAutoRepeat') and event.isAutoRepeat():
+                return True
+            key = event.key()
+            if key == Qt.Key.Key_Up:
+                self.movement_widget.start_movement("Y", 1)
+                return True
+            elif key == Qt.Key.Key_Down:
+                self.movement_widget.start_movement("Y", -1)
+                return True
+            elif key == Qt.Key.Key_Left:
+                self.movement_widget.start_movement("X", -1)
+                return True
+            elif key == Qt.Key.Key_Right:
+                self.movement_widget.start_movement("X", 1)
+                return True
+        # KeyRelease
+        elif event.type() == QEvent.Type.KeyRelease and self.movement_widget.keyboard_control_checkbox.isChecked():
+            if hasattr(event, 'isAutoRepeat') and event.isAutoRepeat():
+                return True
+            key = event.key()
+            if key in (
+                Qt.Key.Key_Up, 
+                Qt.Key.Key_Down, 
+                Qt.Key.Key_Left, 
+                Qt.Key.Key_Right
+            ):
+                self.movement_widget.stop_movement()
+                return True
+        return super().eventFilter(source, event)
+
     def on_update_timer(self):
         #logger.debug("Timer fired: atualizando tela de posição da head.")
         self.update_position_display()
@@ -985,9 +1097,21 @@ class AOIControllerApp(QMainWindow):
         self.x_position = QLabel("0.000 mm")
         position_layout.addWidget(self.x_position, 0, 1)
 
+        # Botão para zerar apenas o eixo X
+        self.zero_x_btn = QPushButton("Zero X")
+        self.zero_x_btn.setToolTip("Zerar apenas o eixo X")
+        self.zero_x_btn.clicked.connect(self.set_zero_x_position)
+        position_layout.addWidget(self.zero_x_btn, 0, 2)
+
         position_layout.addWidget(QLabel("Y:"), 1, 0)
         self.y_position = QLabel("0.000 mm")
         position_layout.addWidget(self.y_position, 1, 1)
+
+        # Botão para zerar apenas o eixo Y
+        self.zero_y_btn = QPushButton("Zero Y")
+        self.zero_y_btn.setToolTip("Zerar apenas o eixo Y")
+        self.zero_y_btn.clicked.connect(self.set_zero_y_position)
+        position_layout.addWidget(self.zero_y_btn, 1, 2)
 
         position_layout.addWidget(QLabel("Status:"), 2, 0)
         self.cnc_status = QLabel("Desconectado")
@@ -1463,6 +1587,59 @@ class AOIControllerApp(QMainWindow):
             logger.error(f"SET ZERO: Erro ao definir posição zero: {e}", exc_info=True)
             QMessageBox.warning(self, "Erro", f"Falha ao setar posição zero: {str(e)}")
 
+    def set_zero_x_position(self):
+        """Zera apenas o eixo X (WPos.x = 0), mantendo Y."""
+        from PyQt6.QtWidgets import QMessageBox
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Aviso", "CNC não conectada")
+            return
+        try:
+            # Captura a MPos atual
+            mpos = self.current_mpos.copy()
+            # Número do WCS (G54…G59)
+            p_number = self.wcs_to_p.get(self.active_wcs, 1)
+            # Comando para zerar X no offset ativo
+            cmd = f"G10 L20 P{p_number} X0"
+            self.controller.cnc.grbl.send_immediately(cmd)
+            # Atualiza o offset interno de X
+            self.current_wcs_offset['x'] = mpos['x']
+            # Ajusta a posição interna (WPos) para refletir X=0
+            new_wpos = {
+                'x': 0.0,
+                'y': self.controller.cnc.current_position.get('y', 0.0),
+                'z': self.controller.cnc.current_position.get('z', 0.0)
+            }
+            self.controller.cnc.current_position = new_wpos
+            self.update_position_display()
+            self.statusBar().showMessage("Eixo X zerado")
+        except Exception as e:
+            logger.error(f"Erro ao zerar eixo X: {e}", exc_info=True)
+            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo X:\n{e}")
+
+    def set_zero_y_position(self):
+        """Zera apenas o eixo Y (WPos.y = 0), mantendo X."""
+        from PyQt6.QtWidgets import QMessageBox
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Aviso", "CNC não conectada")
+            return
+        try:
+            mpos = self.current_mpos.copy()
+            p_number = self.wcs_to_p.get(self.active_wcs, 1)
+            cmd = f"G10 L20 P{p_number} Y0"
+            self.controller.cnc.grbl.send_immediately(cmd)
+            self.current_wcs_offset['y'] = mpos['y']
+            new_wpos = {
+                'x': self.controller.cnc.current_position.get('x', 0.0),
+                'y': 0.0,
+                'z': self.controller.cnc.current_position.get('z', 0.0)
+            }
+            self.controller.cnc.current_position = new_wpos
+            self.update_position_display()
+            self.statusBar().showMessage("Eixo Y zerado")
+        except Exception as e:
+            logger.error(f"Erro ao zerar eixo Y: {e}", exc_info=True)
+            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo Y:\n{e}")
+
     def on_image_captured(self, image, position_name):
         """Handle captured image and register position"""
         # Display in image viewer
@@ -1726,6 +1903,9 @@ class AOIControllerApp(QMainWindow):
                                     mpos_x = float(mpos_tuple[0])
                                     mpos_y = float(mpos_tuple[1])
                                     mpos_z = float(mpos_tuple[2]) if len(mpos_tuple) > 2 else 0.0
+
+                                    # Guarda a MPos real para uso no zeramento individual de eixos
+                                    self.current_mpos = {'x': mpos_x, 'y': mpos_y, 'z': mpos_z}
 
                                     # Calcular Posição de Trabalho (WPos = MPos - Offset)
                                     calculated_wpos_x = mpos_x - self.current_wcs_offset['x']
@@ -2097,5 +2277,6 @@ from PyQt6.QtWidgets import QInputDialog
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = AOIControllerApp()
+    app.installEventFilter(window)
     window.show()
     sys.exit(app.exec())

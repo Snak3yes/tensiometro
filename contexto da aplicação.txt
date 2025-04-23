@@ -1,6 +1,6 @@
 Objetivo da aplicação:
 - Criação de um sistema completo de AOI (máquina de inspeção automática).
-- Esse sistema deve ter como uma das suas funcionalidades fazer todo o controle da cnc que será usada para fazer as movimentações da head para a captura das imagens que serão rpocessadas para inspecionar defeitos em placas de circuito eletrônico.
+- Esse sistema deve ter como uma das suas funcionalidades fazer todo o controle da cnc que será usada para fazer as movimentações da head para a captura das imagens que serão processadas para inspecionar defeitos em placas de circuito eletrônico.
 - Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL v1.1 instalado e estão sendo usados apenas os eixos x e y (por enquanto).
 - A comunicação com o Arduino acontece via USB por comunicação serial.
 - Vamos usar como referência o firmaware GRBL v1.1 para desenvolver nossas funcionalidades.

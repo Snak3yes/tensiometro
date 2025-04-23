@@ -1,19 +1,68 @@
-2025-04-12 10:56:41,321 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-04-12 10:56:42,091 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
-2025-04-12 10:56:42,319 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-04-12 10:56:42,744 - consumo_lib - INFO - EMERGENCY STOP: Botão pressionado. Enviando Soft Reset (Ctrl+X).
-SOFT RESET: Não foi possível acessar self.grbl.iface.serial_port. Tentando fallback.
-SOFT RESET: Erro de atributo ao enviar byte Ctrl+X com send_immediately: Estrutura interna do GrblStreamer não permite acesso direto à serial_port.. A biblioteca pode não suportar envio direto de bytes.
-Traceback (most recent call last):
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\aoi_lib\cnc_controller.py", line 426, in send_soft_reset
-    raise AttributeError("Estrutura interna do GrblStreamer não permite acesso direto à serial_port.")
-AttributeError: Estrutura interna do GrblStreamer não permite acesso direto à serial_port.
-SOFT RESET: Falha ao enviar Ctrl+X, tentando Feed Hold (!) como fallback.
-2025-04-12 10:56:42,745 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('!\n',)
-2025-04-12 10:56:42,745 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: !
+2025-04-23 10:13:50,271 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': 7.979, 'y': 0.0, 'z': 0.0} -> {'x': 8.082, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:50,430 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 8.082, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:50,430 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 3.607000000000001, 'y': 0.0, 'z': 0.0} para {'x': 8.082, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:50,468 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
+2025-04-23 10:13:50,468 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
 
-2025-04-12 10:56:42,746 - consumo_lib - INFO - EMERGENCY STOP: Soft Reset enviado. Botão alterado para 'Reset'.
-2025-04-12 10:56:42,913 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Hold:0', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-04-12 10:56:42,913 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Hold:0', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-04-12 10:56:42,914 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Hold:0, mpos=(0.0, 0.0, 0.0)
-2025-04-12 10:56:42,914 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Hold' para 'Hold:0'
+2025-04-23 10:13:50,474 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G90 G94 M5 M9 T0 F1000 S0]',)        
+2025-04-23 10:13:50,474 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:51,432 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 8.082, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:51,501 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G10L20P1X0\n',)
+2025-04-23 10:13:51,501 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G10L20P1X0
+
+2025-04-23 10:13:51,503 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:51,503 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 8.082, 'y': 0.0, 'z': 0.0} para {'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:51,517 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:52,318 - consumo_lib - DEBUG - MOVIMENTO: Iniciando movimento: eixo=Y, direção=-1
+2025-04-23 10:13:52,318 - consumo_lib - INFO - MOVIMENTO: Posição antes do movimento: {'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:52,319 - consumo_lib - DEBUG - MOVIMENTO: Modo atual: Relativo (G91)
+2025-04-23 10:13:52,319 - consumo_lib - DEBUG - MOVIMENTO: Enviando comando contínuo: $J=G91 Y-100 F1000.0
+2025-04-23 10:13:52,319 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$J=G91Y-100F1000.0\n',)
+2025-04-23 10:13:52,319 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $J=G91Y-100F1000.0
+
+2025-04-23 10:13:52,324 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:52,431 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-04-23 10:13:52,506 - consumo_lib - DEBUG - MOVIMENTO: Parando movimento
+2025-04-23 10:13:52,507 - consumo_lib - DEBUG - MOVIMENTO: Enviando comando de cancelamento de Jog (0x85)
+2025-04-23 10:13:52,507 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('!\n',)
+2025-04-23 10:13:52,507 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: !
+
+2025-04-23 10:13:52,507 - consumo_lib - DEBUG - MOVIMENTO: Comando '!' (Feed Hold) enviado como alternativa para parar Jog
+2025-04-23 10:13:52,507 - consumo_lib - DEBUG - MOVIMENTO: Agendando comando de retomada (~) após pausa
+2025-04-23 10:13:52,515 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Jog', (-3.581, -12.653, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,515 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Jog', (-3.581, -12.653, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,515 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Jog, mpos=(-3.581, -12.653, 0.0)
+2025-04-23 10:13:52,516 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Jog'
+2025-04-23 10:13:52,516 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.581, -12.653, 0.0), Offset={'x': 0.0, 'y': -12.478, 'z': 0.0}, WPos Calculada={'x': -3.581, 'y': -0.1750000000000007, 'z': 0.0}
+2025-04-23 10:13:52,516 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.581, 'y': -0.1750000000000007, 'z': 0.0}
+2025-04-23 10:13:52,516 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': 0.0, 'y': 0.0, 'z': 0.0} -> {'x': -3.581, 'y': -0.1750000000000007, 'z': 0.0}
+2025-04-23 10:13:52,608 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('~\n',)
+2025-04-23 10:13:52,608 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: ~
+
+2025-04-23 10:13:52,608 - consumo_lib - DEBUG - MOVIMENTO: Enviado comando de retomada (~)
+2025-04-23 10:13:52,609 - consumo_lib - DEBUG - MOVIMENTO: Atualização de posição dependerá do polling regular.
+2025-04-23 10:13:52,716 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Jog', (-3.581, -12.981, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,716 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Jog', (-3.581, -12.981, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,717 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Jog, mpos=(-3.581, -12.981, 0.0)
+2025-04-23 10:13:52,717 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.581, -12.981, 0.0), Offset={'x': 0.0, 'y': -12.478, 'z': 0.0}, WPos Calculada={'x': -3.581, 'y': -0.5030000000000001, 'z': 0.0}
+2025-04-23 10:13:52,717 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.581, 'y': -0.5030000000000001, 'z': 0.0}
+2025-04-23 10:13:52,717 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -3.581, 'y': -0.1750000000000007, 'z': 0.0} -> {'x': -3.581, 'y': -0.5030000000000001, 'z': 0.0}
+2025-04-23 10:13:52,829 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:52,829 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:52,921 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-3.581, -13.006, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,922 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-3.581, -13.006, 0.0), (0, 0, 0))
+2025-04-23 10:13:52,922 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-3.581, -13.006, 0.0)
+2025-04-23 10:13:52,922 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Jog' para 'Idle'
+2025-04-23 10:13:52,922 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.581, -13.006, 0.0), Offset={'x': 0.0, 'y': -12.478, 'z': 0.0}, WPos Calculada={'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:52,922 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:52,922 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -3.581, 'y': -0.5030000000000001, 'z': 0.0} -> {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:53,119 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
+2025-04-23 10:13:53,119 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
+
+2025-04-23 10:13:53,124 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G90 G94 M5 M9 T0 F1000 S0]',)        
+2025-04-23 10:13:53,124 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-04-23 10:13:53,430 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:53,430 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 0.0, 'y': 0.0, 'z': 0.0} para {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:53,541 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
+2025-04-23 10:13:54,431 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}
+2025-04-23 10:13:55,433 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -3.581, 'y': -0.5280000000000005, 'z': 0.0}

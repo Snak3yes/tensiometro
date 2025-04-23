@@ -351,16 +351,13 @@ class GRBLCNCController:
         if not self.is_connected or not self.jogging:
             return False
             
-        # O comando para cancelar jog no GRBL é o feed cancel (!)
+        # Cancela o jog enviando Feed Hold (!).
+        # NÃO enviamos '~' para não reiniciar o jog.
         success = self.send_command("!", priority=True)
-        
-        # Após um breve intervalo, envia comando de retomada para liberar a máquina
-        time.sleep(0.1)
-        self.send_command("~", priority=True)
-        
+
+        # Atualiza o estado interno: jog deve estar parado
         self.jogging = False
         self.current_jog_command = None
-        
         return success
         
     def home(self):
