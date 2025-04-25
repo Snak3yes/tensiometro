@@ -1,0 +1,51 @@
+r código para responder as solicitações exiba um trecho do código anterior e outro posterior as alterações sugeridas para facilitar a localização do trecho onde deve ser adicionado ou modificado com o código sugerido.
+considere que o usuário vai copiar e colar sua sugestão em sua IDE para realizar seus testes com o código sugerido, então esse processo deve ser facilitado.
+sempre indique em qual arquivo e em qual classe vai ser adicionado ou modificado de acordo com sua sugestão.
+
+história de usuário:
+
+o usuário deve poder acessar, na barra de menus em ferramentas, a opção "definir mapa".
+
+ao clicar nessa opção deve ser exibida uma nova janela que vai servir como auxiliar para a criação do mapa.
+
+as opções devem ser sequenciais de cima para baixo nessa ordem:
+
+"definir canto inferior esquerdo"
+
+define posição como origem (x e y iguais a zero), deve ser clicado quando estiver com a cruz vermelha na extremidade da placa.
+
+"definir canto superior direito"
+
+define a dimensão total da placa, deve ser clicado quando estiver com a cruz na extremidade oposta a origem.
+
+"gerar mapa"
+
+usa as posições definidas para fazer a captura das imagens fazendo um deslocamento específico em x e y com pausas para fazer a captura da imagem e depois dar sequencia.
+
+exemplo de sequencia de deslocamento e captura de imagem:
+
+usuário clica no botão "gerar mapa"
+
+head se desloca para a origem da posição de trabalho.
+
+sistema captura uma imagem.
+
+#todas as imagens salvas devem ser salvas na mesma pasta com um nome definido pelo usuário, esse nome é equivalente ao nome do programa.
+
+de repetição de deslocamento do y até que chegue no limite de y definido pelo valor do canto direito inferior definido pelo usuário no começo.
+
+loop de repetição de deslocamento do x até que chegue no limite de x definido pelo valor do canto direito inferior definido pelo usuário no começo.
+
+sistema se desloca para a direita em x (10.000mm por exemplo, esse valor deve ser configurável pelo usuário).
+
+sistema completa o movimento.
+
+sistema captura uma imagem.
+
+sistema se desloca para a frente em y(10.000mm por exemplo, esse valor deve ser configurável pelo usuário).
+
+solicitação:
+
+gere o código para atender a história de usuário acima.
+
+cuide para que a integração com o código atual respeite as funcionalidades pre-existentes

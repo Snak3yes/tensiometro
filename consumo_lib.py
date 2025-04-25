@@ -1,18 +1,26 @@
 import sys
 import cv2
+import os
 import time
 import numpy as np
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QLabel, QGroupBox, QGridLayout, QLineEdit, 
                             QComboBox, QListWidget, QCheckBox, QListWidgetItem, QFileDialog, QMessageBox, QTabWidget,
-                            QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QDialog)
+                            QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QInputDialog,
+                            QProgressDialog)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent
-from PyQt6.QtGui import QPixmap, QImage, QFont, QAction
+from PyQt6.QtGui import QPixmap, QImage, QFont, QAction, QDoubleValidator
 
 from aoi_lib import CNCAOIController, InspectionPosition
 from grbl_streamer import GrblStreamer
+from aoi_lib.utils.move_task import MoveTaskThread
+from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
+from dataclasses import dataclass
 
 import logging
+
+
+
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
 # Se necessário, adicione um handler:
@@ -95,10 +103,11 @@ class PositionListWidget(QWidget):
         self.layout.addWidget(self.positions_list)
         self.layout.addLayout(buttons_layout)
         
-        # Dicionário para mapear itens da lista para objetos de posição
-        self.positions = {}
+        # Mapeia id(QListWidgetItem) ➜ InspectionPosition.
+        # QListWidgetItem NÃO é hashable, portanto usamos id(item).
+        self.positions: dict[int, InspectionPosition] = {}
         
-    def add_position(self, position):
+    def add_position(self, position: InspectionPosition):
         """Adiciona uma posição à lista"""
         item_text = f"{position.name} ({position.x:.2f}, {position.y:.2f})"
         item = QListWidgetItem(item_text)
@@ -126,8 +135,10 @@ class PositionListWidget(QWidget):
         
     def on_position_selected(self, current, previous):
         """Manipula evento de seleção de posição"""
-        if current and current in self.positions:
-            self.position_selected.emit(self.positions[current])
+        if current:
+            pos = self.positions.get(id(current))
+            if pos:
+                self.position_selected.emit(pos)
 
 class SequenceControlWidget(QWidget):
     """Widget para controlar a execução da sequência"""
@@ -181,10 +192,12 @@ class SequenceControlWidget(QWidget):
 
 class PositionRegistryWidget(QWidget):
     """Widget for showing registered positions"""
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
         self.controller = controller
-        self.positions = []  # List of registered positions
+        self.cfg        = cfg
+        self.cfg        = cfg
+        self.positions  = []
         self.setup_ui()
         
     def setup_ui(self):
@@ -257,7 +270,7 @@ class CameraPreviewWidget(QWidget):
     """Widget for displaying camera preview and capturing images"""
     image_captured = pyqtSignal(object, str)  # Emits the captured image and position name
     
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
         self.controller = controller
         self.current_image = None
@@ -400,9 +413,10 @@ class CameraPreviewWidget(QWidget):
 
 class MovementControlWidget(QWidget):
     """Widget for controlling CNC movement (jog)"""
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
         self.controller = controller
+        self.cfg        = cfg 
         self.setup_ui()
         
     def setup_ui(self):
@@ -427,14 +441,14 @@ class MovementControlWidget(QWidget):
             btn.setFont(font)
         
         # Connect press/release events for continuous movement
-        self.up_button.pressed.connect(lambda: self.start_movement("Y", 1))
-        self.up_button.released.connect(self.stop_movement)
-        self.down_button.pressed.connect(lambda: self.start_movement("Y", -1))
-        self.down_button.released.connect(self.stop_movement)
-        self.left_button.pressed.connect(lambda: self.start_movement("X", -1))
-        self.left_button.released.connect(self.stop_movement)
-        self.right_button.pressed.connect(lambda: self.start_movement("X", 1))
-        self.right_button.released.connect(self.stop_movement)
+        self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  1))
+        self.up_button.released.connect(self._on_direction_release)
+        self.down_button.pressed.connect(lambda: self._on_direction_press("Y", -1))
+        self.down_button.released.connect(self._on_direction_release)
+        self.left_button.pressed.connect(lambda: self._on_direction_press("X", -1))
+        self.left_button.released.connect(self._on_direction_release)
+        self.right_button.pressed.connect(lambda: self._on_direction_press("X", 1))
+        self.right_button.released.connect(self._on_direction_release)
         
         # Add buttons to grid
         movement_layout.addWidget(self.up_button, 0, 1)
@@ -459,19 +473,32 @@ class MovementControlWidget(QWidget):
         # Step size and feed rate controls
         step_layout = QHBoxLayout()
         step_layout.addWidget(QLabel("Step Size:"))
-        self.step_size = QLineEdit("1.0")
+        # ---------- STEP SIZE ---------------
+        default_step = self.cfg.get("movement", "step_size", default=10.0)
+        self.step_size = QLineEdit(f"{default_step}")
+        # ▸ VALIDAÇÃO numérica (>=0)
+        self.step_size.setValidator(QDoubleValidator(0.0001, 100000.0, 4, self))
         step_layout.addWidget(self.step_size)
         step_layout.addWidget(QLabel("mm"))
         
         feed_layout = QHBoxLayout()
         feed_layout.addWidget(QLabel("Feed Rate:"))
-        self.feed_rate = QLineEdit("1000")
+
+        # ---------- FEED RATE ---------------
+        default_feed = self.cfg.get("movement", "feed_rate", default=1000.0)
+        self.feed_rate = QLineEdit(f"{default_feed}")
+        # ▸ feed entre 1 e 30000 mm/min
+        self.feed_rate.setValidator(QDoubleValidator(1.0, 30000.0, 0, self))
         feed_layout.addWidget(self.feed_rate)
         feed_layout.addWidget(QLabel("mm/min"))
         
         # Add step and feed rate controls
         movement_layout.addLayout(step_layout, 3, 0, 1, 3)
         movement_layout.addLayout(feed_layout, 4, 0, 1, 3)
+
+        # ---- grava no JSON quando o usuário termina de editar -----
+        self.step_size.editingFinished.connect(self._save_step_feed)
+        self.feed_rate.editingFinished.connect(self._save_step_feed)
 
         self.go_to_zero_btn = QPushButton("Go to Zero")
         self.go_to_zero_btn.clicked.connect(self.go_to_zero)
@@ -509,188 +536,139 @@ class MovementControlWidget(QWidget):
         
         movement_group.setLayout(movement_layout)
         layout.addWidget(movement_group)
-        
-    def start_movement(self, axis, direction):
-        """Inicia movimento no eixo e direção especificados"""
-        logger.debug(f"MOVIMENTO: Iniciando movimento: eixo={axis}, direção={direction}")
 
-        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
-            logger.warning("MOVIMENTO: CNC não conectado")
-            QMessageBox.warning(self, "Error", "CNC not connected")
+    def _save_step_feed(self):
+        try:
+            step = float(self.step_size.text())
+            feed = float(self.feed_rate.text())
+            self.cfg.remember_step_feed(step, feed)
+        except ValueError:
+            # silencioso – validação já existe
+            return
+        
+    def _on_direction_press(self, axis: str, direction: int):
+        """
+        Chamada quando o usuário pressiona um botão (ou tecla).
+        Decide entre STEP ou JOG e delega ao GRBLCNCController.
+        """
+        if not self._precheck_connected():
             return
 
+        feed = self._get_feed_rate()
+        step = self._get_step_size()
+        if feed is None or step is None:
+            return
+        
+        # --- grava imediatamente no JSON ---
+        self.cfg.remember_step_feed(step, feed)
+
+        # “Passo-a-passo” = botão G90 selecionado  ➜  usa step_move
+        if self.mode_absolute.isChecked():
+            self.controller.cnc.step_move(axis, step * direction, feed)
+        # “Contínuo” = G91 selecionado  ➜  jog
+        else:
+            self.controller.cnc.jog_start(axis, direction, feed)
+
+    def _on_direction_release(self):
+        """Interrompe jog se estivermos em modo contínuo."""
+        if not self._precheck_connected():
+            return
+        if self.mode_relative.isChecked():      # só há jog se G91
+            self.controller.cnc.jog_stop()
+
+    def start_movement(self, axis: str, direction: int):
+        """
+        Mantido apenas para chamadas vindas de eventFilter (atalhos de
+        teclado). Encaminha para _on_direction_press.
+        """
+        self._on_direction_press(axis, direction)
+
+    def _get_feed_rate(self) -> float | None:
+        """Lê o feed-rate; devolve None e avisa em caso de erro."""
         try:
-            # Captura posição antes do movimento para verificação posterior (mantido para log, mas não usado para forçar '?')
-            original_position = self.controller.cnc.get_current_position()
-            logger.info(f"MOVIMENTO: Posição antes do movimento: {original_position}")
+            val = float(self.feed_rate.text())
 
-            step_size = float(self.step_size.text())
-            feed_rate = float(self.feed_rate.text())
+            if self.controller.cnc.is_connected:
+                max_lim = max(self.controller.cnc.max_feed.values())
+                if val > max_lim + 1e-3:
+                    resp = QMessageBox.question(
+                        self, "Feed acima do limite",
+                        (f"O valor F={val:.0f} mm/min excede o limite atual "
+                         f"(≤ {max_lim:.0f}).\n\n"
+                         "Deseja atualizar $110 e $111 para permitir essa "
+                         "velocidade em X e Y?"),
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                    )
+                    if resp == QMessageBox.StandardButton.Yes:
+                        # novo limite com folga de 10 %
+                        new_lim = int(val * 1.1)                 # 10 % de folga
+                        new_acc = int((new_lim / 60) * 5)        # ≈5 s para atingir Vmáx
 
-            # Verifica o modo atual
-            is_absolute_mode = self.mode_absolute.isChecked()
-            logger.debug(f"MOVIMENTO: Modo atual: {'Absoluto (G90)' if is_absolute_mode else 'Relativo (G91)'}")
+                        cmds = [
+                            f"$110={new_lim}", f"$111={new_lim}",
+                            f"$120={new_acc}", f"$121={new_acc}"
+                        ]
+                        for c in cmds:
+                            self.controller.cnc.send_command(c, priority=True)
 
-            if is_absolute_mode:
-                # MODO ABSOLUTO (G90) - Lógica Simplificada
-                # 1. Calcula a posição absoluta de destino
-                current_pos = self.controller.cnc.get_current_position()
-                step = step_size * direction
-                target_x = current_pos['x']
-                target_y = current_pos['y']
-                command = ""
+                        # actualiza cache interno
+                        self.controller.cnc.max_feed['x'] = new_lim
+                        self.controller.cnc.max_feed['y'] = new_lim
+                        self.controller.cnc.max_acc ['x'] = new_acc
+                        self.controller.cnc.max_acc ['y'] = new_acc
+                        # desabilita avisos futuros de clamp
+                        self.controller.cnc._feed_clamp_warned = True
+                        QMessageBox.information(
+                            self, "Limites actualizados",
+                            (f"Feed-máx X/Y = {new_lim} mm/min\n"
+                             f"Aceleração X/Y = {new_acc} mm/s²")
+                        )
+                    else:
+                        # clampará ao valor máximo existente
+                        QMessageBox.information(self, "Feed ajustado",
+                                                f"A velocidade será limitada a {max_lim} mm/min.")
+                        val = max_lim
+            return val
+        except ValueError:
+            QMessageBox.warning(self, "Erro", "Feed-rate inválido")
+            return None
 
-                if axis.upper() == 'X':
-                    target_x += step
-                    # 2. Cria um único comando G90 G1
-                    command = f"G90 G1 X{target_x:.4f} F{feed_rate}"
-                else: # Y
-                    target_y += step
-                    # 2. Cria um único comando G90 G1
-                    command = f"G90 G1 Y{target_y:.4f} F{feed_rate}"
+    def _get_step_size(self) -> float | None:
+        """Lê o step-size; devolve None e avisa em caso de erro."""
+        try:
+            return float(self.step_size.text())
+        except ValueError:
+            QMessageBox.warning(self, "Erro", "Step size inválido")
+            return None
 
-                # 3. Envia o comando único
-                if command:
-                    logger.debug(f"MOVIMENTO: Enviando comando absoluto direto: {command}")
-                    self.controller.cnc.grbl.send_immediately(command)
-                else:
-                     logger.warning("MOVIMENTO: Não foi possível gerar comando absoluto.")
-
-            else:
-                # MODO CONTÍNUO: dispara jog via controller
-                logger.debug(f"MOVIMENTO: Iniciando jog contínuo: eixo={axis}, direção={direction}, feed_rate={feed_rate}")
-                self.controller.cnc.start_continuous_jog(axis, direction, feed_rate)
-
-        except Exception as e:
-            logger.error(f"MOVIMENTO: Erro ao iniciar movimento: {str(e)}")
-            QMessageBox.warning(self, "Error", f"Error starting movement: {str(e)}")
-
-    # A função verify_position_changed pode ser mantida no código, mas não será mais chamada
-    # a partir de start_movement, evitando o envio prematuro de '?'.
+    def _precheck_connected(self) -> bool:
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Erro", "CNC não conectada")
+            return False
+        return True
 
     def go_to_zero(self):
         """
-        Move a máquina para a posição zero de trabalho (WPos).
-        Realiza verificações de segurança e tratamento de estados.
+        Move a cabeça para WPos (0, 0) reaproveitando a API de
+        alto-nível do GRBLCNCController; UI não envia mais G-code cru.
         """
-        logger.debug("GO_TO_ZERO: Iniciando movimento para posição zero")
-        
-        # Verifica se a CNC está conectada
-        if not hasattr(self.controller.cnc, 'is_connected') or not self.controller.cnc.is_connected:
-            logger.warning("GO_TO_ZERO: CNC não conectada")
-            QMessageBox.warning(self, "Erro", "CNC não conectada")
-            return False
-        
-        try:
-            # Verifica se a máquina está pronta para movimento (não em alarme ou movimento)
-            current_status = self.controller.cnc.machine_status
-            if current_status == "Alarm":
-                logger.warning("GO_TO_ZERO: Máquina em estado de alarme, não pode mover")
-                QMessageBox.warning(self, "Erro", "Máquina em estado de alarme. Desbloqueie primeiro.")
-                return False
-            
-            if current_status in ["Run", "Jog"]:
-                logger.warning(f"GO_TO_ZERO: Máquina está ocupada ({current_status}), aguarde")
-                QMessageBox.warning(self, "Aviso", "Máquina está em movimento. Aguarde ou cancele a operação atual.")
-                return False
-                
-            # Obter a velocidade de avanço atual do campo feed_rate
-            try:
-                feed_rate = float(self.feed_rate.text())
-            except (ValueError, TypeError):
-                feed_rate = 1000  # Valor padrão se houver erro na conversão
-                logger.warning(f"GO_TO_ZERO: Erro ao converter feed_rate, usando padrão {feed_rate}")
-                
-            # Configura o modo absoluto e move para zero
-            logger.info(f"GO_TO_ZERO: Enviando movimento para zero com feed_rate={feed_rate}")
-            
-            # Primeiro garante modo absoluto (G90)
-            self.controller.cnc.grbl.send_immediately("G90")
-            
-            # Pequena pausa para garantir que o modo foi definido
-            time.sleep(0.1)
-            
-            # Movimento para o ponto zero absoluto (trabalho)
-            command = f"G1 X0 Y0 F{feed_rate}"
-            self.controller.cnc.grbl.send_immediately(command)
-            
-            # Log do sucesso e atualização do status
-            logger.info("GO_TO_ZERO: Comando enviado com sucesso")
-            main_window = self.window()
-            if hasattr(main_window, 'statusBar'):
-                main_window.statusBar().showMessage("Movendo para posição zero")
-                
-            return True
-            
-        except Exception as e:
-            logger.error(f"GO_TO_ZERO: Erro ao enviar comando de movimento: {str(e)}", exc_info=True)
-            QMessageBox.warning(self, "Erro", f"Falha ao mover para posição zero: {str(e)}")
-            return False
-
-
-    def verify_position_changed(self, axis, direction, original_position):
-        """Verifica se a posição realmente mudou após comando de movimento"""
-        try:
-            current_position = self.controller.cnc.get_current_position()
-            expected_axis = 'x' if axis.upper() == 'X' else 'y'
-
-            logger.info(f"VERIFICAÇÃO: Movimento {axis}{'+' if direction > 0 else '-'}: "
-                    f"Original={original_position[expected_axis]}, "
-                    f"Atual={current_position[expected_axis]}")
-
-            if original_position[expected_axis] == current_position[expected_axis]:
-                logger.warning(f"VERIFICAÇÃO: Posição {expected_axis} NÃO MUDOU após comando!")
-
-                # REMOVIDO O ENVIO FORÇADO DE STATUS:
-                # if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
-                #     logger.debug("VERIFICAÇÃO: Enviando comando de status ? para atualizar posição")
-                #     self.controller.cnc.grbl.send_immediately("?")
-        except Exception as e:
-            logger.error(f"VERIFICAÇÃO: Erro ao verificar posição: {e}")
-
-    def verify_position_changed(self, axis, direction, original_position):
-        """Verifica se a posição realmente mudou após comando de movimento"""
-        try:
-            current_position = self.controller.cnc.get_current_position()
-            expected_axis = 'x' if axis.upper() == 'X' else 'y'
-            
-            logger.info(f"VERIFICAÇÃO: Movimento {axis}{'+' if direction > 0 else '-'}: "
-                    f"Original={original_position[expected_axis]}, "
-                    f"Atual={current_position[expected_axis]}")
-            
-            if original_position[expected_axis] == current_position[expected_axis]:
-                logger.warning(f"VERIFICAÇÃO: Posição {expected_axis} NÃO MUDOU após comando!")
-                
-                # Forçar atualização de status para tentar obter a posição atual
-                if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
-                    logger.debug("VERIFICAÇÃO: Enviando comando de status ? para atualizar posição")
-                    self.controller.cnc.grbl.send_immediately("?")
-        except Exception as e:
-            logger.error(f"VERIFICAÇÃO: Erro ao verificar posição: {e}")
-            
-    def stop_movement(self):
-        """Para o movimento"""
-        logger.debug("MOVIMENTO: Parando movimento")
-        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
+        if not self._precheck_connected():
             return
 
-        try:
-            # Verifica o modo atual
-            is_absolute_mode = self.mode_absolute.isChecked()
+        # evita travamentos se a máquina já estiver ocupada
+        if self.controller.cnc.machine_status in ("Run", "Jog", "Alarm"):
+            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({self.controller.cnc.machine_status})")
+            return
 
-            if is_absolute_mode:
-                # No modo absoluto (passo a passo), não precisamos parar o movimento
-                # porque ele já deve ter sido concluído quando o botão é liberado (com a nova lógica)
-                logger.debug("MOVIMENTO: Modo absoluto (passo a passo), ignorando comando de parada explícito")
-                return
-            else:
-                # MODO CONTÍNUO: interrompe jog via controller
-                logger.debug("MOVIMENTO: Parando jog contínuo via controller.stop_continuous_jog()")
-                self.controller.cnc.stop_continuous_jog()
+        feed = self._get_feed_rate()
+        if feed is None:
+            return
 
+        self._start_move_thread(x=0, y=0, feed=feed,
+                                status_msg="Movendo para posição zero")
 
-        except Exception as e:
-            logger.error(f"MOVIMENTO: Erro ao parar movimento: {e}")
+    def stop_movement(self):
+        self._on_direction_release()
 
     def show_go_to_dialog(self):
         """Exibe diálogo para coletar coordenadas de destino (WPos)."""
@@ -763,20 +741,28 @@ class MovementControlWidget(QWidget):
         except:
             feed_rate = 1000
 
-        # 5. Vai para modo absoluto e dispara o movimento
-        self.controller.cnc.grbl.send_immediately("G90")
-        time.sleep(0.05)
-        cmd = f"G1 X{x:.4f} Y{y:.4f} F{feed_rate:.0f}"
-        self.controller.cnc.grbl.send_immediately(cmd)
+        # 5. Deslocamento assíncrono
+        self._start_move_thread(x, y, feed_rate,
+                                status_msg=f"Movendo para X:{x:.3f}, Y:{y:.3f}")
 
-        # 6. Feedback na barra de status
-        main_win = self.window()
-        if hasattr(main_win, "statusBar"):
-            main_win.statusBar().showMessage(f"Movendo para X:{x:.3f}, Y:{y:.3f}")
+    def _start_move_thread(self, x, y, feed, status_msg="Movendo…"):
+        stbar = self.window().statusBar()
+        stbar.showMessage(status_msg)
 
-        # 7. Restaura modo anterior e agenda atualização de posição
-        QTimer.singleShot(100, lambda: self.controller.cnc.grbl.send_immediately(prev_mode))
-        QTimer.singleShot(200, lambda: main_win.update_position_display())
+        self._move_thread = MoveTaskThread(self.controller.cnc, x, y, feed)
+
+        def _on_done(xx, yy):
+            stbar.showMessage(f"Head em X:{xx:.3f}, Y:{yy:.3f}")
+            # força atualização UI
+            QTimer.singleShot(50, self.window().update_position_display)
+
+        def _on_err(msg):
+            QMessageBox.critical(self, "Erro", msg)
+            stbar.showMessage("Falha no deslocamento")
+
+        self._move_thread.finished.connect(_on_done)
+        self._move_thread.error.connect(_on_err)
+        self._move_thread.start()
 
     def _execute_resume_and_update(self):
         """Executa o resumo após parada e força atualização de posição em sequência"""
@@ -937,6 +923,33 @@ class MovementControlWidget(QWidget):
         except Exception as e:
             logger.error(f"AUTO UNLOCK: Erro ao verificar status após desbloqueio: {e}")
 
+@dataclass
+class MapParams:
+    origin: dict
+    end: dict
+    step_x: float
+    step_y: float
+    folder: str
+    program_name: str
+
+
+class _PreviewSuspender:
+    """
+    Context-manager que pausa o preview da câmera e garante reativação
+    mesmo em caso de exceções.
+    """
+    def __init__(self, preview_widget):
+        self.preview_widget = preview_widget
+        self.was_running   = preview_widget and preview_widget.preview_timer.isActive()
+
+    def __enter__(self):
+        if self.was_running:
+            self.preview_widget.stop_preview()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.was_running:
+            self.preview_widget.start_preview()
+
 class AOIControllerApp(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -945,6 +958,7 @@ class AOIControllerApp(QMainWindow):
         
         # Inicializa o controlador AOI
         self.controller = CNCAOIController()
+        self.config = AOIConfigManager()
         self.current_sequence = None
         self.is_running_sequence = False
         
@@ -965,16 +979,43 @@ class AOIControllerApp(QMainWindow):
         self.setup_ui()
         # Configuração do menu
         self.setup_menu()
+
+        # -------- Painel de conexão inicialmente oculto -------
+        self.connection_group.setVisible(False)
+
+        # -------- Auto-connect se preferido --------------------
+        self._attempt_auto_connect()
+
         # Timer para atualizar a posição – agora conectamos a um método que loga a ação 
         self.update_timer = QTimer(self) 
         self.update_timer.timeout.connect(self.on_update_timer) 
         self.update_timer.start(1000) # Atualiza a cada 1000ms
 
         # Capturar eventos de teclado para movimentação de qualquer widget:
-        # instala o filter globalmente na aplicação
-        app = QApplication.instance()
-        if app:
-            app.installEventFilter(self)
+        # instala o filter globalmente apenas UMA vez
+        QApplication.instance().installEventFilter(self)
+
+        # chama cleanup se o Qt encerrar por outros caminhos
+        QApplication.instance().aboutToQuit.connect(self._cleanup_resources)
+
+
+    #   Auto-connect com base no JSON de prefs
+    def _attempt_auto_connect(self):
+        # CNC
+        if self.config.get("connections", "auto_connect_cnc", default=False):
+            port = self.config.get("connections", "last_cnc_port", default="")
+            if port:
+                idx = self.cnc_port_combo.findText(port)
+                if idx >= 0:
+                    self.cnc_port_combo.setCurrentIndex(idx)
+                QTimer.singleShot(100, self.connect_cnc)
+        # Câmera
+        if self.config.get("connections", "auto_connect_camera", default=False):
+            cam_id = int(self.config.get("connections", "last_camera_id", default=0))
+            idx = self.camera_id_combo.findText(str(cam_id))
+            if idx >= 0:
+                self.camera_id_combo.setCurrentIndex(idx)
+            QTimer.singleShot(200, self.connect_camera)
 
     def eventFilter(self, source, event):
         """
@@ -1025,8 +1066,8 @@ class AOIControllerApp(QMainWindow):
         # Layout principal
         main_layout = QVBoxLayout(central_widget)
         
-        # Grupo de conexão
-        connection_group = QGroupBox("Conexão")
+        # Grupo de conexão (oculto por padrão; mostrado via menu)
+        self.connection_group = QGroupBox("Conexão")
         connection_layout = QGridLayout()
         
         # CNC Connection
@@ -1059,27 +1100,28 @@ class AOIControllerApp(QMainWindow):
         self.test_camera_btn.clicked.connect(self.test_camera)
         connection_layout.addWidget(self.test_camera_btn, 1, 3)
         
-        connection_group.setLayout(connection_layout)
-        main_layout.addWidget(connection_group)
+        self.connection_group.setLayout(connection_layout)
+        main_layout.addWidget(self.connection_group)
 
-        # Grupo de Calibração de Movimento 
+        # Grupo de Calibração de Movimento ------
         calibration_group = QGroupBox("Calibração de Movimento")
         calibration_layout = QHBoxLayout()
-        
-        calibration_layout.addWidget(QLabel("Pulsos/Revolução:"))
-        self.pulses_input = QLineEdit("400")
-        calibration_layout.addWidget(self.pulses_input)
-        
-        calibration_layout.addWidget(QLabel("Passo do Fuso (mm):"))
-        self.fuso_input = QLineEdit("5")
-        calibration_layout.addWidget(self.fuso_input)
-        
+
+        # Campos permanecem criados porque são usados pela
+        # lógica de calibração, porém o grupo ficará oculto.
+        self.pulses_input = QLineEdit(str(
+            self.config.get("calibration", "pulses_per_rev", default=400)
+        ))
+        self.fuso_input = QLineEdit(str(
+            self.config.get("calibration", "fuso_pitch", default=5)
+        ))
         self.apply_calibration_btn = QPushButton("Aplicar Calibração")
         self.apply_calibration_btn.clicked.connect(self.apply_calibration)
-        calibration_layout.addWidget(self.apply_calibration_btn)
-        
+
+        # (os widgets não são adicionados ao layout visual)
         calibration_group.setLayout(calibration_layout)
-        main_layout.addWidget(calibration_group)
+        calibration_group.setVisible(False)       # ← esconde
+        main_layout.addWidget(calibration_group)  # mantém no DOM para uso interno
         
         # Splitter para dividir a interface em painéis
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -1175,16 +1217,16 @@ class AOIControllerApp(QMainWindow):
         cm_left_layout = QVBoxLayout(cm_left_panel)
         
         # Movement controls 
-        self.movement_widget = MovementControlWidget(self.controller)
+        self.movement_widget = MovementControlWidget(self.controller, self.config)
         cm_left_layout.addWidget(self.movement_widget)
         
         # Position registry
-        self.position_registry = PositionRegistryWidget(self.controller)
+        self.position_registry = PositionRegistryWidget(self.controller, self.config)
         self.position_registry.create_sequence_btn.clicked.connect(self.create_sequence_from_registry)
         cm_left_layout.addWidget(self.position_registry)
         
         # Right side: camera preview
-        self.camera_preview = CameraPreviewWidget(self.controller)
+        self.camera_preview = CameraPreviewWidget(self.controller, self.config)
         self.camera_preview.image_captured.connect(self.on_image_captured)
         
         # Define proporções para os painéis - dar mais espaço para a visualização da câmera
@@ -1218,10 +1260,31 @@ class AOIControllerApp(QMainWindow):
         
         # Menu de Ferramentas
         tools_menu = menubar.addMenu('&Ferramentas')
+
+        # ação para definir mapa
+        definir_mapa_action = QAction('Definir Mapa', self)
+        definir_mapa_action.triggered.connect(self.show_definir_mapa_dialog)
+        tools_menu.addAction(definir_mapa_action)
+
         
         calibration_action = QAction('Calibração CNC', self)
         calibration_action.triggered.connect(self.show_calibration_dialog)
         tools_menu.addAction(calibration_action)
+
+        # Preferências
+        pref_action = QAction('Preferências', self)
+        pref_action.setShortcut('Ctrl+,')
+        pref_action.triggered.connect(self.show_settings_dialog)
+        tools_menu.addAction(pref_action)
+
+        # --------  painel de conexões -----------------
+        conn_panel = QAction('Conexões…', self)
+        conn_panel.setCheckable(True)
+        conn_panel.setChecked(False)
+        conn_panel.triggered.connect(
+            lambda checked: self.connection_group.setVisible(checked)
+        )
+        tools_menu.addAction(conn_panel)
         
         # Menu de Ajuda
         help_menu = menubar.addMenu('&Ajuda')
@@ -1229,6 +1292,14 @@ class AOIControllerApp(QMainWindow):
         about_action = QAction('Sobre', self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
+
+    def show_settings_dialog(self):
+        dlg = SettingsDialog(self.config, self)
+        if dlg.exec():
+            # Se o usuário modificou algo, re-aplica (se a CNC já estiver conectada)
+            if self.controller.cnc.is_connected:
+                self.config.apply_to_cnc(self.controller.cnc)
+            self.statusBar().showMessage("Preferências salvas")
 
     def show_calibration_dialog(self):
         """Mostra um diálogo para configuração de calibração"""
@@ -1302,6 +1373,181 @@ class AOIControllerApp(QMainWindow):
                         "Sistema de Inspeção Óptica Automatizada\n"
                         "Desenvolvido para controle de CNC com GRBL\n\n"
                         "© 2025 HesaiVision")
+        
+    def show_definir_mapa_dialog(self):
+        """Abre diálogo para definir cantos e gerar mapa (modeless, sempre no topo)."""
+        # 1) Cria sem flags inválidas
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Definir Mapa")
+
+        # 2) Non‐modal: permite operar a janela principal
+        dialog.setWindowModality(Qt.WindowModality.NonModal)
+
+        # 3) Sempre no topo, com título e botão de fechar
+        dialog.setWindowFlags(
+            dialog.windowFlags()
+            | Qt.WindowType.WindowTitleHint
+            | Qt.WindowType.WindowCloseButtonHint
+            | Qt.WindowType.WindowStaysOnTopHint
+        )
+
+        layout = QVBoxLayout(dialog)
+
+        # Nome do programa
+        h1 = QHBoxLayout()
+        h1.addWidget(QLabel("Nome do Programa:"))
+        self.map_program_name_edit = QLineEdit()
+        h1.addWidget(self.map_program_name_edit)
+        layout.addLayout(h1)
+
+        # Pasta de salvamento
+        h2 = QHBoxLayout()
+        h2.addWidget(QLabel("Pasta de Salvamento:"))
+        self.map_folder_edit = QLineEdit()
+        h2.addWidget(self.map_folder_edit)
+        btn_browse = QPushButton("Buscar…")
+        btn_browse.clicked.connect(self._select_map_folder)
+        h2.addWidget(btn_browse)
+        layout.addLayout(h2)
+
+        # Passos X/Y
+        h3 = QHBoxLayout()
+        h3.addWidget(QLabel("Passo X (mm):"))
+        self.map_step_x_edit = QLineEdit("10")
+        h3.addWidget(self.map_step_x_edit)
+        h3.addWidget(QLabel("Passo Y (mm):"))
+        self.map_step_y_edit = QLineEdit("10")
+        h3.addWidget(self.map_step_y_edit)
+        layout.addLayout(h3)
+
+        # Botões de definição de canto
+        btn_origin = QPushButton("Definir canto inferior esquerdo")
+        btn_origin.clicked.connect(lambda: self._define_map_corner('origin'))
+        layout.addWidget(btn_origin)
+
+        btn_end = QPushButton("Definir canto superior direito")
+        btn_end.clicked.connect(lambda: self._define_map_corner('end'))
+        layout.addWidget(btn_end)
+
+        # Botão gerar mapa
+        btn_generate = QPushButton("Gerar Mapa")
+        btn_generate.clicked.connect(lambda: self._on_generate_map(dialog))
+        layout.addWidget(btn_generate)
+
+        dialog.show()  # modeless, não bloqueia a janela principal
+
+    def _select_map_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Selecione pasta para salvar imagens")
+        if folder:
+            self.map_folder_edit.setText(folder)
+
+    def _define_map_corner(self, which):
+        pos = self.controller.cnc.get_current_position()
+        if which == 'origin':
+            self.map_origin = {'x': pos['x'], 'y': pos['y']}
+            QMessageBox.information(self, "Origem", f"Canto inferior esquerdo: X={pos['x']:.3f}, Y={pos['y']:.3f}")
+        else:
+            self.map_end = {'x': pos['x'], 'y': pos['y']}
+            QMessageBox.information(self, "Limite", f"Canto superior direito: X={pos['x']:.3f}, Y={pos['y']:.3f}")
+
+    def _on_generate_map(self, dialog):
+                
+        # Passo 1 – coletar e validar parâmetros ---------------------
+        params = self._collect_map_params()
+        if params is None:      # validação falhou ⇒ aborta
+            return
+
+        # Passo 2 – iniciar thread de geração -----------------------
+        self._start_map_thread(params, dialog)
+
+    def _collect_map_params(self) -> MapParams | None:
+        """
+        Valida inputs da UI e devolve objeto MapParams ou None em caso de erro.
+        Toda mensagem ao usuário é tratada aqui.
+        """
+        origin = getattr(self, 'map_origin', None)
+        end    = getattr(self, 'map_end',    None)
+        if not origin or not end:
+            QMessageBox.warning(self, "Erro", "Defina ambos os cantos antes de gerar o mapa.")
+            return None
+
+        try:
+            step_x = float(self.map_step_x_edit.text())
+            step_y = float(self.map_step_y_edit.text())
+        except ValueError:
+            QMessageBox.warning(self, "Erro", "Passos X/Y inválidos.")
+            return None
+
+        dx, dy = end['x'] - origin['x'], end['y'] - origin['y']
+        if step_x <= 0 or step_y <= 0:
+            QMessageBox.warning(self, "Erro", "Os passos devem ser maiores que zero.")
+            return None
+
+        # Ajuste opcional se o passo superar dimensão
+        if step_x > dx or step_y > dy:
+            if QMessageBox.question(
+                    self,
+                    "Passo maior que dimensão",
+                    ("Algum passo é maior que a dimensão da placa. "
+                     "Deseja ajustar automaticamente?"),
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            ) == QMessageBox.StandardButton.No:
+                return None
+            step_x = min(step_x, dx)
+            step_y = min(step_y, dy)
+            self.map_step_x_edit.setText(f"{step_x:.3f}")
+            self.map_step_y_edit.setText(f"{step_y:.3f}")
+
+        folder = self.map_folder_edit.text().strip()
+        prog   = self.map_program_name_edit.text().strip()
+        if not folder or not prog:
+            QMessageBox.warning(self, "Erro", "Informe o nome do programa e a pasta de salvamento.")
+            return None
+
+        return MapParams(origin, end, step_x, step_y, folder, prog)
+
+    def _start_map_thread(self, p: MapParams, dialog):
+        """
+        Separa a configuração da thread e da UI/ProgressBar.
+        """
+        # Context manager garante preview restaurado
+        with _PreviewSuspender(self.camera_preview):
+            self.map_thread = MapGeneratorThread(
+                self.controller, p.origin, p.end,
+                p.step_x, p.step_y, p.folder, p.program_name
+            )
+
+            # Progress dialog simples
+            self.map_progress = QProgressDialog("Gerando mapa…", "Cancelar", 0, 0, self)
+            self.map_progress.setWindowTitle("Progresso do Mapa")
+            self.map_progress.setWindowModality(Qt.WindowModality.NonModal)
+            self.map_progress.show()
+
+            # Conexões de sinal ⇄ slots
+            self.map_thread.progress.connect(self._on_map_progress)
+            self.map_thread.image_captured.connect(self.camera_preview.display_image)
+            self.map_thread.finished.connect(lambda: self._on_map_finished(dialog))
+            self.map_thread.error.connect(self._on_map_error)
+
+            self.map_progress.canceled.connect(self.map_thread.requestInterruption)
+            self.map_thread.start()
+
+    # ---------- slots da geração de mapa ----------------------------
+
+    def _on_map_progress(self, done: int, total: int):
+        self.map_progress.setMaximum(total)
+        self.map_progress.setValue(done)
+        pct = int(done / total * 100) if total else 0
+        self.map_progress.setLabelText(f"Capturadas {done}/{total} imagens ({pct}%)")
+
+    def _on_map_finished(self, dialog):
+        self.map_progress.close()
+        QMessageBox.information(self, "Concluído", "Mapa gerado com sucesso.")
+        dialog.accept()
+
+    def _on_map_error(self, msg: str):
+        self.map_progress.close()
+        QMessageBox.critical(self, "Erro", msg)
 
     def save_gcode(self):
         """Salva a sequência atual como arquivo G-CODE"""
@@ -1367,6 +1613,10 @@ class AOIControllerApp(QMainWindow):
                 QTimer.singleShot(500, self.show_calibration_test_dialog)
                 
                 self.statusBar().showMessage(f"Calibração aplicada: {steps_per_mm:.3f} steps/mm")
+
+                # --------- salva no JSON ----------
+                self.config.remember_calibration(pulses, fuso_pass)
+
             else:
                 self.statusBar().showMessage("Calibração cancelada pelo usuário")
                 
@@ -1468,9 +1718,11 @@ class AOIControllerApp(QMainWindow):
             target_position['y'] = initial_position['y'] + distance if axis == 1 else initial_position['y']
             
             # Envia o movimento como coordenada absoluta
-            cmd = f"G1 {axis_name}{target_position[axis_name.lower()]} F500"
-            logger.info(f"CALIBRAÇÃO: Enviando comando de teste: {cmd}")
-            self.controller.cnc.grbl.send_immediately(cmd)
+            if axis == 0:
+                self.controller.cnc.move_to_absolute_position(target_position['x'], None, 500)
+            else:
+                self.controller.cnc.move_to_absolute_position(None, target_position['y'], 500)
+            self.controller.cnc.wait_for_idle()
             
             # Aguarda um pouco para o movimento ser concluído
             QTimer.singleShot(1500, lambda: self.verify_calibration_result(axis, initial_position, distance))
@@ -1478,6 +1730,44 @@ class AOIControllerApp(QMainWindow):
         except Exception as e:
             logger.error(f"CALIBRAÇÃO: Erro no teste de calibração: {e}")
             QMessageBox.warning(self, "Erro", f"Erro no teste: {str(e)}")
+
+    def _show_calibration_result(self, axis, initial_position, expected_distance):
+        """
+        Calcula deslocamento real, erro e atualiza o QLabel de resultados.
+        Executado de forma assíncrona pelo QTimer.
+        """
+        try:
+            current_position = self.controller.cnc.get_current_position()
+
+            axis_name = "x" if axis == 0 else "y"
+            actual_distance = current_position[axis_name] - initial_position[axis_name]
+
+            error = actual_distance - expected_distance
+            error_percent = (error / expected_distance * 100) if expected_distance else 0
+
+            result_text = (
+                f"Eixo: {axis_name.upper()}\n"
+                f"Movimento comandado: {expected_distance:.3f} mm\n"
+                f"Movimento real: {actual_distance:.3f} mm\n"
+                f"Erro: {error:.3f} mm ({error_percent:.2f}%)\n\n"
+            )
+
+            if abs(error_percent) < 1:
+                result_text += "■ Calibração excelente (erro < 1%)"
+            elif abs(error_percent) < 5:
+                result_text += "✓ Calibração aceitável (erro < 5%)"
+            else:
+                result_text += "■ Calibração insatisfatória – ajuste os parâmetros"
+
+            if hasattr(self, "calibration_test_result"):
+                self.calibration_test_result.setText(result_text)
+
+            logger.info(
+                "CALIBRAÇÃO: Resultado – %s",
+                result_text.replace("\n", " | ")
+            )
+        except Exception as e:
+            logger.error(f"CALIBRAÇÃO: Erro ao calcular resultado: {e}")
 
     def verify_calibration_result(self, axis, initial_position, expected_distance):
         """
@@ -1489,42 +1779,17 @@ class AOIControllerApp(QMainWindow):
             expected_distance: Distância esperada do movimento
         """
         try:
-            # Força atualização da posição
+            # 1) força a atualização de status
             self.controller.cnc.grbl.send_immediately("?")
-            
-            # Aguarda um pouco para receber a atualização
-            time.sleep(0.2)
-            
-            # Obtem posição atual
-            current_position = self.controller.cnc.get_current_position()
-            
-            # Calcula o deslocamento real
-            axis_name = "x" if axis == 0 else "y"
-            actual_distance = current_position[axis_name] - initial_position[axis_name]
-            
-            # Calcula o erro
-            error = actual_distance - expected_distance
-            error_percent = (error / expected_distance) * 100
-            
-            # Atualiza o resultado do teste
-            result_text = (
-                f"Eixo: {axis_name.upper()}\n"
-                f"Movimento comandado: {expected_distance:.3f} mm\n"
-                f"Movimento real: {actual_distance:.3f} mm\n"
-                f"Erro: {error:.3f} mm ({error_percent:.2f}%)\n\n"
+
+            # 2) Agenda o cálculo daqui a 250 ms para NÃO travar a GUI
+            QTimer.singleShot(
+                250,
+                lambda: self._show_calibration_result(
+                    axis, initial_position, expected_distance
+                )
             )
-            
-            if abs(error_percent) < 1:
-                result_text += "✅ Calibração excelente (erro < 1%)"
-            elif abs(error_percent) < 5:
-                result_text += "✓ Calibração aceitável (erro < 5%)"
-            else:
-                result_text += "❌ Calibração insatisfatória - Ajuste os parâmetros"
-            
-            if hasattr(self, 'calibration_test_result'):
-                self.calibration_test_result.setText(result_text)
-                
-            logger.info(f"CALIBRAÇÃO: Resultado do teste - {result_text}")
+            return
             
         except Exception as e:
             logger.error(f"CALIBRAÇÃO: Erro ao verificar resultado: {e}")
@@ -1778,14 +2043,6 @@ class AOIControllerApp(QMainWindow):
                 self.statusBar().showMessage("Porta COM9 detectada")
         else:
             self.statusBar().showMessage("Nenhuma porta serial encontrada")
-
-    def get_current_position(self):
-        """
-        Retorna a posição atual do CNC.
-        Certifica-se de retornar uma cópia do dicionário para evitar alteração acidental.
-        """
-        logger.debug(f"get_current_position chamado, retornando: {self.current_position}")
-        return self.current_position.copy() if hasattr(self, 'current_position') else {'x': 0, 'y': 0, 'z': 0}
             
     def connect_cnc(self): 
         """Conecta à máquina CNC usando a biblioteca grbl-streamer""" 
@@ -1828,15 +2085,29 @@ class AOIControllerApp(QMainWindow):
                                 g54_offset_data = hash_state.get('G54') 
                                 if isinstance(g54_offset_data, (list, tuple)) and len(g54_offset_data) >= 2:
                                     try:
-                                        new_offset_x = float(g54_offset_data[0])
-                                        new_offset_y = float(g54_offset_data[1])
-                                        new_offset_z = float(g54_offset_data[2]) if len(g54_offset_data) > 2 else 0.0
-                                        
-                                        # Atualiza o offset interno
-                                        self.current_wcs_offset['x'] = new_offset_x
-                                        self.current_wcs_offset['y'] = new_offset_y
-                                        self.current_wcs_offset['z'] = new_offset_z
-                                        logger.info(f"CALLBACK: Offset G54 (de $#) atualizado para: {self.current_wcs_offset} (WCS ativo é G54)")
+                                        new_offset_x_phys = float(g54_offset_data[0])
+                                        new_offset_y_phys = float(g54_offset_data[1])
+                                        new_offset_z_phys = float(g54_offset_data[2]) if len(g54_offset_data) > 2 else 0.0
+
+                                        # Converte Y físico → lógico (depende de invert_y)
+                                        if self.controller.cnc.invert_y:
+                                            new_offset_y_log = -new_offset_y_phys
+                                        else:
+                                            new_offset_y_log = new_offset_y_phys
+
+                                        self.current_wcs_offset = {
+                                            # X e Z permanecem iguais
+                                            'x': new_offset_x_phys,
+                                            # guardamos FÍSICO para operar com G10 L20.
+                                            'y': new_offset_y_phys,
+                                            'z': new_offset_z_phys
+                                        }
+
+                                        logger.info(
+                                            "CALLBACK: Offset G54 atualizado "
+                                            f"(físico): {{x:{new_offset_x_phys:.3f}, y:{new_offset_y_phys:.3f}, z:{new_offset_z_phys:.3f}}}; "
+                                            f"(lógico Y={new_offset_y_log:.3f})"
+                                        )
                                     except (ValueError, TypeError):
                                          logger.error(f"CALLBACK: Erro ao converter offset G54 de $#: {g54_offset_data}")
                                 else:
@@ -1899,23 +2170,31 @@ class AOIControllerApp(QMainWindow):
                             # Calcular WPOS a partir de MPOS e do offset armazenado
                             if isinstance(mpos_tuple, (list, tuple)) and len(mpos_tuple) >= 2: 
                                 try:
-                                    # Posição da Máquina recebida
-                                    mpos_x = float(mpos_tuple[0])
-                                    mpos_y = float(mpos_tuple[1])
-                                    mpos_z = float(mpos_tuple[2]) if len(mpos_tuple) > 2 else 0.0
+                                    # 1) valores FÍSICOS reportados pelo GRBL
+                                    mpos_x_phys = float(mpos_tuple[0])
+                                    mpos_y_phys = float(mpos_tuple[1])
+                                    mpos_z_phys = float(mpos_tuple[2]) if len(mpos_tuple) > 2 else 0.0
 
-                                    # Guarda a MPos real para uso no zeramento individual de eixos
-                                    self.current_mpos = {'x': mpos_x, 'y': mpos_y, 'z': mpos_z}
+                                    # 2) guarda MPos física para rotinas G10
+                                    self.current_mpos = {
+                                        'x': mpos_x_phys,
+                                        'y': mpos_y_phys,
+                                        'z': mpos_z_phys
+                                    }
 
-                                    # Calcular Posição de Trabalho (WPos = MPos - Offset)
-                                    calculated_wpos_x = mpos_x - self.current_wcs_offset['x']
-                                    calculated_wpos_y = mpos_y - self.current_wcs_offset['y']
-                                    calculated_wpos_z = mpos_z - self.current_wcs_offset['z']
+                                    # 3) converte para sistema LÓGICO (visão do usuário)
+                                    mpos_y_log = -mpos_y_phys if self.controller.cnc.invert_y else mpos_y_phys
+                                    off_y_log  = (-self.current_wcs_offset['y']
+                                                if self.controller.cnc.invert_y
+                                                else self.current_wcs_offset['y'])
 
-                                    # Usar a WPos calculada para atualizar a posição interna
+                                    calculated_wpos_x = mpos_x_phys - self.current_wcs_offset['x']
+                                    calculated_wpos_y = mpos_y_log  - off_y_log
+                                    calculated_wpos_z = mpos_z_phys - self.current_wcs_offset['z']
+
                                     new_position = {
-                                        'x': calculated_wpos_x, 
-                                        'y': calculated_wpos_y, 
+                                        'x': calculated_wpos_x,
+                                        'y': calculated_wpos_y,
                                         'z': calculated_wpos_z
                                     }
 
@@ -1988,6 +2267,8 @@ class AOIControllerApp(QMainWindow):
                 self.controller.cnc.grbl.poll_start()
 
                 self.controller.cnc.is_connected = True
+                self.config.apply_to_cnc(self.controller.cnc)
+                self.config.remember_cnc_port(port)
                 self.controller.cnc.machine_status = "Idle"  
                 self.connect_cnc_btn.setText("Desconectar CNC")
                 self.cnc_status.setText("Conectado")
@@ -2010,6 +2291,9 @@ class AOIControllerApp(QMainWindow):
     def connect_camera(self):
         """Conecta à câmera"""
         if hasattr(self.controller.camera, 'is_connected') and self.controller.camera.is_connected:
+            # Interrompe preview antes de liberar a câmera
+            self.camera_preview.stop_preview()
+
             # Desconectar
             self.controller.camera.disconnect()
             self.connect_camera_btn.setText("Conectar Câmera")
@@ -2024,6 +2308,7 @@ class AOIControllerApp(QMainWindow):
                 if self.controller.connect_camera(camera_id):
                     self.connect_camera_btn.setText("Desconectar Câmera")
                     self.statusBar().showMessage(f"Câmera ID {camera_id} conectada")
+                    self.config.remember_camera_id(camera_id)
                 else:
                     QMessageBox.critical(self, "Erro", f"Falha ao conectar à câmera: {self.controller.camera.last_error}")
             except ValueError:
@@ -2233,19 +2518,56 @@ class AOIControllerApp(QMainWindow):
             else:
                 QMessageBox.critical(self, "Erro", "Falha ao carregar o programa")
                 
-    def closeEvent(self, event):
-        """Manipula o evento de fechamento da janela"""
-        # Para a execução da sequência, se houver
-        if self.is_running_sequence:
+    #  LIMPEZA GERAL  (Threads, Timers, Dispositivos)
+    def _cleanup_resources(self):
+        """Para tudo que possa manter o Qt vivo após o fechamento."""
+        if getattr(self, "_already_clean", False):
+            return                         # evita executar 2×
+        self._already_clean = True
+
+        # 1) Sequências em execução
+        if getattr(self, "is_running_sequence", False):
             self.controller.stop_sequence()
-            
-        # Desconecta da câmera e CNC
-        if hasattr(self.controller.camera, 'is_connected') and self.controller.camera.is_connected:
+
+        # 2) Timers ------------------------------------------------
+        for tm_name in ("update_timer",):
+            tm = getattr(self, tm_name, None)
+            if tm and tm.isActive():
+                tm.stop()
+        if getattr(self, "camera_preview", None):
+            self.camera_preview.stop_preview()
+
+        # 3) QThreads ---------------------------------------------
+        for th_name in ("run_thread", "map_thread", "_move_thread"):
+            th = getattr(self, th_name, None)
+            if th and th.isRunning():
+                th.requestInterruption()
+                th.quit()
+                th.wait(2000)             # aguarda até 2 s
+
+        # 4) Thread de status do GRBL dentro do controlador CNC
+        if getattr(self.controller.cnc, "running", False):
+            self.controller.cnc.running = False
+            if getattr(self.controller.cnc, "status_thread", None):
+                self.controller.cnc.status_thread.join(timeout=2)
+
+        # 5) grbl-streamer (poll thread) --------------------------
+        if getattr(self.controller.cnc, "grbl", None):
+            try:
+                self.controller.cnc.grbl.poll_stop()
+                self.controller.cnc.grbl.disconnect()   # fecha serial + join
+            except Exception:
+                pass
+
+        # 6) Dispositivos -----------------------------------------
+        if getattr(self.controller.camera, "is_connected", False):
             self.controller.camera.disconnect()
-            
-        if self.controller.cnc.is_connected:
+        if getattr(self.controller.cnc, "is_connected", False):
             self.controller.cnc.disconnect()
-            
+
+    # closeEvent agora só dispara a limpeza
+    def closeEvent(self, event):
+        self._cleanup_resources()
         event.accept()
 
 class SequenceRunnerThread(QThread):
@@ -2271,12 +2593,70 @@ class SequenceRunnerThread(QThread):
         except Exception as e:
             self.sequence_error.emit(str(e))
 
-# Classe QInputDialog que estava faltando
-from PyQt6.QtWidgets import QInputDialog
+class MapGeneratorThread(QThread):
+    """
+    Thread responsável por percorrer a grade, movimentar a CNC e capturar
+    as imagens sem travar a GUI.
+    """
+    progress = pyqtSignal(int, int)       # imagens_capturadas, total
+    image_captured = pyqtSignal(object)   # cv2 image (opcional para preview)
+    finished = pyqtSignal()
+    error = pyqtSignal(str)
+
+    def __init__(self, controller, origin, end, sx, sy, folder, prog_name):
+        super().__init__()
+        self.ctrl = controller
+        self.origin = origin
+        self.end = end
+        self.sx = sx
+        self.sy = sy
+        self.folder = folder
+        self.prog_name = prog_name
+
+    def run(self):        
+        log = logging.getLogger("MapGeneratorThread")
+        try:
+            points = list(self.ctrl._grid_points(self.origin, self.end,
+                                             self.sx, self.sy))
+            total = len(points)
+            os.makedirs(self.folder, exist_ok=True)
+
+            # -- Vai para a origem (somente se não estivermos nela) ----------
+            cur = self.ctrl.cnc.get_current_position()
+            if (abs(cur['x'] - self.origin['x']) > 1e-3 or
+                abs(cur['y'] - self.origin['y']) > 1e-3):
+                self.ctrl.cnc.move_to_absolute_position(self.origin['x'],
+                                                        self.origin['y'])
+                self.ctrl.cnc.wait_for_idle()
+            else:
+                log.debug("MapGeneratorThread: Já estamos na origem; iniciando varredura sem espera extra.")
+
+            captured = 0
+            for r, col, x, y in points:
+                if self.isInterruptionRequested():
+                    log.warning("Mapa cancelado pelo usuário")
+                    self.error.emit("Operação cancelada")
+                    return
+                self.ctrl.cnc.move_to_absolute_position(x, y)
+                self.ctrl.cnc.wait_for_idle()
+
+                img = self.ctrl.camera.capture()
+                if img is not None:
+                    fname = f"{self.prog_name}_r{r:03d}_c{col:03d}.png"
+                    cv2.imwrite(os.path.join(self.folder, fname), img)
+                    self.image_captured.emit(img)
+                captured += 1
+                self.progress.emit(captured, total)
+                time.sleep(0.05)
+
+            self.finished.emit()
+        except Exception as exc:
+            log.exception("Erro na geração do mapa")
+            self.error.emit(str(exc))
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     window = AOIControllerApp()
-    app.installEventFilter(window)
     window.show()
     sys.exit(app.exec())

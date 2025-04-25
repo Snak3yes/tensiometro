@@ -1,0 +1,30 @@
+{
+  "cnc": {
+    "max_feed": {
+      "x": 5000.0,
+      "y": 5000.0
+    },
+    "max_acc": {
+      "x": 300.0,
+      "y": 200.0
+    },
+    "invert_y": false
+  },
+  "connections": {
+    "last_cnc_port": "COM8",
+    "auto_connect_cnc": true,
+    "last_camera_id": 2,
+    "auto_connect_camera": true
+  },
+  "ui": {
+    "theme": "light"
+  },
+  "calibration": {
+    "pulses_per_rev": 1600.0,
+    "fuso_pitch": 5.0
+  },
+  "movement": {
+    "step_size": 10.0,
+    "feed_rate": 5000.0
+  }
+}

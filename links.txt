@@ -1,3 +1,5 @@
 https://github.com/grbl/grbl/tree/master/grbl
 
 https://github.com/michaelfranzl/grbl-streamer/tree/master/src/grbl_streamer
+
+https://www.riverbankcomputing.com/static/Docs/PyQt6/

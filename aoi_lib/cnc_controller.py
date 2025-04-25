@@ -118,6 +118,8 @@ class GRBLCNCController:
         self.current_position = {'x': 0, 'y': 0, 'z': 0}
         self.machine_status = "Disconnected"
         self.last_response = ""
+        # se True, inverte o sentido do eixo Y (para a visão do operador)
+        self.invert_y = False
         self.last_error = ""
         
         # Eventos para comunicação assíncrona
@@ -134,6 +136,40 @@ class GRBLCNCController:
         self.jogging = False
         self.current_jog_command = None
         self.steps_to_mm_factor = 1.0
+
+        # Limites máximos de feed  e  aceleração  (mm/min  | mm/s²)
+        self.max_feed = {'x': 1000.0, 'y': 1000.0}
+        self.max_acc  = {'x':  50.0,  'y':  50.0}
+
+        # evita mostrar várias vezes o mesmo aviso de clamp
+        self._feed_clamp_warned = False
+
+    def set_invert_y(self, invert: bool = True):
+        """Define se o eixo Y deve ser invertido (+Y vai para a frente do usuário)."""
+        self.invert_y = bool(invert)
+
+    def set_grbl_y_direction(self, forward_positive: bool = True):
+        """
+        Altera o parâmetro $3 (Step Dir Invert Mask) para inverter
+        (ou não) o eixo Y diretamente no firmware GRBL.
+        forward_positive=True   →  bit1 ligado  (valor 2 adicionado)
+        forward_positive=False  →  bit1 desligado
+        """
+        if not self.is_connected or not self.grbl:
+            return False
+        try:
+            # pede os settings com $#
+            self.grbl.send_immediately("$$")
+            time.sleep(0.3)  # pequena pausa para GRBL responder
+            # A biblioteca expõe o dicionário de settings em grbl.settings
+            current_mask = int(self.grbl.settings.get("$3", 0))
+            want_bit = 0x02 if forward_positive else 0
+            new_mask = (current_mask | 0x02) if forward_positive else (current_mask & ~0x02)
+            if new_mask != current_mask:
+                self.grbl.send_immediately(f"$3={new_mask}")
+            return True
+        except Exception:
+            return False
         
     def connect(self, port=None, baudrate=115200):
         """
@@ -163,6 +199,17 @@ class GRBLCNCController:
             
             # Desbloqueia a máquina
             self.send_command("$X", priority=True)
+            # Garante que o Y esteja invertido fisicamente (positivo = frente)
+            self.set_grbl_y_direction(forward_positive=True)
+
+            # ----------  Lê $$ para descobrir limits -----------
+            # Solicitamos os settings logo após o unlock para conhecer os
+            # limites máximos de feed ($110 / $111) e armazená-los em
+            # self.max_feed.
+            logger.debug("CONEXÃO: Solicitando $$ para obter limites de velocidade")
+            self.grbl.send_immediately("$$")
+            time.sleep(0.5)               # pequeno atraso p/ GRBL responder
+            self._cache_settings_from_grbl()
             
             # Inicia thread de consulta de status
             self.running = True
@@ -226,22 +273,52 @@ class GRBLCNCController:
         """Verifica se a máquina está em movimento."""
         return self.machine_status == "Run" or self.machine_status == "Jog"
         
-    def wait_for_idle(self, timeout=30):
+    def wait_for_idle(self,
+                      timeout: float = 5.0,
+                      poll_interval: float = 0.1,
+                      idle_grace: float = 0.4) -> bool:
         """
-        Aguarda até que a máquina esteja ociosa.
-        
-        Args:
-            timeout: Tempo máximo de espera em segundos
-            
-        Returns:
-            bool: True se ficou ocioso, False se atingiu timeout
+        Aguarda o término de qualquer movimento.
+        A lógica:
+           1) força consulta de status (?) a cada ‘poll_interval’
+           2) aguarda ver a máquina entrar em Run ou Jog
+           3) depois aguarda voltar a Idle
+        Assim evitamos o “salto” observado quando a variável machine_status
+        ainda está ‘Idle’ logo após o envio do comando.
         """
-        start_time = time.time()
-        while self.is_moving():
-            if time.time() - start_time > timeout:
+        if not self.is_connected or not self.grbl:
+            return False
+
+        start = time.time()
+        saw_motion   = False
+        idle_since   = None
+
+        while True:
+            # força GRBL a reportar um status
+            try:
+                self.grbl.send_immediately("?")
+            except Exception:
+                pass
+
+            state = self.machine_status   # atualizado pelo callback _on_status_update
+
+            if state in ("Run", "Jog"):
+                saw_motion = True
+                idle_since = None         # zera caso volte a ver Run
+            elif state == "Idle":
+                if saw_motion:            # cenário normal
+                    return True
+                # nunca vimos Run → conta um “grace time” em Idle
+                idle_since = idle_since or time.time()
+                if (time.time() - idle_since) >= idle_grace:
+                    logger.debug("wait_for_idle: Idle estável sem movimento; liberando cedo.")
+                    return True
+
+            if time.time() - start > timeout:
+                logger.warning("wait_for_idle: timeout depois de %.1fs (state=%s)", timeout, state)
                 return False
-            time.sleep(0.1)
-        return True
+
+            time.sleep(poll_interval)
         
     def get_current_position(self):
         """
@@ -269,17 +346,53 @@ class GRBLCNCController:
         # Muda para modo absoluto
         self.send_command("G90", priority=True)
         
+        #  Ajusta feed se exceder limite configurado
+        axis_limit = max(
+            self.max_feed['x'] if x is not None else 0,
+            self.max_feed['y'] if y is not None else 0
+        ) or min(self.max_feed.values())   # fallback
+        if feed_rate > axis_limit:
+            if not self._feed_clamp_warned:
+                logger.warning("Feed solicitado (%s) > limite (%s). "
+                               "Será enviado como %s",
+                               feed_rate, axis_limit, axis_limit)
+                self._feed_clamp_warned = True
+            feed_rate = axis_limit
+
         # Constrói o comando
         command = "G1"
         if x is not None:
             command += f" X{x}"
         if y is not None:
-            command += f" Y{y}"
+            y_send = -y if self.invert_y else y
+            command += f" Y{y_send}"
         command += f" F{feed_rate}"
         
         # Envia o comando
-        self.send_command(command)
+        self.send_command(command, priority=True)
         return True
+    
+    def step_move(self, axis: str, distance: float, feed_rate: float = 1000):
+        """
+        Move um único passo (distância em mm, sinal define direção) no eixo selecionado.
+        Encapsula o uso de move_relative para manter a UI livre de detalhes G-code.
+        """
+        if axis.upper() == "X":
+            return self.move_relative(x=distance, y=0, feed_rate=feed_rate)
+        elif axis.upper() == "Y":
+            return self.move_relative(x=0, y=distance, feed_rate=feed_rate)
+        else:
+            logger.error(f"step_move: eixo inválido '{axis}'")
+            return False
+
+    # “Aliases” para manter nomenclatura intuitiva na UI
+    def jog_start(self, axis, direction, feed_rate=1000):
+        """Wrapper p/ iniciar jog contínuo."""
+        return self.start_continuous_jog(axis, direction, feed_rate)
+
+    def jog_stop(self):
+        """Wrapper p/ parar jog contínuo."""
+        return self.stop_continuous_jog()
         
     def move_relative(self, x=0, y=0, feed_rate=1000):
         """
@@ -291,15 +404,29 @@ class GRBLCNCController:
         """
         if not self.is_connected:
             return False
+        
+        # Ajuste de feed
+        axis_limit = max(
+            self.max_feed['x'] if abs(x) > 0 else 0,
+            self.max_feed['y'] if abs(y) > 0 else 0
+        ) or min(self.max_feed.values())
+        if feed_rate > axis_limit:
+            if not self._feed_clamp_warned:
+                logger.warning("Feed solicitado (%s) > limite (%s). "
+                               "Será enviado como %s",
+                               feed_rate, axis_limit, axis_limit)
+                self._feed_clamp_warned = True
+            feed_rate = axis_limit
             
         # Muda para modo relativo
         self.send_command("G91", priority=True)
         
         # Constrói o comando
-        command = f"G1 X{x} Y{y} F{feed_rate}"
+        y_rel = -y if self.invert_y else y
+        command = f"G1 X{x} Y{y_rel} F{feed_rate}"
         
         # Envia o comando
-        self.send_command(command)
+        self.send_command(command, priority=True)
         return True
 
     def start_continuous_jog(self, axis, direction, feed_rate=1000):
@@ -330,7 +457,9 @@ class GRBLCNCController:
         
         if axis.upper() == 'X':
             jog_command = f"$J=G91 X{distance} F{feed_rate}"
-        else:  # assume Y
+        else:  # Y
+            if self.invert_y:
+                distance = -distance     # inverte a direção
             jog_command = f"$J=G91 Y{distance} F{feed_rate}"
             
         self.jogging = True
@@ -340,6 +469,26 @@ class GRBLCNCController:
         success = self.send_command(jog_command, priority=True)
         
         return success
+    
+    def _cache_settings_from_grbl(self):
+        """
+        Copia $settings do objeto GrblStreamer (se disponível) e
+        atualiza self.max_feed.
+        """
+        if not self.grbl or not hasattr(self.grbl, "settings"):
+            logger.warning("_cache_settings_from_grbl: settings não disponíveis")
+            return
+        try:
+            s = self.grbl.settings
+            self.max_feed['x'] = float(s.get("$110", self.max_feed['x']))
+            self.max_feed['y'] = float(s.get("$111", self.max_feed['y']))
+            self.max_acc['x']  = float(s.get("$120", self.max_acc['x']))
+            self.max_acc['y']  = float(s.get("$121", self.max_acc['y']))
+            logger.info("Limites de feed carregados  –  X:%s  Y:%s  (mm/min)",
+                        self.max_feed['x'], self.max_acc['x'],
+                        self.max_feed['y'], self.max_acc['y'])
+        except Exception as e:
+            logger.error("Falha ao parsear $settings: %s", e)
         
     def stop_continuous_jog(self):
         """
@@ -452,6 +601,9 @@ class GRBLCNCController:
             # Comandos prioritários são enviados com prioridade
             elif priority:
                 self.grbl.send_immediately(command)
+            # Comandos “normais” vão para fila padrão
+            else:
+                self.grbl.send(command)   # método normal do grbl-streamer
             return True
         except Exception as e:
             self.last_error = str(e)
@@ -477,7 +629,7 @@ class GRBLCNCController:
         if position:
             new_position = {
                 'x': position.get('x', 0),
-                'y': position.get('y', 0),
+                'y': -position.get('y', 0) if self.invert_y else position.get('y', 0),
                 'z': position.get('z', 0)
             }
             logger.debug("Posição extraída: %s", new_position)

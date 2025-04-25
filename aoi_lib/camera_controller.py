@@ -16,49 +16,56 @@ class CameraController:
         self.last_error = ""
         
     def connect(self, camera_id=0):
-        """
-        Conecta à câmera.
-        
-        Args:
-            camera_id: ID da câmera (para OpenCV)
-            
-        Returns:
-            bool: True se conectado com sucesso
-        """
-        if self.camera:
-            # Usa a interface fornecida
+        # 0) Se já está conectado, primeiro desconecta para garantir
+        #    liberação correta do dispositivo.
+        if self.is_connected:
+            self.disconnect()
+
+        # 1) Se existe um objeto pendente de conexão anterior, libera-o.
+        if self.camera and hasattr(self.camera, "release"):
+            try:
+                self.camera.release()
+            except Exception:
+                pass
+            self.camera = None
+
+        # 2) Caso seja uma interface personalizada, usa-la.
+        if self.camera and hasattr(self.camera, "connect"):
             try:
                 self.is_connected = self.camera.connect()
                 return self.is_connected
             except Exception as e:
                 self.last_error = str(e)
                 return False
-        else:
-            # Implementação padrão com OpenCV
-            try:
-                import cv2
-                self.camera = cv2.VideoCapture(camera_id)
-                self.is_connected = self.camera.isOpened()
-                return self.is_connected
-            except Exception as e:
-                self.last_error = str(e)
-                return False
-                
-    def disconnect(self):
-        """Desconecta da câmera."""
-        if not self.is_connected:
-            return
-            
+
+        # 3) Caminho padrão OpenCV  -------------------------------
         try:
-            if hasattr(self.camera, 'release'):
-                self.camera.release()
-            elif hasattr(self.camera, 'disconnect'):
-                self.camera.disconnect()
-                
-            self.is_connected = False
-            
+            import cv2
+            self.camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+            self.is_connected = self.camera.isOpened()
+            if not self.is_connected:
+                self.last_error = f"cv2.VideoCapture({camera_id}) não abriu"
+            return self.is_connected
         except Exception as e:
             self.last_error = str(e)
+            return False
+                
+    def disconnect(self):
+        if not self.is_connected and not self.camera:
+            return
+
+        try:
+            if self.camera:
+                if hasattr(self.camera, "release"):
+                    self.camera.release()
+                    # Aguarda driver liberar o handle USB
+                    import time; time.sleep(0.1)
+                elif hasattr(self.camera, "disconnect"):
+                    self.camera.disconnect()
+        finally:
+            # Zera referências para forçar recriação no próximo connect()
+            self.camera = None
+            self.is_connected = False
 
     def trigger_capture(self, params=None):
         """

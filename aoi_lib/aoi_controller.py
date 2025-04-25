@@ -1,4 +1,5 @@
 import time
+import os, cv2, time, math, json, logging
 from .cnc_controller import GRBLCNCController
 from .camera_controller import CameraController
 from .position_manager import InspectionPositionManager, InspectionPosition, InspectionSequence
@@ -21,8 +22,7 @@ class CNCAOIController:
         self.camera = CameraController(camera_interface)
         self.position_manager = InspectionPositionManager()
         self.is_running_sequence = False
-        self.current_sequence = None
-        self.current_position_index = -1
+        self.current_sequence: InspectionSequence | None = None
         
     def connect_cnc(self, port=None, baudrate=115200):
         """Conecta à máquina CNC."""
@@ -115,47 +115,34 @@ class CNCAOIController:
             
         self.is_running_sequence = True
         self.current_sequence = sequence
-        self.current_position_index = 0
-        
-        # Iniciar execução da sequência
-        return self._process_next_position(callback)
-        
-    def _process_next_position(self, callback=None):
-        """Processa a próxima posição na sequência."""
-        if not self.is_running_sequence or self.current_position_index >= len(self.current_sequence.positions):
-            self.is_running_sequence = False
-            return None
-            
-        # Obtém a próxima posição
-        position = self.current_sequence.positions[self.current_position_index]
-        
-        # Move para a posição
-        self.cnc.move_to_absolute_position(position.x, position.y)
-        
-        # Verifica se chegou na posição
-        while self.cnc.is_moving():
-            time.sleep(0.1)
-            
-        # Captura a imagem
-        image = self.camera.capture(position.camera_params)
-        
-        # Prepara dados para callback
-        result = {
-            "position": position,
-            "image": image,
-            "timestamp": time.time(),
-            "sequence": self.current_sequence.name,
-            "index": self.current_position_index
-        }
-        
-        # Avança para a próxima posição
-        self.current_position_index += 1
-        
-        # Chama o callback se fornecido
-        if callback:
-            callback(result)
-            
-        return result
+
+        results = []
+        for idx, position in enumerate(sequence.positions):
+            if not self.is_running_sequence:          # stop_sequence() pode ter sido chamado
+                break
+
+            # 1. Move para a posição
+            self.cnc.move_to_absolute_position(position.x, position.y)
+            self.cnc.wait_for_idle()
+
+            # 2. Captura a imagem
+            image = self.camera.capture(position.camera_params)
+
+            # 3. Monta resultado
+            result = {
+                "position":   position,
+                "image":      image,
+                "timestamp":  time.time(),
+                "sequence":   sequence.name,
+                "index":      idx
+            }
+
+            results.append(result)
+            if callback:
+                callback(result)
+
+        self.is_running_sequence = False
+        return results        # opcional, mantido para retro-compat.
         
     def stop_sequence(self):
         """Para a execução da sequência atual."""
@@ -168,3 +155,79 @@ class CNCAOIController:
     def load_positions(self, filename):
         """Carrega posições e sequências de um arquivo."""
         return self.position_manager.load_from_file(filename)
+    
+    def generate_map(self, origin, end, step_x, step_y, folder, program_name):
+        """
+        Gera um mapa de captura em grade entre dois cantos definidos.
+        Usa math.ceil para garantir que não pule nenhum passo
+        e captura exatamente 1 imagem por ponto.
+        """
+        
+        logger = logging.getLogger("CNCAOIController.generate_map")
+
+        # 1) validações básicas
+        os.makedirs(folder, exist_ok=True)
+        points = list(self._grid_points(origin, end, step_x, step_y))
+        cols = max(p[1] for p in points) + 1
+        rows = max(p[0] for p in points) + 1
+        logger.info("Gerando mapa: %d colunas × %d linhas  (%d pts)",
+                    cols, rows, len(points))
+
+        # 4) vai para a origem
+        self.cnc.move_to_absolute_position(origin['x'], origin['y'])
+        self.cnc.wait_for_idle()
+
+        # 5) percorre a grade
+        capture_map = []          # para salvar JSON no final
+        for row_idx, col_idx, x, y in points:
+            # move + espera
+            self.cnc.move_to_absolute_position(x, y)
+            self.cnc.wait_for_idle()
+
+            # captura única
+            img = self.camera.capture()
+            if img is not None:
+                fname = f"{program_name}_r{row_idx:03d}_c{col_idx:03d}.png"
+                cv2.imwrite(os.path.join(folder, fname), img)
+                capture_map.append(
+                        {"row": row_idx, "col": col_idx,
+                         "x": x, "y": y, "file": fname}
+                        )
+            else:
+                logger.warning("Falha ao capturar em X=%.3f Y=%.3f", x, y)
+
+            # curto delay para estabilizar
+            time.sleep(0.05)
+
+        # 6) salva metadados ------------------------------------------------
+        try:
+            with open(os.path.join(folder, f"{program_name}_map.json"), "w") as fp:
+                json.dump(capture_map, fp, indent=2)
+        except Exception as jerr:
+            logger.error("Falha ao salvar JSON de mapa: %s", jerr)
+
+        logger.info("generate_map: concluído com sucesso.")
+    
+    @staticmethod
+    def _grid_points(origin, end, sx, sy, snake=True):
+        """
+        Gera tuplas (row, col, x, y) seguindo padrão “zig-zag” (snake) opcional.
+        """
+        dx = end['x'] - origin['x']
+        dy = end['y'] - origin['y']
+        if dx <= 0 or dy <= 0:
+            raise ValueError("Cantos inválidos (dx/dy devem ser positivos)")
+        if sx <= 0 or sy <= 0:
+            raise ValueError("Passos sx/sy devem ser > 0")
+
+        cols = int(math.ceil(dx / sx)) + 1
+        rows = int(math.ceil(dy / sy)) + 1
+        x_pos = [origin['x'] + min(i * sx, dx) for i in range(cols)]
+        y_pos = [origin['y'] + min(j * sy, dy) for j in range(rows)]
+
+        for r, y in enumerate(y_pos):
+            scan = x_pos if (r % 2 == 0 or not snake) else list(reversed(x_pos))
+            for c_idx, x in enumerate(scan):
+                col = c_idx if (r % 2 == 0 or not snake) else cols - 1 - c_idx
+                yield r, col, x, y
+
