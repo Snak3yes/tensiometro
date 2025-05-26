@@ -120,10 +120,11 @@ class GRBLCNCController:
         self.current_position = {'x': 0, 'y': 0, 'z': 0}
         self.machine_status = "Disconnected"
         self.last_response = ""
-        # se True, inverte o sentido do eixo Y (para a visão do operador)
+        # se True, inverte lógica dos eixos Y / Z (para a visão do operador)
         self.invert_y = False
+        self.invert_z = False
         self.last_error = ""
-        
+
         # Eventos para comunicação assíncrona
         self.response_received = EventEmitter()
         self.status_update = EventEmitter()
@@ -198,6 +199,10 @@ class GRBLCNCController:
     def set_invert_y(self, invert: bool = True):
         """Define se o eixo Y deve ser invertido (+Y vai para a frente do usuário)."""
         self.invert_y = bool(invert)
+    
+    def set_invert_z(self, invert: bool = True):
+        """Define se o eixo Z deve ser invertido (+Z = cima)."""
+        self.invert_z = bool(invert)
 
     def set_grbl_y_direction(self, forward_positive: bool = True):
         """
@@ -420,7 +425,8 @@ class GRBLCNCController:
             y_send = -y if self.invert_y else y
             command += f" Y{y_send}"
         if z is not None:
-            command += f" Z{z}"
+            z_send = -z if self.invert_z else z
+            command += f" Z{z_send}"
         command += f" F{feed_rate}"
         
         # Envia o comando
@@ -486,13 +492,18 @@ class GRBLCNCController:
             tgt_x = x if x is not None else 0.0
             tgt_y = y if y is not None else 0.0
             a, b = self._convert_xy_to_ab(tgt_x, tgt_y)
-            command = f"G1 X{a:.3f} Y{b:.3f} F{feed_rate}"
+            command = f"G1 X{a:.3f} Y{b:.3f}"
+            if z is not None:
+                z_send = -z if self.invert_z else z
+                command += f" Z{z_send}"
+            command += f" F{feed_rate}"
         else:  # cartesiano
             y_send = -y if self.invert_y else y
             command = "G1"
             command += f" X{x} Y{y_send}"
             if z != 0:
-                command += f" Z{z}"
+                z_send = -z if self.invert_z else z
+                command += f" Z{z_send}"
             command += f" F{feed_rate}"
         
         # Envia o comando
@@ -521,34 +532,53 @@ class GRBLCNCController:
         self.send_command("~", priority=True)  # Retoma após parada
         self.send_command("G91", priority=True)  # Modo relativo
         
-        # Em GRBL 1.1, podemos usar o comando de jog para movimento contínuo
-        # A sintaxe é: $J=G91 X[dist] Y[dist] F[feed]
-        distance = 1000 * direction  # Distância grande para simular movimento contínuo
-        
-        # Jog com conversão CoreXY quando necessário
+        # ------------------------------------------------------------------
+        # 1. Distância “longa” para JOG (só para ficar em movimento)
+        # ------------------------------------------------------------------
+        distance = 1000 * direction
+
+        # ------------------------------------------------------------------
+        # 2. Gera o comando $J=… com total segurança
+        # ------------------------------------------------------------------
+        jog_command = None                     # ← sempre inicializado
+        axis_uc = axis.upper()
+
         if self.kinematics_mode == "corexy":
-            if axis.upper() == 'X':
+            # ‑- CoreXY: converter XY→AB mas enviar nos eixos X/Y
+            if axis_uc == "X":
                 a, b = self._convert_xy_to_ab(distance, 0)
-            else:  # Y
+                jog_command = f"$J=G91 X{a:.3f} Y{b:.3f} F{feed_rate}"
+            elif axis_uc == "Y":
                 a, b = self._convert_xy_to_ab(0, distance)
-            jog_command = f"$J=G91 X{a:.3f} Y{b:.3f} F{feed_rate}"
-        elif axis.upper() == 'Z':
-            jog_command = f"$J=G91 Z{distance} F{feed_rate}"
-        else:
-            if axis.upper() == 'X':
-                jog_command = f"$J=G91 X{distance} F{feed_rate}"
-            else:  # Y
-                if self.invert_y:
-                    distance = -distance
-                jog_command = f"$J=G91 Y{distance} F{feed_rate}"
-            
+                jog_command = f"$J=G91 X{a:.3f} Y{b:.3f} F{feed_rate}"
+            elif axis_uc == "Z":
+                dist_z = -distance if self.invert_z else distance
+                jog_command = f"$J=G91 Z{dist_z:.3f} F{feed_rate}"
+
+        else:  # ‑- Cartesiano puro
+            if axis_uc == "X":
+                jog_command = f"$J=G91 X{distance:.3f} F{feed_rate}"
+            elif axis_uc == "Y":
+                dist_y = -distance if self.invert_y else distance
+                jog_command = f"$J=G91 Y{dist_y:.3f} F{feed_rate}"
+            elif axis_uc == "Z":
+                dist_z = -distance if self.invert_z else distance
+                jog_command = f"$J=G91 Z{dist_z:.3f} F{feed_rate}"
+
+        # ------------------------------------------------------------------
+        # 3. Segurança extra: aborta se algo ficou sem tratar
+        # ------------------------------------------------------------------
+        if jog_command is None:
+            logger.error("start_continuous_jog: comando não gerado "
+                        "(axis=%s  mode=%s)", axis_uc, self.kinematics_mode)
+            return False
+
+        # ------------------------------------------------------------------
+        # 4. Atualiza estado e envia comando
+        # ------------------------------------------------------------------
         self.jogging = True
         self.current_jog_command = jog_command
-        
-        # Envia comando de jog com máxima prioridade
-        success = self.send_command(jog_command, priority=True)
-        
-        return success
+        return self.send_command(jog_command, priority=True)
     
     def _cache_settings_from_grbl(self):
         """

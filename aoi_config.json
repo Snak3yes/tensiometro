@@ -16,7 +16,8 @@
       "motor_a_invert": false,
       "motor_b_invert": false,
       "steps_per_unit": 80.0
-    }
+    },
+    "invert_z": true
   },
   "connections": {
     "last_cnc_port": "COM22",

@@ -12,7 +12,8 @@ class AOIConfigManager:
             "system_type": "cartesian",          # cartesian  |  corexy
             "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},   # + $112
             "max_acc":  {"x": 120.0,  "y": 120.0,  "z": 60.0},   # + $122
-            "invert_y": True                          # sentido lógico (+Y frente)
+            "invert_y": True,                         # sentido lógico (+Y frente)
+            "invert_z": False                         # novo – (+Z = cima)
             ,
             # apenas se corexy estiver selecionado
             "corexy_config": {
@@ -135,6 +136,7 @@ class AOIConfigManager:
             acc["z"] = 60.0            # mm/s²
             self.set("cnc", "max_acc",  "z", value=acc["z"])
         invert_y = self.get("cnc", "invert_y", default=True)
+        invert_z = self.get("cnc", "invert_z", default=False)
         cmds = [
             f"$110={maxf['x']}", f"$111={maxf['y']}", f"$112={maxf['z']}",
             f"$120={acc['x']}",  f"$121={acc['y']}",  f"$122={acc['z']}",
@@ -142,8 +144,9 @@ class AOIConfigManager:
         for c in cmds:
             cnc.send_command(c, priority=True)
         cnc.set_invert_y(invert=invert_y)
+        cnc.set_invert_z(invert=invert_z)
         self.log.info("Limites aplicados ao GRBL: feed %s  acc %s  invert_y=%s",
-                      maxf, acc, invert_y)
+                      maxf, acc, invert_y, invert_z)
 
 # ============================================================
 #  SettingsDialog – UI PyQt6 para editar as preferências
@@ -166,13 +169,16 @@ class SettingsDialog(QDialog):
         self.spin_a_y = QDoubleSpinBox(); self.spin_a_y.setRange(1, 1000)
         self.spin_a_z = QDoubleSpinBox(); self.spin_a_z.setRange(1, 1000)
         self.chk_invert_y = QCheckBox("Inverter lógica do eixo Y (+Y frente)")
+        self.chk_invert_z = QCheckBox("Inverter lógica do eixo Z (+Z cima)")
 
         # valores atuais
         self.spin_f_x.setValue(cfg.get("cnc", "max_feed", "x"))
         self.spin_f_y.setValue(cfg.get("cnc", "max_feed", "y"))
         self.spin_a_x.setValue(cfg.get("cnc", "max_acc", "x"))
         self.spin_a_y.setValue(cfg.get("cnc", "max_acc", "y"))
-        self.chk_invert_y.setChecked(cfg.get("cnc", "invert_y"))
+        # Usa False como valor-padrão caso a chave ainda não exista no JSON
+        self.chk_invert_y.setChecked(cfg.get("cnc", "invert_y", default=False))
+        self.chk_invert_z.setChecked(cfg.get("cnc", "invert_z", default=False))
         self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z"))
         self.spin_a_z.setValue(cfg.get("cnc", "max_acc",  "z"))
 
@@ -183,6 +189,7 @@ class SettingsDialog(QDialog):
         form.addRow("Acel máx Y (mm/s²):",  self.spin_a_y)
         form.addRow("Acel máx Z (mm/s²):",  self.spin_a_z)
         form.addRow(self.chk_invert_y)
+        form.addRow(self.chk_invert_z)
 
         # --- NOVO BLOCO: seleção do tipo de sistema -----------------------
         self.combo_sys = QComboBox()
@@ -226,6 +233,8 @@ class SettingsDialog(QDialog):
         self.cfg.set("cnc", "max_feed", "z", value=self.spin_f_z.value())
         self.cfg.set("cnc", "max_acc",  "z", value=self.spin_a_z.value())
         self.cfg.set("cnc", "invert_y", value=self.chk_invert_y.isChecked())
+        self.cfg.set("cnc", "invert_z", value=self.chk_invert_z.isChecked())
+
         # -------- grava modo cartesiano/corexy ---------------------------
         sys_type = self.combo_sys.currentText()
         self.cfg.remember_system_type(sys_type)
