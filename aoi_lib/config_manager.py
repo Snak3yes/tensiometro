@@ -9,9 +9,17 @@ from pathlib import Path
 class AOIConfigManager:
     _DEFAULT_CFG = {
         "cnc": {
+            "system_type": "cartesian",          # cartesian  |  corexy
             "max_feed": {"x": 2500.0, "y": 2500.0},   # $110 / $111   (mm/min)
             "max_acc":  {"x": 120.0,  "y": 120.0},    # $120 / $121   (mm/s²)
             "invert_y": True                          # sentido lógico (+Y frente)
+            ,
+            # apenas se corexy estiver selecionado
+            "corexy_config": {
+                "motor_a_invert": False,
+                "motor_b_invert": False,
+                "steps_per_unit": 80.0
+            }
         },
         "connections": {
             "last_cnc_port": "",
@@ -44,6 +52,11 @@ class AOIConfigManager:
     def remember_calibration(self, pulses: float, fuso: float):
         self.set("calibration", "pulses_per_rev", value=pulses)
         self.set("calibration", "fuso_pitch",     value=fuso)
+
+    # -------- novo atalho para lembrar o sistema de eixos ---------------
+    def remember_system_type(self, sys_type: str):
+        """Grava cartesian|corexy escolhido pelo usuário."""
+        self.set("cnc", "system_type", value=sys_type.lower())
 
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")
@@ -98,6 +111,15 @@ class AOIConfigManager:
         Envia $110,$111,$120,$121 e sentido de Y logo
         após a conexão da CNC.
         """
+        # modo cartesiano × corexy ------------------
+        try:
+            sys_type = self.get("cnc", "system_type", default="cartesian")
+            cnc.set_kinematics_mode(sys_type)
+            # passa configurações específicas do CoreXY
+            cnc.corexy_cfg = self.get("cnc", "corexy_config", default={})
+            self.log.info("Modo de cinemática aplicado: %s", sys_type)
+        except Exception as e:
+            self.log.error("Falha ao aplicar modo de cinemática: %s", e)
         if not cnc or not cnc.is_connected:
             return
         maxf = self.get("cnc", "max_feed")
@@ -117,7 +139,7 @@ class AOIConfigManager:
 #  SettingsDialog – UI PyQt6 para editar as preferências
 # ============================================================
 from PyQt6.QtWidgets import (QDialog, QFormLayout, QDoubleSpinBox, QCheckBox,
-                             QPushButton, QHBoxLayout)
+                             QPushButton, QHBoxLayout, QGroupBox, QComboBox)
 
 class SettingsDialog(QDialog):
     def __init__(self, cfg: AOIConfigManager, parent=None):
@@ -146,6 +168,31 @@ class SettingsDialog(QDialog):
         form.addRow("Acel máx Y (mm/s²):",  self.spin_a_y)
         form.addRow(self.chk_invert_y)
 
+        # --- NOVO BLOCO: seleção do tipo de sistema -----------------------
+        self.combo_sys = QComboBox()
+        self.combo_sys.addItems(["cartesian", "corexy"])
+        self.combo_sys.setCurrentText(cfg.get("cnc", "system_type",
+                                              default="cartesian"))
+        form.addRow("Tipo de sistema:", self.combo_sys)
+
+        # Grupo CoreXY (visível apenas quando selecionado)
+        self.grp_corexy = QGroupBox("Opções CoreXY")
+        g_core = QFormLayout(self.grp_corexy)
+        self.chk_inv_a = QCheckBox("Inverter Motor A")
+        self.chk_inv_b = QCheckBox("Inverter Motor B")
+        core_cfg = cfg.get("cnc", "corexy_config", default={})
+        self.chk_inv_a.setChecked(core_cfg.get("motor_a_invert", False))
+        self.chk_inv_b.setChecked(core_cfg.get("motor_b_invert", False))
+        g_core.addRow(self.chk_inv_a)
+        g_core.addRow(self.chk_inv_b)
+        form.addRow(self.grp_corexy)
+
+        # Mostrar/esconder grupo conforme seleção inicial
+        self.grp_corexy.setVisible(self.combo_sys.currentText() == "corexy")
+        self.combo_sys.currentTextChanged.connect(
+            lambda txt: self.grp_corexy.setVisible(txt == "corexy")
+        )
+
         # ------ botões ----------
         btn_box = QHBoxLayout()
         btn_ok  = QPushButton("Salvar")
@@ -161,4 +208,14 @@ class SettingsDialog(QDialog):
         self.cfg.set("cnc", "max_acc",  "x", value=self.spin_a_x.value())
         self.cfg.set("cnc", "max_acc",  "y", value=self.spin_a_y.value())
         self.cfg.set("cnc", "invert_y", value=self.chk_invert_y.isChecked())
+        # -------- grava modo cartesiano/corexy ---------------------------
+        sys_type = self.combo_sys.currentText()
+        self.cfg.remember_system_type(sys_type)
+
+        # -------- grava parâmetros CoreXY se aplicável -------------------
+        if sys_type == "corexy":
+            self.cfg.set("cnc", "corexy_config", "motor_a_invert",
+                         value=self.chk_inv_a.isChecked())
+            self.cfg.set("cnc", "corexy_config", "motor_b_invert",
+                         value=self.chk_inv_b.isChecked())
         self.accept()

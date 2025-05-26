@@ -3,6 +3,8 @@ import serial
 import serial.tools.list_ports
 import threading
 from grbl_streamer import GrblStreamer  # Importa a biblioteca grbl-streamer
+from pathlib import Path
+import json
 
 import logging
 # Se ainda não existir, defina um logger para esta classe:
@@ -143,6 +145,55 @@ class GRBLCNCController:
 
         # evita mostrar várias vezes o mesmo aviso de clamp
         self._feed_clamp_warned = False
+
+        # ----------------- NOVO BLOCO -----------------
+        # Lê a configuração para saber a cinemática desejada
+        cfg_path = Path(__file__).resolve().parent.parent / "aoi_config.json"
+        if cfg_path.exists():
+            try:
+                cfg_data = json.loads(cfg_path.read_text(encoding="utf-8"))
+            except Exception:
+                cfg_data = {}
+        else:
+            cfg_data = {}
+        cnc_cfg = cfg_data.get("cnc", {})
+        self.kinematics_mode = cnc_cfg.get("system_type", "cartesian").lower()
+        self.corexy_cfg = cnc_cfg.get("corexy_config", {})
+
+        # LOGA a escolha para facilitar depuração
+        logger.info("Cinemática inicial: %s | corexy_cfg=%s",
+                    self.kinematics_mode, self.corexy_cfg)
+
+    # ---------- seleção dinâmica de cinemática ----------
+    def set_kinematics_mode(self, mode: str):
+        """
+        Altera o modo de cinemática em tempo-real.
+        Aceita 'cartesian' ou 'corexy'.
+        """
+        mode = str(mode).lower()
+        assert mode in ("cartesian", "corexy"), "Modo inválido"
+        self.kinematics_mode = mode
+
+    # ---------- helpers CoreXY --------------------------
+    def _convert_xy_to_ab(self, x: float, y: float) -> tuple[float, float]:
+        """
+        Converte deslocamentos/cartesianas (X,Y) para pulsos dos motores
+        A e B de um sistema CoreXY.
+
+            Motor A =  (+X) + (+Y)
+            Motor B =  (+X) - (+Y)
+
+        O utilizador pode inverter o sentido de cada motor nas
+        Preferências.  Não aplicamos steps-per-unit aqui; o firmware já
+        usa mm (ou steps) directos conforme a sua configuração.
+        """
+        cfg = getattr(self, "corexy_cfg", {}) or {}
+        inv_a = -1 if cfg.get("motor_a_invert", False) else 1
+        inv_b = -1 if cfg.get("motor_b_invert", False) else 1
+
+        a = (x + y) * inv_a
+        b = (x - y) * inv_b
+        return a, b
 
     def set_invert_y(self, invert: bool = True):
         """Define se o eixo Y deve ser invertido (+Y vai para a frente do usuário)."""
@@ -359,7 +410,8 @@ class GRBLCNCController:
                 self._feed_clamp_warned = True
             feed_rate = axis_limit
 
-        # Constrói o comando
+        # Constrói o comando  –  SEMPRE em X/Y
+        #  (o firmware GRBL faz a cinemática CoreXY internamente)
         command = "G1"
         if x is not None:
             command += f" X{x}"
@@ -421,9 +473,17 @@ class GRBLCNCController:
         # Muda para modo relativo
         self.send_command("G91", priority=True)
         
-        # Constrói o comando
-        y_rel = -y if self.invert_y else y
-        command = f"G1 X{x} Y{y_rel} F{feed_rate}"
+        # ------------------------------------------------------------------
+        # Constrói o comando (com conversão CoreXY, se activada)
+        # ------------------------------------------------------------------
+        if self.kinematics_mode == "corexy":
+            tgt_x = x if x is not None else 0.0
+            tgt_y = y if y is not None else 0.0
+            a, b = self._convert_xy_to_ab(tgt_x, tgt_y)
+            command = f"G1 X{a:.3f} Y{b:.3f} F{feed_rate}"
+        else:  # cartesiano
+            y_send = -y if self.invert_y else y
+            command = f"G1 X{x} Y{y_send} F{feed_rate}"
         
         # Envia o comando
         self.send_command(command, priority=True)
@@ -455,12 +515,20 @@ class GRBLCNCController:
         # A sintaxe é: $J=G91 X[dist] Y[dist] F[feed]
         distance = 1000 * direction  # Distância grande para simular movimento contínuo
         
-        if axis.upper() == 'X':
-            jog_command = f"$J=G91 X{distance} F{feed_rate}"
-        else:  # Y
-            if self.invert_y:
-                distance = -distance     # inverte a direção
-            jog_command = f"$J=G91 Y{distance} F{feed_rate}"
+        # Jog com conversão CoreXY quando necessário
+        if self.kinematics_mode == "corexy":
+            if axis.upper() == 'X':
+                a, b = self._convert_xy_to_ab(distance, 0)
+            else:  # Y
+                a, b = self._convert_xy_to_ab(0, distance)
+            jog_command = f"$J=G91 X{a:.3f} Y{b:.3f} F{feed_rate}"
+        else:
+            if axis.upper() == 'X':
+                jog_command = f"$J=G91 X{distance} F{feed_rate}"
+            else:  # Y
+                if self.invert_y:
+                    distance = -distance
+                jog_command = f"$J=G91 Y{distance} F{feed_rate}"
             
         self.jogging = True
         self.current_jog_command = jog_command
