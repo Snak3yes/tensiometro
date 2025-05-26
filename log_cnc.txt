@@ -1,474 +1,309 @@
-I2025-05-26 07:59:25.291481 (19008) [INFO] [VCAMDS] FB delta time: 0 | Final time: 33333
-2025-05-26 07:59:25,309 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 07:59:25,310 - consumo_lib - DEBUG - update_position_display: nenhuma posição (WPos calculada) anterior registrada.
-I2025-05-26 07:59:25.325500 (19008) [INFO] [VCAMDS] Verify core stream readiness before the first frame (sh)
-2025-05-26 07:59:25,372 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 07:59:25,430 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:25,430 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:25,431 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(0.0, 0.0, 0.0)
-2025-05-26 07:59:25,431 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:25,431 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:25,620 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:25,620 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
+PS C:\Users\sense\PycharmProjects\cnc_aoi> & c:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/consumo_lib.py
+2025-05-26 08:54:55,849 - consumo_lib - DEBUG - CALLBACK: Evento 'on_settings_downloaded' recebido com data: ({130: {'val': '1000', 'cmt': 'width'}, 131: {'val': '1000', 'cmt': 'height'}},)
+2025-05-26 08:54:55,849 - consumo_lib - DEBUG - CALLBACK: Evento 'on_hash_stateupdate' recebido com data: ({'G54': (0, 0, 0), 'G55': (0, 0, 0), 'G56': (0, 0, 0), 'G57': (0, 0, 0), 'G58': (0, 0, 0), 'G59': (0, 0, 0), 'G28': (0, 0, 0), 'G30': (0, 0, 0), 'G92': (0, 0, 0), 'TLO': 0, 'PRB': (0, 0, 0)},)
+2025-05-26 08:54:55,849 - consumo_lib - INFO - CALLBACK: Offset G54 atualizado (físico): {x:0.000, y:0.000, z:0.000}; (lógico Y=0.000)
+2025-05-26 08:54:55,850 - consumo_lib - DEBUG - CALLBACK: Evento 'on_gcode_parser_stateupdate' recebido com data: (['0', '54', '17', '21', '90', '94', '0', '0', '5', '0', '99', '0'],)
+2025-05-26 08:54:55,850 - consumo_lib - INFO - CALLBACK ($G): Sincronizando UI para G90 (Absoluto)
+2025-05-26 08:54:55,850 - consumo_lib - DEBUG - CONEXÃO: Tentando conectar à porta COM22 com baudrate 115200
+2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ("Grbl 1.2h ['$' for help]",)
+2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_job_completed' recebido com data: ()
+2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_feed_change' recebido com data: (None,)
+2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_progress_percent' recebido com data: (0,)
+2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_boot' recebido com data: ()
+2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$$\n',)
+2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $$
 
-2025-05-26 07:59:25,626 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G0 G54 G17 G21 G91 G94 M5 M9 T0 F0 S0]',)
-2025-05-26 07:59:25,626 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:26,364 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 07:59:27,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 07:59:27,638 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
-2025-05-26 07:59:28,391 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 07:59:28,929 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:28,930 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
+2025-05-26 08:54:57,025 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$0=10',)
+2025-05-26 08:54:57,028 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$1=254',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$2=0',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$3=0',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$4=0',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$5=0',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$6=0',)
+2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$10=3',)
+2025-05-26 08:54:57,032 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$11=0.020',)
+2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$12=0.002',)
+2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$13=0',)
+2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$20=0',)
+2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$21=0',)
+2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$22=0',)
+2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$23=0',)
+2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$24=25.000',)
+2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$25=250.000',)
+2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$26=250',)
+2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$27=5.000',)
+2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$30=12000',)
+2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$31=550',)
+2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$32=0',)
+2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$100=400.000',)
+2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$101=400.000',)
+2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$102=400.000',)
+2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$103=8.889',)
+2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$104=8.889',)
+2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$110=5000.000',)
+2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$111=5000.000',)
+2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$112=750.000',)
+2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$113=1440.000',)
+2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$114=1440.000',)
+2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$120=300.000',)
+2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$121=200.000',)
+2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$122=50.000',)
+2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$123=50.000',)
+2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$124=50.000',)
+2025-05-26 08:54:57,061 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$130=10000.000',)
+2025-05-26 08:54:57,062 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$131=10000.000',)
+2025-05-26 08:54:57,062 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$132=200.000',)
+2025-05-26 08:54:57,065 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$133=360.000',)
+2025-05-26 08:54:57,065 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$134=180.000',)
+2025-05-26 08:54:57,066 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CONEXÃO: Enviando comando de desbloqueio $X
+2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$X\n',)
+2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $X
 
-2025-05-26 07:59:28,930 - consumo_lib - DEBUG - CALLBACK: Evento 'on_feed_change' recebido com data: (1000.0,)
-2025-05-26 07:59:28,930 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:28,930 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
+2025-05-26 08:54:57,860 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CONEXÃO: Configurando $10=3 para relatório completo de posição
+2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$10=3\n',)
+2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $10=3        
 
-2025-05-26 07:59:28,932 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:28,936 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:29,038 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-0.94, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,039 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-0.94, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,039 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-0.94, 0.0, 0.0)
-2025-05-26 07:59:29,039 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:29,039 - consumo_lib - DEBUG - CALLBACK: MPos=(-0.94, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -0.94, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,039 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -0.94, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,040 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': 0, 'y': 0, 'z': 0} -> {'x': -0.94, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,040 - consumo_lib - DEBUG - CALLBACK: Evento 'on_movement' recebido com data: ()
-2025-05-26 07:59:29,312 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,313 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,313 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:29,313 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,313 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,313 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -0.94, 'y': 0.0, 'z': 0.0} -> {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 0, 'y': 0, 'z': 0} para {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,440 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,440 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:29,440 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:29,440 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:29,441 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,441 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:29,634 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:29,634 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
+2025-05-26 08:54:57,962 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:58,057 - consumo_lib - DEBUG - CONEXÃO: Solicitando estado hash ($#) para obter offsets
+2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CONEXÃO: Configurando modo relativo G91
+2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
+2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
 
-2025-05-26 07:59:29,641 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:29,641 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:29,880 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:29,880 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
+2025-05-26 08:54:58,163 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:58,257 - consumo_lib - DEBUG - CONEXÃO: Iniciando polling de status
+2025-05-26 08:54:58,257 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$#\n',)
+2025-05-26 08:54:58,257 - consumo_lib - ERROR - CONEXÃO: Falha ao conectar ou configurar: 'z'     
+Traceback (most recent call last):
+  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 2292, in connect_cnc
+    self.config.apply_to_cnc(self.controller.cnc)
+  File "c:\Users\sense\PycharmProjects\cnc_aoi\aoi_lib\config_manager.py", line 129, in apply_to_cnc
+    f"$110={maxf['x']}", f"$111={maxf['y']}", f"$112={maxf['z']}",
+KeyError: 'z'
+2025-05-26 08:54:58,258 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $#
 
-2025-05-26 07:59:29,881 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:29,881 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:29,886 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:29,886 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:30,267 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,268 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,269 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.0, 0.0, 0.0)
-2025-05-26 07:59:30,269 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:30,270 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,270 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,271 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.0, 'y': 0.0, 'z': 0.0} -> {'x': -2.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:30.341953 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7001
-2025-05-26 07:59:30,385 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:30,385 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:30,385 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:30,385 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:30,385 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,386 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -1.0, 'y': 0.0, 'z': 0.0} para {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,390 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:30,390 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:30,447 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.305, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,447 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.305, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,447 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.305, 0.0, 0.0)
-2025-05-26 07:59:30,447 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.305, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.305, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,448 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.305, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,448 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.0, 'y': 0.0, 'z': 0.0} -> {'x': -2.305, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,770 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,771 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,771 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-3.0, 0.0, 0.0)
-2025-05-26 07:59:30,771 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,771 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,771 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.305, 'y': 0.0, 'z': 0.0} -> {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,849 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,849 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:30,849 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-3.0, 0.0, 0.0)
-2025-05-26 07:59:30,849 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:30,850 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:30,850 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:31,042 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:31,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:31,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:31,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -2.0, 'y': 0.0, 'z': 0.0} para {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,616 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:31,616 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:31,617 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:31,617 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:31,619 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:31,623 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:31,651 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.935, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:31,652 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.935, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:31,652 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.935, 0.0, 0.0)
-2025-05-26 07:59:31,652 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:31,652 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.935, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.935, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,652 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.935, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,652 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -3.0, 'y': 0.0, 'z': 0.0} -> {'x': -2.935, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:31,984 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:31,985 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:31,985 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:31,985 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:31,999 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,000 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,000 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.0, 0.0, 0.0)
-2025-05-26 07:59:32,000 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,000 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,000 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.935, 'y': 0.0, 'z': 0.0} -> {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,000 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:32,001 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:32,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.665, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,053 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.665, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,053 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.665, 0.0, 0.0)
-2025-05-26 07:59:32,053 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.665, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.665, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,053 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.665, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,054 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.0, 'y': 0.0, 'z': 0.0} -> {'x': -1.665, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,360 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:32,361 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:32,361 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:32,361 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:32,377 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,377 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,377 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:32,377 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,378 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,378 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.665, 'y': 0.0, 'z': 0.0} -> {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,378 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:32,378 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:32,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -3.0, 'y': 0.0, 'z': 0.0} para {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,454 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-0.265, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,454 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-0.265, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,454 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-0.265, 0.0, 0.0)
-2025-05-26 07:59:32,454 - consumo_lib - DEBUG - CALLBACK: MPos=(-0.265, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -0.265, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,456 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -0.265, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,456 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.0, 'y': 0.0, 'z': 0.0} -> {'x': -0.265, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,750 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,750 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,750 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(0.0, 0.0, 0.0)
-2025-05-26 07:59:32,751 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,751 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,751 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -0.265, 'y': 0.0, 'z': 0.0} -> {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,856 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,856 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:32,856 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(0.0, 0.0, 0.0)
-2025-05-26 07:59:32,856 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:32,857 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:32,857 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:33,047 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:33,047 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:33,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:33,056 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:33,378 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:33,378 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -1.0, 'y': 0.0, 'z': 0.0} para {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:34,056 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
-2025-05-26 07:59:34,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:35.378433 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7824
-I2025-05-26 07:59:35.378433 (19008) [INFO] [VCAMDS] FB delta time: 991 | Final time: 32342
-2025-05-26 07:59:35,384 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:36,380 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:37,386 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:38,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$110=5000.0\n',)
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $110=5000.0
-
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$111=5000.0\n',)
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $111=5000.0  
-
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$120=300.0\n',)
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $120=300.0   
-
-2025-05-26 07:59:39,329 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$121=200.0\n',)
-2025-05-26 07:59:39,330 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $121=200.0   
-
-2025-05-26 07:59:39,335 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:39,335 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:39,335 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:39,335 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:39,393 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:40,385 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:40.422871 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7308
-2025-05-26 07:59:40,723 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:40,723 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:40,723 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:40,723 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:40,727 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:40,728 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:41,105 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,106 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,106 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:41,107 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:41,107 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,108 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,108 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': 0.0, 'y': 0.0, 'z': 0.0} -> {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,108 - consumo_lib - DEBUG - CALLBACK: Evento 'on_movement' recebido com data: ()
-2025-05-26 07:59:41,136 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:41,137 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:41,137 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:41,137 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:41,141 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:41,141 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:41,384 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,384 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 0.0, 'y': 0.0, 'z': 0.0} para {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,488 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:41,488 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:41,489 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:41,489 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:41,519 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,519 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,519 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.0, 0.0, 0.0)
-2025-05-26 07:59:41,520 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,520 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,520 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.0, 'y': 0.0, 'z': 0.0} -> {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,523 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:41,523 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:41,896 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,896 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:41,896 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-3.0, 0.0, 0.0)
-2025-05-26 07:59:41,896 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,897 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:41,897 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.0, 'y': 0.0, 'z': 0.0} -> {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:42,084 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:42,084 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:42,084 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-3.0, 0.0, 0.0)
-2025-05-26 07:59:42,084 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:42,084 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:42,085 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:42,278 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:42,278 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:42,285 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:42,285 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:42,392 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:42,392 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -1.0, 'y': 0.0, 'z': 0.0} para {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:42,929 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:42,929 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:42,929 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:42,929 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:42,932 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:42,935 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:43,282 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:43,282 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:43,283 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:43,283 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:43,313 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,313 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,313 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.0, 0.0, 0.0)
-2025-05-26 07:59:43,313 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:43,313 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,314 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,314 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -3.0, 'y': 0.0, 'z': 0.0} -> {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,314 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:43,314 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:43,387 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,387 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -3.0, 'y': 0.0, 'z': 0.0} para {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,626 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:43,627 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:43,627 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X1.0Y0F1000.0\n',)
-2025-05-26 07:59:43,627 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X1.0Y0F1000.0
-
-2025-05-26 07:59:43,690 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,690 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,690 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:43,691 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,691 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,691 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.0, 'y': 0.0, 'z': 0.0} -> {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,691 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:43,694 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:43,698 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,698 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:43,698 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:43,698 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:43,698 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,699 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:43,883 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:43,883 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:44,063 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:44,064 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:44,091 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:44,091 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:44,091 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(0.0, 0.0, 0.0)
-2025-05-26 07:59:44,092 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:44,092 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:44,092 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.0, 'y': 0.0, 'z': 0.0} -> {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:44,284 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:44,284 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:44,291 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:44,291 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:44,388 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:44,389 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -2.0, 'y': 0.0, 'z': 0.0} para {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:45,378 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:45.464371 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7582
-I2025-05-26 07:59:45.464371 (19008) [INFO] [VCAMDS] FB delta time: 911 | Final time: 32422
-2025-05-26 07:59:45,495 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
-2025-05-26 07:59:46,381 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:47,383 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:48,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:49,281 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$110=5000.0\n',)
-2025-05-26 07:59:49,281 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $110=5000.0
-
-2025-05-26 07:59:49,281 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$111=5000.0\n',)
-2025-05-26 07:59:49,281 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $111=5000.0  
-
-2025-05-26 07:59:49,282 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$120=300.0\n',)
-2025-05-26 07:59:49,282 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $120=300.0   
-
-2025-05-26 07:59:49,282 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$121=200.0\n',)
-2025-05-26 07:59:49,282 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $121=200.0   
-
-2025-05-26 07:59:49,284 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:49,288 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:49,288 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:49,288 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:49,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:50,381 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:50.502730 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7718
-2025-05-26 07:59:51,380 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,418 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:51,418 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:51,418 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:51,418 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:51,423 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:51,423 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:51,513 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-0.833, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,513 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-0.833, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,513 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-0.833, 0.0, 0.0)
-2025-05-26 07:59:51,513 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Idle' para 'Run'
-2025-05-26 07:59:51,514 - consumo_lib - DEBUG - CALLBACK: MPos=(-0.833, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -0.833, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,514 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -0.833, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,514 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': 0.0, 'y': 0.0, 'z': 0.0} -> {'x': -0.833, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,514 - consumo_lib - DEBUG - CALLBACK: Evento 'on_movement' recebido com data: ()
-2025-05-26 07:59:51,769 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:51,770 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:51,770 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:51,770 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:51,799 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,800 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,800 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.0, 0.0, 0.0)
-2025-05-26 07:59:51,800 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,800 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,800 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -0.833, 'y': 0.0, 'z': 0.0} -> {'x': -1.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,803 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:51,804 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:51,918 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-1.993, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,918 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-1.993, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:51,918 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-1.993, 0.0, 0.0)
-2025-05-26 07:59:51,918 - consumo_lib - DEBUG - CALLBACK: MPos=(-1.993, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -1.993, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,918 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -1.993, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:51,918 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.0, 'y': 0.0, 'z': 0.0} -> {'x': -1.993, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,074 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:52,075 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:52,075 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:52,075 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:52,177 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,177 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-2.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,177 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-2.0, 0.0, 0.0)
-2025-05-26 07:59:52,177 - consumo_lib - DEBUG - CALLBACK: MPos=(-2.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,177 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,178 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -1.993, 'y': 0.0, 'z': 0.0} -> {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,178 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:52,178 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:52,387 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,388 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 0.0, 'y': 0.0, 'z': 0.0} para {'x': -2.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,424 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:52,424 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:52,424 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:52,424 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:52,553 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,553 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-3.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,553 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-3.0, 0.0, 0.0)
-2025-05-26 07:59:52,554 - consumo_lib - DEBUG - CALLBACK: MPos=(-3.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,554 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,554 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -2.0, 'y': 0.0, 'z': 0.0} -> {'x': -3.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,557 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:52,557 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:52,796 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 07:59:52,796 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 07:59:52,797 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G01X-1.0Y0F1000.0\n',)
-2025-05-26 07:59:52,797 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G01X-1.0Y0F1000.0
-
-2025-05-26 07:59:52,930 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-4.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,931 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-4.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:52,931 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-4.0, 0.0, 0.0)
-2025-05-26 07:59:52,931 - consumo_lib - DEBUG - CALLBACK: MPos=(-4.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -4.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,931 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -4.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,931 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -3.0, 'y': 0.0, 'z': 0.0} -> {'x': -4.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:52,931 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:52,932 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:53,303 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Run', (-5.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:53,304 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Run', (-5.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:53,305 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Run, mpos=(-5.0, 0.0, 0.0)
-2025-05-26 07:59:53,305 - consumo_lib - DEBUG - CALLBACK: MPos=(-5.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,305 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,306 - consumo_lib - INFO - CALLBACK: POSIÇÃO INTERNA ATUALIZADA (usando WPOS CALCULADA): {'x': -4.0, 'y': 0.0, 'z': 0.0} -> {'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,320 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (-5.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:53,320 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (-5.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 07:59:53,320 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(-5.0, 0.0, 0.0)
-2025-05-26 07:59:53,320 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Run' para 'Idle'
-2025-05-26 07:59:53,321 - consumo_lib - DEBUG - CALLBACK: MPos=(-5.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,321 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,385 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,385 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': -2.0, 'y': 0.0, 'z': 0.0} para {'x': -5.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 07:59:53,513 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 07:59:53,513 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 07:59:53,519 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G1 G54 G17 G21 G91 G94 M5 M9 T0 F1000 S0]',)
-2025-05-26 07:59:53,519 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 07:59:54,382 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': -5.0, 'y': 0.0, 'z': 0.0}
-I2025-05-26 07:59:55.540859 (19008) [INFO] [VCAMDS] VidFilter Out FPS: 29.7721
-I2025-05-26 07:59:55.540859 (19008) [INFO] [VCAMDS] FB delta time: 906 | Final time: 32427
-2025-05-26 07:59:56,131 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('dummy_msg_for_joining_thread',)
-2025-05-26 07:59:56,131 - consumo_lib - DEBUG - CALLBACK: Evento 'on_disconnected' recebido com data: ()
+2025-05-26 08:54:58,266 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G54:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,270 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G55:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,274 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G56:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,274 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G57:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,278 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G58:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,282 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G59:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,286 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G28:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,290 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G30:0.000,0.000,0.000,0.000,0.000]',)
+2025-05-26 08:54:58,290 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G92:0.000,0.000,0.000,0.000,0.000]',)
 Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-075956.1600'!
-I2025-05-26 07:59:56.145169 (19008) [INFO] [VCAMDS] On Thread Destroy
-I2025-05-26 07:59:56.146164 (19008) [INFO] [VCAMDS] Video data consumption app tracker updating num apps streaming active: 0
-E2025-05-26 07:59:56.146164 (19008)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps streaming active
-I2025-05-26 07:59:56.146164 (19044) [INFO] [VCAMDS] Destroying parent object
-I2025-05-26 07:59:56.146164 (19044) [INFO] [VCAMDS] Destroying WndMsg Listener Window
-I2025-05-26 07:59:56.147164 (19044) [INFO] [VCAMDS] Destroyed window
-I2025-05-26 07:59:56.147164 (19044) [INFO] [VCAMDS] Unregistered window class
-I2025-05-26 07:59:56.147164 (19044) [INFO] [VCAMDS] Video data consumption app tracker updating num DLL loaded: 0
-E2025-05-26 07:59:56.148170 (19044)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps DLL loaded
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+I2025-05-26 08:54:58.291929 (19928) [INFO] [VCAMDS] python.exe
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+E2025-05-26 08:54:58.291929 (19928)  [ERR] [VCAMDS] Failed to open settings hive
+E2025-05-26 08:54:58.292914 (19928)  [ERR] [VCAMDS] Failed to open NBX hive
+I2025-05-26 08:54:58.292914 (19928) [INFO] [VCAMDS] Creating WndMsg Listener Window
+I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Performing initializing sequence
+I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Entered Shared Memory Consumer Initialize     
+E2025-05-26 08:54:58.293922 (19928)  [ERR] [VCAMDS] Shared Memory Consumer 2 Initialize Exception: O sistema nÒo pode encontrar o caminho especificado.
+E2025-05-26 08:54:58.294914 (19928)  [ERR] [VCAMDS] NvMxnCltShmConsumer Init Failed. Err: -610    
+I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Initializing streaming output
+W2025-05-26 08:54:58.294914 (19928) [WARN] [VCAMDS] query out res failed -- choose defaults       
+I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Already initialized
+2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[TLO:0.000]',)
+I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Already initialized
+2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[PRB:0.000,0.000,0.000,0.000,0.000:0]',)
+2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_hash_stateupdate' recebido com data: ({'G54': (0.0, 0.0, 0.0, 0.0, 0.0), 'G55': (0.0, 0.0, 0.0, 0.0, 0.0), 'G56': (0.0, 0.0, 0.0, 0.0, 0.0), 'G57': (0.0, 0.0, 0.0, 0.0, 0.0), 'G58': (0.0, 0.0, 0.0, 0.0, 0.0), 'G59': (0.0, 0.0, 0.0, 0.0, 0.0), 'G28': (0.0, 0.0, 0.0, 0.0, 0.0), 'G30': (0.0, 0.0, 0.0, 0.0, 0.0), 'G92': (0.0, 0.0, 0.0, 0.0, 0.0), 'TLO': (0.0,), 'PRB': (0.0, 0.0, 0.0, 0.0, 0.0)},)
+2025-05-26 08:54:58,294 - consumo_lib - INFO - CALLBACK: Offset G54 atualizado (físico): {x:0.000, y:0.000, z:0.000}; (lógico Y=0.000)
+2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_probe' recebido com data: ((0.0, 0.0, 0.0, 0.0, 0.0),)
+2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:58,461 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
+2025-05-26 08:54:58,461 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
+
+2025-05-26 08:54:58,466 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G0 G54 G17 G21 G91 G94 M5 M9 T0 F0 S0]',)
+2025-05-26 08:54:58,466 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085458.6336'!
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
+I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
+I2025-05-26 08:54:58.512122 (31380) [INFO] [VCAMDS] On Thread Create
+I2025-05-26 08:54:58.512122 (31380) [INFO] [VCAMDS] Video data consumption app tracker updating num apps streaming active: 1
+E2025-05-26 08:54:58.512122 (31380)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps streaming active
+I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] Fill buffer started
+I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] Initializing image blit data
+E2025-05-26 08:54:58.513124 (31380)  [ERR] [VCAMDS] Failed to create decoder from filename. Err: -2147024893
+I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] FB delta time: 0 | Final time: 33333
+2025-05-26 08:54:58,517 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:54:58,517 - consumo_lib - DEBUG - update_position_display: nenhuma posição (WPos calculada) anterior registrada.
+I2025-05-26 08:54:58.547245 (31380) [INFO] [VCAMDS] Verify core stream readiness before the first frame (sh)
+2025-05-26 08:54:58,684 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
+2025-05-26 08:54:58,684 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
+2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(0.0, 0.0, 0.0)
+2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Disconnected' para 'Idle'
+2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-05-26 08:54:58,686 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
+2025-05-26 08:54:58,764 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:54:58,871 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
+2025-05-26 08:54:58,871 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
+
+2025-05-26 08:54:58,880 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G0 G54 G17 G21 G91 G94 M5 M9 T0 F0 S0]',)
+2025-05-26 08:54:58,880 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
+2025-05-26 08:54:59,756 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:00,756 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:00,890 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
+2025-05-26 08:55:01,757 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:02,761 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+I2025-05-26 08:55:03.556897 (31380) [INFO] [VCAMDS] VidFilter Out FPS: 29.7441
+2025-05-26 08:55:03,758 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:04,761 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:05,754 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:06,766 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
+2025-05-26 08:55:08,515 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('dummy_msg_for_joining_thread',)
+2025-05-26 08:55:08,515 - consumo_lib - DEBUG - CALLBACK: Evento 'on_disconnected' recebido com data: ()
+I2025-05-26 08:55:08.532418 (31380) [INFO] [VCAMDS] On Thread Destroy
+I2025-05-26 08:55:08.533501 (31380) [INFO] [VCAMDS] Video data consumption app tracker updating num apps streaming active: 0
+E2025-05-26 08:55:08.533501 (31380)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps streaming active
+I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroying parent object
+I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroying WndMsg Listener Window
+I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroyed window
+I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Unregistered window class
+I2025-05-26 08:55:08.535419 (19928) [INFO] [VCAMDS] Video data consumption app tracker updating num DLL loaded: 0
+Could not create log file: No such file or directory
+COULD NOT CREATE LOGFILE '20250526-085508.6336'!
+E2025-05-26 08:55:08.535419 (19928)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps DLL loaded
 PS C:\Users\sense\PycharmProjects\cnc_aoi> 

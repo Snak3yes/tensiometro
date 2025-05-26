@@ -449,12 +449,26 @@ class MovementControlWidget(QWidget):
         self.left_button.released.connect(self._on_direction_release)
         self.right_button.pressed.connect(lambda: self._on_direction_press("X", 1))
         self.right_button.released.connect(self._on_direction_release)
+
+        # --------- NOVOS BOTÕES Z -----------------
+        self.z_up_button   = QPushButton("Z+")
+        self.z_down_button = QPushButton("Z-")
+        for zbtn in (self.z_up_button, self.z_down_button):
+            zbtn.setMinimumSize(50, 30)
+        self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  1))
+        self.z_up_button.released.connect(self._on_direction_release)
+        self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", -1))
+        self.z_down_button.released.connect(self._on_direction_release)
         
         # Add buttons to grid
         movement_layout.addWidget(self.up_button, 0, 1)
         movement_layout.addWidget(self.left_button, 1, 0)
         movement_layout.addWidget(self.right_button, 1, 2)
         movement_layout.addWidget(self.down_button, 2, 1)
+
+        # Coloca Z+ acima de STOP e Z- abaixo
+        movement_layout.addWidget(self.z_up_button,   0, 3)
+        movement_layout.addWidget(self.z_down_button, 2, 3)
 
         # Botão de Emergency Stop / Reset
         self.emergency_stop_button = QPushButton("STOP")
@@ -1039,6 +1053,12 @@ class AOIControllerApp(QMainWindow):
             elif key == Qt.Key.Key_Right:
                 self.movement_widget.start_movement("X", 1)
                 return True
+            elif key == Qt.Key.Key_PageUp:
+                 self.movement_widget.start_movement("Z", 1)
+                 return True
+            elif key == Qt.Key.Key_PageDown:
+                 self.movement_widget.start_movement("Z", -1)
+                 return True
         # KeyRelease
         elif event.type() == QEvent.Type.KeyRelease and self.movement_widget.keyboard_control_checkbox.isChecked():
             if hasattr(event, 'isAutoRepeat') and event.isAutoRepeat():
@@ -1048,7 +1068,9 @@ class AOIControllerApp(QMainWindow):
                 Qt.Key.Key_Up, 
                 Qt.Key.Key_Down, 
                 Qt.Key.Key_Left, 
-                Qt.Key.Key_Right
+                Qt.Key.Key_Right,
+                Qt.Key.Key_PageUp,
+                Qt.Key.Key_PageDown
             ):
                 self.movement_widget.stop_movement()
                 return True

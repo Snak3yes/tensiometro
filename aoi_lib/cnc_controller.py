@@ -140,8 +140,8 @@ class GRBLCNCController:
         self.steps_to_mm_factor = 1.0
 
         # Limites máximos de feed  e  aceleração  (mm/min  | mm/s²)
-        self.max_feed = {'x': 1000.0, 'y': 1000.0}
-        self.max_acc  = {'x':  50.0,  'y':  50.0}
+        self.max_feed = {'x': 1000.0, 'y': 1000.0, 'z': 800.0}
+        self.max_acc  = {'x':  50.0,  'y':  50.0,  'z': 30.0}
 
         # evita mostrar várias vezes o mesmo aviso de clamp
         self._feed_clamp_warned = False
@@ -383,7 +383,7 @@ class GRBLCNCController:
             return self.current_position.copy()
         return {'x': 0, 'y': 0, 'z': 0}
         
-    def move_to_absolute_position(self, x=None, y=None, feed_rate=1000):
+    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=1000):
         """
         Move para uma posição absoluta.
         
@@ -400,7 +400,8 @@ class GRBLCNCController:
         #  Ajusta feed se exceder limite configurado
         axis_limit = max(
             self.max_feed['x'] if x is not None else 0,
-            self.max_feed['y'] if y is not None else 0
+            self.max_feed['y'] if y is not None else 0,
+            self.max_feed['z'] if z is not None else 0
         ) or min(self.max_feed.values())   # fallback
         if feed_rate > axis_limit:
             if not self._feed_clamp_warned:
@@ -418,6 +419,8 @@ class GRBLCNCController:
         if y is not None:
             y_send = -y if self.invert_y else y
             command += f" Y{y_send}"
+        if z is not None:
+            command += f" Z{z}"
         command += f" F{feed_rate}"
         
         # Envia o comando
@@ -433,6 +436,8 @@ class GRBLCNCController:
             return self.move_relative(x=distance, y=0, feed_rate=feed_rate)
         elif axis.upper() == "Y":
             return self.move_relative(x=0, y=distance, feed_rate=feed_rate)
+        elif axis.upper() == "Z":
+            return self.move_relative(x=0, y=0, z=distance, feed_rate=feed_rate)
         else:
             logger.error(f"step_move: eixo inválido '{axis}'")
             return False
@@ -446,7 +451,7 @@ class GRBLCNCController:
         """Wrapper p/ parar jog contínuo."""
         return self.stop_continuous_jog()
         
-    def move_relative(self, x=0, y=0, feed_rate=1000):
+    def move_relative(self, x=0, y=0, z=0, feed_rate=1000):
         """
         Move em relação à posição atual.
         
@@ -460,7 +465,8 @@ class GRBLCNCController:
         # Ajuste de feed
         axis_limit = max(
             self.max_feed['x'] if abs(x) > 0 else 0,
-            self.max_feed['y'] if abs(y) > 0 else 0
+            self.max_feed['y'] if abs(y) > 0 else 0,
+            self.max_feed['z'] if abs(z) > 0 else 0
         ) or min(self.max_feed.values())
         if feed_rate > axis_limit:
             if not self._feed_clamp_warned:
@@ -483,7 +489,11 @@ class GRBLCNCController:
             command = f"G1 X{a:.3f} Y{b:.3f} F{feed_rate}"
         else:  # cartesiano
             y_send = -y if self.invert_y else y
-            command = f"G1 X{x} Y{y_send} F{feed_rate}"
+            command = "G1"
+            command += f" X{x} Y{y_send}"
+            if z != 0:
+                command += f" Z{z}"
+            command += f" F{feed_rate}"
         
         # Envia o comando
         self.send_command(command, priority=True)
@@ -522,6 +532,8 @@ class GRBLCNCController:
             else:  # Y
                 a, b = self._convert_xy_to_ab(0, distance)
             jog_command = f"$J=G91 X{a:.3f} Y{b:.3f} F{feed_rate}"
+        elif axis.upper() == 'Z':
+            jog_command = f"$J=G91 Z{distance} F{feed_rate}"
         else:
             if axis.upper() == 'X':
                 jog_command = f"$J=G91 X{distance} F{feed_rate}"
@@ -552,6 +564,8 @@ class GRBLCNCController:
             self.max_feed['y'] = float(s.get("$111", self.max_feed['y']))
             self.max_acc['x']  = float(s.get("$120", self.max_acc['x']))
             self.max_acc['y']  = float(s.get("$121", self.max_acc['y']))
+            self.max_feed['z'] = float(s.get("$112", self.max_feed['z']))
+            self.max_acc['z']  = float(s.get("$122", self.max_acc['z']))
             logger.info("Limites de feed carregados  –  X:%s  Y:%s  (mm/min)",
                         self.max_feed['x'], self.max_acc['x'],
                         self.max_feed['y'], self.max_acc['y'])

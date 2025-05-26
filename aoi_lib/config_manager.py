@@ -10,8 +10,8 @@ class AOIConfigManager:
     _DEFAULT_CFG = {
         "cnc": {
             "system_type": "cartesian",          # cartesian  |  corexy
-            "max_feed": {"x": 2500.0, "y": 2500.0},   # $110 / $111   (mm/min)
-            "max_acc":  {"x": 120.0,  "y": 120.0},    # $120 / $121   (mm/s²)
+            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},   # + $112
+            "max_acc":  {"x": 120.0,  "y": 120.0,  "z": 60.0},   # + $122
             "invert_y": True                          # sentido lógico (+Y frente)
             ,
             # apenas se corexy estiver selecionado
@@ -122,12 +122,22 @@ class AOIConfigManager:
             self.log.error("Falha ao aplicar modo de cinemática: %s", e)
         if not cnc or not cnc.is_connected:
             return
-        maxf = self.get("cnc", "max_feed")
-        acc  = self.get("cnc", "max_acc")
+        maxf = self.get("cnc", "max_feed", default={})
+        acc  = self.get("cnc", "max_acc",  default={})
+
+        # ------------------ GARANTE EIXO Z ------------------
+        # Se o usuário ainda não possui as novas chaves no JSON,
+        # criamos valores seguros para evitar KeyError.
+        if "z" not in maxf:
+            maxf["z"] = 800.0          # mm/min   (ajuste depois em Preferências)
+            self.set("cnc", "max_feed", "z", value=maxf["z"])
+        if "z" not in acc:
+            acc["z"] = 60.0            # mm/s²
+            self.set("cnc", "max_acc",  "z", value=acc["z"])
         invert_y = self.get("cnc", "invert_y", default=True)
         cmds = [
-            f"$110={maxf['x']}", f"$111={maxf['y']}",
-            f"$120={acc['x']}",  f"$121={acc['y']}",
+            f"$110={maxf['x']}", f"$111={maxf['y']}", f"$112={maxf['z']}",
+            f"$120={acc['x']}",  f"$121={acc['y']}",  f"$122={acc['z']}",
         ]
         for c in cmds:
             cnc.send_command(c, priority=True)
@@ -151,8 +161,10 @@ class SettingsDialog(QDialog):
         # ------ widgets para feed / acel -------
         self.spin_f_x = QDoubleSpinBox(); self.spin_f_x.setRange(1, 30000)
         self.spin_f_y = QDoubleSpinBox(); self.spin_f_y.setRange(1, 30000)
+        self.spin_f_z = QDoubleSpinBox(); self.spin_f_z.setRange(1, 30000)
         self.spin_a_x = QDoubleSpinBox(); self.spin_a_x.setRange(1, 1000)
         self.spin_a_y = QDoubleSpinBox(); self.spin_a_y.setRange(1, 1000)
+        self.spin_a_z = QDoubleSpinBox(); self.spin_a_z.setRange(1, 1000)
         self.chk_invert_y = QCheckBox("Inverter lógica do eixo Y (+Y frente)")
 
         # valores atuais
@@ -161,11 +173,15 @@ class SettingsDialog(QDialog):
         self.spin_a_x.setValue(cfg.get("cnc", "max_acc", "x"))
         self.spin_a_y.setValue(cfg.get("cnc", "max_acc", "y"))
         self.chk_invert_y.setChecked(cfg.get("cnc", "invert_y"))
+        self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z"))
+        self.spin_a_z.setValue(cfg.get("cnc", "max_acc",  "z"))
 
         form.addRow("Feed máx X (mm/min):", self.spin_f_x)
         form.addRow("Feed máx Y (mm/min):", self.spin_f_y)
+        form.addRow("Feed máx Z (mm/min):", self.spin_f_z)
         form.addRow("Acel máx X (mm/s²):",  self.spin_a_x)
         form.addRow("Acel máx Y (mm/s²):",  self.spin_a_y)
+        form.addRow("Acel máx Z (mm/s²):",  self.spin_a_z)
         form.addRow(self.chk_invert_y)
 
         # --- NOVO BLOCO: seleção do tipo de sistema -----------------------
@@ -207,6 +223,8 @@ class SettingsDialog(QDialog):
         self.cfg.set("cnc", "max_feed", "y", value=self.spin_f_y.value())
         self.cfg.set("cnc", "max_acc",  "x", value=self.spin_a_x.value())
         self.cfg.set("cnc", "max_acc",  "y", value=self.spin_a_y.value())
+        self.cfg.set("cnc", "max_feed", "z", value=self.spin_f_z.value())
+        self.cfg.set("cnc", "max_acc",  "z", value=self.spin_a_z.value())
         self.cfg.set("cnc", "invert_y", value=self.chk_invert_y.isChecked())
         # -------- grava modo cartesiano/corexy ---------------------------
         sys_type = self.combo_sys.currentText()
