@@ -1157,6 +1157,7 @@ class AOIControllerApp(QMainWindow):
         position_layout = QGridLayout()
 
         # Exibe os valores X, Y e status
+        # ----- Eixo X ----------------------------------------------------
         position_layout.addWidget(QLabel("X:"), 0, 0)
         self.x_position = QLabel("0.000 mm")
         position_layout.addWidget(self.x_position, 0, 1)
@@ -1167,6 +1168,7 @@ class AOIControllerApp(QMainWindow):
         self.zero_x_btn.clicked.connect(self.set_zero_x_position)
         position_layout.addWidget(self.zero_x_btn, 0, 2)
 
+        # ----- Eixo Y ----------------------------------------------------
         position_layout.addWidget(QLabel("Y:"), 1, 0)
         self.y_position = QLabel("0.000 mm")
         position_layout.addWidget(self.y_position, 1, 1)
@@ -1177,14 +1179,25 @@ class AOIControllerApp(QMainWindow):
         self.zero_y_btn.clicked.connect(self.set_zero_y_position)
         position_layout.addWidget(self.zero_y_btn, 1, 2)
 
-        position_layout.addWidget(QLabel("Status:"), 2, 0)
-        self.cnc_status = QLabel("Desconectado")
-        position_layout.addWidget(self.cnc_status, 2, 1)
+        # ----- Eixo Z ----------------------------------------------------
+        position_layout.addWidget(QLabel("Z:"), 2, 0)
+        self.z_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.z_position, 2, 1)
+        # Botão para zerar apenas o eixo Z
+        self.zero_z_btn = QPushButton("Zero Z")
+        self.zero_z_btn.setToolTip("Zerar apenas o eixo Z")
+        self.zero_z_btn.clicked.connect(self.set_zero_z_position)
+        position_layout.addWidget(self.zero_z_btn, 2, 2)
 
-        # NOVO: Botão para setar a posição atual como zero
+        # ----- Status ----------------------------------------------------
+        position_layout.addWidget(QLabel("Status:"), 3, 0)
+        self.cnc_status = QLabel("Desconectado")
+        position_layout.addWidget(self.cnc_status, 3, 1)
+
+        # Botão para setar todos os eixos como zero
         self.set_zero_btn = QPushButton("Setar Posição Zero")
         self.set_zero_btn.clicked.connect(self.set_zero_position)
-        position_layout.addWidget(self.set_zero_btn, 3, 0, 1, 2)
+        position_layout.addWidget(self.set_zero_btn, 4, 0, 1, 3)
 
         position_group.setLayout(position_layout)
         left_layout.addWidget(position_group)
@@ -1927,6 +1940,32 @@ class AOIControllerApp(QMainWindow):
             logger.error(f"Erro ao zerar eixo Y: {e}", exc_info=True)
             QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo Y:\n{e}")
 
+    def set_zero_z_position(self):
+        """Zera apenas o eixo Z (WPos.z = 0)."""
+        from PyQt6.QtWidgets import QMessageBox
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Aviso", "CNC não conectada")
+            return
+        try:
+            mpos = self.current_mpos.copy()
+            p_number = self.wcs_to_p.get(self.active_wcs, 1)
+            cmd = f"G10 L20 P{p_number} Z0"
+            self.controller.cnc.grbl.send_immediately(cmd)
+            # Offset interno
+            self.current_wcs_offset['z'] = mpos['z']
+            # Atualiza posição lógica
+            new_wpos = {
+                'x': self.controller.cnc.current_position.get('x', 0.0),
+                'y': self.controller.cnc.current_position.get('y', 0.0),
+                'z': 0.0
+            }
+            self.controller.cnc.current_position = new_wpos
+            self.update_position_display()
+            self.statusBar().showMessage("Eixo Z zerado")
+        except Exception as e:
+            logger.error(f"Erro ao zerar eixo Z: {e}", exc_info=True)
+            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo Z:\n{e}")
+
     def on_image_captured(self, image, position_name):
         """Handle captured image and register position"""
         # Display in image viewer
@@ -2379,6 +2418,9 @@ class AOIControllerApp(QMainWindow):
         # Atualiza os labels da interface com a WPos calculada
         self.x_position.setText(f"{position['x']:.3f} mm")
         self.y_position.setText(f"{position['y']:.3f} mm")
+        # -------- NOVO: eixo Z ----------
+        if hasattr(self, "z_position"):
+            self.z_position.setText(f"{position['z']:.3f} mm")
         self.cnc_status.setText(self.controller.cnc.machine_status)
         
     def add_current_position(self):
