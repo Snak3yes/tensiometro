@@ -109,7 +109,7 @@ class PositionListWidget(QWidget):
         
     def add_position(self, position: InspectionPosition):
         """Adiciona uma posição à lista"""
-        item_text = f"{position.name} ({position.x:.2f}, {position.y:.2f})"
+        item_text = f"{position.name} ({position.x:.2f}, {position.y:.2f}, {getattr(position,'z',0.0):.2f})"
         item = QListWidgetItem(item_text)
         self.positions_list.addItem(item)
         self.positions[id(item)] = position
@@ -229,13 +229,14 @@ class PositionRegistryWidget(QWidget):
         
         layout.addLayout(buttons_layout)
         
-    def add_position(self, name, x, y, image=None):
+    def add_position(self, name, x, y, z=0.0, image=None):
         """Add a position to the registry"""
         # Create position object
         position = {
             'name': name,
             'x': x,
             'y': y,
+            'z': z,
             'image': image,
         }
         
@@ -678,7 +679,7 @@ class MovementControlWidget(QWidget):
         if feed is None:
             return
 
-        self._start_move_thread(x=0, y=0, feed=feed,
+        self._start_move_thread(x=0, y=0, z=0, feed=feed,
                                 status_msg="Movendo para posição zero")
 
     def stop_movement(self):
@@ -759,14 +760,17 @@ class MovementControlWidget(QWidget):
         self._start_move_thread(x, y, feed_rate,
                                 status_msg=f"Movendo para X:{x:.3f}, Y:{y:.3f}")
 
-    def _start_move_thread(self, x, y, feed, status_msg="Movendo…"):
+    def _start_move_thread(self, x=None, y=None, z=None,
+                           feed=1000, status_msg="Movendo…"):
         stbar = self.window().statusBar()
         stbar.showMessage(status_msg)
 
-        self._move_thread = MoveTaskThread(self.controller.cnc, x, y, feed)
+        self._move_thread = MoveTaskThread(
+                                self.controller.cnc, x, y, z, feed
+                            )
 
-        def _on_done(xx, yy):
-            stbar.showMessage(f"Head em X:{xx:.3f}, Y:{yy:.3f}")
+        def _on_done(xx, yy, zz):
+            stbar.showMessage(f"Head em X:{xx:.3f}, Y:{yy:.3f}, Z:{zz:.3f}")
             # força atualização UI
             QTimer.singleShot(50, self.window().update_position_display)
 
@@ -1980,9 +1984,10 @@ class AOIControllerApp(QMainWindow):
         
         # Register position with image
         self.position_registry.add_position(
-            position_name, 
-            current_pos['x'], 
-            current_pos['y'], 
+            position_name,
+            current_pos['x'],
+            current_pos['y'],
+            current_pos['z'],
             image
         )
         
@@ -2010,9 +2015,10 @@ class AOIControllerApp(QMainWindow):
             camera_params = {"has_image": pos['image'] is not None}
             
             inspection_pos = InspectionPosition(
-                pos['name'], 
-                pos['x'], 
+                pos['name'],
+                pos['x'],
                 pos['y'],
+                pos.get('z', 0.0),
                 camera_params
             )
             positions.append(inspection_pos)

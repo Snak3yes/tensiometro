@@ -49,10 +49,11 @@ class CNCAOIController:
         positions = []
         for pos_data in gcode_data['positions']:
             position = InspectionPosition(
-                pos_data['name'], 
-                pos_data['x'], 
-                pos_data['y'],
-                pos_data['camera_params']
+                pos_data['name'],
+                pos_data.get('x', 0.0),
+                pos_data.get('y', 0.0),
+                pos_data.get('z', 0.0),
+                pos_data.get('camera_params', {})
             )
             positions.append(position)
         
@@ -74,7 +75,7 @@ class CNCAOIController:
         """Conecta à câmera."""
         return self.camera.connect(camera_id)
         
-    def add_inspection_position(self, name, x, y, camera_params=None):
+    def add_inspection_position(self, name, x, y, z=0.0, camera_params=None):
         """
         Adiciona uma posição de inspeção ao gerenciador.
         
@@ -83,14 +84,20 @@ class CNCAOIController:
             x, y: Coordenadas
             camera_params: Parâmetros específicos da câmera (opcional)
         """
-        position = InspectionPosition(name, x, y, camera_params)
+        position = InspectionPosition(name, x, y, z, camera_params)
         self.position_manager.add_position(position)
         return position
         
     def add_current_position(self, name, camera_params=None):
         """Adiciona a posição atual como uma posição de inspeção."""
         position = self.cnc.get_current_position()
-        return self.add_inspection_position(name, position['x'], position['y'], camera_params)
+        return self.add_inspection_position(
+            name,
+            position['x'],
+            position['y'],
+            position['z'],
+            camera_params
+        )
         
     def create_sequence(self, name, positions=None):
         """Cria uma nova sequência de inspeção."""
@@ -121,8 +128,12 @@ class CNCAOIController:
             if not self.is_running_sequence:          # stop_sequence() pode ter sido chamado
                 break
 
-            # 1. Move para a posição
-            self.cnc.move_to_absolute_position(position.x, position.y)
+            # 1. Move para a posição (X, Y **e Z**)
+            self.cnc.move_to_absolute_position(
+                position.x,
+                position.y,
+                position.z
+            )
             self.cnc.wait_for_idle()
 
             # 2. Captura a imagem

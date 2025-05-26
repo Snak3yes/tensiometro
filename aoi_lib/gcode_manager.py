@@ -146,6 +146,7 @@ class GCodeManager:
                     'name': position_name,
                     'x': 0.0,
                     'y': 0.0,
+                    'z': 0.0,
                     'camera_params': {}
                 }
             
@@ -178,6 +179,10 @@ class GCodeManager:
                     current_position['x'] = float(x_match.group(1))
                 if y_match:
                     current_position['y'] = float(y_match.group(1))
+                # Z (opcional)
+                z_match = re.search(r'Z([-\d.]+)', line)
+                if z_match:
+                    current_position['z'] = float(z_match.group(1))
         
         # Adiciona a última posição se existir
         if current_position:

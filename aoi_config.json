@@ -33,7 +33,7 @@
     "fuso_pitch": 5.0
   },
   "movement": {
-    "step_size": 5.0,
+    "step_size": 25.0,
     "feed_rate": 1000.0
   }
 }

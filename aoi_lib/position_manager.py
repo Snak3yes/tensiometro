@@ -3,10 +3,11 @@ import time
 class InspectionPosition:
     """Representa uma posição de inspeção."""
     
-    def __init__(self, name, x, y, camera_params=None):
+    def __init__(self, name, x, y, z=0.0, camera_params=None):
         self.name = name
         self.x = x
         self.y = y
+        self.z = z
         self.camera_params = camera_params or {}
         self.creation_time = time.time()
         
@@ -16,6 +17,7 @@ class InspectionPosition:
             'name': self.name,
             'x': self.x,
             'y': self.y,
+            'z': self.z,
             'camera_params': self.camera_params,
             'creation_time': self.creation_time
         }
@@ -23,7 +25,13 @@ class InspectionPosition:
     @classmethod
     def from_dict(cls, data):
         """Cria a partir de um dicionário."""
-        position = cls(data['name'], data['x'], data['y'], data['camera_params'])
+        position = cls(
+            data['name'],
+            data.get('x', 0.0),
+            data.get('y', 0.0),
+            data.get('z', 0.0),
+            data.get('camera_params', {})
+        )
         position.creation_time = data.get('creation_time', time.time())
         return position
 
