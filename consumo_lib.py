@@ -1858,9 +1858,8 @@ class AOIControllerApp(QMainWindow):
                 p_number = 1 # Usa G54 como fallback
 
             # 3. Construir o comando G10 L20
-            # Zerando apenas X e Y por enquanto. Adicione Z se necessário: Z{mpos_correcta_no_zeramento['z']:.4f}
-            # O comando G10 L20 Pn X0 Y0 diz ao GRBL: "Ajuste o offset do WCS 'n' para que a MPos *atual* corresponda a WPos X0 Y0"
-            command = f"G10 L20 P{p_number} X0 Y0"
+            # O comando G10 L20 Pn X0 Y0 Z0 diz ao GRBL: "Ajuste o offset do WCS 'n' para que a MPos *atual* corresponda a WPos X0 Y0 Z0"
+            command = f"G10 L20 P{p_number} X0 Y0 Z0"
             logger.info(f"SET ZERO: Enviando comando: {command} para zerar {self.active_wcs}")
 
             # 4. Enviar o comando G10 L20 para o GRBL
