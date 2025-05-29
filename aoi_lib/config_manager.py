@@ -13,8 +13,8 @@ class AOIConfigManager:
             "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},   # + $112
             "max_acc":  {"x": 120.0,  "y": 120.0,  "z": 60.0},   # + $122
             "invert_y": True,                         # sentido lógico (+Y frente)
-            "invert_z": False                         # novo – (+Z = cima)
-            ,
+            "invert_z": False,                        # novo – (+Z = cima)
+            "motor_hold_enabled": True,  # Manter motores energizados quando parados
             # apenas se corexy estiver selecionado
             "corexy_config": {
                 "motor_a_invert": False,
@@ -145,6 +145,9 @@ class AOIConfigManager:
             cnc.send_command(c, priority=True)
         cnc.set_invert_y(invert=invert_y)
         cnc.set_invert_z(invert=invert_z)
+        # Configuração de motor hold
+        motor_hold = self.get("cnc", "motor_hold_enabled", default=True)
+        cnc.set_motor_hold_enabled(motor_hold)
         self.log.info("Limites aplicados ao GRBL: feed %s  acc %s  invert_y=%s",
                       maxf, acc, invert_y, invert_z)
 
@@ -171,6 +174,10 @@ class SettingsDialog(QDialog):
         self.chk_invert_y = QCheckBox("Inverter lógica do eixo Y (+Y frente)")
         self.chk_invert_z = QCheckBox("Inverter lógica do eixo Z (+Z cima)")
 
+        # Configuração de motor hold
+        self.chk_motor_hold = QCheckBox("Manter motores energizados quando parados")
+        self.chk_motor_hold.setToolTip("Evita que motores fiquem 'soltos' e possam ser girados manualmente")
+
         # valores atuais
         self.spin_f_x.setValue(cfg.get("cnc", "max_feed", "x"))
         self.spin_f_y.setValue(cfg.get("cnc", "max_feed", "y"))
@@ -181,6 +188,7 @@ class SettingsDialog(QDialog):
         self.chk_invert_z.setChecked(cfg.get("cnc", "invert_z", default=False))
         self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z"))
         self.spin_a_z.setValue(cfg.get("cnc", "max_acc",  "z"))
+        self.chk_motor_hold.setChecked(cfg.get("cnc", "motor_hold_enabled", default=True))
 
         form.addRow("Feed máx X (mm/min):", self.spin_f_x)
         form.addRow("Feed máx Y (mm/min):", self.spin_f_y)
@@ -190,6 +198,7 @@ class SettingsDialog(QDialog):
         form.addRow("Acel máx Z (mm/s²):",  self.spin_a_z)
         form.addRow(self.chk_invert_y)
         form.addRow(self.chk_invert_z)
+        form.addRow(self.chk_motor_hold)
 
         # --- NOVO BLOCO: seleção do tipo de sistema -----------------------
         self.combo_sys = QComboBox()
@@ -234,6 +243,7 @@ class SettingsDialog(QDialog):
         self.cfg.set("cnc", "max_acc",  "z", value=self.spin_a_z.value())
         self.cfg.set("cnc", "invert_y", value=self.chk_invert_y.isChecked())
         self.cfg.set("cnc", "invert_z", value=self.chk_invert_z.isChecked())
+        self.cfg.set("cnc", "motor_hold_enabled", value=self.chk_motor_hold.isChecked())
 
         # -------- grava modo cartesiano/corexy ---------------------------
         sys_type = self.combo_sys.currentText()

@@ -529,6 +529,12 @@ class MovementControlWidget(QWidget):
         self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
         movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
 
+        # Botão para testar motor hold
+        self.test_motor_hold_btn = QPushButton("Testar Travamento dos Motores")
+        self.test_motor_hold_btn.setToolTip("Testa se os motores permanecem travados quando parados")
+        self.test_motor_hold_btn.clicked.connect(self.test_motor_hold)
+        movement_layout.addWidget(self.test_motor_hold_btn, 8, 0, 1, 3)
+
         # Checkbox para habilitar/desabilitar controle via teclado
         self.keyboard_control_checkbox = QCheckBox("Enable Keyboard Control")
         self.keyboard_control_checkbox.setChecked(False)
@@ -914,7 +920,31 @@ class MovementControlWidget(QWidget):
                 logger.error("RESET: Falha ao enviar comando de desbloqueio")
                 QMessageBox.critical(self, "Erro", "Falha ao desbloquear a máquina")
                 self.emergency_stop_button.setChecked(True)
-
+    
+    def test_motor_hold(self):
+        """Testa o travamento dos motores quando parados"""
+        if not self._precheck_connected():
+            return
+            
+        # Pequeno movimento para ativar os motores
+        feed = self._get_feed_rate()
+        if feed is None:
+            return
+            
+        # Move 1mm em X e volta
+        self.controller.cnc.move_relative(x=1.0, feed_rate=feed)
+        self.controller.cnc.wait_for_idle()
+        time.sleep(0.5)  # Aguarda meio segundo
+        self.controller.cnc.move_relative(x=-1.0, feed_rate=feed)
+        self.controller.cnc.wait_for_idle()
+        
+        QMessageBox.information(
+            self, "Teste de Motor Hold",
+            "Movimento de teste concluído.\n\n"
+            "Agora tente girar manualmente os motores:\n"
+            "• Se estiverem travados = configuração correta\n"
+            "• Se girarem facilmente = verificar configuração $1"
+        )
 
     def _auto_unlock_after_reset(self):
         """Executa sequência automática de desbloqueio após reset de emergência"""

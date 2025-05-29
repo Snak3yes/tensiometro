@@ -276,6 +276,10 @@ class GRBLCNCController:
             
             # Desbloqueia a máquina
             self.send_command("$X", priority=True)
+
+            # Configuração para manter motores energizados
+            self._configure_motor_hold()
+
             # Garante que o Y esteja invertido fisicamente (positivo = frente)
             self.set_grbl_y_direction(forward_positive=True)
 
@@ -299,6 +303,47 @@ class GRBLCNCController:
             
         except Exception as e:
             self.last_error = str(e)
+            return False
+        
+    def _configure_motor_hold(self):
+        """
+        Configura o GRBL para manter os motores energizados quando parados.
+        Isso evita que os motores fiquem 'soltos' e possam ser girados manualmente.
+        """
+        try:
+            # $1=255: Mantém motores sempre energizados
+            self.send_command("$1=255", priority=True)
+            time.sleep(0.1)
+            
+            logger.info("MOTOR HOLD: Configurado $1=255 para manter motores energizados")
+            
+        except Exception as e:
+            logger.error(f"Erro ao configurar motor hold: {e}")
+    
+    def set_motor_hold_enabled(self, enabled: bool):
+        """
+        Habilita ou desabilita o travamento dos motores quando parados.
+        
+        Args:
+            enabled: True para manter motores energizados, False para desligar após movimento
+        """
+        if not self.is_connected:
+            return False
+            
+        try:
+            if enabled:
+                # Mantém motores sempre energizados
+                self.send_command("$1=255", priority=True)
+                logger.info("MOTOR HOLD: Motores configurados para permanecer energizados")
+            else:
+                # Desliga motores após 25ms de inatividade (padrão)
+                self.send_command("$1=25", priority=True)
+                logger.info("MOTOR HOLD: Motores configurados para desligar após inatividade")
+                
+            return True
+            
+        except Exception as e:
+            logger.error(f"Erro ao configurar motor hold: {e}")
             return False
     
     def _setup_callbacks(self):
