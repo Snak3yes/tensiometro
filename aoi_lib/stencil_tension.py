@@ -5,13 +5,15 @@ Descrição: mede a tensão do stencil em um grid NxN e salva em JSON.
 
 import json
 import serial
+import serial.tools.list_ports
 import numpy as np
 import logging
 from tkinter import Toplevel, Label, Entry, Button, messagebox
 from PyQt6.QtWidgets import (
     QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QMessageBox,
-    QComboBox, QGroupBox, QFrame
+    QComboBox, QGroupBox, QFrame, QHBoxLayout, QProgressBar
 )
+from PyQt6.QtCore import QThread, pyqtSignal
 import time, logging         
 
 # Configure logging
@@ -187,6 +189,120 @@ class TensiometerSerialManager:
             log.error(f"Erro ao enviar comando: {e}")
             return False
 
+# ======== Thread para Medição de Tensão =========
+class TensionMeasurementThread(QThread):
+    """
+    Thread responsável por executar a medição de tensão em background,
+    permitindo que a interface continue responsiva.
+    """
+    
+    # Sinais para comunicação com a interface
+    progress_updated = pyqtSignal(int, int, str)  # ponto_atual, total_pontos, status_msg
+    measurement_completed = pyqtSignal(dict)      # ponto medido com dados
+    finished = pyqtSignal(list)                   # lista completa de medições
+    error_occurred = pyqtSignal(str)              # mensagem de erro
+    
+    def __init__(self, cnc_controller, tensiometer, points, z_down, 
+                 user_feed, stabilization_time, parameters):
+        super().__init__()
+        self.cnc = cnc_controller
+        self.tensiometer = tensiometer
+        self.points = points
+        self.z_down = z_down
+        self.user_feed = user_feed
+        self.stabilization_time = stabilization_time
+        self.parameters = parameters
+        self.measurements = []
+        self._stop_requested = False
+        
+    def request_stop(self):
+        """Solicita parada da medição"""
+        self._stop_requested = True
+        
+    def run(self):
+        """Executa o processo de medição"""
+        try:
+            log = logging.getLogger("TensionMeasurementThread")
+            log.info("Iniciando medição de tensão em thread separada")
+            
+            # Garante modo absoluto
+            if hasattr(self.cnc, "set_absolute_mode"):
+                self.cnc.set_absolute_mode()
+            else:
+                if hasattr(self.cnc, "send_raw_gcode"):
+                    self.cnc.send_raw_gcode("G90")
+            
+            # Move para altura segura
+            self._move_abs(z=0, feed=self.user_feed)
+            
+            total_points = len(self.points)
+            
+            for idx, (x, y) in enumerate(self.points, 1):
+                # Verifica se foi solicitada a parada
+                if self._stop_requested:
+                    log.info("Medição interrompida pelo usuário")
+                    self.error_occurred.emit("Medição interrompida pelo usuário")
+                    return
+                
+                log.debug("Ponto %d de %d -> X%.3f Y%.3f", idx, total_points, x, y)
+                
+                # Emite progresso
+                self.progress_updated.emit(idx, total_points, f"Medindo ponto {idx}/{total_points}")
+                
+                # 1) Move XY
+                self._move_abs(x=x, y=y, feed=self.user_feed)
+                
+                # 2) Desce Z
+                self._move_rel(z=self.z_down, feed=self.user_feed)
+                
+                # 3) Aguarda estabilização
+                stabilization_sec = self.stabilization_time / 1000.0
+                log.debug("Aguardando estabilização por %.1fs...", stabilization_sec)
+                time.sleep(stabilization_sec)
+                
+                # 4) Lê tensão
+                tension = self.tensiometer.read_tension_value()
+                log.debug("Tensão medida no ponto %d: %s", idx, tension)
+                
+                # 5) Salva medição
+                measurement = {"x": x, "y": y, "z": self.z_down, "tension": tension}
+                self.measurements.append(measurement)
+                
+                # Emite medição individual
+                self.measurement_completed.emit(measurement)
+                
+                # 6) Sobe Z
+                self._move_rel(z=-self.z_down, feed=self.user_feed)
+                
+                # 7) Pequena pausa entre pontos
+                time.sleep(0.1)
+            
+            # Emite resultado final
+            log.info("Medição de tensão concluída com sucesso")
+            self.finished.emit(self.measurements)
+            
+        except Exception as e:
+            log.error(f"Erro durante medição: {e}", exc_info=True)
+            self.error_occurred.emit(f"Erro durante medição: {str(e)}")
+    
+    def _move_abs(self, *, x=None, y=None, z=None, feed=None):
+        """Move em coordenadas absolutas"""
+        if feed is not None:
+            self.cnc.move_to_absolute_position(x=x, y=y, z=z, feed_rate=feed)
+        else:
+            self.cnc.move_to_absolute_position(x=x, y=y, z=z)
+        self.cnc.wait_for_idle()
+    
+    def _move_rel(self, *, x=None, y=None, z=None, feed=None):
+        """Move em coordenadas relativas"""
+        kwargs = {}
+        if x is not None: kwargs['x'] = x
+        if y is not None: kwargs['y'] = y
+        if z is not None: kwargs['z'] = z
+        if feed is not None: kwargs['feed_rate'] = feed
+        self.cnc.move_relative(**kwargs)
+        self.cnc.wait_for_idle()
+
 
 # ======== Classe principal =========
 class StencilTensionMeasurement:
@@ -321,6 +437,7 @@ class StencilTensionDialog(QDialog):
         self.cnc = cntrl_cnc
         # Inicializa gerenciador do tensiômetro
         self.tensiometer = TensiometerSerialManager()
+        self.measurement_thread = None
         self._build_ui()
         # Popula lista de portas disponíveis
         self._refresh_ports()
@@ -412,10 +529,28 @@ class StencilTensionDialog(QDialog):
         self.ed_z = QLineEdit("2"); lay.addWidget(self.ed_z, r, 3)
         btn_cap_z = QPushButton("Capturar"); lay.addWidget(btn_cap_z, r, 4); r += 1
 
-        btn = QPushButton("Iniciar Medição"); lay.addWidget(btn, r, 0, 1, 5);   r += 1
+        # Botões de controle da medição
+        measurement_buttons_layout = QHBoxLayout()
+        self.start_measurement_btn = QPushButton("Iniciar Medição")
+        self.stop_measurement_btn = QPushButton("Parar Medição")
+        self.stop_measurement_btn.setEnabled(False)
+        measurement_buttons_layout.addWidget(self.start_measurement_btn)
+        measurement_buttons_layout.addWidget(self.stop_measurement_btn)
+        lay.addLayout(measurement_buttons_layout, r, 0, 1, 5); r += 1
+        
+        # Barra de progresso
+        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setVisible(False)
+        lay.addWidget(self.progress_bar, r, 0, 1, 5); r += 1
+        
+        # Labels de status
+        self.status_label = QLabel("")
+        lay.addWidget(self.status_label, r, 0, 1, 5); r += 1
 
         # Conexões ------------------------------------------------------
-        btn.clicked.connect(self._on_start)
+        self.start_measurement_btn.clicked.connect(self._on_start)
+        self.stop_measurement_btn.clicked.connect(self._on_stop)
         btn_cap_start.clicked.connect(self._capture_start_xy)
         btn_cap_end.clicked.connect(self._capture_end_xy)
         btn_cap_z.clicked.connect(self._capture_z_height)
@@ -585,6 +720,7 @@ class StencilTensionDialog(QDialog):
 
     # --------------------- ciclo principal --------------------------
     def _on_start(self):
+        """Inicia o processo de medição em thread separada"""
         pts = self._grid_points()
         if pts is None:
             return
@@ -603,79 +739,127 @@ class StencilTensionDialog(QDialog):
             QMessageBox.warning(self, "Erro", "CNC não conectada")
             return
         
-        # Obtém velocidade configurada pelo usuário
+        # Obtém parâmetros de configuração
         user_feed = self._get_user_feed_rate()
-
-        log = logging.getLogger("StencilTension")
-
-        # Garante modo absoluto (se disponível no driver)
-        if hasattr(self.cnc, "set_absolute_mode"):
-            self.cnc.set_absolute_mode()
-        else:
-            # fallback: envia G90 bruto
-            if hasattr(self.cnc, "send_raw_gcode"):
-                self.cnc.send_raw_gcode("G90")
+        try:
+            stabilization_ms = int(self.stabilization_time.text())
+        except ValueError:
+            stabilization_ms = 500  # fallback
         
-
-        self._move_abs(z=0, feed=user_feed)   # começa em altura segura
-
-        measurements = []
-        for idx, (x, y) in enumerate(pts, 1):
-            log.debug("Ponto %d de %d  ->  X%.3f  Y%.3f", idx, len(pts), x, y)
-
-            # 1) Move XY
-            self._move_abs(x=x, y=y, feed=user_feed)
-
-            # 2) Desce Z (usa velocidade configurada pelo usuário)
-            self._move_rel(z=z_down, feed=user_feed)
-
-            # 3) Aguarda estabilização configurável após o movimento
-            #    Este tempo permite que:
-            #    - O movimento físico termine completamente
-            #    - As vibrações se dissipem
-            #    - O tensiômetro se estabilize contra o stencil
-            #    - A leitura seja feita no momento correto
-            try:
-                stabilization_ms = int(self.stabilization_time.text())
-                stabilization_sec = stabilization_ms / 1000.0
-            except ValueError:
-                stabilization_sec = 0.5  # fallback para 500ms
-                
-            log.debug("Aguardando estabilização do tensiômetro por %.1fs...", stabilization_sec)
-            time.sleep(stabilization_sec)
-            
-            # 4) Lê tensão após estabilização
-            tension = self._read_tension()
-            log.debug("Tensão medida no ponto %d: %s", idx, tension)
-            measurements.append({"x": x, "y": y, "z": z_down, "tension": tension})
-
-            # 5) Sobe Z (usa velocidade configurada pelo usuário)
-            self._move_rel(z=-z_down, feed=user_feed)
-
-            # 6) Pequena pausa entre pontos para evitar stress mecânico
-            time.sleep(0.1)
-
-        # salva -------------------------------------------------------
-        data = {
-            "type": "stencil_tension",
-            "parameters": {
+        # Parâmetros para salvar no JSON
+        parameters = {
+            "start": {"x": float(self.ed_sx.text()), "y": float(self.ed_sy.text())},
+            "end":   {"x": float(self.ed_ex.text()), "y": float(self.ed_ey.text())},
+            "quantity": int(self.ed_n.text()),
+            "height":   float(self.ed_z.text())
+        }
+        
+        # Configura interface para medição
+        self._setup_measurement_ui(len(pts))
+        
+        # Cria e inicia thread de medição
+        self.measurement_thread = TensionMeasurementThread(
+            self.cnc, self.tensiometer, pts, z_down, 
+            user_feed, stabilization_ms, parameters
+        )
+        
+        # Conecta sinais
+        self.measurement_thread.progress_updated.connect(self._on_progress_updated)
+        self.measurement_thread.measurement_completed.connect(self._on_measurement_completed)
+        self.measurement_thread.finished.connect(self._on_measurement_finished)
+        self.measurement_thread.error_occurred.connect(self._on_measurement_error)
+        
+        # Inicia medição
+        self.measurement_thread.start()
+    
+    def _on_stop(self):
+        """Para o processo de medição"""
+        if self.measurement_thread and self.measurement_thread.isRunning():
+            self.measurement_thread.request_stop()
+            self.status_label.setText("Parando medição...")
+            self.stop_measurement_btn.setEnabled(False)
+    
+    def _setup_measurement_ui(self, total_points):
+        """Configura interface para medição"""
+        self.start_measurement_btn.setEnabled(False)
+        self.stop_measurement_btn.setEnabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setRange(0, total_points)
+        self.progress_bar.setValue(0)
+        self.status_label.setText("Iniciando medição...")
+    
+    def _reset_measurement_ui(self):
+        """Reseta interface após medição"""
+        self.start_measurement_btn.setEnabled(True)
+        self.stop_measurement_btn.setEnabled(False)
+        self.progress_bar.setVisible(False)
+        self.status_label.setText("")
+    
+    def _on_progress_updated(self, current, total, status_msg):
+        """Atualiza progresso da medição"""
+        self.progress_bar.setValue(current)
+        self.status_label.setText(status_msg)
+        
+        # Atualiza título da janela com progresso
+        self.setWindowTitle(f"Tensão do Stencil - {current}/{total}")
+    
+    def _on_measurement_completed(self, measurement):
+        """Chamado quando uma medição individual é completada"""
+        # Aqui pode adicionar lógica para processar cada medição individual
+        # Por exemplo, mostrar em uma tabela em tempo real
+        log.debug(f"Medição completada: {measurement}")
+    
+    def _on_measurement_finished(self, measurements):
+        """Chamado quando todas as medições são completadas"""
+        self._reset_measurement_ui()
+        self.setWindowTitle("Tensão do Stencil")
+        
+        # Salva resultados
+        try:
+            parameters = {
                 "start": {"x": float(self.ed_sx.text()), "y": float(self.ed_sy.text())},
                 "end":   {"x": float(self.ed_ex.text()), "y": float(self.ed_ey.text())},
                 "quantity": int(self.ed_n.text()),
                 "height":   float(self.ed_z.text())
-            },
-            "measurements": measurements
-        }
-        try:
+            }
+            
+            data = {
+                "type": "stencil_tension",
+                "parameters": parameters,
+                "measurements": measurements
+            }
+            
             with open("stencil_tension_measurements.json", "w", encoding="utf-8") as fp:
                 json.dump(data, fp, indent=4, ensure_ascii=False)
-            QMessageBox.information(self, "Concluído", "Arquivo salvo em stencil_tension_measurements.json")
+                
+            QMessageBox.information(
+                self, "Concluído", 
+                f"Medição concluída!\n"
+                f"Total de pontos: {len(measurements)}\n"
+                f"Arquivo salvo: stencil_tension_measurements.json"
+            )
             self.accept()
-        except Exception as err:
-            QMessageBox.critical(self, "Erro", f"Falha ao salvar JSON: {err}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao salvar resultados: {e}")
+    
+    def _on_measurement_error(self, error_msg):
+        """Chamado quando ocorre erro na medição"""
+        self._reset_measurement_ui()
+        self.setWindowTitle("Tensão do Stencil")
+        QMessageBox.critical(self, "Erro na Medição", error_msg)
     
     def closeEvent(self, event):
-        """Garante desconexão ao fechar o diálogo"""
+        """Garante desconexão e parada da thread ao fechar o diálogo"""
+        # Para thread se estiver rodando
+        if self.measurement_thread and self.measurement_thread.isRunning():
+            self.measurement_thread.request_stop()
+            self.measurement_thread.wait(3000)  # Aguarda até 3 segundos
+        
+        # Desconecta tensiômetro
         if self.tensiometer.is_connected:
             self.tensiometer.disconnect()
+            
         super().closeEvent(event)
+
+        
