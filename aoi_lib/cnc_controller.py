@@ -123,6 +123,7 @@ class GRBLCNCController:
         # se True, inverte lógica dos eixos Y / Z (para a visão do operador)
         self.invert_y = False
         self.invert_z = False
+
         self.last_error = ""
 
         # Eventos para comunicação assíncrona
@@ -195,6 +196,26 @@ class GRBLCNCController:
         a = (x + y) * inv_a
         b = (x - y) * inv_b
         return a, b
+    
+
+    # A/B  ➜  X/Y   (para leitura de posição)
+    def _convert_ab_to_xy(self, a: float, b: float) -> tuple[float, float]:
+        """
+        Inverte a cinemática CoreXY
+            A = +X + Y
+            B = +X - Y
+          ⇒ X = (A + B)/2
+             Y = (A - B)/2
+        Considera inversão individual dos motores, se configurado.
+        """
+        cfg   = getattr(self, "corexy_cfg", {}) or {}
+        inv_a = -1 if cfg.get("motor_a_invert", False) else 1
+        inv_b = -1 if cfg.get("motor_b_invert", False) else 1
+        a *= inv_a
+        b *= inv_b
+        x = (a + b) / 2.0
+        y = (a - b) / 2.0
+        return x, y
 
     def set_invert_y(self, invert: bool = True):
         """Define se o eixo Y deve ser invertido (+Y vai para a frente do usuário)."""
@@ -416,17 +437,30 @@ class GRBLCNCController:
                 self._feed_clamp_warned = True
             feed_rate = axis_limit
 
-        # Constrói o comando  –  SEMPRE em X/Y
-        #  (o firmware GRBL faz a cinemática CoreXY internamente)
+        # ------------------------------------------------------------
+        # Constrói o comando considerando o modo cinemático.
+        #  – cartesian : envia X/Y diretos
+        #  – corexy    : converte (X,Y) → (A,B) e envia nos eixos X/Y
+        # ------------------------------------------------------------
         command = "G1"
-        if x is not None:
-            command += f" X{x}"
-        if y is not None:
-            y_send = -y if self.invert_y else y
-            command += f" Y{y_send}"
+        if self.kinematics_mode == "corexy":
+            # Y lógico pode ser invertido antes da conversão
+            x_cart = 0.0 if x is None else float(x)
+            y_cart = 0.0 if y is None else float((-y) if self.invert_y else y)
+            a, b = self._convert_xy_to_ab(x_cart, y_cart)
+            command += f" X{a:.3f} Y{b:.3f}"
+        else:  # cartesiano
+            if x is not None:
+                command += f" X{float(x):.3f}"
+            if y is not None:
+                y_send = -y if self.invert_y else y
+                command += f" Y{float(y_send):.3f}"
+
+        # Z é igual em ambos os modos
         if z is not None:
             z_send = -z if self.invert_z else z
-            command += f" Z{z_send}"
+            command += f" Z{float(z_send):.3f}"
+
         command += f" F{feed_rate}"
         
         # Envia o comando
@@ -467,7 +501,14 @@ class GRBLCNCController:
         """
         if not self.is_connected:
             return False
-        
+
+        # ------------------------------------------------------------
+        #  SANITIZAÇÃO: evita None → TypeError em abs()
+        # ------------------------------------------------------------
+        x = 0.0 if x is None else float(x)
+        y = 0.0 if y is None else float(y)
+        z = 0.0 if z is None else float(z)
+
         # Ajuste de feed
         axis_limit = max(
             self.max_feed['x'] if abs(x) > 0 else 0,
@@ -739,12 +780,30 @@ class GRBLCNCController:
         # Extrai a posição (espera-se um dicionário com chaves 'x', 'y' e 'z')
         position = status_data.get('position', None)
         if position:
-            new_position = {
-                'x': position.get('x', 0),
-                'y': -position.get('y', 0) if self.invert_y else position.get('y', 0),
-                'z': position.get('z', 0)
-            }
-            logger.debug("Posição extraída: %s", new_position)
+            # -----------------------------------------------------------------
+            #  Ajuste da CINEMÁTICA para exibir valores CARTESIANOS reais
+            # -----------------------------------------------------------------
+            if self.kinematics_mode == "corexy":
+                # 1) valores de motores A/B vindos do GRBL
+                a_phys = float(position.get('x', 0))      # eixo X físico = motor A
+                b_phys = float(position.get('y', 0))      # eixo Y físico = motor B
+                # 2) converte para XY cartesianas
+                x_cart, y_cart = self._convert_ab_to_xy(a_phys, b_phys)
+                # 3) aplica inversão lógica de Y (visão do operador) se habilitada
+                y_cart_log = -y_cart if self.invert_y else y_cart
+                new_position = {
+                    'x': x_cart,
+                    'y': y_cart_log,
+                    'z': position.get('z', 0)
+                }
+            else:
+                # Modo cartesiano puro (mantém lógica anterior)
+                new_position = {
+                    'x': position.get('x', 0),
+                    'y': -position.get('y', 0) if self.invert_y else position.get('y', 0),
+                    'z': position.get('z', 0)
+                }
+            logger.debug("Posição (XY ajustada): %s", new_position)
             if new_position['x'] == 0 and new_position['y'] == 0:
                 logger.warning("As coordenadas X e Y continuam 0 mesmo após movimento. status_data recebido: %s", status_data)
             self.current_position = new_position

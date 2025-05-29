@@ -16,7 +16,7 @@ from grbl_streamer import GrblStreamer
 from aoi_lib.utils.move_task import MoveTaskThread
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from dataclasses import dataclass
-
+from aoi_lib.stencil_tension import StencilTensionDialog
 import logging
 
 
@@ -681,6 +681,13 @@ class MovementControlWidget(QWidget):
 
         self._start_move_thread(x=0, y=0, z=0, feed=feed,
                                 status_msg="Movendo para posição zero")
+    
+    def get_current_feed_rate(self):
+        """Método público para outras classes acessarem a velocidade configurada"""
+        try:
+            return float(self.feed_rate.text())
+        except ValueError:
+            return 1000.0  # fallback
 
     def stop_movement(self):
         self._on_direction_release()
@@ -1316,6 +1323,13 @@ class AOIControllerApp(QMainWindow):
         pref_action.triggered.connect(self.show_settings_dialog)
         tools_menu.addAction(pref_action)
 
+        # ---------------------------------------------------------------
+        # Item de menu “Tensão do Stencil” – abre o diálogo de medição
+        # ---------------------------------------------------------------
+        tension_action = QAction('Tensão do Stencil', self)
+        tension_action.triggered.connect(self.open_stencil_tension_dialog)
+        menubar.addAction(tension_action)
+
         # --------  painel de conexões -----------------
         conn_panel = QAction('Conexões…', self)
         conn_panel.setCheckable(True)
@@ -1331,6 +1345,14 @@ class AOIControllerApp(QMainWindow):
         about_action = QAction('Sobre', self)
         about_action.triggered.connect(self.show_about_dialog)
         help_menu.addAction(about_action)
+
+    # abre o diálogo de medição de tensão
+    def open_stencil_tension_dialog(self):
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Aviso", "Conecte a CNC antes de medir a tensão do stencil.")
+            return
+        dlg = StencilTensionDialog(self, self.controller.cnc)
+        dlg.exec()
 
     def show_settings_dialog(self):
         dlg = SettingsDialog(self.config, self)
@@ -1553,7 +1575,8 @@ class AOIControllerApp(QMainWindow):
         with _PreviewSuspender(self.camera_preview):
             self.map_thread = MapGeneratorThread(
                 self.controller, p.origin, p.end,
-                p.step_x, p.step_y, p.folder, p.program_name
+                p.step_x, p.step_y, p.folder, p.program_name,
+                self._get_current_feed_rate()  # Passa velocidade configurada
             )
 
             # Progress dialog simples
@@ -1570,6 +1593,12 @@ class AOIControllerApp(QMainWindow):
 
             self.map_progress.canceled.connect(self.map_thread.requestInterruption)
             self.map_thread.start()
+    def _get_current_feed_rate(self):
+        """Obtém a velocidade de movimentação configurada na interface"""
+        try:
+            return float(self.movement_widget.feed_rate.text())
+        except (ValueError, AttributeError):
+            return 1000.0  # fallback
 
     # ---------- slots da geração de mapa ----------------------------
 
@@ -2248,15 +2277,44 @@ class AOIControllerApp(QMainWindow):
                                         'z': mpos_z_phys
                                     }
 
-                                    # 3) converte para sistema LÓGICO (visão do usuário)
-                                    mpos_y_log = -mpos_y_phys if self.controller.cnc.invert_y else mpos_y_phys
-                                    off_y_log  = (-self.current_wcs_offset['y']
-                                                if self.controller.cnc.invert_y
-                                                else self.current_wcs_offset['y'])
+                                    # 3) converte considerando o modo de cinemática
+                                    if self.controller.cnc.kinematics_mode == "corexy":
+                                        # No modo CoreXY: mpos_x_phys = motor A, mpos_y_phys = motor B
+                                        # Converte A,B para coordenadas cartesianas X,Y
+                                        x_cart, y_cart = self.controller.cnc._convert_ab_to_xy(mpos_x_phys, mpos_y_phys)
 
-                                    calculated_wpos_x = mpos_x_phys - self.current_wcs_offset['x']
-                                    calculated_wpos_y = mpos_y_log  - off_y_log
-                                    calculated_wpos_z = mpos_z_phys - self.current_wcs_offset['z']
+                                        # CORREÇÃO: Converte o offset de coordenadas de motores para cartesianas
+                                        off_a = self.current_wcs_offset['x']  # offset motor A
+                                        off_b = self.current_wcs_offset['y']  # offset motor B
+                                        off_x_cart, off_y_cart = self.controller.cnc._convert_ab_to_xy(off_a, off_b)
+                                        off_z_cart = self.current_wcs_offset['z']
+                                        
+                                        # Aplica inversão lógica se configurada
+                                        y_cart_log = -y_cart if self.controller.cnc.invert_y else y_cart
+                                        z_cart_log = -mpos_z_phys if self.controller.cnc.invert_z else mpos_z_phys
+
+                                        # Aplica inversão lógica também ao offset para consistência
+                                        off_y_cart_log = -off_y_cart if self.controller.cnc.invert_y else off_y_cart
+                                        off_z_cart_log = -off_z_cart if self.controller.cnc.invert_z else off_z_cart
+                                        
+                                        # Agora calcula WPos usando coordenadas cartesianas para ambos
+                                        calculated_wpos_x = x_cart - off_x_cart
+                                        calculated_wpos_y = y_cart_log - off_y_cart_log
+                                        calculated_wpos_z = z_cart_log - off_z_cart_log
+
+                                    else:
+                                        # Modo cartesiano (comportamento original)
+                                        mpos_y_log = -mpos_y_phys if self.controller.cnc.invert_y else mpos_y_phys
+                                        mpos_z_log = -mpos_z_phys if self.controller.cnc.invert_z else mpos_z_phys
+                                        off_y_log  = (-self.current_wcs_offset['y']
+                                                    if self.controller.cnc.invert_y
+                                                    else self.current_wcs_offset['y'])
+                                        off_z_log  = (-self.current_wcs_offset['z']
+                                                    if self.controller.cnc.invert_z
+                                                    else self.current_wcs_offset['z'])
+                                        calculated_wpos_x = mpos_x_phys - self.current_wcs_offset['x']
+                                        calculated_wpos_y = mpos_y_log  - off_y_log
+                                        calculated_wpos_z = mpos_z_log  - off_z_log
 
                                     new_position = {
                                         'x': calculated_wpos_x,
@@ -2497,6 +2555,8 @@ class AOIControllerApp(QMainWindow):
         # Start execution
         try:
             self.statusBar().showMessage(f"Executing sequence '{self.current_sequence.name}'...")
+            # Configura velocidade no controlador baseada na interface
+            self.controller.set_feed_rate(self.movement_widget.get_current_feed_rate())
             
             # Use a thread to run the sequence
             self.run_thread = SequenceRunnerThread(self.controller, self.current_sequence.name)
@@ -2672,7 +2732,7 @@ class MapGeneratorThread(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, controller, origin, end, sx, sy, folder, prog_name):
+    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000):
         super().__init__()
         self.ctrl = controller
         self.origin = origin
@@ -2681,8 +2741,9 @@ class MapGeneratorThread(QThread):
         self.sy = sy
         self.folder = folder
         self.prog_name = prog_name
+        self.feed_rate = feed_rate
 
-    def run(self):        
+    def run(self):
         log = logging.getLogger("MapGeneratorThread")
         try:
             points = list(self.ctrl._grid_points(self.origin, self.end,
@@ -2695,7 +2756,7 @@ class MapGeneratorThread(QThread):
             if (abs(cur['x'] - self.origin['x']) > 1e-3 or
                 abs(cur['y'] - self.origin['y']) > 1e-3):
                 self.ctrl.cnc.move_to_absolute_position(self.origin['x'],
-                                                        self.origin['y'])
+                                                        self.origin['y'], feed_rate=self.feed_rate)
                 self.ctrl.cnc.wait_for_idle()
             else:
                 log.debug("MapGeneratorThread: Já estamos na origem; iniciando varredura sem espera extra.")
@@ -2706,7 +2767,7 @@ class MapGeneratorThread(QThread):
                     log.warning("Mapa cancelado pelo usuário")
                     self.error.emit("Operação cancelada")
                     return
-                self.ctrl.cnc.move_to_absolute_position(x, y)
+                self.ctrl.cnc.move_to_absolute_position(x, y, feed_rate=self.feed_rate)
                 self.ctrl.cnc.wait_for_idle()
 
                 img = self.ctrl.camera.capture()

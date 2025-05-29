@@ -128,11 +128,13 @@ class CNCAOIController:
             if not self.is_running_sequence:          # stop_sequence() pode ter sido chamado
                 break
 
-            # 1. Move para a posição (X, Y **e Z**)
+            # 1. Move para a posição (X, Y **e Z**) - usar velocidade configurada se disponível
+            feed_rate = getattr(self, '_current_feed_rate', 1000)  # usar velocidade configurada ou padrão
             self.cnc.move_to_absolute_position(
                 position.x,
                 position.y,
-                position.z
+                position.z,
+                feed_rate=feed_rate
             )
             self.cnc.wait_for_idle()
 
@@ -154,6 +156,10 @@ class CNCAOIController:
 
         self.is_running_sequence = False
         return results        # opcional, mantido para retro-compat.
+    
+    def set_feed_rate(self, feed_rate):
+        """Define a velocidade de movimentação para sequências"""
+        self._current_feed_rate = feed_rate
         
     def stop_sequence(self):
         """Para a execução da sequência atual."""
@@ -190,9 +196,11 @@ class CNCAOIController:
 
         # 5) percorre a grade
         capture_map = []          # para salvar JSON no final
+        # Usar velocidade configurada se disponível
+        feed_rate = getattr(self, '_current_feed_rate', 1000)
         for row_idx, col_idx, x, y in points:
             # move + espera
-            self.cnc.move_to_absolute_position(x, y)
+            self.cnc.move_to_absolute_position(x, y, feed_rate=feed_rate)
             self.cnc.wait_for_idle()
 
             # captura única
