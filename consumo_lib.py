@@ -8,8 +8,9 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QH
                             QComboBox, QListWidget, QCheckBox, QListWidgetItem, QFileDialog, QMessageBox, QTabWidget,
                             QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QInputDialog,
                             QProgressDialog)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent
-from PyQt6.QtGui import QPixmap, QImage, QFont, QAction, QDoubleValidator
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF
+from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator, 
+                         QPainter, QColor, QPen, QBrush)
 
 from aoi_lib import CNCAOIController, InspectionPosition
 from grbl_streamer import GrblStreamer
@@ -18,6 +19,7 @@ from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from dataclasses import dataclass
 from aoi_lib.stencil_tension import StencilTensionDialog
 import logging
+import json
 
 
 
@@ -30,6 +32,355 @@ if not logger.handlers:
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     ch.setFormatter(formatter)
     logger.addHandler(ch)
+
+class TensionVisualizationWidget(QWidget):
+    """Widget para visualizar os resultados de medição de tensão do stencil"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setup_ui()
+        self.measurements_data = None
+        self.canvas_margin = 50
+        self.point_radius = 15
+        
+    def setup_ui(self):
+        layout = QVBoxLayout(self)
+        
+        # Título e controles
+        title_layout = QHBoxLayout()
+        
+        title_label = QLabel("Visualização de Tensão do Stencil")
+        title_font = QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(14)
+        title_label.setFont(title_font)
+        
+        # Botão para carregar arquivo
+        self.load_file_btn = QPushButton("Carregar Arquivo JSON")
+        self.load_file_btn.clicked.connect(self.load_tension_file)
+        
+        # Botão para recarregar último arquivo
+        self.reload_btn = QPushButton("Recarregar")
+        self.reload_btn.clicked.connect(self.reload_last_file)
+        self.reload_btn.setEnabled(False)
+        
+        title_layout.addWidget(title_label)
+        title_layout.addStretch()
+        title_layout.addWidget(self.load_file_btn)
+        title_layout.addWidget(self.reload_btn)
+        
+        layout.addLayout(title_layout)
+        
+        # Informações do arquivo carregado
+        self.info_label = QLabel("Nenhum arquivo carregado")
+        self.info_label.setStyleSheet("color: #666; font-style: italic;")
+        layout.addWidget(self.info_label)
+        
+        # Canvas de visualização
+        self.canvas = TensionCanvas()
+        layout.addWidget(self.canvas, 1)  # Proporção 1 para expandir
+        
+        # Legenda
+        self.legend_label = QLabel("")
+        layout.addWidget(self.legend_label)
+        
+        self.last_file_path = None
+        
+    def load_tension_file(self):
+        """Carrega arquivo JSON com dados de tensão"""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Carregar Dados de Tensão",
+            "",
+            "Arquivos JSON (*.json);;Todos os arquivos (*)"
+        )
+        
+        if file_path:
+            self.load_file(file_path)
+            
+    def load_file(self, file_path):
+        """Carrega arquivo específico"""
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                
+            # Valida se é um arquivo de tensão válido
+            if data.get('type') != 'stencil_tension':
+                QMessageBox.warning(
+                    self, "Arquivo Inválido", 
+                    "Este não é um arquivo de medição de tensão válido."
+                )
+                return
+                
+            self.measurements_data = data
+            self.last_file_path = file_path
+            self.reload_btn.setEnabled(True)
+            
+            # Atualiza informações
+            self.update_info_display()
+            
+            # Atualiza canvas
+            self.canvas.set_measurements(data)
+            
+            # Atualiza legenda
+            self.update_legend()
+            
+        except Exception as e:
+            QMessageBox.critical(
+                self, "Erro", 
+                f"Erro ao carregar arquivo:\n{str(e)}"
+            )
+            
+    def reload_last_file(self):
+        """Recarrega o último arquivo carregado"""
+        if self.last_file_path:
+            self.load_file(self.last_file_path)
+            
+    def update_info_display(self):
+        """Atualiza informações do arquivo carregado"""
+        if not self.measurements_data:
+            return
+            
+        params = self.measurements_data.get('parameters', {})
+        measurements = self.measurements_data.get('measurements', [])
+        
+        start = params.get('start', {})
+        end = params.get('end', {})
+        quantity = params.get('quantity', 0)
+        
+        info_text = (
+            f"Arquivo carregado: {len(measurements)} pontos medidos | "
+            f"Grid: {quantity}x{quantity} | "
+            f"Área: X({start.get('x', 0):.1f} a {end.get('x', 0):.1f}) "
+            f"Y({start.get('y', 0):.1f} a {end.get('y', 0):.1f})"
+        )
+        
+        self.info_label.setText(info_text)
+        self.info_label.setStyleSheet("color: #333; font-weight: bold;")
+        
+    def update_legend(self):
+        """Atualiza legenda com informações dos valores"""
+        if not self.measurements_data:
+            return
+            
+        measurements = self.measurements_data.get('measurements', [])
+        if not measurements:
+            return
+            
+        # Calcula estatísticas
+        tensions = [float(m.get('tension', 0)) for m in measurements]
+        min_tension = min(tensions)
+        max_tension = max(tensions)
+        avg_tension = sum(tensions) / len(tensions)
+        
+        legend_text = (
+            f"Tensão: Mín: {min_tension:.2f} N/cm² | "
+            f"Máx: {max_tension:.2f} N/cm² | "
+            f"Média: {avg_tension:.2f} N/cm² | "
+            f"🟢 Baixa | 🟡 Média | 🔴 Alta"
+        )
+        
+        self.legend_label.setText(legend_text)
+class TensionCanvas(QWidget):
+    """Canvas personalizado para desenhar os pontos de tensão"""
+    
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.measurements = None
+        self.setMinimumSize(400, 400)
+        
+    def set_measurements(self, data):
+        """Define os dados de medição"""
+        self.measurements = data
+        self.update()  # Força redesenho
+        
+    def paintEvent(self, event):
+        """Desenha o canvas com os pontos de tensão"""
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        
+        # Fundo branco
+        painter.fillRect(self.rect(), QColor(255, 255, 255))
+        
+        if not self.measurements:
+            # Desenha mensagem quando não há dados
+            painter.setPen(QColor(128, 128, 128))
+            painter.drawText(
+                self.rect(), 
+                Qt.AlignmentFlag.AlignCenter,
+                "Carregue um arquivo JSON para visualizar os dados"
+            )
+            return
+            
+        self._draw_measurements(painter)
+        
+    def _draw_measurements(self, painter):
+        """Desenha as medições no canvas"""
+        measurements_list = self.measurements.get('measurements', [])
+        params = self.measurements.get('parameters', {})
+        
+        if not measurements_list:
+            return
+            
+        # Calcula limites da área
+        start = params.get('start', {'x': 0, 'y': 0})
+        end = params.get('end', {'x': 100, 'y': 100})
+        
+        # Dimensões da área de trabalho
+        work_width = abs(end['x'] - start['x'])
+        work_height = abs(end['y'] - start['y'])
+        
+        # Dimensões do canvas (com margem)
+        margin = 50
+        canvas_width = self.width() - 2 * margin
+        canvas_height = self.height() - 2 * margin
+        
+        # Usa o menor lado para manter proporção quadrada
+        canvas_size = min(canvas_width, canvas_height)
+        
+        # Calcula escala
+        scale_x = canvas_size / work_width if work_width > 0 else 1
+        scale_y = canvas_size / work_height if work_height > 0 else 1
+        scale = min(scale_x, scale_y)
+        
+        # Centro do canvas
+        center_x = self.width() / 2
+        center_y = self.height() / 2
+        
+        # Desenha bordas da área de trabalho
+        self._draw_work_area_border(painter, center_x, center_y, work_width, work_height, scale)
+        
+        # Calcula estatísticas para coloração
+        tensions = [float(m.get('tension', 0)) for m in measurements_list]
+        min_tension = min(tensions) if tensions else 0
+        max_tension = max(tensions) if tensions else 100
+        tension_range = max_tension - min_tension if max_tension != min_tension else 1
+        
+        # Desenha cada ponto
+        for measurement in measurements_list:
+            self._draw_measurement_point(
+                painter, measurement, start, center_x, center_y, 
+                scale, min_tension, tension_range
+            )
+            
+    def _draw_work_area_border(self, painter, center_x, center_y, work_width, work_height, scale):
+        """Desenha a borda da área de trabalho"""
+        # Calcula posição do retângulo da área de trabalho
+        rect_width = work_width * scale
+        rect_height = work_height * scale
+        
+        rect_x = center_x - rect_width / 2
+        rect_y = center_y - rect_height / 2
+        
+        # Desenha borda
+        painter.setPen(QPen(QColor(200, 200, 200), 2))
+        painter.setBrush(QBrush())  # Sem preenchimento
+        painter.drawRect(QRectF(rect_x, rect_y, rect_width, rect_height))
+        
+        # Desenha grid de referência (opcional)
+        painter.setPen(QPen(QColor(240, 240, 240), 1))
+        
+        # Linhas verticais
+        for i in range(1, 3):  # Assume grid 3x3
+            x = rect_x + (rect_width * i / 3)
+            painter.drawLine(QPointF(x, rect_y), QPointF(x, rect_y + rect_height))
+            
+        # Linhas horizontais  
+        for i in range(1, 3):
+            y = rect_y + (rect_height * i / 3)
+            painter.drawLine(QPointF(rect_x, y), QPointF(rect_x + rect_width, y))
+            
+    def _draw_measurement_point(self, painter, measurement, start, center_x, center_y, 
+                              scale, min_tension, tension_range):
+        """Desenha um ponto de medição individual"""
+        x = measurement.get('x', 0)
+        y = measurement.get('y', 0)
+        tension = float(measurement.get('tension', 0))
+        
+        # Calcula dimensões da área de trabalho
+        params = self.measurements.get('parameters', {})
+        end = params.get('end', {'x': 100, 'y': 100})
+        
+        work_width = abs(end['x'] - start['x'])
+        work_height = abs(end['y'] - start['y'])
+        
+        # Dimensões do retângulo de trabalho no canvas
+        margin = 50
+        canvas_size = min(self.width() - 2 * margin, self.height() - 2 * margin)
+        scale = min(canvas_size / work_width, canvas_size / work_height) if work_width > 0 and work_height > 0 else 1
+        
+        rect_width = work_width * scale
+        rect_height = work_height * scale
+        
+        # Posição do retângulo da área de trabalho (centralizado)
+        rect_x = center_x - rect_width / 2
+        rect_y = center_y - rect_height / 2
+        
+        # Normaliza a posição do ponto dentro da área de trabalho (0 a 1)
+        norm_x = (x - start['x']) / work_width if work_width > 0 else 0
+        norm_y = (y - start['y']) / work_height if work_height > 0 else 0
+        
+        # Mapeia para coordenadas do canvas
+        # Nota: no canvas, Y cresce para baixo, então invertemos norm_y
+        canvas_x = rect_x + (norm_x * rect_width)
+        canvas_y = rect_y + ((1 - norm_y) * rect_height)  # Inverte Y para visualização correta
+        # Determina cor baseada na tensão
+        color = self._get_tension_color(tension, min_tension, tension_range)
+        
+        # Desenha círculo
+        point_radius = 20
+        painter.setPen(QPen(QColor(100, 100, 100), 2))
+        painter.setBrush(QBrush(color))
+        
+        painter.drawEllipse(
+            QPointF(canvas_x, canvas_y), 
+            point_radius, point_radius
+        )
+        
+        # Desenha texto com valor
+        painter.setPen(QColor(0, 0, 0))
+        painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
+        
+        # Texto centralizado no círculo
+        text = f"{tension:.1f}"
+        text_rect = painter.fontMetrics().boundingRect(text)
+        text_x = canvas_x - text_rect.width() / 2
+        text_y = canvas_y + text_rect.height() / 4
+        
+        painter.drawText(QPointF(text_x, text_y), text)
+        
+        # Desenha coordenadas menores abaixo
+        coord_text = f"({x:.1f},{y:.1f})"
+        painter.setFont(QFont("Arial", 6))
+        painter.setPen(QColor(80, 80, 80))
+        
+        coord_rect = painter.fontMetrics().boundingRect(coord_text)
+        coord_x = canvas_x - coord_rect.width() / 2
+        coord_y = canvas_y + point_radius + 15
+        
+        painter.drawText(QPointF(coord_x, coord_y), coord_text)
+        
+    def _get_tension_color(self, tension, min_tension, tension_range):
+        """Retorna cor baseada no valor da tensão"""
+        if tension_range == 0:
+            return QColor(100, 200, 100)  # Verde padrão
+            
+        # Normaliza tensão (0-1)
+        normalized = (tension - min_tension) / tension_range
+        
+        # Mapeia para cores: Verde (baixo) -> Amarelo (médio) -> Vermelho (alto)
+        if normalized < 0.33:
+            # Verde para amarelo
+            ratio = normalized * 3
+            return QColor(int(100 + 155 * ratio), 200, int(100 * (1 - ratio)))
+        elif normalized < 0.66:
+            # Amarelo para laranja
+            ratio = (normalized - 0.33) * 3
+            return QColor(255, int(200 - 50 * ratio), 0)
+        else:
+            # Laranja para vermelho
+            ratio = (normalized - 0.66) * 3
+            return QColor(255, int(150 * (1 - ratio)), 0)
 
 class ImageViewerWidget(QWidget):
     """Widget para exibir imagens capturadas pela câmera"""
@@ -1311,6 +1662,10 @@ class AOIControllerApp(QMainWindow):
         
         # Agora é seguro adicionar a nova aba ao right_panel que já foi definido
         right_panel.addTab(camera_movement_tab, "Câmera & Movimento")
+
+        # Aba de Visualização de Tensão
+        self.tension_visualization = TensionVisualizationWidget()
+        right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
         
         # Adiciona painéis ao splitter
         splitter.addWidget(left_panel)
