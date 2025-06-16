@@ -1,0 +1,164 @@
+PS C:\Users\sense\PycharmProjects\cnc_aoi> & c:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/teste_ultra_seguro.py
+
+============================================================
+TESTE DE COMUNICAÇÃO MODBUS TCP - DELTA AS
+============================================================
+
+[11:25:56.777] [INFO] Tentando conectar em 192.168.1.5:502
+[11:25:56.864] [SUCCESS] ✓ Conexão estabelecida com sucesso!
+[11:25:56.869] [SUCCESS] ✓ Teste de leitura OK
+[11:25:56.869] [INFO] ============================================================
+[11:25:56.869] [INFO] INICIANDO TESTE DE M100
+[11:25:56.869] [INFO] ============================================================
+[11:25:56.869] [INFO]
+1. Lendo estado inicial de M100:
+[11:25:56.869] [INFO] Lendo M100
+[11:25:56.870] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:56.872] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:25:56.872] [INFO]
+2. Ligando M100 (TRUE):
+[11:25:56.872] [INFO] Escrevendo M100 = True
+[11:25:56.873] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:56.874] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:56.987] [INFO] Lendo M100
+[11:25:56.987] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:56.990] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:25:56.990] [SUCCESS] ✓ Verificação OK: M100 = True
+[11:25:57.499] [INFO] 
+3. Desligando M100 (FALSE):
+[11:25:57.499] [INFO] Escrevendo M100 = False
+[11:25:57.499] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:57.501] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:57.609] [INFO] Lendo M100
+[11:25:57.609] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:57.612] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:25:57.612] [SUCCESS] ✓ Verificação OK: M100 = False
+[11:25:58.118] [INFO] 
+4. Teste de pulso (ON/OFF rápido):
+[11:25:58.118] [INFO]   Pulso 1:
+[11:25:58.118] [INFO] Escrevendo M100 = True
+[11:25:58.118] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.122] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:58.227] [INFO] Lendo M100
+[11:25:58.227] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.231] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:25:58.232] [SUCCESS] ✓ Verificação OK: M100 = True
+[11:25:58.443] [INFO] Escrevendo M100 = False
+[11:25:58.443] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.446] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:58.554] [INFO] Lendo M100
+[11:25:58.554] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.556] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:25:58.557] [SUCCESS] ✓ Verificação OK: M100 = False
+[11:25:58.771] [INFO]   Pulso 2:
+[11:25:58.771] [INFO] Escrevendo M100 = True
+[11:25:58.771] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.774] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:58.881] [INFO] Lendo M100
+[11:25:58.881] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:58.885] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:25:58.885] [SUCCESS] ✓ Verificação OK: M100 = True
+[11:25:59.100] [INFO] Escrevendo M100 = False
+[11:25:59.100] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.102] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:59.208] [INFO] Lendo M100
+[11:25:59.208] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.211] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:25:59.211] [SUCCESS] ✓ Verificação OK: M100 = False
+[11:25:59.424] [INFO]   Pulso 3:
+[11:25:59.424] [INFO] Escrevendo M100 = True
+[11:25:59.425] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.428] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:59.530] [INFO] Lendo M100
+[11:25:59.530] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.535] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:25:59.535] [SUCCESS] ✓ Verificação OK: M100 = True
+[11:25:59.748] [INFO] Escrevendo M100 = False
+[11:25:59.748] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.752] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:25:59.854] [INFO] Lendo M100
+[11:25:59.854] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:25:59.857] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:25:59.857] [SUCCESS] ✓ Verificação OK: M100 = False
+[11:26:00.070] [INFO] 
+============================================================
+[11:26:00.071] [INFO] TESTE CONCLUÍDO
+[11:26:00.071] [INFO] ============================================================
+[11:26:00.071] [INFO]
+============================================================
+[11:26:00.072] [INFO] TESTE DOS ELEMENTOS DO LADDER
+[11:26:00.073] [INFO] ============================================================
+[11:26:00.073] [INFO]
+>>> Testando M100 (DDRVI):
+[11:26:00.074] [INFO] Escrevendo M100 = True
+[11:26:00.074] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:00.077] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:26:00.179] [INFO] Lendo M100
+[11:26:00.179] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:00.182] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:26:00.182] [SUCCESS] ✓ Verificação OK: M100 = True
+[11:26:01.189] [INFO] Escrevendo M100 = False
+[11:26:01.189] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:01.192] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:26:01.300] [INFO] Lendo M100
+[11:26:01.300] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:01.302] [SUCCESS] ✓ Leitura OK: M100 = False
+[11:26:01.302] [SUCCESS] ✓ Verificação OK: M100 = False
+[11:26:01.302] [INFO]
+>>> Testando M200 (DDRVA):
+[11:26:01.302] [INFO] Escrevendo M200 = True
+[11:26:01.302] [INFO]   → Endereço Modbus: 2248 (0x08C8)
+[11:26:01.304] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:26:01.408] [INFO] Lendo M200
+[11:26:01.408] [INFO]   → Endereço Modbus: 2248 (0x08C8)
+[11:26:01.412] [SUCCESS] ✓ Leitura OK: M200 = True
+[11:26:01.412] [SUCCESS] ✓ Verificação OK: M200 = True
+[11:26:02.417] [INFO] Escrevendo M200 = False
+[11:26:02.417] [INFO]   → Endereço Modbus: 2248 (0x08C8)
+[11:26:02.419] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:26:02.525] [INFO] Lendo M200
+[11:26:02.525] [INFO]   → Endereço Modbus: 2248 (0x08C8)
+[11:26:02.528] [SUCCESS] ✓ Leitura OK: M200 = False
+[11:26:02.528] [SUCCESS] ✓ Verificação OK: M200 = False
+[11:26:02.528] [INFO]
+>>> Lendo registradores:
+[11:26:02.528] [INFO] Lendo D100
+[11:26:02.528] [INFO]   → Endereço Modbus: 4196 (0x1064)
+[11:26:02.531] [SUCCESS] ✓ Leitura OK: D100 = 0
+[11:26:02.531] [INFO] Lendo D10
+[11:26:02.531] [INFO]   → Endereço Modbus: 4106 (0x100A)
+[11:26:02.535] [SUCCESS] ✓ Leitura OK: D10 = 0
+
+------------------------------------------------------------
+MODO INTERATIVO - Digite comandos ou 'sair' para terminar
+Comandos disponíveis:
+  m100 on   - Liga M100
+  m100 off  - Desliga M100
+  m200 on   - Liga M200
+  m200 off  - Desliga M200
+  read m100 - Lê M100
+  read d100 - Lê D100
+  sair      - Encerra o programa
+------------------------------------------------------------
+
+Comando: m100 on
+[11:26:26.832] [INFO] Escrevendo M100 = True
+[11:26:26.833] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:26.915] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:26:27.017] [INFO] Lendo M100
+[11:26:27.017] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:26:27.020] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:26:27.020] [SUCCESS] ✓ Verificação OK: M100 = True
+Comando: m200 on
+[11:26:59.408] [INFO] Escrevendo M200 = True
+[11:26:59.408] [INFO]   → Endereço Modbus: 2248 (0x08C8)
+[11:26:59.408] [ERROR] ✗ Exceção ao escrever M200: Modbus Error: [Connection] ModbusTcpClient 192.168.1.5:502: Connection unexpectedly closed 0.000 seconds into read of unbounded read bytes without response from slave before it closed connection
+Comando: m100 on
+[11:27:16.017] [INFO] Escrevendo M100 = True
+[11:27:16.018] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:27:16.121] [SUCCESS] ✓ Escrita realizada com sucesso
+[11:27:16.226] [INFO] Lendo M100
+[11:27:16.226] [INFO]   → Endereço Modbus: 2148 (0x0864)
+[11:27:16.230] [SUCCESS] ✓ Leitura OK: M100 = True
+[11:27:16.230] [SUCCESS] ✓ Verificação OK: M100 = True
+Comando:
