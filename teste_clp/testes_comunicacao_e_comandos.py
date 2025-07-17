@@ -1,5 +1,15 @@
 import sys
 import time
+# widgets externos importados
+from movement_controls_widget   import MovementControlsWidget
+from position_status_widget     import PositionStatusWidget
+from inspection_positions_widget import InspectionPositionsWidget
+from program_io_widget          import ProgramIOWidget
+from positions_backend          import InspectionPositionsBackend
+from sequence_control import (
+    SequenceControlWidget, InspectionPosition, MotionBackend
+)
+
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QLabel, QSpinBox, QPushButton, 
                             QGroupBox, QGridLayout, QTabWidget, QTextEdit,
@@ -283,6 +293,72 @@ class MultiAxisMotorController(QMainWindow):
         # Controles auxiliares
         aux_group = self.create_auxiliary_controls()
         control_layout.addWidget(aux_group)
+
+        side_panel = QWidget()
+        side_vbox  = QVBoxLayout(side_panel)
+
+        # Widget de movimentos (seta/JOG)
+        self.mov_widget = MovementControlsWidget()
+        side_vbox.addWidget(self.mov_widget)
+
+        # Widget de posição / status
+        self.pos_widget = PositionStatusWidget()
+        side_vbox.addWidget(self.pos_widget)
+
+        # Widget das posições de INSPEÇÃO
+        self.inspect_widget = InspectionPositionsWidget(
+            get_current_position=self._get_current_position_dict
+        )
+        # (opcional) limitar altura
+        self.inspect_widget.setMaximumHeight(260)
+        side_vbox.addWidget(self.inspect_widget)
+
+        # ------------------- PROGRAMA: Salvar/Carregar ------------------
+        backend = InspectionPositionsBackend(self.inspect_widget)
+        self.prog_io_widget = ProgramIOWidget(backend)
+        side_vbox.addWidget(self.prog_io_widget)
+
+        # ------------------- CONTROLE DE SEQUÊNCIA ---------------------
+        self.seq_widget = SequenceControlWidget(
+            motion=PLCMotionBackend(self),
+            camera=None                     # (sem câmera por enquanto)
+        )
+        side_vbox.addWidget(self.seq_widget)
+
+        # carrega posições atuais sempre que a lista muda
+        self.inspect_widget.positionAdded.connect(
+            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
+        self.inspect_widget.positionRemoved.connect(
+            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
+
+        # idem depois de “Carregar Programa”
+        self.prog_io_widget.fileLoaded.connect(
+            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
+
+        #  logs quando salvar/carregar
+        self.prog_io_widget.fileSaved.connect(
+            lambda f: self.log(f"Programa salvo em: {f}"))
+        self.prog_io_widget.fileLoaded.connect(
+            lambda f: self.log(f"Programa carregado de: {f}"))
+
+        side_vbox.addStretch()
+        control_layout.addWidget(side_panel)
+
+        # ----------------- liga sinais do MovementControlsWidget ---------
+        self.mov_widget.stepMoveRequested.connect(self._on_step_move_requested)
+        self.mov_widget.jogStart.connect(self._on_widget_jog_start)
+        self.mov_widget.jogStop.connect(self._on_widget_jog_stop)
+        self.mov_widget.goToZeroRequested.connect(self._on_go_to_zero)
+        self.mov_widget.emergencyStopToggled.connect(
+            lambda engaged: self.emergency_stop() if engaged else None)
+
+        # ----------- liga sinais do PositionStatusWidget ----------------
+        self.pos_widget.zeroXRequested.connect(lambda: self.zero_axis('X'))
+        self.pos_widget.zeroY2Requested.connect(lambda: self.zero_axis('Y2'))
+        self.pos_widget.zeroY1Requested.connect(lambda: self.zero_axis('Y1'))
+        self.pos_widget.zeroZRequested.connect(lambda: self.zero_axis('Z'))
+        self.pos_widget.zeroAllRequested.connect(
+            lambda: [self.zero_axis(a) for a in ('Y2', 'Y1', 'X', 'Z')])
         
         tab_widget.addTab(control_tab, "Controle de Eixos")
         
@@ -1324,13 +1400,10 @@ class MultiAxisMotorController(QMainWindow):
             target_position = getattr(self, f'pulsos_spin_{axis_name}').value()
             self.log(f"🚀 Movendo eixo {axis_name} para posição {target_position}")
             
-            result = self.client.write_coil(cmd_addr, True)
-            if result.isError():
-                self.log(f"❌ Erro ao acionar eixo {axis_name}")
-                return
+            # envia pulso de 100 ms no coil → garante borda de subida
+            self._pulse_coil(cmd_map[axis_name])
+            self.log(f"🚀 Pulso {cmd_map[axis_name]} enviado – alvo {target_position}")
 
-            self.log(f"✅ Eixo {axis_name} acionado para posição {target_position}")
-            
         except Exception as e:
             self.log(f"❌ Erro ao mover eixo {axis_name}: {e}")
             
@@ -1378,7 +1451,7 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro movimento relativo {axis_name}: {e}")
 
-# SISTEMA JOG TODOS OS EIXOS
+    # SISTEMA JOG TODOS OS EIXOS
     
     def set_jog_velocity(self, axis_name):
         """Define velocidade do JOG para qualquer eixo"""
@@ -1533,8 +1606,8 @@ class MultiAxisMotorController(QMainWindow):
             }
             
             pos_limit_mem, neg_limit_mem = safety_map[axis_name]
-            result1 = self.client.read_coils(self.addresses[pos_limit_mem], 1)
-            result2 = self.client.read_coils(self.addresses[neg_limit_mem], 1)
+            result1 = self.client.read_coils(self.addresses[pos_limit_mem], count=1)
+            result2 = self.client.read_coils(self.addresses[neg_limit_mem], count=1)
             
             if not result1.isError() and not result2.isError():
                 positive_ok = not result1.bits[0]  # Invertido: flag ativa = bloqueado
@@ -1789,6 +1862,36 @@ class MultiAxisMotorController(QMainWindow):
             
         except Exception as e:
             self.log(f"❌ Erro na parada: {e}")
+
+    # ================================================================
+    # callbacks vindos do MovementControlsWidget
+    # ================================================================
+    def _on_step_move_requested(self, axis: str, distance: float, feed: float):
+        """Step = movimento incremental curto (G90 do widget)."""
+        # converte distância (mm) em ‘pulsos’: aqui 1 mm = 1 pulso (ajuste se desejar)
+        self.move_relative(axis, int(distance))
+
+    def _on_widget_jog_start(self, axis: str, direction: int, feed: float):
+        self._active_widget_axis = axis
+        self.jog_start(axis, '+' if direction > 0 else '-')
+
+    def _on_widget_jog_stop(self):
+        if hasattr(self, '_active_widget_axis'):
+            self.jog_stop(self._active_widget_axis)
+
+    def _on_go_to_zero(self):
+        # usa homing (já implementado) para Z primeiro e depois Y2,Y1,X
+        self.home_all_axes()
+
+    # ================================================================
+    # zerar posição individual (M0/M500/…)
+    # ================================================================
+    def zero_axis(self, axis: str):
+        """Pulsa a memória M0/M500/M1000/M1500 conforme eixo."""
+        mem_map = {'Y2':'M0_Y2', 'Y1':'M500_Y1', 'X':'M1000_X', 'Z':'M1500_Z'}
+        if axis in mem_map:
+            self._pulse_coil(mem_map[axis])
+            self.log(f"üè† Zero absoluto do eixo {axis} solicitado")
             
     def update_status(self):
         """Atualiza status em tempo real"""
@@ -1797,7 +1900,17 @@ class MultiAxisMotorController(QMainWindow):
         
         # Lê posições atuais e status de homing (prioridade)
         self.read_current_positions()
+        # ------------ atualiza widget de posição ------------------------
+        if hasattr(self, 'pos_widget'):
+            self.pos_widget.update_position(
+                x  = self.current_positions['X'],
+                y2 = self.current_positions['Y2'],
+                y1 = self.current_positions['Y1'],
+                z  = self.current_positions['Z']
+            )
         self.monitor_homing_status()
+
+        
             
         try:
             # Atualiza saídas
@@ -1835,7 +1948,7 @@ class MultiAxisMotorController(QMainWindow):
                 'M0_Y2': (self.addresses['M0_Y2'], getattr(self, 'M0_Y2_status', None)),
                 'M50_Y2': (self.addresses['M50_Y2'], getattr(self, 'M50_Y2_status', None)),
                 'M500_Y1': (self.addresses['M500_Y1'], getattr(self, 'M500_Y1_status', None)),
-+                'M550_Y1': (self.addresses['M550_Y1'], getattr(self, 'M550_Y1_status', None)),
+                'M550_Y1': (self.addresses['M550_Y1'], getattr(self, 'M550_Y1_status', None)),
                 'M5000': (self.addresses['M5000'], getattr(self, 'M5000_status', None)),
                 'M350': (self.addresses['M350'], getattr(self, 'M350_status', None)),
                 'M850': (self.addresses['M850'], getattr(self, 'M850_status', None)),
@@ -1952,6 +2065,35 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             # Silencia erros de status update para não poluir log
             pass
+    
+    # ------------------------------------------------------------------
+    #  Fornece posição atual para o widget de inspeção
+    # ------------------------------------------------------------------
+    def _get_current_position_dict(self) -> dict:
+        """
+        Retorna dict {x,y2,y1,z} em pulsos – usado pelo
+        InspectionPositionsWidget para ‘Adicionar posição atual’.
+        """
+        return {
+            "x":  self.current_positions.get("X",  0),
+            "y2": self.current_positions.get("Y2", 0),
+            "y1": self.current_positions.get("Y1", 0),
+            "z":  self.current_positions.get("Z",  0),
+        }
+    
+    # ------------------------------------------------------------------
+    # converte lista do widget para InspectionPosition do sequence_control
+    # ------------------------------------------------------------------
+    def _positions_to_model(self):
+        lst = []
+        for p in self.inspect_widget.positions():
+            lst.append(
+                InspectionPosition(
+                    name=p.name,
+                    x=p.x, y2=p.y2, y1=p.y1, z=p.z
+                )
+            )
+        return lst
 
     def force_homing_status_check(self):
         """Força uma verificação imediata do status de homing"""
@@ -1996,12 +2138,93 @@ class MultiAxisMotorController(QMainWindow):
             self.log("Desconectado do CLP")
         event.accept()
 
+# ------------------------------------------------------------------
+#  BACK-END DE MOVIMENTO para o SequenceControlWidget
+# ------------------------------------------------------------------
+
+class PLCMotionBackend(MotionBackend):
+    """
+    Adaptador simples que converte as chamadas do SequenceControlWidget
+    para os métodos já existentes do MultiAxisMotorController.
+    """
+    def __init__(self, ctrl: MultiAxisMotorController):
+        self._c = ctrl
+        self._feed = 1000
+        self._targets: dict[str,int] = {}   # destino mais recente por eixo
+
+    # --------------------------------------------------------------
+    def move_to_absolute_position(self,
+                                  x:  float | None,
+                                  y2: float | None,
+                                  y1: float | None,
+                                  z:  float | None,
+                                  feed_rate: float = 1000) -> bool:
+        self._feed = feed_rate
+        try:
+            # Escreve apenas eixos cujo valor não é None
+            if x  is not None:  self._move_axis('X',  int(x))
+            if y2 is not None:  self._move_axis('Y2', int(y2))
+            if y1 is not None:  self._move_axis('Y1', int(y1))
+            if z  is not None:  self._move_axis('Z',  int(z))
+            return True
+        except Exception as exc:
+            self._c.log(f"Erro move_to_abs: {exc}")
+            return False
+
+    def _move_axis(self, axis: str, pulses: int):
+        spin = getattr(self._c, f"pulsos_spin_{axis}")
+        spin.setValue(pulses)
+        self._c.move_axis_absolute(axis)
+        self._targets[axis] = pulses
+        # Não bloqueia aqui – wait_for_idle fará polling
+
+    # --------------------------------------------------------------
+    def wait_for_idle(self) -> bool:
+        """Bloqueia até que cada eixo alcance o pulso alvo ±1."""
+        t0 = time.time()
+        timeout = 120          # s – eixo pode percorrer longas distâncias
+        ok_axes = set()
+
+        pos_regs = {           # registradores D que espelham SR
+            'Y2': self._c.addresses['D3100_Y2'],
+            'Y1': self._c.addresses['D3400_Y1'],
+            'X' : self._c.addresses['D3000_X'],
+            'Z' : self._c.addresses['D3200_Z'],
+        }
+
+        while time.time() - t0 < timeout:
+            all_reached = True
+            for axis, target in self._targets.items():
+                if axis in ok_axes:
+                    continue
+
+                try:
+                    pos = self._c.read_dword(pos_regs[axis])
+                except Exception:
+                    pos = None
+
+                if pos is None or abs(pos - target) > 1:
+                    all_reached = False
+                else:
+                    ok_axes.add(axis)
+
+            if all_reached:
+                return True
+            time.sleep(0.05)
+
+        self._c.log("wait_for_idle: timeout atingido")
+        return False
+
+    # --------------------------------------------------------------
+    def set_feed_rate(self, fr: float):
+        self._feed = fr
+
 def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     
     window = MultiAxisMotorController()
-    window.show()
+    window.showMaximized()   # abre já maximizado
     
     print("="*60)
     print("CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)")
