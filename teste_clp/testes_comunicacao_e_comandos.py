@@ -3,7 +3,7 @@ import time
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QLabel, QSpinBox, QPushButton, 
                             QGroupBox, QGridLayout, QTabWidget, QTextEdit,
-                            QFrame, QSizePolicy, QCheckBox)
+                            QFrame, QSizePolicy, QCheckBox, QScrollArea)
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
@@ -21,6 +21,10 @@ class MultiAxisMotorController(QMainWindow):
             'M0_Y2': 0,       # ATRIBUI ZERO A POSIÇÃO ATUAL (Y2)
             'M50_Y2': 50,     # INICIA O MOVIMENTO ABSOLUTO (Y2)
             'M100_Y2': 100,   # ACIONA LÓGICA DE COMPARAÇÃO (Y2)
+            # EIXO Y1 
+            'M500_Y1': 500,   # ATRIBUI ZERO A POSIÇÃO ATUAL (Y1)
+            'M550_Y1': 550,   # INICIA O MOVIMENTO ABSOLUTO (Y1)
+            'M600_Y1': 600,   # ACIONA LÓGICA DE COMPARAÇÃO (Y1)
             # EIXO Z  
             'M1500_Z': 1500,  # ATRIBUI ZERO A POSIÇÃO ATUAL (Z)
             'M1550_Z': 1550,  # INICIA O MOVIMENTO ABSOLUTO (Z)
@@ -35,82 +39,193 @@ class MultiAxisMotorController(QMainWindow):
 
             # HOMING - Busca pelo HOME
             'M350': 350,      # GO TO HOME Y2
+            'M850': 850,      # GO TO HOME Y1
             'M1350': 1350,    # GO TO HOME X
             'M1850': 1850,    # GO TO HOME Z
 
             # HOMING REALIZADO - Status do homing
             'M300': 300,      # HOMING REALIZADO Y2
+            'M800': 800,      # HOMING REALIZADO Y1
             'M1300': 1300,    # HOMING REALIZADO X
             'M1800': 1800,    # HOMING REALIZADO Z
 
-            # SISTEMA JOG EIXO X (conforme ladder implementado)
-            'M1070': 1070,    # Comando JOG X
-            'M1080': 1080,    # Comando JOG X (sentido oposto, se implementado)
-            'M1010': 1010,    # Flag segurança JOG (conforme ladder)
-            'M1011': 1011,    # Flag segurança JOG (conforme ladder)
-            'D1470': 1470,    # Ramp-up time JOG X
-            'D4000': 4000,    # Target frequency JOG X (positiva)
-            'D1476': 1476,    # Target frequency JOG X (negativa)
-            'D1490': 1490,    # Ramp-down time JOG X
+            # SISTEMA JOG TODOS OS EIXOS (conforme nova estrutura)
+            # Y2
+            'M70_Y2': 70,     # JOG POSITIVO Y2
+            'M80_Y2': 80,     # JOG NEGATIVO Y2
+            'M10_Y2': 10,     # INTERROMPE JOG LIMITE POSITIVO Y2
+            'M11_Y2': 11,     # INTERROMPE JOG LIMITE NEGATIVO Y2
+            # Y1
+            'M570_Y1': 570,   # JOG POSITIVO Y1
+            'M580_Y1': 580,   # JOG NEGATIVO Y1
+            'M510_Y1': 510,   # INTERROMPE JOG LIMITE POSITIVO Y1
+            'M511_Y1': 511,   # INTERROMPE JOG LIMITE NEGATIVO Y1
+            # X
+            'M1070_X': 1070,  # JOG POSITIVO X
+            'M1080_X': 1080,  # JOG NEGATIVO X
+            'M1010_X': 1010,  # INTERROMPE JOG LIMITE POSITIVO X
+            'M1011_X': 1011,  # INTERROMPE JOG LIMITE NEGATIVO X
+            # Z
+            'M1570_Z': 1570,  # JOG POSITIVO Z
+            'M1580_Z': 1580,  # JOG NEGATIVO Z
+            'M1510_Z': 1510,  # INTERROMPE JOG LIMITE POSITIVO Z
+            'M1511_Z': 1511,  # INTERROMPE JOG LIMITE NEGATIVO Z
+
+            # MEMÓRIAS AUXILIARES HOMING (conforme ladder real)
+            # Y2
+            'M311': 311, 'M312': 312, 'M313': 313, 'M314': 314, 'M315': 315,
+            'M360': 360,
+            # Y1  
+            'M811': 811, 'M812': 812, 'M813': 813, 'M814': 814, 'M815': 815,
+            'M860': 860,
+            # X
+            'M1311': 1311, 'M1312': 1312, 'M1313': 1313, 'M1314': 1314, 'M1315': 1315,
+            'M1360': 1360,
+            # Z
+            'M1811': 1811, 'M1812': 1812, 'M1813': 1813, 'M1814': 1814, 'M1815': 1815,
+            'M1860': 1860,
+            
+            # TEMPORIZADORES HOMING
+            'T0': 0, 'T1': 1, 'T2': 2, 'T3': 3, 'T4': 4, 'T5': 5, 'T6': 6, 'T7': 7,
+            
+            # VELOCIDADES JOG (nova estrutura D22000 série)
+            'D22000': 22000,  # VELOCIDADE JOG POSITIVO Y2
+            'D22010': 22010,  # VELOCIDADE JOG POSITIVO Y1
+            'D22020': 22020,  # VELOCIDADE JOG POSITIVO X
+            'D22030': 22030,  # VELOCIDADE JOG POSITIVO Z
+            'D22050': 22050,  # VELOCIDADE JOG NEGATIVO Y2
+            'D22060': 22060,  # VELOCIDADE JOG NEGATIVO Y1
+            'D22070': 22070,  # VELOCIDADE JOG NEGATIVO X
+            'D22080': 22080,  # VELOCIDADE JOG NEGATIVO Z
+            'D22100': 22100,  # TEMPO DE ACELERAÇÃO JOG
+            'D22110': 22110,  # TEMPO DE DESACELERAÇÃO JOG
+
+            # LIMITES SALVOS EM ROM (novos conforme planilha)
+            'D23050': 23050,  # LIMITE NEGATIVO Y2 (ROM)
+            'D23060': 23060,  # LIMITE NEGATIVO Y1 (ROM)
+            'D23070': 23070,  # LIMITE NEGATIVO X (ROM)
+            'D23080': 23080,  # LIMITE NEGATIVO Z (ROM)
+            'D23090': 23090,  # LIMITE POSITIVO Y2 (ROM)
+            'D23100': 23100,  # LIMITE POSITIVO Y1 (ROM)
+            'D23110': 23110,  # LIMITE POSITIVO X (ROM)
+            'D23120': 23120,  # LIMITE POSITIVO Z (ROM)
+            
+            # VELOCIDADES HOMING (conforme planilha)
+            'D23000': 23000,  # VELOCIDADE HOMING Y2 (ROM)
+            'D23010': 23010,  # VELOCIDADE HOMING Y1 (ROM)
+            'D23020': 23020,  # VELOCIDADE HOMING X (ROM)
+            'D23030': 23030,  # VELOCIDADE HOMING Z (ROM)
+            'D450': 450,      # VELOCIDADE HOMING Y2 (aplicada)
+            'D950': 950,      # VELOCIDADE HOMING Y1 (aplicada)
+            'D1450': 1450,    # VELOCIDADE HOMING X (aplicada)
+            'D1950': 1950,    # VELOCIDADE HOMING Z (aplicada)
             
             # Registradores D - Corrigidos conforme ladder real
             # EIXO Y2
             'D0_Y2': 0,         # MOVE TO ABS (Y2)
-            'D50_Y2': 50,       # LIMITE NEGATIVO (Y2)
+            'D50_Y2': 50,       # LIMITE NEGATIVO Y2 (trabalho)
+            'D23050_Y2': 23050, # LIMITE NEGATIVO Y2 (ROM)
             'D100_Y2': 100,     # POSIÇÃO ABSOLUTA DEFINIDA PELO USUÁRIO (Y2) - ENTRADA
             'D150_Y2': 150,     # POSIÇÃO ABSOLUTA DEFINIDA (Y2)
             'D20000_Y2': 20000, # VELOCIDADE DE DESLOCAMENTO (Y2)
+            # EIXO Y1 - NOVO
+            'D500_Y1': 500,     # MOVE TO ABS (Y1)
+            'D550_Y1': 550,     # LIMITE NEGATIVO Y1 (trabalho)
+            'D23060_Y1': 23060, # LIMITE NEGATIVO Y1 (ROM)
+            'D600_Y1': 600,     # POSIÇÃO ABSOLUTA DEFINIDA PELO USUÁRIO (Y1) - ENTRADA
+            'D650_Y1': 650,     # POSIÇÃO ABSOLUTA DEFINIDA (Y1)
+            'D20500_Y1': 20500, # VELOCIDADE DE DESLOCAMENTO (Y1)
             # EIXO Z
             'D1500_Z': 1500,    # MOVE TO ABS (Z)
-            'D1550_Z': 1550,    # LIMITE NEGATIVO (Z)
+            'D1550_Z': 1550,    # LIMITE NEGATIVO Z (trabalho)
+            'D23080_Z': 23080,  # LIMITE NEGATIVO Z (ROM)
             'D1600_Z': 1600,    # POSIÇÃO ABSOLUTA DEFINIDA PELO USUÁRIO (Z) - ENTRADA
             'D1650_Z': 1650,    # POSIÇÃO ABSOLUTA DEFINIDA (Z)
             'D21500_Z': 21500,  # VELOCIDADE DE DESLOCAMENTO (Z)
             # EIXO X
             'D1000_X': 1000,    # MOVE TO ABS (X)
-            'D1050_X': 1050,    # LIMITE NEGATIVO (X)
+            'D1050_X': 1050,    # LIMITE NEGATIVO X (trabalho) 
+            'D23070_X': 23070,  # LIMITE NEGATIVO X (ROM)
             'D1100_X': 1100,    # POSIÇÃO ABSOLUTA DEFINIDA PELO USUÁRIO (X) - ENTRADA
             'D1150_X': 1150,    # POSIÇÃO ABSOLUTA DEFINIDA (X)
             'D21000_X': 21000,  # VELOCIDADE DE DESLOCAMENTO (X)
             
             # Registradores de status (leitura)
             'D3100_Y2': 3100,   # POSIÇÃO ATUAL MOTOR Y2 (cópia do SR460)
+            'D3400_Y1': 3400,   # POSIÇÃO ATUAL MOTOR Y1 (cópia do SR500)
             'D3200_Z': 3200,    # POSIÇÃO ATUAL MOTOR Z (cópia do SR480)
             'D3000_X': 3000,    # POSIÇÃO ATUAL MOTOR X (cópia do SR520)
             
-            # Saídas Y - Conforme ladder real
+            # Saídas Y (coils) – endereços Modbus oficiais (AS-Series Manual, Tabela 7-3)
             'Y00': 40960, 'Y01': 40961,     # Y0.0 / Y0.1  eixo-Y2
             'Y02': 40962, 'Y03': 40963,     # Y0.2 / Y0.3  eixo-Z
+            'Y04': 40964, 'Y05': 40965,     # Y0.4 / Y0.5  eixo-Y1
             'Y06': 40966, 'Y07': 40967,     # Y0.6 / Y0.7  eixo-X
-            'Y010': 40971,                  # Y0.10 aplicadora de adesivo
+            'Y010': 40970,                 # Y0.10 (0xA00A) aplicadora de adesivo  <<< FIX
             
             # Entradas X (sensores)
-            'X01_Z': 8193,      # X0.1 sensor homing Z
-            'X02_Y2': 8194,     # X0.2 sensor homing Y2  
-            'X03_X': 8195,      # X0.3 sensor homing X
+            'X04_Y2': 8196,     # X0.4 sensor homing Y2  
+            'X06_Y1': 8198,     # X0.6 sensor homing Y1
+            'X08_X': 8200,      # X0.8 sensor homing X
+            'X09_Z': 8201,      # X0.9 sensor homing Z
         }
         # Posição atual dos eixos
         self.current_positions = {
             'Y2': 0,
+            'Y1': 0,
             'Z': 0, 
             'X': 0
         }
+
+        # ------------------- NOVO: lista de registradores configuráveis -------------------
+        # (qualquer outro pode ser acrescentado facilmente depois)
+        self.configurable_registers = [
+            # ---- LIMITES SALVOS EM ROM ----
+            ('D23050', 'Limite-   Y2 (ROM)'), ('D23090', 'Limite+ Y2 (ROM)'),
+            ('D23060', 'Limite-   Y1 (ROM)'), ('D23100', 'Limite+ Y1 (ROM)'),
+            ('D23070', 'Limite-   X  (ROM)'), ('D23110', 'Limite+ X  (ROM)'),
+            ('D23080', 'Limite-   Z  (ROM)'), ('D23120', 'Limite+ Z  (ROM)'),
+            # ---- VELOCIDADE DE DESLOCAMENTO ----
+            ('D20000_Y2', 'Vel. Desloc. Y2'),
+            ('D20500_Y1', 'Vel. Desloc. Y1'),
+            ('D21000_X',  'Vel. Desloc. X'),
+            ('D21500_Z',  'Vel. Desloc. Z'),
+            # ---- VELOCIDADE DE HOMING (ROM) ----
+            ('D23000', 'Vel. Homing Y2'),
+            ('D23010', 'Vel. Homing Y1'),
+            ('D23020', 'Vel. Homing X'),
+            ('D23030', 'Vel. Homing Z'),
+            # ---- VELOCIDADE JOG ----
+            ('D22000', 'Jog+ Y2'), ('D22050', 'Jog- Y2'),
+            ('D22010', 'Jog+ Y1'), ('D22060', 'Jog- Y1'),
+            ('D22020', 'Jog+ X'),  ('D22070', 'Jog- X'),
+            ('D22030', 'Jog+ Z'),  ('D22080', 'Jog- Z'),
+            ('D22100', 'Tempo Acel. Jog'),
+            ('D22110', 'Tempo Desac. Jog')
+        ]
         
         self.init_ui()
         self.connect_plc()
 
         # Lê velocidades salvas na ROM após conectar
-        QTimer.singleShot(1000, self.read_initial_velocities)
-        QTimer.singleShot(1500, self.read_initial_jog_velocity)
+        QTimer.singleShot(1500, self.read_initial_jog_velocities)
+        QTimer.singleShot(2500, self.read_initial_limits)
+        QTimer.singleShot(3000, self.read_current_positions)
+        QTimer.singleShot(3500, self.read_initial_homing_status)
 
         # Controle de teclas do teclado
-        self.keyboard_jog_active = False  # Flag para controlar se JOG está ativo via teclado
+        self.keyboard_jog_active = {
+            'X': False,
+            'Y2': False, 
+            'Y1': False,
+            'Z': False
+        }  # Flags para controlar se JOG está ativo via teclado para cada eixo
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # Permite capturar teclas
         
         # Timer para atualização
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_status)
-        self.timer.start(300)
+        self.timer.start(500)
         
     def log(self, msg):
         """Log no terminal e na interface"""
@@ -143,63 +258,7 @@ class MultiAxisMotorController(QMainWindow):
         # Abas para organizar
         tab_widget = QTabWidget()
 
-        # === ABA APLICADORA DE ADESIVO ===
-        adhesive_tab = self.create_adhesive_control_tab()
-        tab_widget.addTab(adhesive_tab, "Aplicadora Adesivo")
-
-        # === ABA 0: JOG MANUAL  (fica à ESQUERDA) ===
-        jog_tab = QWidget()
-        jog_layout = QVBoxLayout(jog_tab)
-
-        # valor de passo do JOG
-        step_frame = QHBoxLayout()
-        step_frame.addWidget(QLabel("Passo (pulsos):"))
-        self.jog_step_spin = QSpinBox()
-        self.jog_step_spin.setRange(1, 100_000)
-        self.jog_step_spin.setValue(500)
-        step_frame.addWidget(self.jog_step_spin)
-        step_frame.addStretch()
-        jog_layout.addLayout(step_frame)
-
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(20)
-        grid.setVerticalSpacing(20)
-
-        # --- linha superior ( + )        
-        btn_y2_p = QPushButton("Y2 +")
-        btn_z_p  = QPushButton("Z  +")
-        btn_x_p  = QPushButton("X  +")
-        grid.addWidget(btn_y2_p, 0, 1)
-        grid.addWidget(btn_z_p,  0, 2)
-        grid.addWidget(btn_x_p,  0, 3)
-
-        # --- linha do meio (X- / X+)
-
-        # --- linha inferior ( − )
-        btn_y2_m = QPushButton("Y2 −")
-        btn_z_m  = QPushButton("Z  −")
-        btn_x_m  = QPushButton("X  −")
-        grid.addWidget(btn_y2_m, 1, 1)
-        grid.addWidget(btn_z_m,  1, 2)
-        grid.addWidget(btn_x_m,  1, 3)
-
-        # ligações
-        btn_y2_p.clicked.connect(lambda: self.jog_move('Y2', 'forward'))
-        btn_y2_m.clicked.connect(lambda: self.jog_move('Y2', 'reverse'))
-        btn_z_p.clicked.connect( lambda: self.jog_move('Z', 'forward'))
-        btn_z_m.clicked.connect( lambda: self.jog_move('Z', 'reverse'))
-        btn_x_p.clicked.connect( lambda: self.jog_move('X', 'forward'))
-        btn_x_m.clicked.connect( lambda: self.jog_move('X', 'reverse'))
-
-        # estilinho
-        for b in [btn_y2_p, btn_y2_m, btn_z_p, btn_z_m, btn_x_p, btn_x_m]:
-            b.setMinimumSize(90, 60)
-            b.setStyleSheet("QPushButton { font-weight:bold; font-size:15px; }")
-
-        jog_layout.addLayout(grid)
-        jog_layout.addStretch()
-
-        tab_widget.addTab(jog_tab, "Jog Manual")
+        
         
         # === ABA 1: CONTROLE DOS EIXOS ===
         control_tab = QWidget()
@@ -208,12 +267,14 @@ class MultiAxisMotorController(QMainWindow):
         # Eixo Y2
         axis_y2_group = self.create_axis_control("EIXO Y2", 'Y2')
         control_layout.addWidget(axis_y2_group)
+
+        # Eixo Y1 - NOVO
+        axis_y1_group = self.create_axis_control("EIXO Y1", 'Y1')
+        control_layout.addWidget(axis_y1_group)
         
         # Eixo Z
         axis_z_group = self.create_axis_control("EIXO Z", 'Z')
         control_layout.addWidget(axis_z_group)
-
-        
 
         # Eixo X
         axis_x_group = self.create_axis_control("EIXO X", 'X')
@@ -236,6 +297,10 @@ class MultiAxisMotorController(QMainWindow):
         # Status das memórias
         memories_group = self.create_memories_status()
         status_layout.addWidget(memories_group)
+
+        # Sensores de HOMING (entradas X0.4 / X0.6 / X0.8 / X0.9)
+        sensors_group = self.create_homing_sensors_status()
+        status_layout.addWidget(sensors_group)
         
         # Status dos registradores
         registers_group = self.create_registers_status()
@@ -243,7 +308,11 @@ class MultiAxisMotorController(QMainWindow):
         
         tab_widget.addTab(status_tab, "Status do Sistema")
         
-        # === ABA 3: LOG ===
+        # === ABA 3: CONFIGURAÇÃO DE REGISTRADORES (NOVA) ===
+        config_tab = self.create_config_tab()
+        tab_widget.addTab(config_tab, "Config. Registradores")
+
+        # === ABA 4: LOG ===
         log_tab = QWidget()
         log_layout = QVBoxLayout(log_tab)
         
@@ -263,33 +332,128 @@ class MultiAxisMotorController(QMainWindow):
         tab_widget.addTab(log_tab, "Log")
         
         layout.addWidget(tab_widget)
-        
-    def create_adhesive_control_tab(self):
-        """Cria aba de controle da aplicadora de adesivo"""
+
+    def create_homing_sensors_status(self):
+        """Exibe o estado ON/OFF dos sensores físicos de HOME"""
+        group = QGroupBox("SENSORES DE HOME (Entradas X)")
+        layout = QGridLayout()
+
+        sensors = [
+            ('X04_Y2', 'Sensor HOME Y2 (X0.4)'),
+            ('X06_Y1', 'Sensor HOME Y1 (X0.6)'),
+            ('X08_X',  'Sensor HOME X  (X0.8)'),
+            ('X09_Z',  'Sensor HOME Z  (X0.9)')
+        ]
+        for i, (addr_key, desc) in enumerate(sensors):
+            layout.addWidget(QLabel(f"{desc}:"), i, 0)
+            lbl = QLabel("OFF")
+            lbl.setStyleSheet("QLabel { background-color: gray; color: white; padding: 5px; }")
+            layout.addWidget(lbl, i, 1)
+            setattr(self, f'{addr_key}_status', lbl)
+
+        group.setLayout(layout)
+        return group
+
+    def create_config_tab(self):
+        """Aba que exibe TODOS os registradores configuráveis em formato editável"""
         tab = QWidget()
-        layout = QVBoxLayout(tab)
-        
-        # Grupo principal
-        group = QGroupBox("CONTROLE APLICADORA DE ADESIVO")
-        group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 14px; }")
-        group_layout = QVBoxLayout()
-        
-        # Botão de acionamento
-        trigger_btn = QPushButton("🎯 ACIONAR APLICADORA")
-        trigger_btn.setStyleSheet("QPushButton { background-color: #FF5722; color: white; padding: 15px; font-weight: bold; font-size: 16px; }")
-        trigger_btn.clicked.connect(self.trigger_adhesive_applicator)
-        group_layout.addWidget(trigger_btn)
-        
-        # Status
-        self.adhesive_status_label = QLabel("Status: Inativo")
-        self.adhesive_status_label.setStyleSheet("QLabel { background-color: gray; color: white; padding: 10px; font-weight: bold; }")
-        group_layout.addWidget(self.adhesive_status_label)
-        
-        group.setLayout(group_layout)
-        layout.addWidget(group)
-        layout.addStretch()
-        
+        vbox = QVBoxLayout(tab)
+
+        # Scroll para caber em qualquer resolução
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll_content = QWidget()
+        grid = QGridLayout(scroll_content)
+
+        # Cria um spinBox 32 bits para cada registrador listado em self.configurable_registers
+        for row, (reg_key, desc) in enumerate(self.configurable_registers):
+            addr = self.addresses.get(reg_key)
+            if addr is None:
+                continue       # pula se endereço ainda não mapeado
+
+            # Coluna 0 – label descritivo
+            grid.addWidget(QLabel(f"{reg_key} ({desc})"), row, 0)
+
+            # Coluna 1 – spinBox (-2 147 483 648 a 2 147 483 647)
+            spin = QSpinBox()
+            spin.setRange(-2_147_483_648, 2_147_483_647)
+            spin.setObjectName(f"cfg_spin_{reg_key}")
+            grid.addWidget(spin, row, 1)
+
+            # Coluna 2 – botão “Gravar”
+            btn = QPushButton("Gravar")
+            btn.clicked.connect(lambda _=False, rk=reg_key: self.write_single_config(rk))
+            grid.addWidget(btn, row, 2)
+
+        scroll_content.setLayout(grid)
+        scroll.setWidget(scroll_content)
+        vbox.addWidget(scroll)
+
+        # Botões globais
+        h = QHBoxLayout()
+        ler_btn  = QPushButton("Ler Todos")
+        gravar_btn = QPushButton("Gravar Todos")
+        ler_btn.clicked.connect(self.read_all_config)
+        gravar_btn.clicked.connect(self.write_all_config)
+        h.addStretch()
+        h.addWidget(ler_btn)
+        h.addWidget(gravar_btn)
+        vbox.addLayout(h)
+
+        # Leitura inicial automática quando a aba é criada
+        QTimer.singleShot(200, self.read_all_config)
         return tab
+
+    # ------------------------------------------------------------------ 
+    # Funções auxiliares da aba de configuração
+    # ------------------------------------------------------------------
+    def read_all_config(self):
+        """Lê todos os registradores configuráveis e atualiza os spinBoxes"""
+        if not self.connected:
+            return
+        for reg_key, _ in self.configurable_registers:
+            addr = self.addresses.get(reg_key)
+            if addr is None:
+                continue
+            try:
+                value = self.read_dword(addr)
+                spin: QSpinBox = self.findChild(QSpinBox, f"cfg_spin_{reg_key}")
+                if spin:
+                    spin.blockSignals(True)
+                    spin.setValue(value)
+                    spin.blockSignals(False)
+            except Exception:
+                continue
+        self.log("‚úÖ Configuração – leitura concluída")
+
+    def write_single_config(self, reg_key):
+        """Grava somente o registrador indicado"""
+        if not self.connected:
+            self.log("‚ùå CLP não conectado")
+            return
+        addr = self.addresses.get(reg_key)
+        if addr is None:
+            return
+        spin: QSpinBox = self.findChild(QSpinBox, f"cfg_spin_{reg_key}")
+        if spin is None:
+            return
+        value = spin.value()
+        try:
+            res = self.write_dword(addr, value)
+            if not res.isError():
+                self.log(f"‚úÖ {reg_key} gravado: {value}")
+            else:
+                self.log(f"‚ùå Falha ao gravar {reg_key}")
+        except Exception as e:
+            self.log(f"‚ùå Erro ao gravar {reg_key}: {e}")
+
+    def write_all_config(self):
+        """Grava TODOS os registradores configuráveis"""
+        for reg_key, _ in self.configurable_registers:
+            self.write_single_config(reg_key)
+        self.log("‚úÖ Configuração – gravação concluída")
+        
+    
         
     def create_axis_control(self, title, axis_name):
         """Cria controle para um eixo - CORRIGIDO para valores absolutos"""
@@ -304,20 +468,18 @@ class MultiAxisMotorController(QMainWindow):
         # Mapeamento de endereços corrigido
         addr_map = {
             'Y2': (f'D100_{axis_name}', f'D20000_{axis_name}'),  # Entrada usuário, Velocidade
+            'Y1': (f'D600_{axis_name}', f'D20500_{axis_name}'),  # Entrada usuário, Velocidade
             'Z':  (f'D1600_{axis_name}', f'D21500_{axis_name}'), # Entrada usuário, Velocidade  
             'X':  (f'D1100_{axis_name}', f'D21000_{axis_name}')  # Entrada usuário, Velocidade
         }
         pulsos_addr, vel_addr = addr_map[axis_name]
         
-        # Configurações comuns para todos os eixos (agora todos usam posição absoluta)
-        pulsos_label = f"{pulsos_addr} - Posição Absoluta:"
-        pulsos_tooltip = "Coordenada absoluta de destino"
-        vel_label = f"{vel_addr} - Velocidade:"
-        vel_tooltip = "Velocidade de deslocamento"
-        default_pulsos = 0
-        default_vel = 2000
+        # Apenas posição absoluta (velocidade passou para aba de configuração)
+        pulsos_label    = f"{pulsos_addr} - Posição Absoluta:"
+        pulsos_tooltip  = "Coordenada absoluta de destino"
+        default_pulsos  = 0
             
-        # Pulsos 32-bits (aceita valores negativos)
+        # Posição absoluta – 32 bits (aceita valores negativos)
         params_layout.addWidget(QLabel(pulsos_label), 0, 0)
         pulsos_spin = QSpinBox()
         pulsos_spin.setRange(-2_000_000_000, 2_000_000_000)
@@ -326,33 +488,28 @@ class MultiAxisMotorController(QMainWindow):
         params_layout.addWidget(pulsos_spin, 0, 1)
         setattr(self, f'pulsos_spin_{axis_name}', pulsos_spin)
         
-        # Velocidade
-        params_layout.addWidget(QLabel(vel_label), 1, 0)
-        vel_spin = QSpinBox()
-        vel_spin.setRange(100, 2_000_000_000)
-        vel_spin.setValue(default_vel)
-        vel_spin.setToolTip(vel_tooltip)
-        params_layout.addWidget(vel_spin, 1, 1)
-        setattr(self, f'vel_spin_{axis_name}', vel_spin)
+        # Display da posição atual
+        sr_addr_map = {'Y2': 'D3100_Y2', 'Y1': 'D3400_Y1', 'Z': 'D3200_Z', 'X': 'D3000_X'}
 
-        # Display da posição atual para todos os eixos
-        sr_addr_map = {'Y2': 'D3100_Y2', 'Z': 'D3200_Z', 'X': 'D3000_X'}
-        params_layout.addWidget(QLabel(f"{sr_addr_map[axis_name]} - Posição Atual:"), 2, 0)
+        params_layout.addWidget(QLabel(f"{sr_addr_map[axis_name]} - Posição Atual:"), 1, 0)
         current_pos_label = QLabel("0")
         current_pos_label.setStyleSheet("QLabel { background-color: lightblue; padding: 2px; font-weight: bold; max-height: 20px; }")
-        params_layout.addWidget(current_pos_label, 2, 1)
+        params_layout.addWidget(current_pos_label, 1, 1)
+
         setattr(self, f'current_pos_label_{axis_name}', current_pos_label)
 
         # Indicador LED de HOMING REALIZADO
-        params_layout.addWidget(QLabel("Status Homing:"), 3, 0)
+        params_layout.addWidget(QLabel("Status Homing:"), 2, 0)
         homing_led = QLabel("●")
         homing_led.setStyleSheet("QLabel { background-color: gray; color: gray; padding: 2px; font-size: 16px; font-weight: bold; max-height: 20px; border-radius: 10px; }")
         homing_led.setAlignment(Qt.AlignmentFlag.AlignCenter)
         homing_led.setToolTip("Cinza: Homing não realizado | Verde: Homing realizado")
-        params_layout.addWidget(homing_led, 3, 1)
+        params_layout.addWidget(homing_led, 2, 1)
         setattr(self, f'homing_led_{axis_name}', homing_led)
         
         layout.addWidget(params_frame)
+
+        
         
         # Botões de escrita
         write_btn = QPushButton("Escrever Parâmetros")
@@ -369,60 +526,26 @@ class MultiAxisMotorController(QMainWindow):
         move_abs_btn.clicked.connect(lambda: self.move_axis_absolute(axis_name))
         move_layout.addWidget(move_abs_btn, 0, 0, 1, 2)
         
-        # Botão HOME
-        home_btn = QPushButton("🏠 HOME (Zerar Posição)")
-        home_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; }")
-        home_btn.clicked.connect(lambda: self.move_axis_home(axis_name))
-        move_layout.addWidget(home_btn, 1, 0, 1, 2)
-        
-        # Movimentos relativos rápidos
-        rel_plus_btn = QPushButton("Relativo +1000")
-        rel_plus_btn.clicked.connect(lambda: self.move_relative(axis_name, 1000))
-        move_layout.addWidget(rel_plus_btn, 2, 0)
-        
-        rel_minus_btn = QPushButton("Relativo -1000")
-        rel_minus_btn.clicked.connect(lambda: self.move_relative(axis_name, -1000))
-        move_layout.addWidget(rel_minus_btn, 2, 1)
-
-        # Controles JOG específicos para EIXO X
-        if axis_name == 'X':
+        # Controles JOG para TODOS OS EIXOS (novo sistema)
+        if axis_name in ['Y2', 'Y1', 'X', 'Z']:  # Todos os eixos têm JOG agora
             # Separador visual
             separator = QFrame()
             separator.setFrameStyle(QFrame.Shape.HLine | QFrame.Shadow.Sunken)
-            move_layout.addWidget(separator, 3, 0, 1, 2)
+            move_layout.addWidget(separator, 1, 0, 1, 2)
             
             # Frame JOG
             jog_frame = QFrame()
             jog_frame.setStyleSheet("QFrame { border: 2px solid #2196F3; border-radius: 5px; background-color: #E3F2FD; }")
             jog_layout = QVBoxLayout(jog_frame)
             
-            # Título JOG
-            jog_title = QLabel("🎮 CONTROLE JOG CONTÍNUO")
-            jog_title.setStyleSheet("QLabel { font-weight: bold; font-size: 12px; color: #1976D2; padding: 3px; }")
-            jog_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            jog_layout.addWidget(jog_title)
             
-            # Configuração de velocidade JOG
-            vel_jog_layout = QHBoxLayout()
-            vel_jog_layout.addWidget(QLabel("Vel. JOG (Hz):"))
-            self.jog_velocity_spin = QSpinBox()
-            self.jog_velocity_spin.setRange(100, 50000)
-            self.jog_velocity_spin.setValue(2000)  # Valor padrão do ladder
-            self.jog_velocity_spin.setToolTip("Frequência do movimento JOG (Hz)")
-            vel_jog_layout.addWidget(self.jog_velocity_spin)
-            
-            set_vel_btn = QPushButton("📝 Aplicar")
-            set_vel_btn.setStyleSheet("QPushButton { background-color: #FF9800; color: white; font-weight: bold; }")
-            set_vel_btn.clicked.connect(self.set_jog_velocity_x)
-            vel_jog_layout.addWidget(set_vel_btn)
-            jog_layout.addLayout(vel_jog_layout)
             
             # Botões JOG com pressionar/soltar
             jog_buttons_layout = QHBoxLayout()
             
-            # Botão JOG Negativo (AGORA À ESQUERDA)
-            self.jog_minus_btn = QPushButton("🔽 JOG X-")
-            self.jog_minus_btn.setStyleSheet("""
+            # Botão JOG Negativo (à esquerda)
+            jog_minus_btn = QPushButton(f"🔽 JOG {axis_name}-")
+            jog_minus_btn.setStyleSheet("""
                 QPushButton { 
                     background-color: #FF5722; 
                     color: white; 
@@ -434,13 +557,14 @@ class MultiAxisMotorController(QMainWindow):
                     background-color: #e64a19;
                 }
             """)
-            self.jog_minus_btn.pressed.connect(lambda: self.jog_start_x('-'))
-            self.jog_minus_btn.released.connect(self.jog_stop_x)
-            jog_buttons_layout.addWidget(self.jog_minus_btn)
+            jog_minus_btn.pressed.connect(lambda: self.jog_start(axis_name, '-'))
+            jog_minus_btn.released.connect(lambda: self.jog_stop(axis_name))
+            jog_buttons_layout.addWidget(jog_minus_btn)
+            setattr(self, f'jog_minus_btn_{axis_name}', jog_minus_btn)
             
-            # Botão JOG Positivo (AGORA À DIREITA)
-            self.jog_plus_btn = QPushButton("🔼 JOG X+")
-            self.jog_plus_btn.setStyleSheet("""
+            # Botão JOG Positivo (à direita)
+            jog_plus_btn = QPushButton(f"🔼 JOG {axis_name}+")
+            jog_plus_btn.setStyleSheet("""
                 QPushButton { 
                     background-color: #4CAF50; 
                     color: white; 
@@ -452,49 +576,47 @@ class MultiAxisMotorController(QMainWindow):
                     background-color: #45a049;
                 }
             """)
-            self.jog_plus_btn.pressed.connect(lambda: self.jog_start_x('+'))
-            self.jog_plus_btn.released.connect(self.jog_stop_x)
-            jog_buttons_layout.addWidget(self.jog_plus_btn)
+            jog_plus_btn.pressed.connect(lambda: self.jog_start(axis_name, '+'))
+            jog_plus_btn.released.connect(lambda: self.jog_stop(axis_name))
+            jog_buttons_layout.addWidget(jog_plus_btn)
+            setattr(self, f'jog_plus_btn_{axis_name}', jog_plus_btn)
             
             jog_layout.addLayout(jog_buttons_layout)
+        
+        
             
-            # Status JOG
-            self.jog_status_label = QLabel("Status: Inativo")
-            self.jog_status_label.setStyleSheet("QLabel { background-color: gray; color: white; padding: 5px; font-weight: bold; border-radius: 3px; }")
-            self.jog_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            jog_layout.addWidget(self.jog_status_label)
-            
-            # Indicador de segurança
-            self.safety_indicator = QLabel("🛡️ Segurança: OK")
-            self.safety_indicator.setStyleSheet("QLabel { background-color: green; color: white; padding: 3px; font-size: 10px; border-radius: 3px; }")
-            self.safety_indicator.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            jog_layout.addWidget(self.safety_indicator)
-
-            # NOVO: Checkbox para habilitar controle via teclado
-            keyboard_frame = QFrame()
-            keyboard_frame.setStyleSheet("QFrame { border: 1px solid #FF9800; border-radius: 3px; background-color: #FFF3E0; }")
-            keyboard_layout = QHBoxLayout(keyboard_frame)
-            keyboard_layout.setContentsMargins(5, 5, 5, 5)
-            
-            self.keyboard_jog_checkbox = QCheckBox("⌨️ Controle via teclado")
-            self.keyboard_jog_checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #E65100; }")
-            self.keyboard_jog_checkbox.setToolTip("Habilita uso das setas ← → para JOG do eixo X")
-            self.keyboard_jog_checkbox.stateChanged.connect(self.on_keyboard_jog_toggle)
-            keyboard_layout.addWidget(self.keyboard_jog_checkbox)
-            
-            # Label informativo
-            keyboard_info = QLabel("(← eixo X-  |  → eixo X+)")
-            keyboard_info.setStyleSheet("QLabel { color: #BF360C; font-size: 10px; font-style: italic; }")
-            keyboard_layout.addWidget(keyboard_info)
-            
-            jog_layout.addWidget(keyboard_frame)
-            
-            move_layout.addWidget(jog_frame, 4, 0, 1, 2)
+        move_layout.addWidget(jog_frame, 2, 0, 1, 2)
         
         layout.addWidget(move_frame)
         
         group.setLayout(layout)
         return group
+    
+    def create_keyboard_control_frame(self):
+        """Cria frame de controle global via teclado"""
+        keyboard_frame = QFrame()
+        keyboard_frame.setStyleSheet("QFrame { border: 2px solid #FF9800; border-radius: 5px; background-color: #FFF3E0; }")
+        keyboard_layout = QVBoxLayout(keyboard_frame)
+        
+        # Título
+        title = QLabel("🎮 CONTROLE VIA TECLADO")
+        title.setStyleSheet("QLabel { font-weight: bold; font-size: 14px; color: #E65100; }")
+        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        keyboard_layout.addWidget(title)
+        
+        # Checkbox global
+        self.keyboard_jog_checkbox = QCheckBox("⌨️ Habilitar controle via teclado")
+        self.keyboard_jog_checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #E65100; }")
+        self.keyboard_jog_checkbox.stateChanged.connect(self.on_keyboard_jog_toggle)
+        keyboard_layout.addWidget(self.keyboard_jog_checkbox)
+        
+        # Mapeamento de teclas
+        mapping_info = QLabel("X: ← →  |  Y2: ↑ ↓  |  Y1: W S  |  Z: Q E")
+        mapping_info.setStyleSheet("QLabel { color: #BF360C; font-size: 12px; font-style: italic; background-color: white; padding: 5px; border-radius: 3px; }")
+        mapping_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        keyboard_layout.addWidget(mapping_info)
+        
+        return keyboard_frame
         
     def create_auxiliary_controls(self):
         """Cria controles auxiliares - Y0.10 CORRIGIDO"""
@@ -515,45 +637,156 @@ class MultiAxisMotorController(QMainWindow):
         info_label.setStyleSheet("QLabel { color: gray; font-size: 9px; }")
         layout.addWidget(info_label)
         
-        # M100 auxiliar
-        m100_btn = QPushButton("M100 - Auxiliar")
-        m100_btn.clicked.connect(self.pulse_m100)
-        layout.addWidget(m100_btn)
+        
         
         # Parada de emergência
         stop_btn = QPushButton("PARADA DE EMERGÊNCIA")
         stop_btn.setStyleSheet("QPushButton { background-color: red; color: white; padding: 15px; font-weight: bold; }")
         stop_btn.clicked.connect(self.emergency_stop)
         layout.addWidget(stop_btn)
+
+        # -------------------------------------------------
+        # BOTÃO ÚNICO – HOMING GERAL (Z sobe 3 s → Y2,Y1,X)
+        # -------------------------------------------------
+        homing_all_btn = QPushButton("üè† HOMING GERAL")
+        homing_all_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; "
+                                     "padding: 15px; font-weight: bold; }")
+        homing_all_btn.clicked.connect(self.home_all_axes)
+        layout.addWidget(homing_all_btn)
+
+        
+
+        
+
+        # -------- PAINEL JOG MANUAL -------------
+        jog_panel = self.create_manual_jog_controls()
+        layout.addWidget(jog_panel)
+
+        # Adiciona controle global via teclado
+        keyboard_control = self.create_keyboard_control_frame()
+        layout.addWidget(keyboard_control)
         
         group.setLayout(layout)
         return group
-    
-    def trigger_adhesive_applicator(self):
-        """Aciona a aplicadora de adesivo"""
+
+    # ===================================================================
+    #               SEQUÊNCIA DE HOMING GERAL  (Z → (Y2,Y1,X))
+    # ===================================================================
+
+    def home_all_axes(self):
+        """
+        1) Aciona homing do eixo Z (M1850) e aguarda 3 s.
+        2) Depois aciona simultaneamente os homings de Y2 (M350), Y1 (M850) e X (M1350).
+        Todos os coils são soltos 200 ms após o disparo (pulso momentâneo).
+        """
         if not self.connected:
-            self.log("❌ CLP não conectado")
+            self.log(" CLP não conectado")
             return
-            
+
+        # Etapa 1 – homing apenas do Z
+        self.log(" HOMING GERAL: acionando homing do eixo Z (M1850)…")
+        self._pulse_coil('M1850')
+
+        # Agenda etapa 2 para daqui a 3 s
+        QTimer.singleShot(3000, self._home_remaining_axes)
+
+    def _home_remaining_axes(self):
+        """Dispara homing de Y2, Y1 e X em paralelo e solta todos os coils."""
         try:
-            self.log("🎯 Acionando aplicadora de adesivo...")
-            result = self.client.write_coil(self.addresses['M5000'], True)
-            if not result.isError():
-                self.adhesive_status_label.setText("Status: ATIVO")
-                self.adhesive_status_label.setStyleSheet("QLabel { background-color: orange; color: white; padding: 10px; font-weight: bold; }")
-                QTimer.singleShot(200, self.reset_adhesive_trigger)
-                self.log("✅ Aplicadora acionada")
+            self.log(" Acionando homing simultâneo de Y2, Y1 e X…")
+            for mem in ['M350', 'M850', 'M1350']:
+                self._pulse_coil(mem)
+
         except Exception as e:
-            self.log(f"❌ Erro ao acionar aplicadora: {e}")
-            
-    def reset_adhesive_trigger(self):
-        """Reseta trigger da aplicadora"""
+            self.log(f" Erro na etapa 2 do homing geral: {e}")
+
+    # ---------------------------------------------------------
+    # Helper interno – envia pulso de 200 ms em uma memória M
+    # ---------------------------------------------------------
+    def _pulse_coil(self, mem_key):
+        """Liga o coil por 200 ms e depois desliga (edge-trigger)."""
         try:
-            self.client.write_coil(self.addresses['M5000'], False)
-            self.adhesive_status_label.setText("Status: Inativo")
-            self.adhesive_status_label.setStyleSheet("QLabel { background-color: gray; color: white; padding: 10px; font-weight: bold; }")
+            addr = self.addresses[mem_key]
+            self.client.write_coil(addr, True)
+            QTimer.singleShot(200, lambda a=addr: self.client.write_coil(a, False))
+            self.log(f" Pulso {mem_key} enviado")
         except Exception as e:
-            self.log(f"❌ Erro ao resetar aplicadora: {e}")
+            self.log(f" Falha ao pulsar {mem_key}: {e}")
+    
+    # ------------------------------------------------------------------
+    #                NOVO: painel de JOG manual embutido
+    # ------------------------------------------------------------------
+    def create_manual_jog_controls(self):
+        """Retorna um pequeno painel de JOG manual (passo + botões)."""
+        group = QGroupBox("JOG MANUAL")
+        group.setStyleSheet("QGroupBox { font-weight:bold; font-size:12px; }")
+        vbox = QVBoxLayout(group)
+
+        # passo
+        step_frame = QHBoxLayout()
+        step_frame.addWidget(QLabel("Passo (pulsos):"))
+        self.jog_step_spin = QSpinBox()
+        self.jog_step_spin.setRange(1, 100_000)
+        self.jog_step_spin.setValue(500)
+        step_frame.addWidget(self.jog_step_spin)
+        step_frame.addStretch()
+        vbox.addLayout(step_frame)
+
+        # ------------------ GRADE DE BOTÕES ------------------
+        grid = QGridLayout()
+        grid.setHorizontalSpacing(10)
+        grid.setVerticalSpacing(8)
+
+        # ---- Y1 (esquerda) | Y2 (direita) ----
+        y1_plus  = QPushButton("Y1 +")
+        y1_minus = QPushButton("Y1 –")
+        y2_plus  = QPushButton("Y2 +")
+        y2_minus = QPushButton("Y2 –")
+
+        y1_plus.clicked.connect( lambda: self.jog_move('Y1', 'forward'))
+        y1_minus.clicked.connect(lambda: self.jog_move('Y1', 'reverse'))
+        y2_plus.clicked.connect( lambda: self.jog_move('Y2', 'forward'))
+        y2_minus.clicked.connect(lambda: self.jog_move('Y2', 'reverse'))
+
+        for b in (y1_plus, y1_minus, y2_plus, y2_minus):
+            b.setMinimumSize(70, 38)
+            b.setStyleSheet("QPushButton { font-weight:bold; }")
+
+        # '+' em cima, '–' em baixo
+        grid.addWidget(y1_plus,  0, 0)
+        grid.addWidget(y2_plus,  0, 1)
+        grid.addWidget(y1_minus, 1, 0)
+        grid.addWidget(y2_minus, 1, 1)
+
+        # ---- X (lado-a-lado) ----
+        x_minus = QPushButton("X –")
+        x_plus  = QPushButton("X +")
+        x_minus.clicked.connect(lambda: self.jog_move('X', 'reverse'))
+        x_plus.clicked.connect( lambda: self.jog_move('X', 'forward'))
+
+        for b in (x_minus, x_plus):
+            b.setMinimumSize(70, 38)
+            b.setStyleSheet("QPushButton { font-weight:bold; }")
+
+        grid.addWidget(x_minus, 2, 0)
+        grid.addWidget(x_plus,  2, 1)
+
+        # ---- Z (vertical) ----
+        z_plus_btn  = QPushButton("Z +")
+        z_minus_btn = QPushButton("Z –")
+        z_plus_btn.clicked.connect( lambda: self.jog_move('Z', 'forward'))
+        z_minus_btn.clicked.connect(lambda: self.jog_move('Z', 'reverse'))
+
+        for b in (z_plus_btn, z_minus_btn):
+            b.setMinimumSize(70, 38)
+            b.setStyleSheet("QPushButton { font-weight:bold; }")
+
+        start_row = 3
+        grid.addWidget(z_plus_btn,  start_row,     0, 1, 2)  # ocupa duas colunas
+        grid.addWidget(z_minus_btn, start_row + 1, 0, 1, 2)
+
+        vbox.addLayout(grid)
+        return group
         
     def create_outputs_status(self):
         """Cria status das saídas"""
@@ -561,13 +794,13 @@ class MultiAxisMotorController(QMainWindow):
         layout = QGridLayout()
         
         outputs = [
-            ('Y0.0', 'Pulso Eixo 1'),
-            ('Y0.1', 'Dir Eixo 1'),
-            ('Y0.2', 'Pulso Eixo 2'), 
-            ('Y0.3', 'Dir Eixo 2'),
-            ('Y0.6', 'Pulso Eixo 4'),
-            ('Y0.7', 'Dir Eixo 4'),
-            ('Y0.10', 'Aplicadora')
+            ('Y0.0',  'Pulso Eixo 1'),
+            ('Y0.1',  'Dir Eixo 1'),
+            ('Y0.2',  'Pulso Eixo 2'), 
+            ('Y0.3',  'Dir Eixo 2'),
+            ('Y0.6',  'Pulso Eixo 4'),
+            ('Y0.7',  'Dir Eixo 4'),
+            ('Y0.10', 'Y0.10 (SHOT)')
         ]
         
         for i, (name, desc) in enumerate(outputs):
@@ -587,9 +820,10 @@ class MultiAxisMotorController(QMainWindow):
         group = QGroupBox("STATUS DAS MEMÓRIAS")
         layout = QGridLayout()
         
-        memories = ['M0_Y2', 'M50_Y2', 'M100_Y2', 'M1500_Z', 'M1550_Z', 'M1600_Z', 'M1000_X', 
-                    'M1050_X', 'M1100_X', 'M5000', 'M350', 'M1350', 'M1850', 'M300', 'M1300', 
-                    'M1800', 'M1070', 'M1080', 'M1010', 'M1011']
+        memories = ['M0_Y2', 'M50_Y2', 'M100_Y2', 'M500_Y1', 'M550_Y1', 'M600_Y1',
+                    'M1500_Z', 'M1550_Z', 'M1600_Z', 'M1000_X', 'M1050_X', 'M1100_X', 
+                    'M5000', 'M350', 'M850', 'M1350', 'M1850', 'M300', 'M800', 'M1300', 'M1800',
+                    'M70_Y2', 'M570_Y1', 'M1070_X', 'M1570_Z']
         
         for i, mem in enumerate(memories):
             layout.addWidget(QLabel(f"{mem}:"), i//4, (i%4)*2)
@@ -608,10 +842,14 @@ class MultiAxisMotorController(QMainWindow):
         
         registers = [
             'D0_Y2', 'D100_Y2', 'D20000_Y2',      # Y2 (entrada usuário)
+            'D500_Y1', 'D600_Y1', 'D20500_Y1',    # Y1 (entrada usuário)
             'D1500_Z', 'D1600_Z', 'D21500_Z',     # Z (entrada usuário)
             'D1000_X', 'D1100_X', 'D21000_X',     # X (entrada usuário)
-            'D3100_Y2', 'D3200_Z', 'D3000_X',     # Posições atuais (cópias dos SR)
-            'D1470', 'D4000', 'D1476', 'D1490'    # Parâmetros JOG X
+            'D3100_Y2', 'D3400_Y1', 'D3200_Z', 'D3000_X',  # Posições atuais - CORRIGIDO
+            'D22000', 'D22010', 'D22020', 'D22030',         # Velocidades JOG
+            'D23000', 'D23010', 'D23020', 'D23030',         # Velocidades Homing ROM
+            'D23050', 'D23060', 'D23070', 'D23080',         # Limites Negativos ROM
+            'D23090', 'D23100', 'D23110', 'D23120'          # Limites Positivos ROM
         ]
 
         for i, reg in enumerate(registers):
@@ -636,7 +874,6 @@ class MultiAxisMotorController(QMainWindow):
                 self.status_label.setStyleSheet("QLabel { background-color: green; color: white; padding: 10px; font-weight: bold; }")
                 self.log("✅ Conectado com sucesso!")
                 self.log("🔧 Endereços corrigidos conforme ladder real")
-                self.log("🔧 Aplicadora de adesivo integrada")
             else:
                 self.connected = False
                 self.log("❌ Falha na conexão")
@@ -656,6 +893,7 @@ class MultiAxisMotorController(QMainWindow):
             # Mapeamento dos registradores de velocidade
             velocity_map = {
                 'Y2': ('D20000_Y2', 'vel_spin_Y2'),
+                'Y1': ('D20500_Y1', 'vel_spin_Y1'),
                 'Z':  ('D21500_Z', 'vel_spin_Z'),
                 'X':  ('D21000_X', 'vel_spin_X')
             }
@@ -681,31 +919,312 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro geral na leitura das velocidades: {e}")
     
-    def read_initial_jog_velocity(self):
-        """Lê velocidade JOG atual dos registradores D4000 e D1476"""
+    def read_initial_jog_velocities(self):
+        """Lê velocidades JOG atuais dos registradores D22000 série"""
         if not self.connected:
             return
             
         try:
-            self.log("📖 Lendo velocidade JOG atual...")
+            self.log("📖 Lendo velocidades JOG atuais...")
             
-            # Lê velocidade positiva do D4000
-            jog_velocity_positive = self.read_dword(self.addresses['D4000'])
+            # Mapeamento dos registradores JOG
+            jog_velocity_map = {
+                'Y2': ('D22000', 'jog_velocity_spin_Y2'),
+                'Y1': ('D22010', 'jog_velocity_spin_Y1'),
+                'X':  ('D22020', 'jog_velocity_spin_X'),
+                'Z':  ('D22030', 'jog_velocity_spin_Z')
+            }
             
-            # Lê velocidade negativa do D1476 (deve ser negativa)
-            jog_velocity_negative = self.read_dword(self.addresses['D1476'])
+            for axis, (reg_key, spin_attr) in jog_velocity_map.items():
+                try:
+                    jog_velocity = self.read_dword(self.addresses[reg_key])
             
-            # Usa o valor absoluto da velocidade positiva para atualizar interface
-            if hasattr(self, 'jog_velocity_spin'):
-                current_velocity = abs(jog_velocity_positive)
-                self.jog_velocity_spin.setValue(current_velocity)
-                self.log(f"✅ Velocidade JOG atual: {current_velocity} Hz (D4000={jog_velocity_positive}, D1476={jog_velocity_negative})")
+            # Atualiza interface se spinbox existir
+                    if hasattr(self, spin_attr):
+                        jog_spin = getattr(self, spin_attr)
+                        jog_spin.setValue(abs(jog_velocity))
+                        self.log(f"✅ Velocidade JOG {axis}: {abs(jog_velocity)} Hz")
+                
+                except Exception as e:
+                    self.log(f"⚠️ Erro ao ler velocidade JOG {axis}: {e}")
+                    continue
+        except Exception as e:
+            self.log(f"❌ Erro geral na leitura das velocidades JOG: {e}")
+    
+    def read_initial_homing_velocities(self):
+        """Lê velocidades de homing da ROM"""
+        if not self.connected:
+            return
+            
+        try:
+            self.log("📖 Lendo velocidades de homing da ROM...")
+            
+            homing_vel_map = {
+                'Y2': ('D23000', 'homing_vel_spin_Y2'),
+                'Y1': ('D23010', 'homing_vel_spin_Y1'),
+                'X':  ('D23020', 'homing_vel_spin_X'),
+                'Z':  ('D23030', 'homing_vel_spin_Z')
+            }
+            
+            for axis, (reg_key, spin_attr) in homing_vel_map.items():
+                try:
+                    homing_velocity = self.read_dword(self.addresses[reg_key])
+                    
+                    if hasattr(self, spin_attr):
+                        homing_spin = getattr(self, spin_attr)
+                        homing_spin.setValue(abs(homing_velocity))
+                        self.log(f"✅ Velocidade Homing {axis}: {abs(homing_velocity)} Hz")
+                
+                except Exception as e:
+                    self.log(f"⚠️ Erro ao ler velocidade Homing {axis}: {e}")
+                    continue
+                    
+        except Exception as e:
+            self.log(f"❌ Erro geral na leitura das velocidades Homing: {e}")
+            
+    def read_initial_limits(self):
+        """Lê limites salvos na ROM"""
+        if not self.connected:
+            return
+            
+        try:
+            self.log("📖 Lendo limites da ROM...")
+            
+            limits_map = {
+                'Y2': ('D23050', 'D23090'),  # Negativo, Positivo
+                'Y1': ('D23060', 'D23100'),  # Negativo, Positivo
+                'X':  ('D23070', 'D23110'),  # Negativo, Positivo
+                'Z':  ('D23080', 'D23120')   # Negativo, Positivo
+            }
+            
+            for axis, (neg_reg, pos_reg) in limits_map.items():
+                try:
+                    neg_limit = self.read_dword(self.addresses[neg_reg])
+                    pos_limit = self.read_dword(self.addresses[pos_reg])
+                    self.log(f"📊 Limites {axis}: {neg_limit} a {pos_limit}")
+                
+                except Exception as e:
+                    self.log(f"⚠️ Erro ao ler limites {axis}: {e}")
+                    continue
+                    
+        except Exception as e:
+            self.log(f"❌ Erro geral na leitura dos limites: {e}")
+            
+    def set_homing_velocity(self, axis_name):
+        """Define velocidade de homing na ROM"""
+        if not self.connected:
+            self.log("❌ CLP não conectado")
+            return
+            
+        try:
+            homing_spin = getattr(self, f'homing_vel_spin_{axis_name}')
+            velocity = homing_spin.value()
+            
+            # Mapeamento dos registradores de homing
+            homing_addr_map = {
+                'Y2': ('D23000', 'D450'),    # ROM, Aplicado
+                'Y1': ('D23010', 'D950'),    # ROM, Aplicado
+                'X':  ('D23020', 'D1450'),   # ROM, Aplicado
+                'Z':  ('D23030', 'D1950')    # ROM, Aplicado
+            }
+            
+            rom_addr_key, app_addr_key = homing_addr_map[axis_name]
+            
+            # Escreve na ROM e no registrador aplicado
+            result1 = self.write_dword(self.addresses[rom_addr_key], velocity)
+            result2 = self.write_dword(self.addresses[app_addr_key], velocity)
+            
+            if not result1.isError() and not result2.isError():
+                self.log(f"✅ Velocidade Homing {axis_name} salva: {velocity} Hz")
             else:
-                self.log(f"📊 Velocidade JOG atual: D4000={jog_velocity_positive}, D1476={jog_velocity_negative}")
+                self.log(f"❌ Erro ao salvar velocidade Homing {axis_name}")
                 
         except Exception as e:
-            self.log(f"⚠️ Erro ao ler velocidade JOG atual: {e}")
-            # Mantém valor padrão se der erro
+            self.log(f"❌ Erro ao configurar velocidade Homing {axis_name}: {e}")
+
+    def read_initial_homing_status(self):
+        """Lê status inicial das memórias de homing na inicialização"""
+        if not self.connected:
+            return
+            
+        try:
+            self.log("📖 Lendo status inicial das memórias de homing...")
+            
+            homing_memories = {
+                'M300': 'Y2',
+                'M800': 'Y1', 
+                'M1300': 'X',
+                'M1800': 'Z'
+            }
+            
+            for mem_name, axis in homing_memories.items():
+                try:
+                    addr = self.addresses[mem_name]
+                    result = self.client.read_coils(addr, count=1)
+                    
+                    if not result.isError():
+                        state = result.bits[0]
+                        
+                        # Atualiza LED diretamente
+                        homing_led = getattr(self, f'homing_led_{axis}', None)
+                        if homing_led:
+                            self.update_homing_led(homing_led, state)
+                            
+                        # Log do status inicial
+                        status_text = "REALIZADO" if state else "NÃO REALIZADO"
+                        self.log(f"🏠 Status inicial Homing {axis}: {status_text}")
+                        
+                        # Inicializa variável de controle de mudança
+                        setattr(self, f'_last_homing_status_M{mem_name[1:]}', state)
+
+                        # FORÇA atualização do LED imediatamente
+                        homing_led = getattr(self, f'homing_led_{axis}', None)
+                        if homing_led:
+                            self.update_homing_led(homing_led, state)
+                        
+                except Exception as e:
+                    self.log(f"⚠️ Erro ao ler status inicial {mem_name}: {e}")
+                    continue
+                    
+            self.log("📖 Leitura inicial de homing concluída")
+            
+        except Exception as e:
+            self.log(f"❌ Erro geral na leitura inicial de homing: {e}")
+
+    def read_current_positions(self):
+        """Lê posições atuais dos motores (função dedicada)"""
+        if not self.connected:
+            return
+            
+        try:
+            position_registers = {
+                'D3100_Y2': 'Y2',
+                'D3400_Y1': 'Y1', 
+                'D3200_Z': 'Z',
+                'D3000_X': 'X'
+            }
+            
+            for reg_name, axis in position_registers.items():
+                try:
+                    addr = self.addresses[reg_name]
+                    value = self.read_dword(addr)
+                    
+                    # Atualiza posição e interface
+                    self.current_positions[axis] = value
+                    label = getattr(self, f'current_pos_label_{axis}', None)
+                    if label:
+                        label.setText(str(value))
+                        
+                except Exception as e:
+                    # Falha silenciosa para não poluir logs
+                    continue
+                    
+        except Exception as e:
+            # Falha silenciosa para não afetar outras operações
+            pass
+    
+    def monitor_homing_status(self):
+        """Função dedicada APENAS para monitorar status de homing em tempo real"""
+        if not self.connected:
+            return
+            
+        try:
+            homing_memories = {
+                'M300': 'Y2',
+                'M800': 'Y1', 
+                'M1300': 'X',
+                'M1800': 'Z'
+            }
+            
+            for mem_name, axis in homing_memories.items():
+                try:
+                    addr = self.addresses[mem_name]
+                    result = self.client.read_coils(addr, count=1)
+                    
+                    if not result.isError():
+                        state = result.bits[0]
+                        
+                        # Atualiza LED SEMPRE (sem verificação de mudança)
+                        homing_led = getattr(self, f'homing_led_{axis}', None)
+                        if homing_led:
+                            current_led_state = "lime" in homing_led.styleSheet()
+                            
+                            # Só atualiza se estado for diferente do LED atual
+                            if (state and not current_led_state) or (not state and current_led_state):
+                                self.update_homing_led(homing_led, state)
+                                self.log(f"🔄 LED Homing {axis} atualizado: {'VERDE' if state else 'CINZA'}")
+                        
+                except Exception as e:
+                    # Silencioso para não poluir
+                    continue
+                    
+        except Exception as e:
+            # Silencioso
+            pass
+    
+    def test_homing_status(self):
+        """Função de teste específica para verificar status das memórias de homing"""
+        if not self.connected:
+            return
+            
+        self.log("🔧 Testando status das memórias de homing...")
+        
+        homing_memories = {
+            'M300': 'Y2',
+            'M800': 'Y1', 
+            'M1300': 'X',
+            'M1800': 'Z'
+        }
+        
+        for mem_name, axis in homing_memories.items():
+            try:
+                addr = self.addresses[mem_name]
+                result = self.client.read_coils(addr, count=1)
+                
+                if not result.isError():
+                    state = result.bits[0]
+                    status_text = "REALIZADO" if state else "NÃO REALIZADO"
+                    self.log(f"🏠 Homing {axis} ({mem_name}): {status_text}")
+                    
+                    # Força atualização do LED
+                    homing_led = getattr(self, f'homing_led_{axis}', None)
+                    if homing_led:
+                        self.update_homing_led(homing_led, state)
+                        self.log(f"💡 LED {axis} forçado para: {'VERDE' if state else 'CINZA'}")
+                else:
+                    self.log(f"❌ Erro ao ler {mem_name}: {result}")
+
+                # Força uma atualização completa dos LEDs após o teste
+                QTimer.singleShot(100, self.force_homing_leds_update)
+
+                # Também força verificação dedicada
+                QTimer.singleShot(200, self.force_homing_status_check)
+                                
+            except Exception as e:
+                self.log(f"❌ Erro ao testar {mem_name}: {e}")
+
+    def force_homing_leds_update(self):
+        """Força atualização imediata de todos os LEDs de homing"""
+        try:
+            # Reset das variáveis de controle para forçar atualização
+            for axis in ['Y2', 'Y1', 'X', 'Z']:
+                if hasattr(self, f'_last_led_status_{axis}'):
+                    delattr(self, f'_last_led_status_{axis}')
+                if hasattr(self, f'_last_homing_status_M{axis}'):
+                    delattr(self, f'_last_homing_status_M{axis}')
+                    
+            self.log("🔄 Forçando atualização completa dos LEDs...")
+
+            # Força leitura imediata
+            QTimer.singleShot(50, self.monitor_homing_status)
+            
+        except Exception as e:
+            self.log(f"❌ Erro ao forçar atualização: {e}")
+        
+    def force_update_homing_leds(self):
+        """Força atualização de todos os LEDs de homing"""
+        self.log("🔄 Forçando atualização dos LEDs de homing...")
+        self.test_homing_status()
             
     # ------------- helpers de 32 bits -----------------
     def write_dword(self, address, value):
@@ -741,14 +1260,13 @@ class MultiAxisMotorController(QMainWindow):
             
         try:
             # Obtém valores da interface
-            p_spin = getattr(self, f'pulsos_spin_{axis_name}')
-            v_spin = getattr(self, f'vel_spin_{axis_name}')
+            p_spin       = getattr(self, f'pulsos_spin_{axis_name}')
             pulsos_value = p_spin.value()
-            vel_value = v_spin.value()
             
             # Mapeamento de endereços
             addr_map = {
                 'Y2': (f'D100_{axis_name}', f'D20000_{axis_name}'),
+                'Y1': (f'D600_{axis_name}', f'D20500_{axis_name}'),
                 'Z':  (f'D1600_{axis_name}', f'D21500_{axis_name}'),
                 'X':  (f'D1100_{axis_name}', f'D21000_{axis_name}')
             }
@@ -756,21 +1274,19 @@ class MultiAxisMotorController(QMainWindow):
             pulsos_addr = self.addresses[p_addr_key]
             vel_addr = self.addresses[v_addr_key]
                 
-            self.log(f"📝 Escrevendo parâmetros Eixo {axis_name}: Posição={pulsos_value}, Vel={vel_value}")
+            self.log(f"📝 Escrevendo parâmetros Eixo {axis_name}: Posição={pulsos_value}")
             
             # Escreve INT32 completo
             result1 = self.write_dword(pulsos_addr, pulsos_value)
-            result2 = self.write_dword(vel_addr, vel_value)
-            
-            if result1.isError() or result2.isError():
+
+            if result1.isError():
                 self.log(f"❌ Erro ao escrever parâmetros eixo {axis_name}")
                 return
-            
-            self.log(f"✅ Parâmetros eixo {axis_name} escritos: Pos={pulsos_value}, Vel={vel_value}")
-            
+
+            self.log(f"📝 Posição alvo do eixo {axis_name} escrita: {pulsos_value}")
+
             # Verifica se foi escrito
             self.verify_write(pulsos_addr, pulsos_value, p_addr_key)
-            self.verify_write(vel_addr, vel_value, v_addr_key)
             
         except Exception as e:
             self.log(f"❌ Erro ao escrever parâmetros eixo {axis_name}: {e}")
@@ -799,6 +1315,7 @@ class MultiAxisMotorController(QMainWindow):
             # Comando de movimento
             cmd_map = {
                 'Y2': f'M50_{axis_name}',   # INICIA MOVIMENTO ABSOLUTO
+                'Y1': f'M550_{axis_name}',  # INICIA MOVIMENTO ABSOLUTO
                 'Z':  f'M1550_{axis_name}', # INICIA MOVIMENTO ABSOLUTO
                 'X':  f'M1050_{axis_name}'  # INICIA MOVIMENTO ABSOLUTO
             }
@@ -828,6 +1345,7 @@ class MultiAxisMotorController(QMainWindow):
             # Comando de busca pelo HOME - endereços corrigidos conforme planilha
             cmd_map = {
                 'Y2': 'M350',    # GO TO HOME Y2
+                'Y1': 'M850',    # GO TO HOME Y1
                 'Z':  'M1850',   # GO TO HOME Z
                 'X':  'M1350'    # GO TO HOME X
             }
@@ -860,119 +1378,172 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro movimento relativo {axis_name}: {e}")
 
-    # ===================================================================
-    #                    SISTEMA JOG EIXO X
-    # ===================================================================
+# SISTEMA JOG TODOS OS EIXOS
     
-    def set_jog_velocity_x(self):
-        """Define velocidade do JOG no eixo X conforme ladder implementado"""
+    def set_jog_velocity(self, axis_name):
+        """Define velocidade do JOG para qualquer eixo"""
         if not self.connected:
             self.log("❌ CLP não conectado")
             return
             
         try:
-            velocity = self.jog_velocity_spin.value()
+            # Obtém velocidade: se spinbox existir usa-o; caso contrário
+            # lê o valor já programado no CLP (mantém UI enxuta).
+            if hasattr(self, f'jog_velocity_spin_{axis_name}'):
+                velocity = getattr(self, f'jog_velocity_spin_{axis_name}').value()
+            else:
+                pos_addr_key = {
+                    'Y2':'D22000','Y1':'D22010','X':'D22020','Z':'D22030'
+                }[axis_name]
+                velocity = abs(self.read_dword(self.addresses[pos_addr_key]))
+            
+            # Mapeamento dos registradores JOG por eixo
+            jog_addr_map = {
+                'Y2': ('D22000', 'D22050'),  # Positivo, Negativo
+                'Y1': ('D22010', 'D22060'),  # Positivo, Negativo
+                'X':  ('D22020', 'D22070'),  # Positivo, Negativo
+                'Z':  ('D22030', 'D22080')   # Positivo, Negativo
+            }
+            
+            pos_addr_key, neg_addr_key = jog_addr_map[axis_name]
 
-            # Verifica se a velocidade mudou antes de escrever
-            current_d4000 = self.read_dword(self.addresses['D4000'])
-            if current_d4000 == velocity:
-                self.log(f"ℹ️ Velocidade JOG já está em {velocity} Hz - não alterada")
+            # Verifica se mudou antes de escrever
+            current_velocity = self.read_dword(self.addresses[pos_addr_key])
+            if current_velocity == velocity:
+                self.log(f"ℹ️ Velocidade JOG {axis_name} já está em {velocity} Hz - não alterada")
                 return
             
-            # Escreve velocidade positiva e negativa conforme ladder
-            result1 = self.write_dword(self.addresses['D4000'], velocity)      # Frequência positiva
-            result2 = self.write_dword(self.addresses['D1476'], -velocity)    # Frequência negativa
+            # Escreve velocidades positiva e negativa
+            result1 = self.write_dword(self.addresses[pos_addr_key], velocity)     # Positiva
+            result2 = self.write_dword(self.addresses[neg_addr_key], -velocity)   # Negativa
+             
+            # Escreve tempos de aceleração/desaceleração (comuns para todos os eixos)
+            result3 = self.write_dword(self.addresses['D22100'], 1)  # Tempo aceleração
+            result4 = self.write_dword(self.addresses['D22110'], 1)  # Tempo desaceleração
             
-            if not result1.isError() and not result2.isError():
-                self.log(f"✅ Velocidade JOG X definida: ±{velocity} Hz")
+            if not result1.isError() and not result2.isError() and not result3.isError() and not result4.isError():
+                self.log(f"✅ Velocidade JOG {axis_name} definida: ±{velocity} Hz")
                 # Verifica se foi escrito corretamente
-                QTimer.singleShot(200, lambda: self.verify_jog_velocity(velocity))
+                QTimer.singleShot(200, lambda: self.verify_jog_velocity(axis_name, velocity))
             else:
-                self.log(f"❌ Erro ao definir velocidade JOG X")
+                self.log(f"❌ Erro ao definir velocidade JOG {axis_name}")
                 
         except Exception as e:
-            self.log(f"❌ Erro ao configurar velocidade JOG X: {e}")
+            self.log(f"❌ Erro ao configurar velocidade JOG {axis_name}: {e}")
 
-    def verify_jog_velocity(self, expected_velocity):
+    def verify_jog_velocity(self, axis_name, expected_velocity):
         """Verifica se a velocidade JOG foi escrita corretamente"""
         try:
-            actual_positive = self.read_dword(self.addresses['D4000'])
-            actual_negative = self.read_dword(self.addresses['D1476'])
+            jog_addr_map = {
+                'Y2': ('D22000', 'D22050'),
+                'Y1': ('D22010', 'D22060'),
+                'X':  ('D22020', 'D22070'),
+                'Z':  ('D22030', 'D22080')
+            }
+            pos_addr_key, neg_addr_key = jog_addr_map[axis_name]
+            actual_positive = self.read_dword(self.addresses[pos_addr_key])
+            actual_negative = self.read_dword(self.addresses[neg_addr_key])
             
             if actual_positive == expected_velocity and actual_negative == -expected_velocity:
-                self.log(f"✓ Velocidade JOG verificada: D4000={actual_positive}, D1476={actual_negative}")
+                self.log(f"✓ Velocidade JOG {axis_name} verificada: {pos_addr_key}={actual_positive}, {neg_addr_key}={actual_negative}")
             else:
-                self.log(f"⚠️ Velocidade JOG divergente: Esperado ±{expected_velocity}, Lido D4000={actual_positive}, D1476={actual_negative}")
+                self.log(f"⚠️ Velocidade JOG {axis_name} divergente: Esperado ±{expected_velocity}, Lido {actual_positive}/{actual_negative}")
                 
         except Exception as e:
-            self.log(f"❌ Erro verificação velocidade JOG: {e}")
+            self.log(f"❌ Erro verificação velocidade JOG {axis_name}: {e}")
             
-    def jog_start_x(self, direction):
-        """Inicia movimento JOG contínuo no eixo X"""
+    def jog_start(self, axis_name, direction):
+        """Inicia movimento JOG contínuo para qualquer eixo"""
         if not self.connected:
             self.log("❌ CLP não conectado")
             return
             
         try:            
             # Configura velocidade automaticamente
-            self.set_jog_velocity_x()
+            self.set_jog_velocity(axis_name)
             
-            # Aciona comando JOG correto conforme ladder implementado
+            # Mapeamento de comandos JOG por eixo (conforme ladder real)
+            jog_cmd_map = {
+                'Y2': ('M70_Y2', 'M80_Y2'),    # JOG+, JOG-
+                'Y1': ('M570_Y1', 'M580_Y1'),  # JOG+, JOG-
+                'X':  ('M1070_X', 'M1080_X'),  # JOG+, JOG-
+                'Z':  ('M1570_Z', 'M1580_Z')   # JOG+, JOG-
+            }
+            
+            pos_cmd, neg_cmd = jog_cmd_map[axis_name]
+            
+            
             if direction == '+':
-                result = self.client.write_coil(self.addresses['M1070'], True)
-                direction_text = "POSITIVO (M1070)"
-                self.log(f"🔼 Acionando M1070 para JOG X+")
+                result = self.client.write_coil(self.addresses[pos_cmd], True)
+                direction_text = f"POSITIVO ({pos_cmd})"
+                self.log(f"🔼 Acionando {pos_cmd} para JOG {axis_name}+")
             else:
-                # Movimento negativo: usa M1080 com velocidade negativa em D1476
-                result = self.client.write_coil(self.addresses['M1080'], True)
-                direction_text = "NEGATIVO (M1080)"
-                self.log(f"🔽 Acionando M1080 para JOG X-")
+                result = self.client.write_coil(self.addresses[neg_cmd], True)
+                direction_text = f"NEGATIVO ({neg_cmd})"
+                self.log(f"🔽 Acionando {neg_cmd} para JOG {axis_name}-")
                 
             if not result.isError():
-                self.log(f"🎮 JOG X {direction_text} INICIADO")
-                self.update_jog_status(f"ATIVO - {direction_text}", "orange")
-                # Log dos parâmetros JOG para debug
-                velocity = self.jog_velocity_spin.value()
-                self.log(f"📊 Parâmetros JOG: D1470={100}, D4000={velocity}, D1476={-velocity}, D1490={100}")
+                self.log(f"🎮 JOG {axis_name} {direction_text} INICIADO")
+                self.update_jog_status(axis_name, f"ATIVO - {direction_text}", "lime")
                 # Verifica segurança apenas para informar o usuário (não bloqueia)
-                self.check_jog_safety_x()
+                self.check_jog_safety(axis_name)
             else:
-                self.log(f"❌ Erro ao iniciar JOG X {direction_text}")
+                self.log(f"❌ Erro ao iniciar JOG {axis_name} {direction_text}")
                 
         except Exception as e:
-            self.log(f"❌ Erro JOG start X: {e}")
+            self.log(f"❌ Erro JOG start {axis_name}: {e}")
             
-    def jog_stop_x(self):
-        """Para movimento JOG do eixo X"""
+    def jog_stop(self, axis_name):
+        """Para movimento JOG de qualquer eixo"""
         if not self.connected:
             return
             
         try:
-            # Para todos os comandos JOG
-            result1 = self.client.write_coil(self.addresses['M1070'], False)
-            result2 = self.client.write_coil(self.addresses['M1080'], False)
+            # Mapeamento de comandos JOG por eixo
+            jog_cmd_map = {
+                'Y2': ('M70_Y2', 'M80_Y2'),
+                'Y1': ('M570_Y1', 'M580_Y1'),
+                'X':  ('M1070_X', 'M1080_X'),
+                'Z':  ('M1570_Z', 'M1580_Z')
+            }
             
-            self.log("🛑 Desligando M1070 e M1080")
+            pos_cmd, neg_cmd = jog_cmd_map[axis_name]
             
-            self.log("🛑 JOG X PARADO")
-            self.update_jog_status("PARADO", "gray")
+            # Para ambos os comandos JOG do eixo
+            result1 = self.client.write_coil(self.addresses[pos_cmd], False)
+            result2 = self.client.write_coil(self.addresses[neg_cmd], False)
+            
+            self.log(f"🛑 Desligando {pos_cmd} e {neg_cmd}")
+            
+            self.log(f"🛑 JOG {axis_name} PARADO")
+            self.update_jog_status(axis_name, "PARADO", "gray")
            
         except Exception as e:
-            self.log(f"❌ Erro JOG stop X: {e}")
+            self.log(f"❌ Erro JOG stop {axis_name}: {e}")
             
-    def check_jog_safety_x(self):
-        """Monitora status de segurança JOG X (apenas informativo - não bloqueia)"""
+    def check_jog_safety(self, axis_name):
+        """Monitora status de segurança JOG (apenas informativo - não bloqueia)"""
         try:
-            # Lê flags de segurança do ladder conforme implementado
-            # M1010: movimento positivo permitido (posição < limite positivo)
-            # M1011: movimento negativo permitido (posição > limite negativo)
-            result1 = self.client.read_coils(self.addresses['M1010'], 1)
-            result2 = self.client.read_coils(self.addresses['M1011'], 1)
+            # Mapeamento de flags de segurança por eixo
+            safety_map = {
+                'Y2': ('M10_Y2', 'M11_Y2'),     # Limite positivo, negativo
+                'Y1': ('M510_Y1', 'M511_Y1'),   # Limite positivo, negativo
+                'X':  ('M1010_X', 'M1011_X'),   # Limite positivo, negativo
+                'Z':  ('M1510_Z', 'M1511_Z')    # Limite positivo, negativo
+            }
+            
+            pos_limit_mem, neg_limit_mem = safety_map[axis_name]
+            result1 = self.client.read_coils(self.addresses[pos_limit_mem], 1)
+            result2 = self.client.read_coils(self.addresses[neg_limit_mem], 1)
             
             if not result1.isError() and not result2.isError():
-                positive_ok = result1.bits[0]  # M1010: movimento + permitido
-                negative_ok = result2.bits[0]  # M1011: movimento - permitido
+                positive_ok = not result1.bits[0]  # Invertido: flag ativa = bloqueado
+                negative_ok = not result2.bits[0]  # Invertido: flag ativa = bloqueado
                 safety_ok = positive_ok or negative_ok  # Pelo menos uma direção liberada
+
+                safety_indicator = getattr(self, f'safety_indicator_{axis_name}', None)
+                if not safety_indicator:
+                    return safety_ok
                 
                 # Atualiza indicador visual
                 if positive_ok and negative_ok:
@@ -988,16 +1559,18 @@ class MultiAxisMotorController(QMainWindow):
                     status_text = "⚠️ Fora dos limites"
                     color = "red"
                 
-                self.safety_indicator.setText(status_text)
-                self.safety_indicator.setStyleSheet(f"QLabel {{ background-color: {color}; color: white; padding: 3px; font-size: 10px; border-radius: 3px; }}")
+                safety_indicator.setText(status_text)
+                safety_indicator.setStyleSheet(f"QLabel {{ background-color: {color}; color: white; padding: 3px; font-size: 10px; border-radius: 3px; }}")
                 # Log detalhado para debug
+                status_key = f'_last_safety_status_{axis_name}'
                 current_status = (positive_ok, negative_ok)
-                if hasattr(self, '_last_safety_status') and self._last_safety_status != current_status:
+                if hasattr(self, status_key) and getattr(self, status_key) != current_status:
                     if not safety_ok:
-                        self.log(f"⚠️ Motor fora dos limites - M1010(+)={positive_ok}, M1011(-)={negative_ok}")
+                        self.log(f"⚠️ {axis_name} fora dos limites - {pos_limit_mem}={not positive_ok}, {neg_limit_mem}={not negative_ok}")
                     else:
-                        self.log(f"✅ Motor dentro dos limites - M1010(+)={positive_ok}, M1011(-)={negative_ok}")
-                self._last_safety_status = (positive_ok, negative_ok)
+                        self.log(f"✅ {axis_name} dentro dos limites - {pos_limit_mem}={not positive_ok}, {neg_limit_mem}={not negative_ok}")
+                        
+                setattr(self, status_key, current_status)
                 
                 return safety_ok
             else:
@@ -1007,30 +1580,37 @@ class MultiAxisMotorController(QMainWindow):
             # Não loga erro para não poluir - pode acontecer se CLP não estiver conectado
             return False
             
-    def update_jog_status(self, status_text, color):
+    def update_jog_status(self, axis_name, status_text, color):
         """Atualiza status visual do JOG"""
-        if hasattr(self, 'jog_status_label'):
-            self.jog_status_label.setText(f"Status: {status_text}")
-            self.jog_status_label.setStyleSheet(f"QLabel {{ background-color: {color}; color: white; padding: 5px; font-weight: bold; border-radius: 3px; }}")
+        status_label = getattr(self, f'jog_status_label_{axis_name}', None)
+        if status_label:
+            status_label.setText(f"Status: {status_text}")
+            status_label.setStyleSheet(f"QLabel {{ background-color: {color}; color: white; padding: 5px; font-weight: bold; border-radius: 3px; }}")
+    
+    # Funções específicas para eixo X (compatibilidade com teclado)
+    def jog_start_x(self, direction): self.jog_start('X', direction)
+    def jog_stop_x(self): self.jog_stop('X')
     
     # ===================================================================
     #                    CONTROLE VIA TECLADO  
     # ===================================================================
     
     def on_keyboard_jog_toggle(self, state):
-        """Callback quando checkbox de controle via teclado é alterado"""
+        """Callback quando checkbox global de controle via teclado é alterado"""
         enabled = state == Qt.CheckState.Checked.value
         
         if enabled:
-            self.log("⌨️ Controle via teclado HABILITADO - Use ← → para JOG X")
+            self.log("⌨️ Controle via teclado HABILITADO para todos os eixos")
+            self.log("🎮 Teclas: X(← →) | Y2(↑ ↓) | Y1(W S) | Z(Q E)")
             self.keyboard_jog_checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #4CAF50; }")
         else:
-            self.log("⌨️ Controle via teclado DESABILITADO")
+            self.log("⌨️ Controle via teclado DESABILITADO para todos os eixos")
             self.keyboard_jog_checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #E65100; }")
             # Para qualquer movimento JOG ativo se desabilitar
-            if self.keyboard_jog_active:
-                self.jog_stop_x()
-                self.keyboard_jog_active = False
+            for axis in self.keyboard_jog_active:
+                if self.keyboard_jog_active[axis]:
+                    self.jog_stop(axis)
+                    self.keyboard_jog_active[axis] = False
                 
     def keyPressEvent(self, event):
         """Captura teclas pressionadas"""
@@ -1040,22 +1620,41 @@ class MultiAxisMotorController(QMainWindow):
             return
             
         key = event.key()
+        axis_to_start = None
+        direction = None
         
-        # Tecla SETA ESQUERDA (JOG X-)
+        # Mapeamento de teclas para eixos e direções
         if key == Qt.Key.Key_Left:
-            if not self.keyboard_jog_active:
-                self.keyboard_jog_active = True
-                self.jog_start_x('-')
-                self.log("⌨️ JOG X- iniciado via teclado (←)")
-            event.accept()
-            return
-            
-        # Tecla SETA DIREITA (JOG X+)  
+            axis_to_start, direction = 'X', '-'
         elif key == Qt.Key.Key_Right:
-            if not self.keyboard_jog_active:
-                self.keyboard_jog_active = True
-                self.jog_start_x('+')
-                self.log("⌨️ JOG X+ iniciado via teclado (→)")
+            axis_to_start, direction = 'X', '+'
+        elif key == Qt.Key.Key_Up:
+            axis_to_start, direction = 'Y2', '+'
+        elif key == Qt.Key.Key_Down:
+            axis_to_start, direction = 'Y2', '-'
+        elif key == Qt.Key.Key_W:
+            axis_to_start, direction = 'Y1', '+'
+        elif key == Qt.Key.Key_S:
+            axis_to_start, direction = 'Y1', '-'
+        elif key == Qt.Key.Key_Q:
+            axis_to_start, direction = 'Z', '+'
+        elif key == Qt.Key.Key_E:
+            axis_to_start, direction = 'Z', '-'
+        
+        # Inicia JOG se tecla válida e eixo não estiver ativo
+        if axis_to_start and not self.keyboard_jog_active[axis_to_start]:
+            self.keyboard_jog_active[axis_to_start] = True
+            self.jog_start(axis_to_start, direction)
+            
+            # Mapeamento de símbolos para log
+            key_symbols = {
+                'X': {'+':"→", '-':"←"},
+                'Y2': {'+':"↑", '-':"↓"},
+                'Y1': {'+':"W", '-':"S"},
+                'Z': {'+':"Q", '-':"E"}
+            }
+            symbol = key_symbols[axis_to_start][direction]
+            self.log(f"⌨️ JOG {axis_to_start}{direction} iniciado via teclado ({symbol})")
             event.accept()
             return
             
@@ -1070,14 +1669,41 @@ class MultiAxisMotorController(QMainWindow):
             return
             
         key = event.key()
+        axis_to_stop = None
+        direction = None
         
-        # Para JOG quando soltar SETA ESQUERDA ou DIREITA
-        if key in [Qt.Key.Key_Left, Qt.Key.Key_Right]:
-            if self.keyboard_jog_active:
-                self.keyboard_jog_active = False
-                self.jog_stop_x()
-                direction = "X-" if key == Qt.Key.Key_Left else "X+"
-                self.log(f"⌨️ JOG {direction} parado via teclado")
+        # Mapeamento de teclas para eixos
+        if key == Qt.Key.Key_Left:
+            axis_to_stop, direction = 'X', '-'
+        elif key == Qt.Key.Key_Right:
+            axis_to_stop, direction = 'X', '+'
+        elif key == Qt.Key.Key_Up:
+            axis_to_stop, direction = 'Y2', '+'
+        elif key == Qt.Key.Key_Down:
+            axis_to_stop, direction = 'Y2', '-'
+        elif key == Qt.Key.Key_W:
+            axis_to_stop, direction = 'Y1', '+'
+        elif key == Qt.Key.Key_S:
+            axis_to_stop, direction = 'Y1', '-'
+        elif key == Qt.Key.Key_Q:
+            axis_to_stop, direction = 'Z', '+'
+        elif key == Qt.Key.Key_E:
+            axis_to_stop, direction = 'Z', '-'
+        
+        # Para JOG se tecla válida e eixo estiver ativo
+        if axis_to_stop and self.keyboard_jog_active[axis_to_stop]:
+            self.keyboard_jog_active[axis_to_stop] = False
+            self.jog_stop(axis_to_stop)
+            
+            # Mapeamento de símbolos para log
+            key_symbols = {
+                'X': {'+':"→", '-':"←"},
+                'Y2': {'+':"↑", '-':"↓"},
+                'Y1': {'+':"W", '-':"S"},
+                'Z': {'+':"Q", '-':"E"}
+            }
+            symbol = key_symbols[axis_to_stop][direction]
+            self.log(f"⌨️ JOG {axis_to_stop}{direction} parado via teclado ({symbol})")
             event.accept()
             return
             
@@ -1132,16 +1758,28 @@ class MultiAxisMotorController(QMainWindow):
             self.log("🛑 PARADA DE EMERGÊNCIA!")
             
             # Desliga todas as memórias importantes
-            for mem in ['M0_Y2', 'M50_Y2', 'M100_Y2', 'M1500_Z', 'M1550_Z', 'M1600_Z', 'M1000_X', 
-                        'M1050_X', 'M1100_X', 'M5000', 'M350', 'M1350', 'M1850', 'M1070', 'M1080']:
+            emergency_memories = [
+                'M0_Y2', 'M50_Y2', 'M100_Y2', 'M500_Y1', 'M550_Y1', 'M600_Y1',
+                'M1500_Z', 'M1550_Z', 'M1600_Z', 'M1000_X', 'M1050_X', 'M1100_X',
+                'M5000', 'M350', 'M850', 'M1350', 'M1850',
+                'M70_Y2', 'M80_Y2', 'M570_Y1', 'M580_Y1', 'M1070_X', 'M1080_X', 'M1570_Z', 'M1580_Z'
+            ]
+            for mem in emergency_memories:
                 self.client.write_coil(self.addresses[mem], False)
             
-            # Para JOG especificamente
-            self.jog_stop_x()
+            # Para JOG de todos os eixos
+            for axis in ['Y2', 'Y1', 'X', 'Z']:
+                self.jog_stop(axis)
 
-            # Para JOG via teclado se estiver ativo
-            if hasattr(self, 'keyboard_jog_active') and self.keyboard_jog_active:
-                self.keyboard_jog_active = False
+            # Lê posições uma última vez antes de parar
+            self.read_current_positions()
+
+            # Para JOG via teclado se estiver ativo para qualquer eixo
+            if hasattr(self, 'keyboard_jog_active'):
+                for axis in self.keyboard_jog_active:
+                    if self.keyboard_jog_active[axis]:
+                        self.keyboard_jog_active[axis] = False
+                        self.jog_stop(axis)
                 self.log("⌨️ JOG via teclado interrompido por emergência")
                 
             # Desliga o botão Y0.10 na interface
@@ -1156,12 +1794,18 @@ class MultiAxisMotorController(QMainWindow):
         """Atualiza status em tempo real"""
         if not self.connected:
             return
+        
+        # Lê posições atuais e status de homing (prioridade)
+        self.read_current_positions()
+        self.monitor_homing_status()
             
         try:
             # Atualiza saídas
             outputs_map = {
                 'Y0_0': ('Y00', self.Y0_0_status),
-                'Y0_1': ('Y01', self.Y0_1_status), 
+                'Y0_1': ('Y01', self.Y0_1_status),
+                'Y0_4': ('Y04', self.Y0_4_status),
+                'Y0_5': ('Y05', self.Y0_5_status),
                 'Y0_2': ('Y02', self.Y0_2_status),
                 'Y0_3': ('Y03', self.Y0_3_status),
                 'Y0_6': ('Y06', self.Y0_6_status),
@@ -1170,6 +1814,7 @@ class MultiAxisMotorController(QMainWindow):
              }
             
             for name, (addr_key, label) in outputs_map.items():
+                # Y = coils  ➜ FC01 (read_coils)
                 result = self.client.read_coils(self.addresses[addr_key], count=1)
                 if not result.isError():
                     state = result.bits[0]
@@ -1189,69 +1834,132 @@ class MultiAxisMotorController(QMainWindow):
                 # Atualizado conforme novos endereços
                 'M0_Y2': (self.addresses['M0_Y2'], getattr(self, 'M0_Y2_status', None)),
                 'M50_Y2': (self.addresses['M50_Y2'], getattr(self, 'M50_Y2_status', None)),
+                'M500_Y1': (self.addresses['M500_Y1'], getattr(self, 'M500_Y1_status', None)),
++                'M550_Y1': (self.addresses['M550_Y1'], getattr(self, 'M550_Y1_status', None)),
                 'M5000': (self.addresses['M5000'], getattr(self, 'M5000_status', None)),
                 'M350': (self.addresses['M350'], getattr(self, 'M350_status', None)),
+                'M850': (self.addresses['M850'], getattr(self, 'M850_status', None)),
                 'M1350': (self.addresses['M1350'], getattr(self, 'M1350_status', None)),
                 'M1850': (self.addresses['M1850'], getattr(self, 'M1850_status', None)),
+                # MEMÓRIAS DE HOMING REALIZADO - PRIORITÁRIAS
                 'M300': (self.addresses['M300'], getattr(self, 'M300_status', None)),
+                'M800': (self.addresses['M800'], getattr(self, 'M800_status', None)),
                 'M1300': (self.addresses['M1300'], getattr(self, 'M1300_status', None)),
                 'M1800': (self.addresses['M1800'], getattr(self, 'M1800_status', None)),
-                # Monitoramento JOG
-                'M1070': (self.addresses['M1070'], getattr(self, 'M1070_status', None)),
-                'M1010': (self.addresses['M1010'], getattr(self, 'M1010_status', None)),
-                'M1011': (self.addresses['M1011'], getattr(self, 'M1011_status', None))
+                # Monitoramento JOG (apenas alguns principais)
+                'M70_Y2': (self.addresses['M70_Y2'], getattr(self, 'M70_Y2_status', None)),
+                'M570_Y1': (self.addresses['M570_Y1'], getattr(self, 'M570_Y1_status', None)),
+                'M1070_X': (self.addresses['M1070_X'], getattr(self, 'M1070_X_status', None)),
+                'M1570_Z': (self.addresses['M1570_Z'], getattr(self, 'M1570_Z_status', None))
             }
             
             for name, (addr, label) in memories_map.items():
+                if name in ['M300', 'M800', 'M1300', 'M1800']:
+                    continue  # Pula memórias de homing (tratadas em função dedicada)
+                
                 if label is None:
                     continue
                 result = self.client.read_coils(addr, count=1)
                 if not result.isError():
                     state = result.bits[0]
-                    label.setText("ON" if state else "OFF")
-                    label.setStyleSheet(
-                        "QLabel { background-color: red; color: white; padding: 5px; }" if state 
+                    # Atualiza label se existir
+                    if label is not None:
+                        label.setText("ON" if state else "OFF")
+                        label.setStyleSheet(
+                            "QLabel { background-color: red; color: white; padding: 5px; }" if state 
+                            else "QLabel { background-color: gray; color: white; padding: 5px; }"
+                        )
+                                            
+                # Atualiza status JOG ativo para todos os eixos
+                if name in ['M70_Y2', 'M570_Y1', 'M1070_X', 'M1570_Z']:
+                    jog_status_map = {
+                        'M70_Y2': ('Y2', 'POSITIVO'),
+                        'M570_Y1': ('Y1', 'POSITIVO'),
+                        'M1070_X': ('X', 'POSITIVO'),
+                        'M1570_Z': ('Z', 'POSITIVO')
+                    }
+                    
+                    if name in jog_status_map and not result.isError():
+                        axis, direction = jog_status_map[name]
+                        status_label = getattr(self, f'jog_status_label_{axis}', None)
+                        if status_label:
+                            if state:
+                                self.update_jog_status(axis, f"ATIVO - {direction}", "lime")
+                            elif not state and direction in status_label.text():
+                                self.update_jog_status(axis, "Inativo", "gray")
+                                
+                    # Atualiza segurança JOG em tempo real apenas quando necessário
+                if name in ['M10_Y2', 'M11_Y2', 'M510_Y1', 'M511_Y1', 'M1010_X', 'M1011_X', 'M1510_Z', 'M1511_Z']:
+                    axis_map = {
+                        'M10_Y2': 'Y2', 'M11_Y2': 'Y2',
+                        'M510_Y1': 'Y1', 'M511_Y1': 'Y1', 
+                        'M1010_X': 'X', 'M1011_X': 'X',
+                        'M1510_Z': 'Z', 'M1511_Z': 'Z'
+                    }
+                    if name in axis_map:
+                        axis = axis_map[name]
+                        QTimer.singleShot(50, lambda a=axis: self.check_jog_safety(a))
+            
+            # Atualiza registradores
+            registers_map = {
+                # Registradores dos eixos
+                'D100_Y2': (self.addresses['D100_Y2'], getattr(self, 'D100_Y2_status', None)),
+                'D20000_Y2': (self.addresses['D20000_Y2'], getattr(self, 'D20000_Y2_status', None)),
+                'D1600_Z': (self.addresses['D1600_Z'], getattr(self, 'D1600_Z_status', None)),
+                'D21500_Z': (self.addresses['D21500_Z'], getattr(self, 'D21500_Z_status', None)),
+                'D1100_X': (self.addresses['D1100_X'], getattr(self, 'D1100_X_status', None)),
+                'D21000_X': (self.addresses['D21000_X'], getattr(self, 'D21000_X_status', None))
+            }
+
+            # ------------------------- SENSORES HOME -------------------------
+            sensors_map = {
+                'X04_Y2': ('X04_Y2_status', self.addresses['X04_Y2']),
+                'X06_Y1': ('X06_Y1_status', self.addresses['X06_Y1']),
+                'X08_X':  ('X08_X_status',  self.addresses['X08_X']),
+                'X09_Z':  ('X09_Z_status',  self.addresses['X09_Z'])
+            }
+
+            for sensor_key, (label_attr, addr) in sensors_map.items():
+                lbl = getattr(self, label_attr, None)
+                if lbl is None:
+                    continue
+                # X = discrete inputs ➜ FC02 (read_discrete_inputs)
+                res = self.client.read_discrete_inputs(addr, count=1)
+                if not res.isError():
+                    state = res.bits[0]
+                    lbl.setText("ON" if state else "OFF")
+                    lbl.setStyleSheet(
+                        "QLabel { background-color: lime; color: black; padding: 5px; }" if state
                         else "QLabel { background-color: gray; color: white; padding: 5px; }"
                     )
-                    # Atualiza indicadores LED de homing
-                    if name == 'M300':  # HOMING REALIZADO Y2
-                        homing_led = getattr(self, 'homing_led_Y2', None)
-                        if homing_led:
-                            self.update_homing_led(homing_led, state)
-                    elif name == 'M1300':  # HOMING REALIZADO X
-                        homing_led = getattr(self, 'homing_led_X', None)
-                        if homing_led:
-                            self.update_homing_led(homing_led, state)
-                    elif name == 'M1800':  # HOMING REALIZADO Z
-                        homing_led = getattr(self, 'homing_led_Z', None)
-                        if homing_led:
-                            self.update_homing_led(homing_led, state)
-                    # Atualiza status de segurança JOG em tempo real
-                    if name in ['M1010', 'M1011'] and hasattr(self, 'safety_indicator'):
-                        self.check_jog_safety_x()
-                        
-                    # Atualiza status JOG ativo
-                    if name == 'M1070' and hasattr(self, 'jog_status_label'):
-                        if state:
-                            self.update_jog_status("ATIVO - POSITIVO", "lime")
-                        elif not state and "POSITIVO" in self.jog_status_label.text():
-                            self.update_jog_status("Inativo", "gray")
-                            
-                    # Monitora também M1080
-                    if name == 'M1080' and hasattr(self, 'jog_status_label'):
-                        if state:
-                            self.update_jog_status("ATIVO - NEGATIVO", "lime")
-                        elif not state and "NEGATIVO" in self.jog_status_label.text():
-                            self.update_jog_status("Inativo", "gray")
-                    # Atualiza indicador de segurança em tempo real quando há mudança nos flags
-                    if name in ['M1010', 'M1011'] and hasattr(self, 'safety_indicator'):
-                        QTimer.singleShot(50, self.check_jog_safety_x)  # Pequeno delay para evitar spam
-            # Adiciona M1080 ao monitoramento
-            memories_map['M1080'] = (self.addresses['M1080'], getattr(self, 'M1080_status', None))
-
+            
+            for name, (addr, label) in registers_map.items():
+                try:
+                    # Todos agora são registradores D normais
+                    signed = self.read_dword(addr)
+                      
+                    if label is not None:
+                        label.setText(str(signed))
+                        # cor laranja se negativo
+                        label.setStyleSheet(
+                            "QLabel { background-color: orange; padding: 5px; }"
+                            if signed < 0 else
+                            "QLabel { background-color: lightgray; padding: 5px; }"
+                        )
+                except Exception as e:
+                    # Silencia erros para não poluir log
+                    pass
         except Exception as e:
             # Silencia erros de status update para não poluir log
             pass
+
+    def force_homing_status_check(self):
+        """Força uma verificação imediata do status de homing"""
+        try:
+            self.log("🔍 Verificação forçada do status de homing...")
+            self.monitor_homing_status()
+        except Exception as e:
+            self.log(f"❌ Erro na verificação forçada: {e}")
             
     def update_homing_led(self, led_widget, homing_status):
         """Atualiza o indicador LED de homing"""
@@ -1263,50 +1971,21 @@ class MultiAxisMotorController(QMainWindow):
             # Homing não realizado - LED cinza
             led_widget.setStyleSheet("QLabel { background-color: gray; color: darkgray; padding: 2px; font-size: 16px; font-weight: bold; max-height: 20px; border-radius: 10px; }")
             led_widget.setText("●")
+                    
+    def test_position_reading(self):
+        """Função de teste para verificar leitura das posições"""
+        if not self.connected:
+            return
             
-            # Atualiza registradores
-            registers_map = {
-                # Registradores dos eixos
-                'D100_Y2': (self.addresses['D100_Y2'], getattr(self, 'D100_Y2_status', None)),
-                'D20000_Y2': (self.addresses['D20000_Y2'], getattr(self, 'D20000_Y2_status', None)),
-                'D1600_Z': (self.addresses['D1600_Z'], getattr(self, 'D1600_Z_status', None)),
-                'D21500_Z': (self.addresses['D21500_Z'], getattr(self, 'D21500_Z_status', None)),
-                'D1100_X': (self.addresses['D1100_X'], getattr(self, 'D1100_X_status', None)),
-                'D21000_X': (self.addresses['D21000_X'], getattr(self, 'D21000_X_status', None)),
-                # Posições atuais
-                'D3100_Y2': (self.addresses['D3100_Y2'], None),
-                'D3200_Z': (self.addresses['D3200_Z'], None),
-                'D3000_X': (self.addresses['D3000_X'], None)
-            }
-            
-            for name, (addr, label) in registers_map.items():
-                try:
-                    # Todos agora são registradores D normais
-                    signed = self.read_dword(addr)
-
-                    # Atualiza posições atuais dos eixos
-                    if name == 'D3100_Y2':
-                        self.current_positions['Y2'] = signed
-                        if hasattr(self, 'current_pos_label_Y2'):
-                            self.current_pos_label_Y2.setText(str(signed))
-                    elif name == 'D3200_Z':
-                        self.current_positions['Z'] = signed
-                        if hasattr(self, 'current_pos_label_Z'):
-                            self.current_pos_label_Z.setText(str(signed))
-                    elif name == 'D3000_X':
-                        self.current_positions['X'] = signed
-                        if hasattr(self, 'current_pos_label_X'):
-                            self.current_pos_label_X.setText(str(signed))                            
-                    if label is not None:
-                        label.setText(str(signed))
-                        # cor laranja se negativo
-                        label.setStyleSheet(
-                            "QLabel { background-color: orange; padding: 5px; }"
-                            if signed < 0 else
-                            "QLabel { background-color: lightgray; padding: 5px; }"
-                        )
-                except Exception as e:
-                    pass  # Silencia erros para não poluir o log
+        self.log("🔧 Testando leitura das posições atuais...")
+        
+        # Usa a função dedicada e exibe resultados
+        self.read_current_positions()
+        
+        # Log das posições lidas
+        for axis, position in self.current_positions.items():
+            self.log(f"📊 Posição {axis}: {position}")
+        self.test_homing_status()
         
             
     def closeEvent(self, event):
@@ -1329,15 +2008,18 @@ def main():
     print("="*60)
     print("✅ MELHORIAS IMPLEMENTADAS:")
     print("• Endereços corrigidos conforme planilha do ladder real")
-    print("• Controle de 3 eixos: Y2, Z, X")
+    print("• Controle de 4 eixos: Y2, Y1, Z, X")
     print("• Botões HOME corrigidos: M350, M1350, M1850")
     print("• Posições atuais via D3000, D3100, D3200")
-    print("• Aplicadora de adesivo integrada")
     print("• Indicadores LED de homing e leitura automática de velocidades")
-    print("• Sistema JOG integrado para eixo X com segurança")
-    print("• Controle via teclado (setas ← →) para JOG do eixo X")
+    print("• Sistema JOG integrado para TODOS os eixos com segurança")
+    print("✓ Controle via teclado para TODOS os eixos:")
+    print("  • X: ← →  • Y2: ↑ ↓  • Y1: W S  • Z: Q E")
     print("• Movimentos absolutos com verificação de limites")
+    print("• Configurações de homing e limites salvos em ROM")
     print("• Interface redesenhada para melhor usabilidade")
+    print("• Leitura em tempo real das posições dos motores corrigida")
+    print("• Status inicial e atualização automática dos LEDs de homing")
     print("="*60)
     
     sys.exit(app.exec())
