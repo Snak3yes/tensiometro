@@ -84,9 +84,13 @@ class InspectionPositionsWidget(QWidget):
 
     def __init__(self,
                  get_current_position: Callable[[], Dict[str, float]] | None = None,
+                 validate_position: Callable[[float,float,float,float], str | None] | None = None,
+                 get_action_context: Callable[[], Dict[str,object] | None] | None = None,
                  parent=None) -> None:
         super().__init__(parent)
         self._get_current_position = get_current_position
+        self._validate_position   = validate_position
+        self._get_action_context  = get_action_context
         self._model = InspectionPositionListModel()
         self._build_ui()
 
@@ -170,10 +174,26 @@ class InspectionPositionsWidget(QWidget):
                                  f"Não foi possível obter a posição atual:\n{exc}")
             return
 
+        # --- validação opcional ---------------------------------------
+        if callable(self._validate_position):
+            err = self._validate_position(x, y2, y1, z)
+            if err:
+                QMessageBox.warning(self, "Fora dos limites", err)
+                return
+
         # Nome numérico sequencial: 1, 2, 3…
         name = str(len(self._model) + 1)
 
-        new_pos = InspectionPosition(name, x, y2, y1, z)
+        # ---------------- anexa dados de ação -------------------------
+        if callable(self._get_action_context):
+            meta = self._get_action_context()
+            if meta is None:
+                QMessageBox.warning(self, "Ação não definida",
+                                    "Selecione uma ação antes de adicionar o ponto.")
+                return
+        else:
+            meta = None
+        new_pos = InspectionPosition(name, x, y2, y1, z, meta=meta)
         self._model.add(new_pos)
         self._append_item_to_list(new_pos)
         self.positionAdded.emit(new_pos)

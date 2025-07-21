@@ -55,20 +55,11 @@ class PositionStatusWidget(QWidget):
         self.lbl_x.setFont(font_values)
         grid.addWidget(self.lbl_x, 0, 1)
 
-        btn_zero_x = QPushButton("Zero X")
-        btn_zero_x.setToolTip("Zerar apenas o eixo X")
-        btn_zero_x.clicked.connect(self.zeroXRequested)   # → sinal
-        grid.addWidget(btn_zero_x, 0, 2)
-
         # ----- eixo Y2 --------------------------------------------------
         grid.addWidget(QLabel("Y2:"), 1, 0)
         self.lbl_y2 = QLabel("0")
         self.lbl_y2.setFont(font_values)
         grid.addWidget(self.lbl_y2, 1, 1)
-
-        btn_zero_y2 = QPushButton("Zero Y2")
-        btn_zero_y2.clicked.connect(self.zeroY2Requested)
-        grid.addWidget(btn_zero_y2, 1, 2)
 
         # ----- eixo Y1 --------------------------------------------------
         grid.addWidget(QLabel("Y1:"), 2, 0)
@@ -76,34 +67,16 @@ class PositionStatusWidget(QWidget):
         self.lbl_y1.setFont(font_values)
         grid.addWidget(self.lbl_y1, 2, 1)
 
-        btn_zero_y1 = QPushButton("Zero Y1")
-        btn_zero_y1.clicked.connect(self.zeroY1Requested)
-        grid.addWidget(btn_zero_y1, 2, 2)
-
         # ----- eixo Z ---------------------------------------------------
         grid.addWidget(QLabel("Z:"), 3, 0)
         self.lbl_z = QLabel("0")
         self.lbl_z.setFont(font_values)
-        grid.addWidget(self.lbl_z, 3, 1)   # linha correta
-
-        btn_zero_z = QPushButton("Zero Z")
-        btn_zero_z.setToolTip("Zerar apenas o eixo Z")
-        btn_zero_z.clicked.connect(self.zeroZRequested)
-        grid.addWidget(btn_zero_z, 3, 2)
+        grid.addWidget(self.lbl_z, 3, 1)
 
         # ----- status ---------------------------------------------------
         grid.addWidget(QLabel("Status:"), 4, 0)
         self.lbl_status = QLabel("Desconectado")
         grid.addWidget(self.lbl_status, 4, 1)
-
-        # ----- botão ZERO geral ----------------------------------------
-        btn_zero_all = QPushButton("Setar Posição Zero")
-        btn_zero_all.clicked.connect(self.zeroAllRequested)
-        btn_zero_all.setMinimumHeight(32)
-        font_zero = QFont()
-        font_zero.setBold(True)
-        btn_zero_all.setFont(font_zero)
-        grid.addWidget(btn_zero_all, 5, 0, 1, 3)
 
         outer.addWidget(grp)
         outer.addStretch()

@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "memoria",
+    "qty": 50
+  },
+  {
+    "id": 2,
+    "name": "processador",
+    "qty": 100
+  },
+  {
+    "id": 3,
+    "name": "chipset",
+    "qty": 75
+  },
+  {
+    "id": 4,
+    "name": "diodo",
+    "qty": 15
+  }
+]

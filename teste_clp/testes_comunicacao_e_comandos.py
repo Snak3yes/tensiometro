@@ -1,11 +1,19 @@
 import sys
 import time
+import json
+from pathlib import Path
+from virtual_home_dialog import ConfigHomeDialog
+from axis_calibration_dialog import AxisCalibrationDialog
+from settings_manager import SettingsManager
+from camera_manager   import CameraManager
 # widgets externos importados
-from movement_controls_widget   import MovementControlsWidget
-from position_status_widget     import PositionStatusWidget
+from table_program_tab           import TableProgramTab
+from axes_control_tab            import AxesControlTab
+from movement_controls_widget    import MovementControlsWidget
+from position_status_widget      import PositionStatusWidget
 from inspection_positions_widget import InspectionPositionsWidget
-from program_io_widget          import ProgramIOWidget
-from positions_backend          import InspectionPositionsBackend
+from program_io_widget           import ProgramIOWidget
+from positions_backend           import InspectionPositionsBackend
 from sequence_control import (
     SequenceControlWidget, InspectionPosition, MotionBackend
 )
@@ -187,6 +195,17 @@ class MultiAxisMotorController(QMainWindow):
             'X': 0
         }
 
+        # ------------------------------------------------------------------
+        #  SPINBOX “FANTASMA” PARA CADA EIXO (necessário para o backend PLC)
+        # ------------------------------------------------------------------
+        from PyQt6.QtWidgets import QSpinBox
+        for _axis in ('Y2', 'Y1', 'X', 'Z'):
+            if not hasattr(self, f'pulsos_spin_{_axis}'):
+                sb = QSpinBox()
+                sb.setRange(-2_147_483_648, 2_147_483_647)
+                sb.setValue(0)
+                setattr(self, f'pulsos_spin_{_axis}', sb)
+
         # ------------------- NOVO: lista de registradores configuráveis -------------------
         # (qualquer outro pode ser acrescentado facilmente depois)
         self.configurable_registers = [
@@ -214,6 +233,27 @@ class MultiAxisMotorController(QMainWindow):
             ('D22110', 'Tempo Desac. Jog')
         ]
         
+        # -------------- limites de trabalho (padrão) + persistência ---
+        # --------------- carrega configurações persistentes -----------
+        self.settings = SettingsManager()
+        self.table_limits = self.settings.table_limits
+
+        # --------------- câmera ------------------------------
+        self.camera_manager = CameraManager(self.settings.camera_index)
+
+        # aplica calibração se existir
+        a,b = self.settings.focus_coeffs
+        self.camera_manager.load_calibration(a,b)
+
+        # backend de movimento criado uma única vez e reutilizado
+        self._plc_motion_backend = PLCMotionBackend(self)
+
+        # ---------------- STEPS/MM  -----------------------------
+        self.steps_per_mm: dict[str,float] = self.settings.axis_steps
+
+        # ---- homing virtual ---------------------------------
+        self.virtual_home: dict[int,dict[str,int]] = self.settings.virtual_home
+
         self.init_ui()
         self.connect_plc()
 
@@ -226,7 +266,7 @@ class MultiAxisMotorController(QMainWindow):
         # Controle de teclas do teclado
         self.keyboard_jog_active = {
             'X': False,
-            'Y2': False, 
+            'Y2': False,
             'Y1': False,
             'Z': False
         }  # Flags para controlar se JOG está ativo via teclado para cada eixo
@@ -258,109 +298,68 @@ class MultiAxisMotorController(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout(central_widget)
-        
-        # Status de conexão
-        self.status_label = QLabel("Desconectado")
-        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.status_label.setStyleSheet("QLabel { background-color: red; color: white; padding: 10px; font-weight: bold; }")
-        layout.addWidget(self.status_label)
+
+        # ----------------------- MENU --------------------------------
+        menubar = self.menuBar()
+        # ------------ MENU “ARQUIVO” ---------------------------------
+        menu_file  = menubar.addMenu("Arquivo")
+        act_new    = menu_file.addAction("Novo Projeto")
+        act_open   = menu_file.addAction("Abrir Projeto…")
+        act_save   = menu_file.addAction("Salvar Projeto")
+        act_saveas = menu_file.addAction("Salvar Como…")
+        menu_file.addSeparator()
+        act_exit   = menu_file.addAction("Sair")
+
+        act_new.triggered.connect(self._new_project)
+        act_open.triggered.connect(self._open_project)
+        act_save.triggered.connect(self._save_project)
+        act_saveas.triggered.connect(self._save_as_project)
+        act_exit.triggered.connect(self.close)
+        menu_cfg   = menubar.addMenu("Configurações")
+        menu_prog  = menubar.addMenu("Programa")
+        act_limits = menu_cfg.addAction("Limites de mesa…")
+        act_limits.triggered.connect(self._open_limits_dialog)
+
+        # ---- submenu câmera ---------------------------------
+        menu_cam = menu_cfg.addMenu("Câmera")
+        act_select = menu_cam.addAction("Selecionar câmera…")
+        act_reopen = menu_cam.addAction("Reconectar")
+        act_focus  = menu_cam.addAction("Calibrar foco…")
+        act_select.triggered.connect(self._select_camera_dialog)
+        act_reopen.triggered.connect(lambda: self.camera_manager.open(self.settings.camera_index))
+        act_focus.triggered.connect(self._open_focus_dialog)
+
+        # ---------------- CALIBRAÇÃO EIXOS ----------------------
+        act_calib  = menu_cfg.addAction("Calibração dos Eixos…")
+        act_calib.triggered.connect(self._open_axis_calib_dialog)
+
+        # ---------------- HOMING VIRTUAL ---------------------
+        act_homecfg = menu_cfg.addAction("Homing Virtual…")
+        act_homecfg.triggered.connect(self._open_virtual_home_dialog)
+
+        # ------------------ DOT PATTERNS ---------------------------
+        act_dots = menu_prog.addAction("Padrões de Dots…")
+        act_dots.triggered.connect(self._open_dot_dialog)
+
+        # --------------------- BANNER DE CONEXÃO (rodapé) -------------
+        # Usa o status-bar nativo do QMainWindow (aparece no rodapé).
+        self.status_bar = self.statusBar()          # QStatusBar
+        self.status_bar.setSizeGripEnabled(False)   # oculta “grip” de redimensionar
+        self.status_bar.showMessage("Desconectado")
+        self.status_bar.setStyleSheet(
+            "QStatusBar { background-color:red; color:white; font-weight:bold; }")
         
         # Abas para organizar
-        tab_widget = QTabWidget()
+        # ----------------------------------------------------------------
+        #  TAB WIDGET principal fica em self.tab_widget para acesso global
+        # ----------------------------------------------------------------
+        self.tab_widget = QTabWidget()
 
         
         
-        # === ABA 1: CONTROLE DOS EIXOS ===
-        control_tab = QWidget()
-        control_layout = QHBoxLayout(control_tab)
-        
-        # Eixo Y2
-        axis_y2_group = self.create_axis_control("EIXO Y2", 'Y2')
-        control_layout.addWidget(axis_y2_group)
-
-        # Eixo Y1 - NOVO
-        axis_y1_group = self.create_axis_control("EIXO Y1", 'Y1')
-        control_layout.addWidget(axis_y1_group)
-        
-        # Eixo Z
-        axis_z_group = self.create_axis_control("EIXO Z", 'Z')
-        control_layout.addWidget(axis_z_group)
-
-        # Eixo X
-        axis_x_group = self.create_axis_control("EIXO X", 'X')
-        control_layout.addWidget(axis_x_group)
-        
-        # Controles auxiliares
-        aux_group = self.create_auxiliary_controls()
-        control_layout.addWidget(aux_group)
-
-        side_panel = QWidget()
-        side_vbox  = QVBoxLayout(side_panel)
-
-        # Widget de movimentos (seta/JOG)
-        self.mov_widget = MovementControlsWidget()
-        side_vbox.addWidget(self.mov_widget)
-
-        # Widget de posição / status
-        self.pos_widget = PositionStatusWidget()
-        side_vbox.addWidget(self.pos_widget)
-
-        # Widget das posições de INSPEÇÃO
-        self.inspect_widget = InspectionPositionsWidget(
-            get_current_position=self._get_current_position_dict
-        )
-        # (opcional) limitar altura
-        self.inspect_widget.setMaximumHeight(260)
-        side_vbox.addWidget(self.inspect_widget)
-
-        # ------------------- PROGRAMA: Salvar/Carregar ------------------
-        backend = InspectionPositionsBackend(self.inspect_widget)
-        self.prog_io_widget = ProgramIOWidget(backend)
-        side_vbox.addWidget(self.prog_io_widget)
-
-        # ------------------- CONTROLE DE SEQUÊNCIA ---------------------
-        self.seq_widget = SequenceControlWidget(
-            motion=PLCMotionBackend(self),
-            camera=None                     # (sem câmera por enquanto)
-        )
-        side_vbox.addWidget(self.seq_widget)
-
-        # carrega posições atuais sempre que a lista muda
-        self.inspect_widget.positionAdded.connect(
-            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
-        self.inspect_widget.positionRemoved.connect(
-            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
-
-        # idem depois de “Carregar Programa”
-        self.prog_io_widget.fileLoaded.connect(
-            lambda _: self.seq_widget.set_positions(self._positions_to_model()))
-
-        #  logs quando salvar/carregar
-        self.prog_io_widget.fileSaved.connect(
-            lambda f: self.log(f"Programa salvo em: {f}"))
-        self.prog_io_widget.fileLoaded.connect(
-            lambda f: self.log(f"Programa carregado de: {f}"))
-
-        side_vbox.addStretch()
-        control_layout.addWidget(side_panel)
-
-        # ----------------- liga sinais do MovementControlsWidget ---------
-        self.mov_widget.stepMoveRequested.connect(self._on_step_move_requested)
-        self.mov_widget.jogStart.connect(self._on_widget_jog_start)
-        self.mov_widget.jogStop.connect(self._on_widget_jog_stop)
-        self.mov_widget.goToZeroRequested.connect(self._on_go_to_zero)
-        self.mov_widget.emergencyStopToggled.connect(
-            lambda engaged: self.emergency_stop() if engaged else None)
-
-        # ----------- liga sinais do PositionStatusWidget ----------------
-        self.pos_widget.zeroXRequested.connect(lambda: self.zero_axis('X'))
-        self.pos_widget.zeroY2Requested.connect(lambda: self.zero_axis('Y2'))
-        self.pos_widget.zeroY1Requested.connect(lambda: self.zero_axis('Y1'))
-        self.pos_widget.zeroZRequested.connect(lambda: self.zero_axis('Z'))
-        self.pos_widget.zeroAllRequested.connect(
-            lambda: [self.zero_axis(a) for a in ('Y2', 'Y1', 'X', 'Z')])
-        
-        tab_widget.addTab(control_tab, "Controle de Eixos")
+        # === ABA 1: CONTROLE DOS EIXOS (principal) ===
+        self.control_tab = AxesControlTab(self, primary=True)
+        self.tab_widget.addTab(self.control_tab, "Controle de Eixos")
         
         # === ABA 2: STATUS ===
         status_tab = QWidget()
@@ -382,11 +381,11 @@ class MultiAxisMotorController(QMainWindow):
         registers_group = self.create_registers_status()
         status_layout.addWidget(registers_group)
         
-        tab_widget.addTab(status_tab, "Status do Sistema")
+        self.tab_widget.addTab(status_tab, "Status do Sistema")
         
         # === ABA 3: CONFIGURAÇÃO DE REGISTRADORES (NOVA) ===
         config_tab = self.create_config_tab()
-        tab_widget.addTab(config_tab, "Config. Registradores")
+        self.tab_widget.addTab(config_tab, "Config. Registradores")
 
         # === ABA 4: LOG ===
         log_tab = QWidget()
@@ -405,9 +404,211 @@ class MultiAxisMotorController(QMainWindow):
         clear_log_btn.clicked.connect(self.log_text.clear)
         log_layout.addWidget(clear_log_btn)
         
-        tab_widget.addTab(log_tab, "Log")
+        self.tab_widget.addTab(log_tab, "Log")
+
+        # === ABA 5: MESA 1 ============================================
+        self.mesa_tabs = {}
+        mesa1_tab = TableProgramTab(self, mesa_id=1)
+        self.mesa_tabs[1] = mesa1_tab
+        self.tab_widget.addTab(mesa1_tab, "Mesa 1")
+
+        # === ABA 6: MESA 2 ============================================
+        mesa2_tab = TableProgramTab(self, mesa_id=2)
+        self.mesa_tabs[2] = mesa2_tab
+        self.tab_widget.addTab(mesa2_tab, "Mesa 2")
         
-        layout.addWidget(tab_widget)
+        layout.addWidget(self.tab_widget)
+
+        # ------- rastreia arquivo atual do projeto -------------------
+        self._current_project_file = None
+        # --------------- registra todos os ProgramIOWidgets ------------
+        self._register_prog_widget(self.prog_io_widget)          # controle de eixos
+        self._register_prog_widget(mesa1_tab.prog_widget)
+        self._register_prog_widget(mesa2_tab.prog_widget)
+
+    # -----------------------------------------------------------------
+    # Helpers para ProgramIOWidget por aba
+    # -----------------------------------------------------------------
+    def _register_prog_widget(self, widget):
+        """Acopla sinais de load/save para lembrar o último arquivo usado."""
+        widget._last_file = None
+        widget.fileSaved.connect(lambda f, w=widget: setattr(w, "_last_file", f))
+        widget.fileLoaded.connect(lambda f, w=widget: setattr(w, "_last_file", f))
+
+    def _current_prog_widget(self):
+        """Devolve o ProgramIOWidget associado à aba visível."""
+        w = self.tab_widget.currentWidget()
+        if w is self.control_tab:
+            return self.prog_io_widget
+        for mesa_id, tab in self.mesa_tabs.items():
+            if w is tab:
+                return tab.prog_widget
+        # fallback
+        return self.prog_io_widget
+    
+    # ================================================================
+    #  Conversões pulsos  ←→  milímetros
+    # ================================================================
+    def pulses_from_mm(self, axis: str, mm: float) -> int:
+        """Converte mm → pulsos utilizando a calibração do eixo."""
+        return int(round(mm * self.steps_per_mm.get(axis, 1.0)))
+
+    def _set_axis_steps(self, axis: str, steps: float):
+        """Atualiza fator steps/mm de um eixo e persiste em settings."""
+        self.steps_per_mm[axis] = float(steps)
+        self.settings.axis_steps = self.steps_per_mm
+        self.settings.save()
+        self.log(f"■ Calibração {axis}: {steps:.3f} steps/mm salva")
+
+    # ================================================================
+    #  HOMING VIRTUAL
+    # ================================================================
+    def _open_virtual_home_dialog(self):
+        # cria uma única instância reutilizável
+        if not hasattr(self, '_vh_dialog'):
+            from virtual_home_dialog import ConfigHomeDialog
+            self._vh_dialog = ConfigHomeDialog(self, self)
+            self._vh_dialog.acceptedAndSaved.connect(self._save_virtual_home)
+        # mostra janela não modal, mantendo-a na frente
+        self._vh_dialog.show()
+        self._vh_dialog.raise_()
+        self._vh_dialog.activateWindow()
+
+    # ------------------ DOTS --------------------------------------
+    def _open_dot_dialog(self):
+        if not hasattr(self, "_dot_dialog"):
+            from dot_patterns_dialog import DotPatternsDialog
+            self._dot_dialog = DotPatternsDialog(self)
+        self._dot_dialog.show()
+        self._dot_dialog.raise_(); self._dot_dialog.activateWindow()
+
+    def _save_virtual_home(self):
+        self.virtual_home = self._vh_dialog.get_home_dict()
+        self.settings.virtual_home = self.virtual_home
+        self.settings.save()
+        self.log("■ Homing virtual atualizado")
+
+    def goto_virtual_home(self, mesa: int):
+        """Usado pelas abas Mesa 1/Mesa 2."""
+        home = self.virtual_home.get(mesa, {"x":0,"y":0})
+        x_tgt = home["x"]
+        y_tgt = home["y"]
+        # calcula diferenças
+        dx = x_tgt - self.current_positions["X"]
+        y_axis = 'Y1' if mesa == 1 else 'Y2'
+        dy = y_tgt - self.current_positions[y_axis]
+        if abs(dx) > 0:
+            self.move_relative('X', dx)
+        if abs(dy) > 0:
+            self.move_relative(y_axis, dy)
+        self.log(f"■ Mesa {mesa}: cabeça movida para Home virtual")
+            
+    # =================================================================
+    #  AÇÕES DO MENU “ARQUIVO”
+    # =================================================================
+    def _new_project(self):
+        """Limpa todas as listas de posições das abas."""
+        try:
+            if hasattr(self, "inspect_widget"):
+                self.inspect_widget.clear()
+            for tab in getattr(self, "mesa_tabs", {}).values():
+                tab.inspect_widget.clear()
+            self._current_project_file = None
+            self.log("■■ Novo projeto iniciado")
+        except Exception as exc:
+            self.log(f"■ Erro em Novo Projeto: {exc}")
+
+    # --- salvar / abrir utilizando ProgramIOWidget já existente ------
+    def _save_project(self):
+        """Salva arquivo referente à aba ativa."""
+        widget = self._current_prog_widget()
+        if getattr(widget, "_last_file", None):
+            try:
+                ok = widget._backend.save_to_file(widget._last_file)
+                if ok:
+                    self.log(f"Projeto salvo em {widget._last_file}")
+                else:
+                    self.log("■ Falha ao salvar projeto")
+            except Exception as exc:
+                self.log(f"■ Erro ao salvar: {exc}")
+        else:
+            self._save_as_project()
+
+    def _save_as_project(self):
+        """Abre diálogo de ‘Salvar Como…’ reaproveitando ProgramIOWidget."""
+        widget = self._current_prog_widget()
+        widget._on_save_clicked()
+
+    def _open_project(self):
+        """Abre projeto (diálogo de arquivo) via ProgramIOWidget oculto."""
+        widget = self._current_prog_widget()
+        widget._on_load_clicked()
+
+    def _open_focus_dialog(self):
+        from focus_calibration_dialog import FocusCalibrationDialog
+        dlg = FocusCalibrationDialog(self, self)
+        if dlg.exec():
+            # pega coeficientes
+            z0,f0,z1,f1 = dlg._z_top, dlg._f_top, dlg._z_bot, dlg._f_bot
+            a = (f1 - f0) / (z1 - z0)
+            b = f0 - a*z0
+            self.camera_manager.load_calibration(a,b)
+            self.settings.focus_coeffs = (a,b)
+            self.settings.save()
+            self.log("Calibração de foco salva")
+            # agora que existe calibração, liga auto-focus
+            self.camera_manager.enable_auto_focus(True)
+
+    # -------------------- diálogo calibração eixos -------------------
+    def _open_axis_calib_dialog(self):
+        
+        dlg = AxisCalibrationDialog(self, self)
+        dlg.exec()
+
+    # --------------------- diálogo de limites ------------------------
+    def _open_limits_dialog(self):
+        from config_dialogs import WorkAreaConfigDialog
+        dlg = WorkAreaConfigDialog(self.table_limits, self)
+        if dlg.exec():
+            self.table_limits = dlg.get_limits()
+            # envia às abas
+            for mesa, tab in self.mesa_tabs.items():
+                tab.set_limits(self.table_limits[mesa])
+            self.settings.table_limits = self.table_limits
+            self.settings.save()
+            self.log("Limites de mesa atualizados pelo usuário")
+
+    # ----------------------- câmera --------------------------
+    def _select_camera_dialog(self):
+        from PyQt6.QtWidgets import QInputDialog
+        idx, ok = QInputDialog.getInt(self, "Selecionar câmera",
+                                      "Índice da câmera (0 = padrão):",
+                                      value=self.settings.camera_index, min=0, max=10)
+        if ok:
+            self.settings.camera_index = idx
+            self.settings.save()
+            self.camera_manager.open(idx)
+            self.log(f"Câmera {idx} selecionada")
+
+    # ---------------- persistência em JSON ---------------------------
+    def _load_limits_from_disk(self):
+        try:
+            if self._limits_file.exists():
+                data = json.loads(self._limits_file.read_text(encoding="utf-8"))
+                # valida estrutura mínima
+                if all(str(k) in ("1", "2") for k in data):
+                    self.table_limits = {int(k): v for k, v in data.items()}
+                    self.log("Limites de mesa carregados do disco")
+        except Exception as exc:
+            self.log(f"Erro ao ler limites salvos: {exc}")
+
+    def _save_limits_to_disk(self):
+        try:
+            self._limits_file.write_text(
+                json.dumps(self.table_limits, indent=2), encoding="utf-8")
+            self.log("Limites de mesa gravados em table_limits.json")
+        except Exception as exc:
+            self.log(f"Erro ao salvar limites: {exc}")
 
     def create_homing_sensors_status(self):
         """Exibe o estado ON/OFF dos sensores físicos de HOME"""
@@ -668,31 +869,6 @@ class MultiAxisMotorController(QMainWindow):
         group.setLayout(layout)
         return group
     
-    def create_keyboard_control_frame(self):
-        """Cria frame de controle global via teclado"""
-        keyboard_frame = QFrame()
-        keyboard_frame.setStyleSheet("QFrame { border: 2px solid #FF9800; border-radius: 5px; background-color: #FFF3E0; }")
-        keyboard_layout = QVBoxLayout(keyboard_frame)
-        
-        # Título
-        title = QLabel("🎮 CONTROLE VIA TECLADO")
-        title.setStyleSheet("QLabel { font-weight: bold; font-size: 14px; color: #E65100; }")
-        title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        keyboard_layout.addWidget(title)
-        
-        # Checkbox global
-        self.keyboard_jog_checkbox = QCheckBox("⌨️ Habilitar controle via teclado")
-        self.keyboard_jog_checkbox.setStyleSheet("QCheckBox { font-weight: bold; color: #E65100; }")
-        self.keyboard_jog_checkbox.stateChanged.connect(self.on_keyboard_jog_toggle)
-        keyboard_layout.addWidget(self.keyboard_jog_checkbox)
-        
-        # Mapeamento de teclas
-        mapping_info = QLabel("X: ← →  |  Y2: ↑ ↓  |  Y1: W S  |  Z: Q E")
-        mapping_info.setStyleSheet("QLabel { color: #BF360C; font-size: 12px; font-style: italic; background-color: white; padding: 5px; border-radius: 3px; }")
-        mapping_info.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        keyboard_layout.addWidget(mapping_info)
-        
-        return keyboard_frame
         
     def create_auxiliary_controls(self):
         """Cria controles auxiliares - Y0.10 CORRIGIDO"""
@@ -707,40 +883,6 @@ class MultiAxisMotorController(QMainWindow):
         y010_btn.setStyleSheet("QPushButton:checked { background-color: orange; }")
         layout.addWidget(y010_btn)
         setattr(self, 'y010_btn', y010_btn)
-        
-        # Info do endereço
-        info_label = QLabel("Y0.10 é comandado por M5000 (coil 50)")
-        info_label.setStyleSheet("QLabel { color: gray; font-size: 9px; }")
-        layout.addWidget(info_label)
-        
-        
-        
-        # Parada de emergência
-        stop_btn = QPushButton("PARADA DE EMERGÊNCIA")
-        stop_btn.setStyleSheet("QPushButton { background-color: red; color: white; padding: 15px; font-weight: bold; }")
-        stop_btn.clicked.connect(self.emergency_stop)
-        layout.addWidget(stop_btn)
-
-        # -------------------------------------------------
-        # BOTÃO ÚNICO – HOMING GERAL (Z sobe 3 s → Y2,Y1,X)
-        # -------------------------------------------------
-        homing_all_btn = QPushButton("üè† HOMING GERAL")
-        homing_all_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; "
-                                     "padding: 15px; font-weight: bold; }")
-        homing_all_btn.clicked.connect(self.home_all_axes)
-        layout.addWidget(homing_all_btn)
-
-        
-
-        
-
-        # -------- PAINEL JOG MANUAL -------------
-        jog_panel = self.create_manual_jog_controls()
-        layout.addWidget(jog_panel)
-
-        # Adiciona controle global via teclado
-        keyboard_control = self.create_keyboard_control_frame()
-        layout.addWidget(keyboard_control)
         
         group.setLayout(layout)
         return group
@@ -789,80 +931,7 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f" Falha ao pulsar {mem_key}: {e}")
     
-    # ------------------------------------------------------------------
-    #                NOVO: painel de JOG manual embutido
-    # ------------------------------------------------------------------
-    def create_manual_jog_controls(self):
-        """Retorna um pequeno painel de JOG manual (passo + botões)."""
-        group = QGroupBox("JOG MANUAL")
-        group.setStyleSheet("QGroupBox { font-weight:bold; font-size:12px; }")
-        vbox = QVBoxLayout(group)
-
-        # passo
-        step_frame = QHBoxLayout()
-        step_frame.addWidget(QLabel("Passo (pulsos):"))
-        self.jog_step_spin = QSpinBox()
-        self.jog_step_spin.setRange(1, 100_000)
-        self.jog_step_spin.setValue(500)
-        step_frame.addWidget(self.jog_step_spin)
-        step_frame.addStretch()
-        vbox.addLayout(step_frame)
-
-        # ------------------ GRADE DE BOTÕES ------------------
-        grid = QGridLayout()
-        grid.setHorizontalSpacing(10)
-        grid.setVerticalSpacing(8)
-
-        # ---- Y1 (esquerda) | Y2 (direita) ----
-        y1_plus  = QPushButton("Y1 +")
-        y1_minus = QPushButton("Y1 –")
-        y2_plus  = QPushButton("Y2 +")
-        y2_minus = QPushButton("Y2 –")
-
-        y1_plus.clicked.connect( lambda: self.jog_move('Y1', 'forward'))
-        y1_minus.clicked.connect(lambda: self.jog_move('Y1', 'reverse'))
-        y2_plus.clicked.connect( lambda: self.jog_move('Y2', 'forward'))
-        y2_minus.clicked.connect(lambda: self.jog_move('Y2', 'reverse'))
-
-        for b in (y1_plus, y1_minus, y2_plus, y2_minus):
-            b.setMinimumSize(70, 38)
-            b.setStyleSheet("QPushButton { font-weight:bold; }")
-
-        # '+' em cima, '–' em baixo
-        grid.addWidget(y1_plus,  0, 0)
-        grid.addWidget(y2_plus,  0, 1)
-        grid.addWidget(y1_minus, 1, 0)
-        grid.addWidget(y2_minus, 1, 1)
-
-        # ---- X (lado-a-lado) ----
-        x_minus = QPushButton("X –")
-        x_plus  = QPushButton("X +")
-        x_minus.clicked.connect(lambda: self.jog_move('X', 'reverse'))
-        x_plus.clicked.connect( lambda: self.jog_move('X', 'forward'))
-
-        for b in (x_minus, x_plus):
-            b.setMinimumSize(70, 38)
-            b.setStyleSheet("QPushButton { font-weight:bold; }")
-
-        grid.addWidget(x_minus, 2, 0)
-        grid.addWidget(x_plus,  2, 1)
-
-        # ---- Z (vertical) ----
-        z_plus_btn  = QPushButton("Z +")
-        z_minus_btn = QPushButton("Z –")
-        z_plus_btn.clicked.connect( lambda: self.jog_move('Z', 'forward'))
-        z_minus_btn.clicked.connect(lambda: self.jog_move('Z', 'reverse'))
-
-        for b in (z_plus_btn, z_minus_btn):
-            b.setMinimumSize(70, 38)
-            b.setStyleSheet("QPushButton { font-weight:bold; }")
-
-        start_row = 3
-        grid.addWidget(z_plus_btn,  start_row,     0, 1, 2)  # ocupa duas colunas
-        grid.addWidget(z_minus_btn, start_row + 1, 0, 1, 2)
-
-        vbox.addLayout(grid)
-        return group
+    
         
     def create_outputs_status(self):
         """Cria status das saídas"""
@@ -946,54 +1015,26 @@ class MultiAxisMotorController(QMainWindow):
             
             if self.client.connect():
                 self.connected = True
-                self.status_label.setText("✅ CONECTADO: 192.168.1.5:502")
-                self.status_label.setStyleSheet("QLabel { background-color: green; color: white; padding: 10px; font-weight: bold; }")
+                self.status_bar.showMessage("■ CONECTADO: 192.168.1.5:502")
+                self.status_bar.setStyleSheet(
+                    "QStatusBar { background-color:green; color:white; font-weight:bold; }")
                 self.log("✅ Conectado com sucesso!")
                 self.log("🔧 Endereços corrigidos conforme ladder real")
             else:
                 self.connected = False
-                self.log("❌ Falha na conexão")
+                self.status_bar.showMessage("Desconectado")
+                self.status_bar.setStyleSheet(
+                    "QStatusBar { background-color:red; color:white; font-weight:bold; }")
+                self.log("■ Falha na conexão")
                 
         except Exception as e:
             self.connected = False
-            self.log(f"❌ Erro na conexão: {e}")
+            self.status_bar.showMessage("Desconectado")
+            self.status_bar.setStyleSheet(
+                "QStatusBar { background-color:red; color:white; font-weight:bold; }")
+            self.log(f"■ Erro na conexão: {e}")
 
-    def read_initial_velocities(self):
-        """Lê velocidades salvas na ROM do CLP e atualiza interface"""
-        if not self.connected:
-            return
-            
-        try:
-            self.log("📖 Lendo velocidades salvas na ROM do CLP...")
-            
-            # Mapeamento dos registradores de velocidade
-            velocity_map = {
-                'Y2': ('D20000_Y2', 'vel_spin_Y2'),
-                'Y1': ('D20500_Y1', 'vel_spin_Y1'),
-                'Z':  ('D21500_Z', 'vel_spin_Z'),
-                'X':  ('D21000_X', 'vel_spin_X')
-            }
-            
-            for axis, (reg_key, spin_attr) in velocity_map.items():
-                try:
-                    velocity_addr = self.addresses[reg_key]
-                    saved_velocity = self.read_dword(velocity_addr)
-                    
-                    # Atualiza interface com valor lido
-                    vel_spin = getattr(self, spin_attr)
-                    vel_spin.setValue(saved_velocity)
-                    
-                    self.log(f"✅ Velocidade {axis} lida da ROM: {saved_velocity}")
-                    
-                except Exception as e:
-                    self.log(f"⚠️ Erro ao ler velocidade {axis}: {e}")
-                    # Mantém valor padrão se der erro
-                    continue
-                    
-            self.log("📖 Leitura das velocidades concluída")
-            
-        except Exception as e:
-            self.log(f"❌ Erro geral na leitura das velocidades: {e}")
+    
     
     def read_initial_jog_velocities(self):
         """Lê velocidades JOG atuais dos registradores D22000 série"""
@@ -1027,36 +1068,7 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro geral na leitura das velocidades JOG: {e}")
     
-    def read_initial_homing_velocities(self):
-        """Lê velocidades de homing da ROM"""
-        if not self.connected:
-            return
-            
-        try:
-            self.log("📖 Lendo velocidades de homing da ROM...")
-            
-            homing_vel_map = {
-                'Y2': ('D23000', 'homing_vel_spin_Y2'),
-                'Y1': ('D23010', 'homing_vel_spin_Y1'),
-                'X':  ('D23020', 'homing_vel_spin_X'),
-                'Z':  ('D23030', 'homing_vel_spin_Z')
-            }
-            
-            for axis, (reg_key, spin_attr) in homing_vel_map.items():
-                try:
-                    homing_velocity = self.read_dword(self.addresses[reg_key])
-                    
-                    if hasattr(self, spin_attr):
-                        homing_spin = getattr(self, spin_attr)
-                        homing_spin.setValue(abs(homing_velocity))
-                        self.log(f"✅ Velocidade Homing {axis}: {abs(homing_velocity)} Hz")
-                
-                except Exception as e:
-                    self.log(f"⚠️ Erro ao ler velocidade Homing {axis}: {e}")
-                    continue
-                    
-        except Exception as e:
-            self.log(f"❌ Erro geral na leitura das velocidades Homing: {e}")
+    
             
     def read_initial_limits(self):
         """Lê limites salvos na ROM"""
@@ -1086,37 +1098,7 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro geral na leitura dos limites: {e}")
             
-    def set_homing_velocity(self, axis_name):
-        """Define velocidade de homing na ROM"""
-        if not self.connected:
-            self.log("❌ CLP não conectado")
-            return
-            
-        try:
-            homing_spin = getattr(self, f'homing_vel_spin_{axis_name}')
-            velocity = homing_spin.value()
-            
-            # Mapeamento dos registradores de homing
-            homing_addr_map = {
-                'Y2': ('D23000', 'D450'),    # ROM, Aplicado
-                'Y1': ('D23010', 'D950'),    # ROM, Aplicado
-                'X':  ('D23020', 'D1450'),   # ROM, Aplicado
-                'Z':  ('D23030', 'D1950')    # ROM, Aplicado
-            }
-            
-            rom_addr_key, app_addr_key = homing_addr_map[axis_name]
-            
-            # Escreve na ROM e no registrador aplicado
-            result1 = self.write_dword(self.addresses[rom_addr_key], velocity)
-            result2 = self.write_dword(self.addresses[app_addr_key], velocity)
-            
-            if not result1.isError() and not result2.isError():
-                self.log(f"✅ Velocidade Homing {axis_name} salva: {velocity} Hz")
-            else:
-                self.log(f"❌ Erro ao salvar velocidade Homing {axis_name}")
-                
-        except Exception as e:
-            self.log(f"❌ Erro ao configurar velocidade Homing {axis_name}: {e}")
+    
 
     def read_initial_homing_status(self):
         """Lê status inicial das memórias de homing na inicialização"""
@@ -1319,13 +1301,7 @@ class MultiAxisMotorController(QMainWindow):
         u32 = (hi << 16) | lo
         return u32 if u32 < 0x8000_0000 else u32 - 0x1_0000_0000
     
-    def jog_move(self, axis_name, direction):
-        """
-        Movimento incremental (JOG).
-        Usa `quick_move` com quantidade definida na spin box de passo.
-        """
-        pulses = self.jog_step_spin.value()
-        self.move_relative(axis_name, pulses if direction == 'forward' else -pulses)
+    
 
     # ---------------------------------------------------
     def write_axis_parameters(self, axis_name):
@@ -1867,9 +1843,9 @@ class MultiAxisMotorController(QMainWindow):
     # callbacks vindos do MovementControlsWidget
     # ================================================================
     def _on_step_move_requested(self, axis: str, distance: float, feed: float):
-        """Step = movimento incremental curto (G90 do widget)."""
-        # converte distância (mm) em ‘pulsos’: aqui 1 mm = 1 pulso (ajuste se desejar)
-        self.move_relative(axis, int(distance))
+        """Step = movimento incremental curto, em milímetros."""
+        pulses = self.pulses_from_mm(axis, distance)
+        self.move_relative(axis, pulses)
 
     def _on_widget_jog_start(self, axis: str, direction: int, feed: float):
         self._active_widget_axis = axis
@@ -1900,17 +1876,40 @@ class MultiAxisMotorController(QMainWindow):
         
         # Lê posições atuais e status de homing (prioridade)
         self.read_current_positions()
-        # ------------ atualiza widget de posição ------------------------
-        if hasattr(self, 'pos_widget'):
-            self.pos_widget.update_position(
-                x  = self.current_positions['X'],
-                y2 = self.current_positions['Y2'],
-                y1 = self.current_positions['Y1'],
-                z  = self.current_positions['Z']
-            )
-        self.monitor_homing_status()
+        # ------------ atualiza MovementControls principal --------------
+        if hasattr(self, 'mov_widget'):
+            self.mov_widget.update_position(
+                x=self.current_positions['X'],
+                y2=self.current_positions['Y2'],
+                y1=self.current_positions['Y1'],
+                z=self.current_positions['Z'])
 
-        
+        # ------------ atualiza widgets das mesas ------------------------
+        for mesa_id, tab in getattr(self, 'mesa_tabs', {}).items():
+            # envia posição para cada mov_widget da mesa
+            if tab.y_axis == 'Y1':
+                tab.mov_widget.update_position(
+                    x=self.current_positions['X'],
+                    y2=0,
+                    y1=self.current_positions['Y1'],
+                    z=self.current_positions['Z'])
+            else:
+                tab.mov_widget.update_position(
+                    x=self.current_positions['X'],
+                    y2=self.current_positions['Y2'],
+                    y1=0,
+                    z=self.current_positions['Z'])
+        self.monitor_homing_status()
+        # ------------ atualiza gráficos das mesas -----------------------
+        if hasattr(self, "mesa_plot_widgets"):
+            self.mesa_plot_widgets[1].update_head_position(
+                self.current_positions['X'],
+                self.current_positions['Y1'])
+            self.mesa_plot_widgets[2].update_head_position(
+                self.current_positions['X'],
+                self.current_positions['Y2'])
+        # ajusta foco conforme Z
+        self.camera_manager.auto_focus(self.current_positions['Z'])  
             
         try:
             # Atualiza saídas
@@ -2135,6 +2134,9 @@ class MultiAxisMotorController(QMainWindow):
         if self.client:
             self.emergency_stop()
             self.client.close()
+            self.status_bar.showMessage("Desconectado")
+            self.status_bar.setStyleSheet(
+                "QStatusBar { background-color:red; color:white; font-weight:bold; }")
             self.log("Desconectado do CLP")
         event.accept()
 

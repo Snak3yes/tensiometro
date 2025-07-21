@@ -56,6 +56,7 @@ class MovementControlsWidget(QWidget):
 
         grp = QGroupBox("Movement Controls")
         grid = QGridLayout(grp)
+        self.grid = grid
 
         # ------------------ botões direcionais -------------------------
         # Y2
@@ -125,8 +126,8 @@ class MovementControlsWidget(QWidget):
 
         # ------------------ modos de distância -------------------------
         h_mode = QHBoxLayout()
-        self.btn_abs = QPushButton("G90 (Passo)")
-        self.btn_rel = QPushButton("G91 (Contínuo)")
+        self.btn_abs = QPushButton("(Passo)")
+        self.btn_rel = QPushButton("(Contínuo)")
         self.btn_abs.setCheckable(True)
         self.btn_rel.setCheckable(True)
         self.btn_rel.setChecked(True)
@@ -140,12 +141,43 @@ class MovementControlsWidget(QWidget):
         self.btn_gotozero.setFont(fz)
         grid.addWidget(self.btn_gotozero, 6, 0, 1, 3)
 
+        # ---------------------------------------------------------------
+        #  NOVO: “Posição Atual” encaixado no espaço em branco (col-4)
+        #  A grade fica: col-0..4 já usados; criamos col-5 só p/ leitura
+        # ---------------------------------------------------------------
+        self.lbl_pos_x  = QLabel("0");  self.lbl_pos_y2 = QLabel("0")
+        self.lbl_pos_y1 = QLabel("0");  self.lbl_pos_z  = QLabel("0")
+        for lab in (self.lbl_pos_x, self.lbl_pos_y2,
+                    self.lbl_pos_y1, self.lbl_pos_z):
+            lab.setAlignment(Qt.AlignmentFlag.AlignRight)
+            lab.setMinimumWidth(60)
+            lab.setStyleSheet("QLabel { background:gray; padding:1px; }")
+
+        grid.setColumnStretch(5, 1)          # assegura 6.ª coluna
+
+        # grid.addWidget(QLabel("<b>Posição</b>"), 0, 5, Qt.AlignmentFlag.AlignCenter)
+        grid.addWidget(QLabel("X:"), 3, 3, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(self.lbl_pos_x, 3, 4, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(QLabel("Y2:"), 4, 3, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(self.lbl_pos_y2, 4, 4, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(QLabel("Y1:"), 5, 3, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(self.lbl_pos_y1, 5, 4, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(QLabel("Z:"), 6, 3, Qt.AlignmentFlag.AlignRight)
+        grid.addWidget(self.lbl_pos_z, 6, 4, Qt.AlignmentFlag.AlignRight)
+
         # ------------------ finais -------------------------------------
         outer.addWidget(grp)
         outer.addStretch()
 
         # ligações
         self._connect_signals()
+
+    # ------------------------ API pública -----------------------------
+    def update_position(self, *, x: int, y2: int, y1: int, z: int):
+        self.lbl_pos_x.setText(str(x))
+        self.lbl_pos_y2.setText(str(y2))
+        self.lbl_pos_y1.setText(str(y1))
+        self.lbl_pos_z.setText(str(z))
 
     # ------------------------------------------------------------------
     # sinais internos → sinais públicos

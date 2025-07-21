@@ -35,6 +35,9 @@ class ProgramIOWidget(QWidget):
 
     def __init__(self,
                  backend: ProgramStorageBackend,
+                 *,
+                 file_filter: str = "Arquivos JSON (*.json)",
+                 default_suffix: str = ".json",
                  parent=None) -> None:
         super().__init__(parent)
         if not isinstance(backend, ProgramStorageBackend):
@@ -42,6 +45,8 @@ class ProgramIOWidget(QWidget):
                 "backend não implementa ProgramStorageBackend (save_to_file / load_from_file)"
             )
         self._backend = backend
+        self._file_filter   = file_filter
+        self._default_suf   = default_suffix
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -70,13 +75,13 @@ class ProgramIOWidget(QWidget):
     # ------------------------------------------------------------------
     def _on_save_clicked(self):
         fname, _ = QFileDialog.getSaveFileName(
-            self, "Salvar Programa", "", "Arquivos JSON (*.json)"
+            self, "Salvar Programa", "", self._file_filter
         )
         if not fname:
             return
-        # garante extensão .json
-        if not fname.lower().endswith(".json"):
-            fname += ".json"
+        # garante extensão correta
+        if self._default_suf and not fname.lower().endswith(self._default_suf):
+            fname += self._default_suf
 
         ok = False
         try:
@@ -92,7 +97,7 @@ class ProgramIOWidget(QWidget):
 
     def _on_load_clicked(self):
         fname, _ = QFileDialog.getOpenFileName(
-            self, "Carregar Programa", "", "Arquivos JSON (*.json)"
+            self, "Carregar Programa", "", self._file_filter
         )
         if not fname:
             return
