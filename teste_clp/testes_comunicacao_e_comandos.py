@@ -232,7 +232,7 @@ class MultiAxisMotorController(QMainWindow):
             ('D22100', 'Tempo Acel. Jog'),
             ('D22110', 'Tempo Desac. Jog')
         ]
-        
+
         # -------------- limites de trabalho (padrão) + persistência ---
         # --------------- carrega configurações persistentes -----------
         self.settings = SettingsManager()
@@ -250,6 +250,14 @@ class MultiAxisMotorController(QMainWindow):
 
         # ---------------- STEPS/MM  -----------------------------
         self.steps_per_mm: dict[str,float] = self.settings.axis_steps
+
+        # -------- escala da câmera (mm/pixel) -------------------
+        self.mm_per_pixel: float = self.settings.camera_mm_per_pixel
+
+        # -------- campo-de-visão (dois pontos) -------------------
+        self.camera_fov: dict = self.settings.camera_fov
+        # coeficientes lineares  largura = aX*z + bX   (idem altura)
+        self._fov_coeffs = self._calc_fov_coeffs()
 
         # ---- homing virtual ---------------------------------
         self.virtual_home: dict[int,dict[str,int]] = self.settings.virtual_home
@@ -325,9 +333,11 @@ class MultiAxisMotorController(QMainWindow):
         act_select = menu_cam.addAction("Selecionar câmera…")
         act_reopen = menu_cam.addAction("Reconectar")
         act_focus  = menu_cam.addAction("Calibrar foco…")
+        act_fov    = menu_cam.addAction("Calibração campo de visão…")
         act_select.triggered.connect(self._select_camera_dialog)
         act_reopen.triggered.connect(lambda: self.camera_manager.open(self.settings.camera_index))
         act_focus.triggered.connect(self._open_focus_dialog)
+        act_fov.triggered.connect(self._open_fov_dialog)
 
         # ---------------- CALIBRAÇÃO EIXOS ----------------------
         act_calib  = menu_cfg.addAction("Calibração dos Eixos…")
@@ -559,6 +569,35 @@ class MultiAxisMotorController(QMainWindow):
             # agora que existe calibração, liga auto-focus
             self.camera_manager.enable_auto_focus(True)
 
+    # -------------- diálogo FOV ------------------------------------
+    def _open_fov_dialog(self):
+        from fov_calibration_dialog import FOVCalibrationDialog
+        dlg = FOVCalibrationDialog(self.settings, self)
+        if dlg.exec():
+            # recarrega as constantes na instância
+            self.camera_fov = self.settings.camera_fov
+            self._fov_coeffs = self._calc_fov_coeffs()
+            self.log("Calibração de campo-de-visão salva")
+
+    # ----------------------------------------------------------------
+    #  Calcula coeficientes lineares  campo_mm(z)=a*z+b
+    # ----------------------------------------------------------------
+    def _calc_fov_coeffs(self) -> dict[str,float]:
+        f = self.camera_fov
+        z0 = float(f.get("z0_z_pulses", 0))
+        z1 = float(f.get("z1_z_pulses", 700))
+        w0 = float(f.get("z0_width_mm", 61.0))
+        w1 = float(f.get("z1_width_mm", 30.5))
+        h0 = float(f.get("z0_height_mm", 45.0))
+        h1 = float(f.get("z1_height_mm", 22.5))
+        if z1 == z0:           # garante denom.
+            z1 += 1
+        aX = (w1 - w0) / (z1 - z0)
+        bX = w0 - aX * z0
+        aY = (h1 - h0) / (z1 - z0)
+        bY = h0 - aY * z0
+        return {"aX":aX, "bX":bX, "aY":aY, "bY":bY}
+
     # -------------------- diálogo calibração eixos -------------------
     def _open_axis_calib_dialog(self):
         
@@ -729,9 +768,7 @@ class MultiAxisMotorController(QMainWindow):
         for reg_key, _ in self.configurable_registers:
             self.write_single_config(reg_key)
         self.log("‚úÖ Configuração – gravação concluída")
-        
-    
-        
+                
     def create_axis_control(self, title, axis_name):
         """Cria controle para um eixo - CORRIGIDO para valores absolutos"""
         group = QGroupBox(title)
@@ -784,9 +821,7 @@ class MultiAxisMotorController(QMainWindow):
         params_layout.addWidget(homing_led, 2, 1)
         setattr(self, f'homing_led_{axis_name}', homing_led)
         
-        layout.addWidget(params_frame)
-
-        
+        layout.addWidget(params_frame)        
         
         # Botões de escrita
         write_btn = QPushButton("Escrever Parâmetros")
@@ -814,9 +849,7 @@ class MultiAxisMotorController(QMainWindow):
             jog_frame = QFrame()
             jog_frame.setStyleSheet("QFrame { border: 2px solid #2196F3; border-radius: 5px; background-color: #E3F2FD; }")
             jog_layout = QVBoxLayout(jog_frame)
-            
-            
-            
+                                
             # Botões JOG com pressionar/soltar
             jog_buttons_layout = QHBoxLayout()
             
@@ -859,17 +892,14 @@ class MultiAxisMotorController(QMainWindow):
             setattr(self, f'jog_plus_btn_{axis_name}', jog_plus_btn)
             
             jog_layout.addLayout(jog_buttons_layout)
-        
-        
-            
+                    
         move_layout.addWidget(jog_frame, 2, 0, 1, 2)
         
         layout.addWidget(move_frame)
         
         group.setLayout(layout)
         return group
-    
-        
+            
     def create_auxiliary_controls(self):
         """Cria controles auxiliares - Y0.10 CORRIGIDO"""
         group = QGroupBox("CONTROLES AUXILIARES")
@@ -930,9 +960,7 @@ class MultiAxisMotorController(QMainWindow):
             self.log(f" Pulso {mem_key} enviado")
         except Exception as e:
             self.log(f" Falha ao pulsar {mem_key}: {e}")
-    
-    
-        
+                
     def create_outputs_status(self):
         """Cria status das saídas"""
         group = QGroupBox("STATUS DAS SAÍDAS")
@@ -1032,9 +1060,7 @@ class MultiAxisMotorController(QMainWindow):
             self.status_bar.showMessage("Desconectado")
             self.status_bar.setStyleSheet(
                 "QStatusBar { background-color:red; color:white; font-weight:bold; }")
-            self.log(f"■ Erro na conexão: {e}")
-
-    
+            self.log(f"■ Erro na conexão: {e}")    
     
     def read_initial_jog_velocities(self):
         """Lê velocidades JOG atuais dos registradores D22000 série"""
@@ -1066,9 +1092,7 @@ class MultiAxisMotorController(QMainWindow):
                     self.log(f"⚠️ Erro ao ler velocidade JOG {axis}: {e}")
                     continue
         except Exception as e:
-            self.log(f"❌ Erro geral na leitura das velocidades JOG: {e}")
-    
-    
+            self.log(f"❌ Erro geral na leitura das velocidades JOG: {e}")    
             
     def read_initial_limits(self):
         """Lê limites salvos na ROM"""
@@ -1096,9 +1120,7 @@ class MultiAxisMotorController(QMainWindow):
                     continue
                     
         except Exception as e:
-            self.log(f"❌ Erro geral na leitura dos limites: {e}")
-            
-    
+            self.log(f"❌ Erro geral na leitura dos limites: {e}")    
 
     def read_initial_homing_status(self):
         """Lê status inicial das memórias de homing na inicialização"""
@@ -1299,9 +1321,7 @@ class MultiAxisMotorController(QMainWindow):
             raise ValueError(res)
         lo, hi = res.registers
         u32 = (hi << 16) | lo
-        return u32 if u32 < 0x8000_0000 else u32 - 0x1_0000_0000
-    
-    
+        return u32 if u32 < 0x8000_0000 else u32 - 0x1_0000_0000        
 
     # ---------------------------------------------------
     def write_axis_parameters(self, axis_name):
@@ -1520,8 +1540,7 @@ class MultiAxisMotorController(QMainWindow):
             }
             
             pos_cmd, neg_cmd = jog_cmd_map[axis_name]
-            
-            
+                        
             if direction == '+':
                 result = self.client.write_coil(self.addresses[pos_cmd], True)
                 direction_text = f"POSITIVO ({pos_cmd})"

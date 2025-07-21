@@ -41,5 +41,14 @@
       "x": 11321,
       "y": 5750
     }
+  },
+  "camera_mm_per_pixel": 0.05,
+  "camera_fov": {
+    "z0_z_pulses": 0,
+    "z0_width_mm": 68.5,
+    "z0_height_mm": 52.5,
+    "z1_z_pulses": 700,
+    "z1_width_mm": 37.0,
+    "z1_height_mm": 29.0
   }
 }

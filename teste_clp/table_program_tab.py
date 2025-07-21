@@ -23,6 +23,18 @@ from action_config_placeholders import (
     BarcodeConfigWidget, InspectConfigWidget, FiducialConfigWidget
 )
 from PyQt6.QtWidgets import QStackedWidget
+from PyQt6.QtCore    import pyqtSignal
+
+# ------------------------------------------------------------------
+#  QLabel que emite sinal ao clicar – para mover a cabeça
+# ------------------------------------------------------------------
+class ClickableLabel(QLabel):
+    # usa float porque ev.position().x()/y() devolvem qreal (float)
+    clicked = pyqtSignal(float, float)   # x,y em pixels dentro do label
+    def mousePressEvent(self, ev):
+        if ev.button() == Qt.MouseButton.LeftButton:
+            self.clicked.emit(ev.position().x(), ev.position().y())
+        super().mousePressEvent(ev)
 
 
 class TableProgramTab(QWidget):
@@ -36,6 +48,10 @@ class TableProgramTab(QWidget):
         self.ctrl   = controller
         self.mesa   = mesa_id          # 1 ou 2
         self.y_axis = 'Y1' if mesa_id == 1 else 'Y2'
+        # orientação do Y: +1 → clicar acima do centro move Y+
+        #                    -1 → clicar acima move Y-
+        # sua câmera está “invertida”, portanto usamos +1
+        self._PIXEL_TO_Y_SIGN = +1
         self._build_ui()
         self._jog_active_axis: str | None = None
         QTimer.singleShot(0, self._fix_video_size)
@@ -216,7 +232,7 @@ class TableProgramTab(QWidget):
 
         # -------------------- COLUNA CENTRAL (preview câmera) ----------
         
-        self.lbl_video = QLabel("Sem vídeo")
+        self.lbl_video = ClickableLabel("Sem vídeo")
         self.lbl_video.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_video.setStyleSheet(
             "QLabel { background:#000; color:#FFF; border:1px dashed #607D8B; }")
@@ -228,6 +244,8 @@ class TableProgramTab(QWidget):
         # o coloca sempre no centro da célula  (h & v).
         grid.addWidget(self.lbl_video, 0, 1,
                        alignment=Qt.AlignmentFlag.AlignCenter)
+        # clique → mover cabeça
+        self.lbl_video.clicked.connect(self._on_video_click)
 
         # -------------------- COLUNA DIREITA (controles) --------------
         v_right = QVBoxLayout()
@@ -309,13 +327,80 @@ class TableProgramTab(QWidget):
                     self.inspect_widget.positionRemoved,
                     self.prog_widget.fileLoaded):
             sig.connect(lambda _=None: self._update_plot())
+
         QTimer.singleShot(0, self._update_plot)   # primeira vez
 
         # ============================ PERSONALIZAÇÃO UI ================
         self._adapt_widgets_for_single_y()
 
+    # ------------------------------------------------------------------
+    #  Clique no vídeo → mover cabeça
+    # ------------------------------------------------------------------
+    def _on_video_click(self, px: float, py: float):
+        if not hasattr(self, "_last_frame_sz"):
+            return
+        # --------------------------------- 1. Conversão pixel → mm ----
+        # ------------------------------------------------------------
+        #  Determina retângulo efetivo da imagem dentro do QLabel
+        # ------------------------------------------------------------
+        disp_w = self.lbl_video.width()
+        disp_h = self.lbl_video.height()
+        orig_w, orig_h = self._last_frame_sz
+        # escala aplicada pelo QPixmap.scaled(KeepAspectRatio)
+        scale = min(disp_w / orig_w, disp_h / orig_h)
+        pix_w = orig_w * scale
+        pix_h = orig_h * scale
+        offset_x = (disp_w - pix_w) / 2
+        offset_y = (disp_h - pix_h) / 2
+        # ignora clique fora da imagem
+        if not (offset_x <= px <= offset_x + pix_w and
+                offset_y <= py <= offset_y + pix_h):
+            return
+        # coordenada relativa ao centro da imagem, em pixels
+        dx_pix = (px - offset_x - pix_w/2) / scale
+        dy_pix = (py - offset_y - pix_h/2) / scale
+        # conserta orientação Y
+        dy_pix *= self._PIXEL_TO_Y_SIGN
+        # ----------------------- 4. Escala MM/PX – modelo óptico -----
+        z_cur = self.ctrl.current_positions['Z']
+        c     = self.ctrl._fov_coeffs
+        w_mm  = c["aX"] * z_cur + c["bX"]
+        h_mm  = c["aY"] * z_cur + c["bY"]
+        mmpp_x = w_mm / orig_w
+        mmpp_y = h_mm / orig_h
+
+        dx_mm = dx_pix * mmpp_x
+        dy_mm = dy_pix * mmpp_y
+        # --------------------------------- 2. Converte para pulsos ----
+        dx_pulses = self.ctrl.pulses_from_mm('X', dx_mm)
+        dy_pulses = self.ctrl.pulses_from_mm(self.y_axis, dy_mm)
+
+        # --------------------------------- 3. Calcula alvo absoluto ---
+        cur_x = self.ctrl.current_positions['X']
+        cur_y = self.ctrl.current_positions[self.y_axis]
+        tgt_x = cur_x + dx_pulses
+        tgt_y = cur_y + dy_pulses
+
+        # limita dentro da área de trabalho da mesa
+        x_min, x_max = self._limits['x']
+        y_min, y_max = self._limits['y']
+        tgt_x = max(x_min, min(x_max, tgt_x))
+        tgt_y = max(y_min, min(y_max, tgt_y))
+
+        # deslocamentos corrigidos
+        dx_corr = tgt_x - cur_x
+        dy_corr = tgt_y - cur_y
+
+        # evita comandos nulos / redundantes
+        if dx_corr:
+            self.ctrl.move_relative('X', int(dx_corr))
+        if dy_corr:
+            self.ctrl.move_relative(self.y_axis, int(dy_corr))
+
+        self.ctrl.log(f"■ Clique: ΔX={dx_corr}  ΔY={dy_corr} pulsos  "
+                      f"(destino X={tgt_x}, Y={tgt_y})")
+
     # ----------------------- helpers ação ---------------------------
-    import base64, cv2
     def _current_action_context(self) -> dict | None:
         key = self.action_selector.current_action()
         if not key:

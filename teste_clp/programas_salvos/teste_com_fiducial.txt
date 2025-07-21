@@ -39,19 +39,13 @@
   {
     "name": "4",
     "x": 34354.0,
-    "y": 4261.0,
+    "y": 4428.0,
     "z": 700.0,
     "meta": {
-      "action": "dot"
-    }
-  },
-  {
-    "name": "5",
-    "x": 34354.0,
-    "y": 4661.0,
-    "z": 700.0,
-    "meta": {
-      "action": "inspect"
+      "action": "dot",
+      "dot_id": 2,
+      "dot_name": "processador",
+      "dot_qty": 100
     }
   }
 ]

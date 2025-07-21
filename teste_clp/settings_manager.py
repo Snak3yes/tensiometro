@@ -24,6 +24,16 @@ class SettingsManager:
             "virtual_home": {
                 "1": {"x": 0, "y": 0},
                 "2": {"x": 0, "y": 0}
+            },
+            # ------- escala câmera (mm por pixel @ Z-ref = 0) --------
+            "camera_mm_per_pixel": 0.05,
+            "camera_fov": {               # NOVO – campo de visão
+                "z0_z_pulses": 0,
+                "z0_width_mm": 61.0,
+                "z0_height_mm": 45.0,
+                "z1_z_pulses": 700,
+                "z1_width_mm": 30.5,
+                "z1_height_mm": 22.5
             }
         }
         self.load()
@@ -86,3 +96,18 @@ class SettingsManager:
     def virtual_home(self, d: dict[int,dict[str,int]]):
         self.data["virtual_home"] = {str(k): {"x":int(v["x"]), "y":int(v["y"])}
                                      for k,v in d.items()}
+        
+    # ------------ câmera --------------------------------------------
+    @property
+    def camera_mm_per_pixel(self) -> float:
+        return float(self.data.get("camera_mm_per_pixel", 0.05))
+    @camera_mm_per_pixel.setter
+    def camera_mm_per_pixel(self, v: float):
+        self.data["camera_mm_per_pixel"] = float(v)
+    # ---------- campo-de-visão --------------------------------------
+    @property
+    def camera_fov(self) -> dict:
+        return self.data.get("camera_fov", {})
+    @camera_fov.setter
+    def camera_fov(self, d: dict):
+        self.data["camera_fov"] = d
