@@ -10,7 +10,5 @@ def _make_box(title: str, text: str) -> QGroupBox:
 
 # Place-holders – serão substituídos por UI completa depois
 from barcode_config_widget import BarcodeConfigWidget
-InspectConfigWidget  = lambda: _make_box("Config. Inspeção",
-                                         "Configurações de inspeção visual\n(a implementar)")
-# ‘Fiducial’ agora é widget real – importado abaixo
+from inspection_config_widget import InspectionConfigWidget
 from fiducial_config_widget import FiducialConfigWidget

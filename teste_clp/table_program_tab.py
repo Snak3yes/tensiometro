@@ -10,7 +10,7 @@ from PyQt6.QtGui     import QPixmap
 import base64, cv2
 import time
 
-
+from inspection_config_widget import InspectionConfigWidget
 from movement_controls_widget import MovementControlsWidget
 from position_status_widget   import PositionStatusWidget
 from inspection_positions_widget import InspectionPositionsWidget
@@ -20,7 +20,7 @@ from sequence_control         import SequenceControlWidget, InspectionPosition
 from dot_patterns_widget      import DotPatternsWidget
 from dot_action_selector_widget import DotActionSelectorWidget
 from action_config_placeholders import (
-    BarcodeConfigWidget, InspectConfigWidget, FiducialConfigWidget
+    BarcodeConfigWidget, FiducialConfigWidget, InspectionConfigWidget
 )
 from PyQt6.QtWidgets import QStackedWidget
 from PyQt6.QtCore    import pyqtSignal
@@ -145,6 +145,23 @@ class TableProgramTab(QWidget):
                 pa.drawRect(int(x*sx), int(y*sy), int(w*sx), int(h*sy))
             elif self._bc_match:
                 self._bc_match = None
+        elif self.action_selector.current_action() == 'inspect':
+            iw, ih = self._insp_w, self._insp_h
+            sx = pix.width()/self._last_frame_sz[0]
+            sy = pix.height()/self._last_frame_sz[1]
+            pen_i = QPen(Qt.GlobalColor.yellow, 2)
+            pa.setPen(pen_i)
+            rx = int(cx - iw*sx/2)
+            ry = int(cy - ih*sy/2)
+            rw = int(iw*sx); rh = int(ih*sy)
+            pa.drawRect(rx, ry, rw, rh)
+            if self._insp_match and time.time()-self._insp_match[2]<2.0:
+                rect,color,t0 = self._insp_match
+                pen_m = QPen(color,2); pa.setPen(pen_m)
+                x,y,w,h = rect
+                pa.drawRect(int(x*sx), int(y*sy), int(w*sx), int(h*sy))
+            elif self._insp_match:
+                self._insp_match=None
         pa.end()
         qp = QPixmap(pix.size())
         qp.fill(Qt.GlobalColor.transparent)
@@ -168,6 +185,16 @@ class TableProgramTab(QWidget):
         from PyQt6.QtGui import QColor
         self._bc_match = ((x,y,w,h),
                           QColor(Qt.GlobalColor.green if ok else Qt.GlobalColor.red),
+                          time.time())
+        
+    # -------- inspeção helpers --------------------------------------
+    def _set_insp_roi(self,w:int,h:int):
+        self._insp_w=w; self._insp_h=h
+    def _on_insp_region(self,img):
+        # último retângulo verde (sempre OK por definição)
+        from PyQt6.QtGui import QColor
+        self._insp_match=((0,0,self._insp_w,self._insp_h),
+                          QColor(Qt.GlobalColor.green),
                           time.time())
 
     def _build_ui(self):
@@ -199,8 +226,9 @@ class TableProgramTab(QWidget):
         # página 1 – BARCODE (widget real)
         self.barcode_cfg = BarcodeConfigWidget(self.ctrl)
         self._config_stack.addWidget(self.barcode_cfg)
-        # página 2 – INSPEÇÃO
-        self._config_stack.addWidget(InspectConfigWidget())
+        # página 2 – INSPEÇÃO (widget real)
+        self.inspect_cfg = InspectionConfigWidget(self.ctrl)
+        self._config_stack.addWidget(self.inspect_cfg)
         # página 3 – FIDUCIAL (widget real – precisa do controller)
         self.fiducial_cfg = FiducialConfigWidget(self.ctrl)
         self._config_stack.addWidget(self.fiducial_cfg)   # index 3
@@ -218,6 +246,12 @@ class TableProgramTab(QWidget):
         self._match_info = None    # (rect, color, t0)
         self.fiducial_cfg.parametersChanged.connect(self._on_fid_params)
         self.fiducial_cfg.matchTested.connect(self._on_fid_match)
+        # -------- overlay inspeção -----------------------------------
+        self._insp_w=400; self._insp_h=300
+        self._insp_match=None
+        self.inspect_cfg.parametersChanged.connect(
+            lambda w,h: self._set_insp_roi(w,h))
+        self.inspect_cfg.regionCaptured.connect(self._on_insp_region)
 
         v_left.addWidget(self._config_stack, 1)   # ocupa o restante
 
