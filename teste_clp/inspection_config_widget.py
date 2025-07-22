@@ -4,9 +4,11 @@ from PyQt6.QtWidgets import (
     QGraphicsView, QGraphicsScene, QWidget, QTreeWidget, QTreeWidgetItem
 )
 from roi_window_editor import ROIWindowEditor, ResizableRectItem
-from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap, QPainter, QImage
+from selectable_rect_item import SelectableResizableRectItem
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui import QPixmap, QPainter, QImage, QPen
 import cv2
+import os
 
 # ================================================================
 #  CONFIGURAÇÃO – larguras mínimas dos visores da janela auxiliar
@@ -52,7 +54,11 @@ class _AuxDialog(QDialog):
         )
         self._pix_item = self.view_region.scene().addPixmap(self._orig_pix)
         # Posições mecânicas — pede nome ao concluir
-        self.region_editor = ROIWindowEditor(self.view_region, ask_name=True)
+        self.region_editor = ROIWindowEditor(
+            self.view_region, 
+            ask_name=True, 
+            autosave_path=os.path.join(ctrl_widget._c.prog_mgr.path, "mechanical_positions.json") if hasattr(ctrl_widget, '_c') and hasattr(ctrl_widget._c, 'prog_mgr') and ctrl_widget._c.prog_mgr else None
+        )
 
         # ---------- mantém cópia BGR da imagem para recortes ----------
         # numpy BGR correspondente – usado para recortes exatos
@@ -106,7 +112,10 @@ class _AuxDialog(QDialog):
                 QPainter.RenderHint.Antialiasing
             )
             self.view_roi.scene().addPixmap(roi_pix)
-            self.roi_editor = ROIWindowEditor(self.view_roi)   # comparação
+            self.roi_editor = ROIWindowEditor(
+                self.view_roi,
+                autosave_path=os.path.join(ctrl_widget._c.prog_mgr.path, "comparison_windows.json") if hasattr(ctrl_widget, '_c') and hasattr(ctrl_widget._c, 'prog_mgr') and ctrl_widget._c.prog_mgr else None
+            )
 
             parent_lay = roi_label.parentWidget().layout()
             idx = parent_lay.indexOf(roi_label)
@@ -127,10 +136,7 @@ class _AuxDialog(QDialog):
         # ---------------- sincronização Tree ⇄ Scene -----------------
         self.region_editor.windowAdded.connect(self._on_window_added)
         self.region_editor.windowRemoved.connect(self._on_window_removed)
-        self.view_region.scene().selectionChanged.connect(
-            self._on_scene_selection_changed)
-        self.tree.itemSelectionChanged.connect(
-            self._on_tree_selection_changed)
+        self.region_editor.windowChanged.connect(self._on_window_changed)        
         
         # --------------------------------------------------------------
         #  Quando o usuário seleciona um retângulo (posição mecânica),
@@ -156,8 +162,30 @@ class _AuxDialog(QDialog):
         if parent is not None and hasattr(parent, "regionCaptured"):
             parent.regionCaptured.connect(self._on_region_captured)
 
-        # Contador para janelas de comparação de imagem (por posição mecânica)
-        self._comparison_window_counters = {}  # {posicao_mecanica_item: contador}
+        # Flags para evitar loops infinitos de sinais
+        self._updating_tree_selection = False
+        self._updating_scene_selection = False
+        self._scene_selection_blocked = False
+        # NOVO SISTEMA: Armazena janelas de comparação nos dados dos componentes
+        # Exatamente como no gerador de projetos
+        self.inspecao_items = {}  # {nome_componente: [items]}
+
+        # Inicializa dicionário de componentes (essencial!)
+        self.componentes = {}
+
+        # ------------ NOVA SINCRONIZAÇÃO com ROIWindowEditor ------------
+        self.view_region.scene().selectionChanged.connect(self._on_position_selection_changed)
+        self.tree.itemSelectionChanged.connect(self._on_tree_selection_changed) 
+        self.tree.itemClicked.connect(self._on_tree_item_clicked)
+        
+        # EVENT-FILTER para logs de clique
+        self.view_region.viewport().installEventFilter(self)
+        if self.view_roi:
+            self.view_roi.viewport().installEventFilter(self)
+            self.roi_editor.windowAdded.connect(self._on_comparison_window_added)
+            self.roi_editor.windowRemoved.connect(self._on_comparison_window_removed)
+        # Variável para guardar o pai das janelas de comparação
+        self._comparison_parent_uid = None
 
     # ------------ helpers internos ----------------------------------
     def _update_pix(self):
@@ -169,22 +197,9 @@ class _AuxDialog(QDialog):
             self.view_region.fitInView(self._pix_item,
                                        Qt.AspectRatioMode.KeepAspectRatio)
             
-    def _get_next_comparison_name(self, parent_item):
-        """
-        Gera o próximo nome automático para janela de comparação específico 
-        para cada posição mecânica (w1, w2, w3, etc.)
-        """
-        if parent_item is None:
-            # Se não há posição mecânica, usa contador global de fallback
-            fallback_counter = getattr(self, '_fallback_counter', 0) + 1
-            self._fallback_counter = fallback_counter
-            return f"w{fallback_counter}"
-        
-        # Obtém ou inicializa o contador específico desta posição mecânica
-        current_count = self._comparison_window_counters.get(parent_item, 0)
-        current_count += 1
-        self._comparison_window_counters[parent_item] = current_count
-        return f"w{current_count}"
+    def _on_window_changed(self, item):
+        """Callback chamado quando janela é modificada - salva automaticamente"""
+        self.log(f"🔄 Janela modificada: {self._describe_item(item)}")
     
     def _get_selected_mechanical_position_node(self):
         """Retorna o nó da posição mecânica atualmente selecionado na tree"""
@@ -192,110 +207,157 @@ class _AuxDialog(QDialog):
         if not selected_items:
             return None
         
-        node = selected_items[0]
-        # Se é um subitem (janela de comparação), pega o pai (posição mecânica)
-        if node.parent() is not None:
-            return node.parent()
+        return selected_items[0] if selected_items else None
+    def _on_position_selection_changed(self):
+        """
+        Chamado quando seleção muda no visor de posições mecânicas.
         
-        # Se é um item de primeiro nível, verifica se é uma posição mecânica
-        item_data = node.data(0, Qt.ItemDataRole.UserRole)
-        if isinstance(item_data, ResizableRectItem):
-            return node
+        """
+        selected_items = self.view_region.scene().selectedItems()
+        if not selected_items:
+            # Nenhuma seleção - mostra todas as janelas de comparação
+            if self.roi_editor:
+                self.roi_editor.focus_on_parent(None)
+            return
         
-        return None
+        # Pega primeiro item selecionado (posição mecânica)
+        selected_item = selected_items[0]
+        if isinstance(selected_item, ResizableRectItem):
+            # Foca nas janelas filhas desta posição mecânica
+            # Atualiza ROI e redesenha janelas
+            
+            # Atualiza ROI visual
+            self._update_roi_from_selection()
+            
+            # Seleciona na TreeView
+            self._select_tree_node_for_item(selected_item)
+            
+            self.log(f"🎯 Posição selecionada: {getattr(selected_item, 'name', '?')}")
             
     # ===================  TREEVIEW Sync  ============================
     def _on_window_added(self, item):
-        """Insere item na árvore"""
-        name = getattr(item, 'name', 'Posição mecânica')
+        """Insere posição mecânica na árvore"""
+        name = getattr(item, 'name', f'Posição {item.id}' if hasattr(item, 'id') else 'Posição mecânica')
         node = QTreeWidgetItem([name])
         node.setData(0, Qt.ItemDataRole.UserRole, item)
         self.tree.addTopLevelItem(node)
+        self.log(f"➕ Posição mecânica adicionada à tree: {name}")
 
-    def _on_comparison_window_added(self, item):
-        """Adiciona janela de comparação como subitem da posição mecânica selecionada"""
-        # Primeiro identifica a posição mecânica pai
+    def _on_comparison_window_added(self, roi_item):
+        """
+        NOVA ABORDAGEM: Converte janela do ROIWindowEditor em dados do componente
+        e redesenha usando o sistema do gerador de projetos
+        """
+        # Identifica a posição mecânica pai
         parent_item = None
-        
-        # PRIORIDADE 1: Verifica qual posição mecânica está selecionada na cena principal
-        # (esta determina o que é exibido no visor ROI)
-        parent_node = None
-        
-        
-        # Primeiro verifica se há uma posição mecânica selecionada na cena principal
-        selected_scene_items = self.view_region.scene().selectedItems()
-        for scene_item in selected_scene_items:
-            if isinstance(scene_item, ResizableRectItem):
-                # Encontra o nó correspondente na TreeView
-                for i in range(self.tree.topLevelItemCount()):
-                    tree_node = self.tree.topLevelItem(i)
-                    if tree_node.data(0, Qt.ItemDataRole.UserRole) is scene_item:
-                        parent_node = tree_node
-                        parent_item = scene_item
-                        self.log(f"✓ Usando posição mecânica selecionada na cena: {tree_node.text(0)}")
-                        break
-                if parent_node:
+        if self._comparison_parent_uid is not None:
+            for window in self.region_editor.windows:
+                if hasattr(window, 'id') and window.id == self._comparison_parent_uid:
+                    parent_item = window
                     break
         
-        # PRIORIDADE 2: Se não há seleção na cena, verifica a TreeView
-        if parent_node is None:
-            selected_tree_items = self.tree.selectedItems()
-            if selected_tree_items:
-                selected_node = selected_tree_items[0]
-                # Se selecionou uma posição mecânica (item de primeiro nível)
-                if selected_node.parent() is None:
-                    item_data = selected_node.data(0, Qt.ItemDataRole.UserRole)
-                    if isinstance(item_data, ResizableRectItem):
-                        parent_node = selected_node
-                        parent_item = item_data
-                        self.log(f"✓ Usando posição mecânica selecionada na TreeView: {selected_node.text(0)}")
-                # Se selecionou uma janela de comparação (filho), pega o pai
-                else:
-                    parent_node = selected_node.parent()
-                    if parent_node:
-                        parent_item = parent_node.data(0, Qt.ItemDataRole.UserRole)
-                        self.log(f"✓ Usando posição mecânica pai da seleção: {parent_node.text(0)}")
+        if parent_item is None:
+            # Fallback: usa posição selecionada
+            selected_items = self.view_region.scene().selectedItems()
+            for scene_item in selected_items:
+                if isinstance(scene_item, ResizableRectItem) and scene_item in self.region_editor.windows:
+                    parent_item = scene_item
+                    break
         
-        # PRIORIDADE 3: Se ainda não encontrou, procura a posição mecânica mais recente que está sendo exibida no ROI
+        if parent_item is None:
+            self.log("⚠️ Janela de comparação criada sem pai definido")
+            return        
+            
+        # Encontra nó pai na TreeView
+        parent_node = None
+        parent_name = getattr(parent_item, 'name', f'ID:{parent_item.id}')
+        for i in range(self.tree.topLevelItemCount()):
+            node = self.tree.topLevelItem(i)
+            if node.data(0, Qt.ItemDataRole.UserRole) is parent_item:
+                parent_node = node
+                parent_name = node.text(0)
+                break
+                
         if parent_node is None:
-            # Verifica se há alguma posição mecânica que foi usada recentemente para atualizar o ROI
-            if hasattr(self, '_last_roi_parent_item') and self._last_roi_parent_item:
-                # Procura o nó correspondente na tree
-                for i in range(self.tree.topLevelItemCount()):
-                    tree_node = self.tree.topLevelItem(i)
-                    if tree_node.data(0, Qt.ItemDataRole.UserRole) is self._last_roi_parent_item:
-                        parent_node = tree_node
-                        parent_item = self._last_roi_parent_item
-                        self.log(f"✓ Usando última posição mecânica que gerou o ROI: {tree_node.text(0)}")
-                        break
+            self.log("⚠️ Nó pai não encontrado na TreeView")
+            return
         
-        # PRIORIDADE 4: Como último recurso, cria um item raiz temporário
-        if parent_node is None:
-            parent_node = QTreeWidgetItem(["⚠️ Sem posição mecânica definida"])
-            parent_node.setData(0, Qt.ItemDataRole.UserRole, None)
-            self.tree.addTopLevelItem(parent_node)
-            self.log("⚠️ Criado nó temporário - nenhuma posição mecânica encontrada")
+        # NOVA LÓGICA: Converte para dados do componente (como no gerador)
+        # Obtém coordenadas da janela ROI em relação à ROI original
+        roi_rect = roi_item.rect()
+            
+        # Converte coordenadas da cena ROI para coordenadas absolutas da ROI
+        if parent_name not in self.componentes:
+            # Inicializa dados do componente se não existir
+            pos_rect = parent_item.sceneBoundingRect()
+            self.componentes[parent_name] = {
+                'posicao': (int(pos_rect.x()), int(pos_rect.y())),
+                'dimensoes': (int(pos_rect.width()), int(pos_rect.height())),
+               'roi': None,  # será preenchido quando necessário
+                'inspecoes': []
+            }
+        
+        # Calcula coordenadas absolutas (simula o sistema do gerador)
+        scene_rect = self.view_roi.sceneRect()
+        # Para simplicidade, assume que a cena ROI tem o mesmo tamanho da ROI
+        roi_w, roi_h = scene_rect.width(), scene_rect.height()
+        
+        if roi_w > 0 and roi_h > 0:
+            # Coordenadas absolutas na ROI original
+            x_orig = int(roi_rect.x())
+            y_orig = int(roi_rect.y())
+            w_orig = int(roi_rect.width())
+            h_orig = int(roi_rect.height())
+        else:
+            x_orig, y_orig, w_orig, h_orig = int(roi_rect.x()), int(roi_rect.y()), int(roi_rect.width()), int(roi_rect.height())
+        
+        # Conta janelas existentes para gerar nome
+        existing_count = len(self.componentes[parent_name]['inspecoes'])
+        comp_name = f"w{existing_count + 1}"
+        
+        # Adiciona aos dados do componente (como no gerador)
+        inspecao_data = {
+            'posicao': (x_orig, y_orig),
+            'tamanho': (w_orig, h_orig),
+            'threshold': 100,  # valor padrão
+            'cor_pixel': 'branco',
+            'percentual_minimo': 50.0,
+            'roi_editor_item': roi_item,  # referência para sincronização
+            'original_posicao': (x_orig, y_orig),  # guarda coordenadas originais
+            'original_tamanho': (w_orig, h_orig)   # guarda dimensões originais
+        }
+        
+        self.componentes[parent_name]['inspecoes'].append(inspecao_data)
 
-        # Gera nome automático baseado no contador específico da posição mecânica
-        comp_name = self._get_next_comparison_name(parent_item)
-        
-        # Cria subitem para a janela de comparação
+        # CORREÇÃO: Remove janela vermelha do ROIWindowEditor após salvar dados
+        if roi_item in self.roi_editor.windows:
+            self.roi_editor.windows.remove(roi_item)
+            if roi_item.scene():
+                roi_item.scene().removeItem(roi_item)
+            
+        # FORÇA redesenho imediato para mostrar janela azul
+        self._redesenhar_janelas_inspecao(parent_name)
+
+        # DEBUGGING: Log detalhado da associação
+        self.log(f"🔗 Dados salvos {comp_name} → pai {parent_name}")
+        # Cria subnó na TreeView
         comp_node = QTreeWidgetItem([comp_name])
-        comp_node.setData(0, Qt.ItemDataRole.UserRole, item)
+        comp_node.setData(0, Qt.ItemDataRole.UserRole, roi_item)
         parent_node.addChild(comp_node)
-        
-        # Expande o nó pai para mostrar o subitem
         parent_node.setExpanded(True)
         
-        # Limpa seleção anterior e seleciona apenas o novo subitem
-        self.tree.setCurrentItem(comp_node)
-        
-        # Salva referência do nome gerado no item
-        item.comparison_name = comp_name
+        self.log(f"➕ Janela de comparação adicionada: {comp_name}")
 
-        # Atualiza registro da posição mecânica pai para próximas janelas
-        if parent_item and isinstance(parent_item, ResizableRectItem):
-            self._last_roi_parent_item = parent_item
+        # Limpa referência do pai após usar
+        self._comparison_parent_uid = None
+
+    def _select_tree_node_for_item(self, item):
+        """Seleciona o nó da TreeView correspondente ao item"""
+        for i in range(self.tree.topLevelItemCount()):
+            node = self.tree.topLevelItem(i)
+            if node.data(0, Qt.ItemDataRole.UserRole) is item:
+                self.tree.setCurrentItem(node)
+                return
     
     def log(self, message):
         """Helper para logging (usa o log do controller se disponível)"""
@@ -306,94 +368,134 @@ class _AuxDialog(QDialog):
         else:
             print(f"[AuxDialog] {message}")
 
+# ======================================================================
+#  EVENT-FILTER  (cliques nos visores)  +  logs auxiliares
+# ======================================================================
+    def eventFilter(self, obj, ev):
+        from PyQt6.QtCore import QEvent
+        if ev.type() == QEvent.Type.MouseButtonPress:
+            if obj is self.view_region.viewport():
+                pos = self.view_region.mapToScene(int(ev.position().x()),
+                                                  int(ev.position().y()))
+                it  = self.view_region.scene().itemAt(pos, self.view_region.transform())
+                self._log_click("vis. ESQ", it, pos)
+            elif self.view_roi and obj is self.view_roi.viewport():
+                pos = self.view_roi.mapToScene(int(ev.position().x()),
+                                               int(ev.position().y()))
+                it  = self.view_roi.scene().itemAt(pos, self.view_roi.transform())
+                self._log_click("vis. DIR", it, pos)
+        return super().eventFilter(obj, ev)
+
+    # ------------------------  helpers interno ------------------------
+    def _describe_item(self, it) -> str:
+        if it is None:
+            return "área vazia"
+        if hasattr(it, "comparison_name"):
+            return f"Cmp “{it.comparison_name}”"
+        if isinstance(it, ResizableRectItem):
+            nm = getattr(it, "name", "")
+            return f"Posição “{nm or '?'}”"
+        return str(it)
+
+    def _log_click(self, visor, item, pos):
+        desc = self._describe_item(item)
+        self.log(f"🖱️ Click {visor}: {desc}  @({pos.x():.0f},{pos.y():.0f})")
+
+    # ------------------------------------------------------------------
+    #           LOG para clique na TREEVIEW
+    # ------------------------------------------------------------------
+    def _on_tree_item_clicked(self, item: QTreeWidgetItem, col: int):
+        data = item.data(0, Qt.ItemDataRole.UserRole)
+        kind = ("Cmp" if hasattr(data, "comparison_name")
+                else "Posição mecânica")
+        self.log(f"🖱️ Click Tree → {kind}: {item.text(0)}")
+
     def _on_window_removed(self, item):
-        """Remove linha correspondente na tree"""
-        # Remove de itens de primeiro nível (posições mecânicas)
+        """Remove posição mecânica da tree"""
         for i in range(self.tree.topLevelItemCount()):
             n = self.tree.topLevelItem(i)
-            if n.data(0, Qt.ItemDataRole.UserRole) is item:
-                # Limpa contador desta posição mecânica quando ela for removida
-                if item in self._comparison_window_counters:
-                    del self._comparison_window_counters[item]
-                    self.log(f"✓ Contador de comparação resetado para posição removida")
+            if n.data(0, Qt.ItemDataRole.UserRole) is item:                
                 self.tree.takeTopLevelItem(i)
+                self.log(f"➖ Posição mecânica removida da tree")
                 return
-        # Remove subitens (janelas de comparação) e ajusta contadores
+    def _on_comparison_window_removed(self, item):
+        """Remove janela de comparação da tree"""
+        # Remove subitens (janelas de comparação)
         for i in range(self.tree.topLevelItemCount()):
             parent_node = self.tree.topLevelItem(i)
-            parent_item = parent_node.data(0, Qt.ItemDataRole.UserRole)
+            # Procura subitens que correspondam ao item
             for j in range(parent_node.childCount()):
                 child_node = parent_node.child(j)
                 if child_node.data(0, Qt.ItemDataRole.UserRole) is item:
-                    # Obtém o nome da janela antes de remover para reajustar contador
-                    removed_name = child_node.text(0)
                     parent_node.removeChild(child_node)
-                    # Reajusta o contador da posição mecânica se necessário
-                    if parent_item and parent_item in self._comparison_window_counters:
-                        # Se removeu a última janela criada, decrementa o contador
-                        current_max = self._comparison_window_counters[parent_item]
-                        if removed_name == f"w{current_max}":
-                            self._comparison_window_counters[parent_item] = max(0, current_max - 1)
-                            self.log(f"✓ Contador ajustado para posição mecânica: w{self._comparison_window_counters[parent_item]}")
-                    # Se o pai não tem mais filhos e era "Posição não definida", remove também
-                    if (parent_node.childCount() == 0 and 
-                        ("Posição não definida" in parent_node.text(0) or 
-                         "Sem posição mecânica" in parent_node.text(0))):
-                        parent_index = self.tree.indexOfTopLevelItem(parent_node)
-                        if parent_index >= 0:
-                            self.tree.takeTopLevelItem(parent_index)
+                    self.log(f"➖ Janela de comparação removida da tree")
                     return
-                
-    def _reset_comparison_counter(self, parent_item):
-        """Reseta o contador de comparação para uma posição mecânica específica"""
-        if parent_item in self._comparison_window_counters:
-            self._comparison_window_counters[parent_item] = 0
-            self.log(f"✓ Contador de comparação resetado para posição mecânica")
-
-    def _on_scene_selection_changed(self):
-        """Seleciona linha da tree conforme retângulo"""
-        sel_items = self.view_region.scene().selectedItems()
-        # Se nada selecionado, limpa seleção da tree
-        if not sel_items:
-            self.tree.clearSelection()
+    
+    def _is_item_valid(self, item):
+        """Verifica se um item Qt ainda é válido"""
+        if item is None:
+            return False
+        try:
+            # Tenta acessar uma propriedade básica - se falhar, objeto foi deletado
+            _ = item.scene()
+            return True
+        except RuntimeError:
+            # Objeto C++ foi deletado
+            return False
+        
+    def _find_and_select_tree_node(self, item):
+        """Encontra e seleciona o nó correspondente na TreeView"""
+        if not self._is_item_valid(item):
             return
-        item = sel_items[0]
-        # Garante seleção única - remove seleção de outros itens
-        for other_item in sel_items[1:]:
-            other_item.setSelected(False)
-        # procura nó correspondente
+            
+        # Procura em itens de primeiro nível
         for i in range(self.tree.topLevelItemCount()):
             n = self.tree.topLevelItem(i)
-            if n.data(0, Qt.ItemDataRole.UserRole) is item:
-                self._select_tree_node(n)
+            if n and n.data(0, Qt.ItemDataRole.UserRole) is item:
+                self.tree.setCurrentItem(n)
                 return
-            
-            # Verifica subitens também
-            for j in range(n.childCount()):
-                child = n.child(j)
-                if child.data(0, Qt.ItemDataRole.UserRole) is item:
-                    self._select_tree_node(child)
-                    return
-        # Também verifica itens na cena ROI
-        if self.view_roi and item.scene() == self.view_roi.scene():
-            # Se é item da cena ROI, mantém seleção mas não interfere na tree
-            pass
-        else:
-            # Se não encontrou correspondente, limpa seleção da tree
+    
+    def _safe_clear_tree_selection(self):
+        """Limpa seleção da TreeView de forma segura"""
+        try:
+            self._updating_tree_selection = True
             self.tree.clearSelection()
+        finally:
+            self._updating_tree_selection = False
+    
+    def _safe_select_tree_node(self, node):
+        """Seleciona nó na TreeView de forma segura"""
+        if node is None:
+            return
+        try:
+            self._updating_tree_selection = True
+            if not node.isSelected():
+                self.tree.setCurrentItem(node)
+        finally:
+            self._updating_tree_selection = False
     
     def _select_tree_node(self, node):
         """Helper para selecionar um nó na tree"""
-        if node and not node.isSelected():
-            self.tree.blockSignals(True)
-            self.tree.setCurrentItem(node)
-            self.tree.blockSignals(False)
+        self._safe_select_tree_node(node)
                     
 
     def _on_tree_selection_changed(self):
         """Seleciona retângulo na cena ao clicar na tree"""
+        # Evita loops infinitos
+        if self._updating_tree_selection:
+            return
         nodes = self.tree.selectedItems()
         if not nodes:
+            # Limpa seleção das cenas de forma segura
+            try:
+                self.view_region.scene().clearSelection()
+                if self.view_roi:
+                    self.view_roi.scene().clearSelection()
+            except RuntimeError:
+                pass
+            # Mostra todas as janelas
+            if self.roi_editor:
+                self.roi_editor.focus_on_parent(None)
             return
         node = nodes[0]
         item = node.data(0, Qt.ItemDataRole.UserRole)
@@ -401,33 +503,74 @@ class _AuxDialog(QDialog):
         if item is None:
             return
             
-        # Verifica se o objeto ainda é válido
-        try:
-            if hasattr(item, 'scene') and item.scene():
-                # Limpa seleção de ambas as cenas primeiro
+        # CORREÇÃO: Distingue entre posição mecânica e janela de comparação
+        is_mechanical_position = False
+        is_comparison_window = False
+        
+        if isinstance(item, ResizableRectItem):
+            # Verifica se é posição mecânica (está na cena esquerda)
+            if item in self.region_editor.windows:
+                is_mechanical_position = True
+            # Verifica se é janela de comparação (tem parent_uid)
+            elif hasattr(item, 'parent_uid') and item.parent_uid is not None:
+                is_comparison_window = True
+            # CORREÇÃO: Verifica se é SelectableResizableRectItem (janela azul redesenhada)
+            elif hasattr(item, 'item_type') and item.item_type == 'inspection':
+                is_comparison_window = True
+        
+        if is_mechanical_position:
+            # Seleciona na cena principal
+            try:
                 self.view_region.scene().clearSelection()
+            except RuntimeError:
+                pass
+            item.setSelected(True)
+            self.view_region.centerOn(item)
+            
+            # CORREÇÃO: Redesenha janelas do componente selecionado
+            if self.roi_editor:
+                # Mostra todas as janelas, não apenas as filhas
+                self.roi_editor.focus_on_parent(None)
+                
+            # Atualiza ROI visual  
+            self._update_roi_from_selection()
+            
+            self.log(f"🏭 Seleção tree → posição: {node.text(0)}")
+
+        elif is_comparison_window:
+            # Selecionou janela de comparação - seleciona apenas ela no visor direito
+            try:
                 if self.view_roi:
                     self.view_roi.scene().clearSelection()
-                    
-                # Seleciona apenas o item correto na cena correta
-                if item.scene() == self.view_region.scene():
-                    item.setSelected(True)
-                    self.view_region.centerOn(item)
-                elif self.view_roi and item.scene() == self.view_roi.scene():
                     item.setSelected(True)
                     self.view_roi.centerOn(item)
-        except RuntimeError:
-            # Objeto foi deletado, remove da tree
-            if node.parent():
-                node.parent().removeChild(node)
-            else:
-                index = self.tree.indexOfTopLevelItem(node)
-                if index >= 0:
-                    self.tree.takeTopLevelItem(index)
-
-        # Se é uma janela de comparação, também atualiza o ROI
-        if hasattr(item, 'comparison_name'):
-            self._update_roi_from_selection()
+            except RuntimeError:
+                pass
+            
+            # Encontra e seleciona a posição mecânica pai na cena esquerda
+            parent_item = None
+            for window in self.region_editor.windows:
+                if hasattr(window, 'id') and window.id == item.parent_uid:
+                    parent_item = window
+                    break
+                    
+            if parent_item:
+                try:
+                    self.view_region.scene().clearSelection() 
+                    parent_item.setSelected(True)
+                    self.view_region.centerOn(parent_item)
+                    # Atualiza ROI para mostrar a posição pai
+                    self._update_roi_from_selection()
+                except RuntimeError:
+                    pass
+            
+            self.log(f"🎯 Seleção tree → janela comparação: {node.text(0)}")
+            # CORREÇÃO: Garante que todas as janelas permaneçam visíveis
+            if self.roi_editor:
+                self.roi_editor.focus_on_parent(None)
+        
+        else:
+            self.log(f"⚠️ Tipo de item desconhecido selecionado: {type(item)}")
     
     # ------------ slot: novo ROI vindo do painel --------------------
     def _on_region_captured(self, img_bgr):
@@ -447,8 +590,7 @@ class _AuxDialog(QDialog):
         na view_roi preservando a resolução original.
         """
         if self.view_roi is None or self._orig_bgr is None:
-            return
-        # seleciona apenas retângulos do editor
+            return        
         sel = [it for it in self.view_region.scene().selectedItems()
                if isinstance(it, ResizableRectItem)]
         if not sel:
@@ -467,26 +609,179 @@ class _AuxDialog(QDialog):
         roi_bgr = self._orig_bgr[y:y + h, x:x + w].copy()
         if roi_bgr.size == 0:
             return
-        # -------------------- mostra ROI no visor direito -------------------
-
-        # Registra qual posição mecânica gerou este ROI (para janelas de comparação futuras)
-        self._last_roi_parent_item = item
         
         # Atualiza o visor ROI
 
         roi_px = InspectionConfigWidget._bgr_to_pixmap(roi_bgr)  # qualidade máx.
 
-        # atualiza visor ROI preservando proporção e resolução
+        # CORREÇÃO: Remove apenas o pixmap anterior, mantém janelas de comparação
         scene = self.view_roi.scene()
-        scene.clear()
+        # Remove apenas o item de imagem anterior (se existir)
+        if hasattr(self, '_roi_pix_item') and self._roi_pix_item:
+            scene.removeItem(self._roi_pix_item)
+        
+        # Adiciona nova imagem
         self._roi_pix_item = scene.addPixmap(roi_px)
         self.view_roi.fitInView(self._roi_pix_item,
                                 Qt.AspectRatioMode.KeepAspectRatio)
+        # CORREÇÃO: Mantém todas as janelas sempre visíveis
+        if self.roi_editor and isinstance(item, ResizableRectItem):
+            # Encontra o nome do componente
+            component_name = getattr(item, 'name', None)
+            # DEBUGGING: Log da operação
+            self.log(f"🔄 Atualizando ROI para componente: {component_name}")
+            if component_name and component_name in self.componentes:
+                inspecoes_count = len(self.componentes[component_name].get('inspecoes', []))
+                self.log(f"📊 Componente {component_name} tem {inspecoes_count} janelas salvas")
+            if component_name and component_name in self.componentes:
+                self._redesenhar_janelas_inspecao(component_name)
+
+    def _redesenhar_janelas_inspecao(self, componente):
+        """
+        NOVA IMPLEMENTAÇÃO: Identica ao gerador de projetos
+        Redesenha todas as janelas de comparação para o componente especificado
+        """
+        # Marca que está redesenhando (evita callbacks)
+        self._redesenhando = True
+        # Verifica se componentes foi inicializado
+        if not hasattr(self, 'componentes'):
+            self.componentes = {}
+            self._redesenhando = False
+            return
+        if componente not in self.componentes:
+            return
+            
+        if not self.view_roi or not self.view_roi.scene():
+            return
+        
+            
+        scene = self.view_roi.scene()
+        
+        # CORREÇÃO: Remove TODAS as janelas de inspeção da cena (de todos os componentes)
+        # Isso garante que apenas as janelas do componente atual sejam exibidas
+        for comp_name in list(self.inspecao_items.keys()):
+            for item in self.inspecao_items[comp_name]:
+                if item.scene():
+                    scene.removeItem(item)
+            self.inspecao_items[comp_name] = []
+        
+        # Garante que o componente atual existe no dicionário  
+        if componente not in self.inspecao_items:
+            self.inspecao_items[componente] = []
+        
+        # Obtém dimensões da cena para escala
+        scene_rect = scene.sceneRect()
+        scene_width = scene_rect.width()
+        scene_height = scene_rect.height()
+        
+        if scene_width == 0 or scene_height == 0:
+            return
+        
+        # Redesenha cada janela de inspeção salva
+        # Usa apenas cor azul para todas as janelas de comparação
+        cor_azul = Qt.GlobalColor.blue
+
+        for i, inspecao in enumerate(self.componentes[componente].get('inspecoes', [])):
+            # CORREÇÃO: Usa coordenadas originais em vez das atualizadas pelo callback
+            x_orig, y_orig = inspecao.get('original_posicao', inspecao['posicao'])
+            w_orig, h_orig = inspecao.get('original_tamanho', inspecao['tamanho'])
+
+            # DEBUGGING: Log das coordenadas que serão usadas
+            self.log(f"🔧 Redesenhando w{i+1}: pos=({x_orig},{y_orig}), tam=({w_orig},{h_orig})")
+
+            # Para simplicidade, usa coordenadas diretas (pode ser ajustado se necessário)
+            # No gerador original, há conversão de escala aqui
+            graphicsView_x = x_orig
+            graphicsView_y = y_orig
+            graphicsView_w = w_orig
+            graphicsView_h = h_orig
+
+            # CORREÇÃO: Usa coordenadas originais em vez das atualizadas pelo callback
+            def _on_insp_change(item, d=inspecao, comp=componente):
+                """Atualiza dados quando item é modificado"""
+                # Evita atualizar durante redesenho automático
+                if hasattr(self, '_redesenhando') and self._redesenhando:
+                    return
+                br = item.sceneBoundingRect()
+                # Atualiza apenas as coordenadas atuais, preserva originais
+                new_pos = (int(br.x()), int(br.y()))
+                new_tam = (int(br.width()), int(br.height()))
+                d['posicao'] = new_pos
+                d['tamanho'] = new_tam
+                self.log(f"🔄 Janela {comp} atualizada: pos={d['posicao']}, tam={d['tamanho']}")
+            
+            # Cria item visual
+            
+            rect_item = SelectableResizableRectItem(
+                graphicsView_x, graphicsView_y,
+                graphicsView_w, graphicsView_h,
+                pen=QPen(cor_azul, 2),
+                change_callback=_on_insp_change
+            )
+            
+            # Metadados para identificação
+            rect_item.item_type = 'inspection'
+            rect_item.componente = componente
+            rect_item.inspecao_ref = inspecao
+            rect_item.deletavel = True
+            
+            scene.addItem(rect_item)
+            self.inspecao_items[componente].append(rect_item)
+
+        # Força atualização da visualização
+        self.view_roi.viewport().update()
+        # Marca que terminou o redesenho APÓS todas as operações
+        self._redesenhando = False
+
+        # DEBUGGING: Log do resultado final
+        total_items_scene = len([item for item in scene.items() 
+                               if hasattr(item, 'item_type') and item.item_type == 'inspection'])
+        self.log(f"🎯 Cena ROI agora tem {total_items_scene} janelas de inspeção visíveis")
+        
+        self.log(f"🔄 Redesenhadas {len(self.componentes[componente].get('inspecoes', []))} janelas para {componente}")
 
     # mantém proporção 4:3 na imagem grande
     def resizeEvent(self, ev):
         super().resizeEvent(ev)
         self._fit_views()
+
+    # NOVO MÉTODO: Remove janela dos dados do componente
+    def _on_comparison_window_removed(self, roi_item):
+        """Remove janela de comparação dos dados e da TreeView"""
+        # Encontra o componente e remove a janela dos dados
+        if not hasattr(self, 'componentes'):
+            self.componentes = {}
+            return
+        # DEBUGGING: Log antes da busca
+        self.log(f"🔍 Procurando janela removida entre {len(self.componentes)} componentes")
+
+        removed = False
+        for comp_name, comp_data in self.componentes.items():
+            inspecoes = comp_data.get('inspecoes', [])
+            for i, insp in enumerate(inspecoes):
+                if insp.get('roi_editor_item') is roi_item:
+                    # Remove dos dados
+                    inspecoes.pop(i)
+                    self.log(f"➖ Janela removida dos dados de {comp_name}")
+                    # Redesenha as janelas restantes
+                    self._redesenhar_janelas_inspecao(comp_name)
+                    break
+            if removed:
+                break
+
+        # Remove também janela do ROIWindowEditor se ainda estiver lá
+        if roi_item in self.roi_editor.windows:
+            self.roi_editor.windows.remove(roi_item)
+
+        # Remove da TreeView
+        for i in range(self.tree.topLevelItemCount()):
+            parent_node = self.tree.topLevelItem(i)
+            for j in range(parent_node.childCount()):
+                child_node = parent_node.child(j)
+                if child_node.data(0, Qt.ItemDataRole.UserRole) is roi_item:
+                    parent_node.removeChild(child_node)
+                    self.log(f"➖ Janela removida da TreeView")
+                    return
 
     # ------------ ajuste automático das views -----------------------
     def _fit_views(self):
@@ -523,22 +818,35 @@ class _AuxDialog(QDialog):
                 self.region_editor.stop_drawing()
         elif which == "cmp" and self.roi_editor is not None:
             if enabled:
-                self.roi_editor.start_drawing()
-                # Configura para não pedir nome (será gerado automaticamente)
-                self.roi_editor._ask_name = False
-                # Conecta o sinal de janela adicionada ao ROI editor
-                if not hasattr(self.roi_editor, '_comparison_connected'):
-                    self.roi_editor.windowAdded.connect(self._on_comparison_window_added)
-                    self.roi_editor.windowRemoved.connect(self._on_comparison_window_removed)
-                    self.roi_editor._comparison_connected = True
+                # Determina o item pai baseado na seleção atual
+                parent_item = None
+                parent_uid = None
+                selected_items = self.view_region.scene().selectedItems()
+                if selected_items:
+                    for item in selected_items:
+                        if isinstance(item, ResizableRectItem):
+                            parent_item = item
+                            parent_uid = item.id
+                            break
+                
+                # Inicia desenho SEM pai Qt Graphics (evita problemas entre cenas)
+                # Mas salva o parent_uid para associação lógica
+                self._comparison_parent_uid = parent_uid
+                # CORREÇÃO: Garante que desenho acontece APENAS no visor direito
+                if self.roi_editor and self.view_roi:
+                    # Define pen azul para ROIWindowEditor (evita janelas vermelhas)
+                    from PyQt6.QtGui import QPen
+                    blue_pen = QPen(Qt.GlobalColor.blue, 2)
+                    # Força foco no visor direito antes de iniciar desenho
+                    self.view_roi.setFocus()
+                    self.roi_editor.start_drawing(pen=blue_pen)
+                else:
+                    self.log("⚠️ Visor direito não disponível para desenho")
+                
                 self.btn_mech.setChecked(False)
             else:
                 self.roi_editor.stop_drawing()
-                # Restaura comportamento padrão
-                self.roi_editor._ask_name = False
-    def _on_comparison_window_removed(self, item):
-        """Handler para remoção de janela de comparação"""
-        self._on_window_removed(item)
+                
 
 # ------------------------------------------------------------------
 #  QLabel com proporção fixa (default = 4:3)

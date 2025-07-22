@@ -1169,6 +1169,121 @@ class MultiAxisMotorController(QMainWindow):
         except Exception as e:
             self.log(f"❌ Erro geral na leitura inicial de homing: {e}")
 
+    # ================================================================
+    #  SISTEMA DE CACHE PARA PRESERVAR JANELAS DE COMPARAÇÃO
+    # ================================================================
+    
+    def _save_current_comparison_windows(self, parent_item):
+        """
+        Salva o estado atual das janelas de comparação no cache
+        associado à posição mecânica especificada
+        """
+        if parent_item is None or not self.roi_editor:
+            return
+            
+        try:
+            # Coleta todas as janelas atualmente no visor ROI
+            current_windows = []
+            for item in self.roi_editor.windows:
+                if hasattr(item, 'comparison_name'):
+                    # Salva dados essenciais da janela
+                    window_data = {
+                        'name': item.comparison_name,
+                        'rect': {
+                            'x': item.rect().x(),
+                            'y': item.rect().y(), 
+                            'width': item.rect().width(),
+                            'height': item.rect().height()
+                        },
+                        'scene_pos': {
+                            'x': item.scenePos().x(),
+                            'y': item.scenePos().y()
+                        },
+                        'tooltip': item.toolTip()
+                    }
+                    current_windows.append(window_data)
+            
+            # Salva no cache
+            self._comparison_windows_cache[parent_item] = current_windows
+            
+            if current_windows:
+                self.log(f"💾 {len(current_windows)} janelas de comparação salvas no cache para posição mecânica")
+                
+        except Exception as e:
+            self.log(f"⚠️ Erro ao salvar janelas no cache: {e}")
+    
+    def _load_comparison_windows_from_cache(self, parent_item):
+        """
+        Carrega as janelas de comparação do cache para a posição mecânica especificada
+        """
+        if parent_item is None or not self.roi_editor:
+            return
+            
+        try:
+            # Verifica se há janelas salvas para esta posição
+            cached_windows = self._comparison_windows_cache.get(parent_item, [])
+            
+            if not cached_windows:
+                return
+                
+            # Limpa janelas atuais do ROI editor (sem emitir sinais)
+            self._clear_roi_editor_silently()
+            
+            # Recria cada janela salva
+            for window_data in cached_windows:
+                try:
+                    # Cria nova janela com os mesmos parâmetros
+                    rect_data = window_data['rect']
+                    new_item = self.roi_editor.add_window(
+                        x=rect_data['x'],
+                        y=rect_data['y'],
+                        w=rect_data['width'],
+                        h=rect_data['height'],
+                        deletable=True
+                    )
+                    
+                    # Restaura propriedades
+                    new_item.comparison_name = window_data['name']
+                    new_item.setToolTip(window_data.get('tooltip', ''))
+                    
+                    # Adiciona à TreeView
+                    self._add_comparison_window_to_tree(parent_item, new_item)
+                    
+                except Exception as e:
+                    self.log(f"⚠️ Erro ao restaurar janela {window_data.get('name', '?')}: {e}")
+                    continue
+            
+            self.log(f"📂 {len(cached_windows)} janelas de comparação restauradas do cache")
+            
+        except Exception as e:
+            self.log(f"⚠️ Erro ao carregar janelas do cache: {e}")
+    
+    def _clear_roi_editor_silently(self):
+        """Remove todas as janelas do ROI editor sem emitir sinais"""
+        if not self.roi_editor:
+            return
+            
+        try:
+            # Remove itens da cena silenciosamente
+            for item in self.roi_editor.windows[:]:  # cópia para evitar modificação durante iteração
+                try:
+                    if item.scene():
+                        self.roi_editor.view.scene().removeItem(item)
+                    self.roi_editor.windows.remove(item)
+                except (RuntimeError, ValueError):
+                    # Item já foi removido ou não existe mais
+                    if item in self.roi_editor.windows:
+                        self.roi_editor.windows.remove(item)
+                    
+        except Exception as e:
+            self.log(f"⚠️ Erro ao limpar ROI editor: {e}")
+    
+    def _clear_cache_for_position(self, parent_item):
+        """Remove do cache todas as janelas associadas a uma posição mecânica"""
+        if parent_item in self._comparison_windows_cache:
+            del self._comparison_windows_cache[parent_item]
+            self.log(f"🗑️ Cache de janelas limpo para posição mecânica removida")
+
     def read_current_positions(self):
         """Lê posições atuais dos motores (função dedicada)"""
         if not self.connected:
