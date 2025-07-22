@@ -364,9 +364,7 @@ class MultiAxisMotorController(QMainWindow):
         #  TAB WIDGET principal fica em self.tab_widget para acesso global
         # ----------------------------------------------------------------
         self.tab_widget = QTabWidget()
-
-        
-        
+                
         # === ABA 1: CONTROLE DOS EIXOS (principal) ===
         self.control_tab = AxesControlTab(self, primary=True)
         self.tab_widget.addTab(self.control_tab, "Controle de Eixos")

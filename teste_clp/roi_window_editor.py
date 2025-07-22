@@ -281,6 +281,11 @@ class ROIWindowEditor(QObject):
                 # fixa janela definitiva (>=3 px em ambas as direções)
                 valid = (self._tmp_rect.rect().width()  > 2 and
                          self._tmp_rect.rect().height() > 2)
+                
+                # Garante que apenas esta janela seja selecionada
+                if valid:
+                    self.view.scene().clearSelection()
+                    self._tmp_rect.setSelected(True)
 
                 if valid and self._ask_name:
                     # ----------------------------------------------------------------
@@ -296,6 +301,9 @@ class ROIWindowEditor(QObject):
                         # salva no item (pode ser usado depois)
                         self._tmp_rect.name = name
                         self._tmp_rect.setToolTip(name)
+                else:
+                    # Para janelas de comparação, não pede nome - será gerado automaticamente
+                    pass
 
                 if valid:
                     self.windows.append(self._tmp_rect)
@@ -314,7 +322,14 @@ class ROIWindowEditor(QObject):
         scene = self.view.scene()
         for it in scene.selectedItems():
             if isinstance(it, ResizableRectItem) and it.deletable:
-                scene.removeItem(it)
+                # Verifica se o objeto ainda é válido antes de remover
+                try:
+                    if it.scene() is not None:
+                        scene.removeItem(it)
+                except RuntimeError:
+                    # Objeto já foi deletado pelo C++
+                    pass
+                # Remove da lista Python independentemente
                 if it in self.windows:
                     self.windows.remove(it)
                     self.windowRemoved.emit(it)
