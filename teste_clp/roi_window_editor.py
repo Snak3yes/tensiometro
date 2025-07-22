@@ -18,13 +18,14 @@
 from __future__ import annotations
 
 from typing import Callable, Dict, Optional, List
-from PyQt6.QtCore import Qt, QRectF, QPointF, QObject, QEvent
+from PyQt6.QtCore import Qt, QRectF, QPointF, QObject, QEvent, pyqtSignal
 from PyQt6.QtGui import QPen, QBrush, QColor, QCursor
 from PyQt6.QtWidgets import (
     QGraphicsRectItem,
     QGraphicsItem,
     QGraphicsView,
-    QGraphicsScene
+    QGraphicsScene,
+    QInputDialog
 )
 
 HANDLE = 6  # px
@@ -193,9 +194,17 @@ class ROIWindowEditor(QObject):
         editor.windows          # lista de itens
     """
 
-    def __init__(self, view: QGraphicsView):
+    # ---- sinais públicos -------------------------------------------
+    windowAdded   = pyqtSignal(object)   # ResizableRectItem
+    windowRemoved = pyqtSignal(object)   # ResizableRectItem
+
+    def __init__(self,
+                 view: QGraphicsView,
+                 *,
+                 ask_name: bool = False):
         super().__init__(view)
         self.view = view
+        self._ask_name = ask_name         # solicita nome ao criar janela
         if self.view.scene() is None:
             self.view.setScene(QGraphicsScene(self.view))
 
@@ -269,10 +278,29 @@ class ROIWindowEditor(QObject):
                 return True
 
             if ev.type() == QEvent.Type.MouseButtonRelease and self._tmp_rect and self._start_pos:
-                # fixa janela definitiva
-                if self._tmp_rect.rect().width() > 2 and self._tmp_rect.rect().height() > 2:
+                # fixa janela definitiva (>=3 px em ambas as direções)
+                valid = (self._tmp_rect.rect().width()  > 2 and
+                         self._tmp_rect.rect().height() > 2)
+
+                if valid and self._ask_name:
+                    # ----------------------------------------------------------------
+                    #  Solicita NOME ▶ se usuário cancelar ou string vazia → descarta
+                    # ----------------------------------------------------------------
+                    name, ok = QInputDialog.getText(
+                        self.view, "Nome da Posição Mecânica",
+                        "Digite o nome da posição mecânica:")
+                    name = name.strip()
+                    if not ok or not name:
+                        valid = False     # força descarte
+                    else:
+                        # salva no item (pode ser usado depois)
+                        self._tmp_rect.name = name
+                        self._tmp_rect.setToolTip(name)
+
+                if valid:
                     self.windows.append(self._tmp_rect)
-                else:  # muito pequena → descarta
+                    self.windowAdded.emit(self._tmp_rect)
+                else:  # pequena ou sem nome → descarta
                     self.view.scene().removeItem(self._tmp_rect)
                 self._tmp_rect = None
                 self._start_pos = None
@@ -289,4 +317,5 @@ class ROIWindowEditor(QObject):
                 scene.removeItem(it)
                 if it in self.windows:
                     self.windows.remove(it)
+                    self.windowRemoved.emit(it)
         scene.clearSelection()
