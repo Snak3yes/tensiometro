@@ -527,7 +527,7 @@ class _AuxDialog(QDialog):
             item.setSelected(True)
             self.view_region.centerOn(item)
             
-            # CORREÇÃO: Redesenha janelas do componente selecionado
+            # SEMPRE chama redesenho, mesmo se componente não tem janelas
             if self.roi_editor:
                 # Mostra todas as janelas, não apenas as filhas
                 self.roi_editor.focus_on_parent(None)
@@ -630,10 +630,19 @@ class _AuxDialog(QDialog):
             component_name = getattr(item, 'name', None)
             # DEBUGGING: Log da operação
             self.log(f"🔄 Atualizando ROI para componente: {component_name}")
-            if component_name and component_name in self.componentes:
+            # FORÇA redesenho mesmo se componente não tem janelas (para limpar cena)
+            if component_name:
+                # Garante que componente existe no dicionário
+                if component_name not in self.componentes:
+                    self.componentes[component_name] = {
+                        'posicao': (0, 0),
+                        'dimensoes': (100, 100),
+                        'roi': None,
+                        'inspecoes': []  # Lista vazia
+                    }
                 inspecoes_count = len(self.componentes[component_name].get('inspecoes', []))
                 self.log(f"📊 Componente {component_name} tem {inspecoes_count} janelas salvas")
-            if component_name and component_name in self.componentes:
+                # SEMPRE chama redesenho (vai limpar cena se não há janelas)
                 self._redesenhar_janelas_inspecao(component_name)
 
     def _redesenhar_janelas_inspecao(self, componente):
@@ -649,8 +658,13 @@ class _AuxDialog(QDialog):
             return
         if componente not in self.componentes:
             return
+        
+        # DEBUGGING: Log do componente sendo redesenhado
+        inspecoes_count = len(self.componentes[componente].get('inspecoes', []))
+        self.log(f"🔄 Iniciando redesenho para '{componente}' ({inspecoes_count} janelas)")
             
         if not self.view_roi or not self.view_roi.scene():
+            self.log(f"⚠️ Não foi possível redesenhar - visor ROI não disponível")
             return
         
             
@@ -663,6 +677,8 @@ class _AuxDialog(QDialog):
                 if item.scene():
                     scene.removeItem(item)
             self.inspecao_items[comp_name] = []
+
+        self.log(f"🧹 Cena ROI limpa - todas as janelas antigas removidas")
         
         # Garante que o componente atual existe no dicionário  
         if componente not in self.inspecao_items:

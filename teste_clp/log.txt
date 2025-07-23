@@ -1,7 +1,7 @@
-(.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
-[18:26:05] Conectando ao CLP...
-[18:26:05] ✅ Conectado com sucesso!
-[18:26:05] 🔧 Endereços corrigidos conforme ladder real
+PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
+[08:05:50] Conectando ao CLP...
+[08:05:50] ✅ Conectado com sucesso!
+[08:05:50] 🔧 Endereços corrigidos conforme ladder real
 ============================================================
 CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 ============================================================
@@ -60,1032 +60,551 @@ QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
 QPainter::end: Painter not active, aborted
-[18:26:05] ‚úÖ Configuração – leitura concluída
-[18:26:07] 📖 Lendo velocidades JOG atuais...
-[18:26:07] 📖 Lendo limites da ROM...
-[18:26:07] 📊 Limites Y2: 0 a 18000
-[18:26:07] 📊 Limites Y1: 0 a 18000
-[18:26:07] 📊 Limites X: 0 a 50000
-[18:26:07] 📊 Limites Z: 0 a 1000
-[18:26:08] 📖 Lendo status inicial das memórias de homing...
-[18:26:08] 🏠 Status inicial Homing Y2: REALIZADO
-[18:26:08] 🏠 Status inicial Homing Y1: REALIZADO
-[18:26:08] 🏠 Status inicial Homing X: REALIZADO
-[18:26:08] 🏠 Status inicial Homing Z: REALIZADO
-[18:26:08] 📖 Leitura inicial de homing concluída
-[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A575200>  @(233,2)
+[08:05:51] ‚úÖ Configuração – leitura concluída
+[08:05:52] 📖 Lendo velocidades JOG atuais...
+[08:05:53] 📖 Lendo limites da ROM...
+[08:05:53] 📊 Limites Y2: 0 a 18000
+[08:05:53] 📊 Limites Y1: 0 a 18000
+[08:05:53] 📊 Limites X: 0 a 50000
+[08:05:53] 📊 Limites Z: 0 a 1000
+[08:05:54] 📖 Lendo status inicial das memórias de homing...
+[08:05:54] 🏠 Status inicial Homing Y2: REALIZADO
+[08:05:54] 🏠 Status inicial Homing Y1: REALIZADO
+[08:05:54] 🏠 Status inicial Homing X: REALIZADO
+[08:05:54] 🏠 Status inicial Homing Z: REALIZADO
+[08:05:54] 📖 Leitura inicial de homing concluída
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A457490>  @(235,5)
 [AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(247,296)
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A457490>  @(84,158)
 [AuxDialog] ➕ Posição mecânica adicionada à tree: asd
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(483,191)
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(3,0)
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
+[AuxDialog] 🎯 Posição selecionada: qwe
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “asd”  @(158,216)
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🎯 Posição selecionada: asd
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🏭 Seleção tree → posição: asd
+[AuxDialog] 🎯 Posição selecionada: asd
+[AuxDialog] 🔄 Janela modificada: Posição “asd”
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(442,139)
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🏭 Seleção tree → posição: qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(5,4)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
 [AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 1 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w1 → pai qwe
 [AuxDialog] ➕ Janela de comparação adicionada: w1
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(219,5)
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(205,4)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w2 → pai qwe
 [AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(6,223)
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(6,213)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
 [AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 3 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w3 → pai qwe
 [AuxDialog] ➕ Janela de comparação adicionada: w3
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(216,213)
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(220,208)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w4 → pai qwe
 [AuxDialog] ➕ Janela de comparação adicionada: w4
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
 [AuxDialog] 🎯 Posição selecionada: asd
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
 [AuxDialog] 🏭 Seleção tree → posição: asd
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACA60>  @(253,54)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACA60>  @(258,29)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(3,2)
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
 [AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 1 janelas para asd
 [AuxDialog] 🔗 Dados salvos w1 → pai asd
 [AuxDialog] ➕ Janela de comparação adicionada: w1
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD090>  @(239,238)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD090>  @(248,245)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(202, 185), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 182), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 181), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD090>  @(234,214)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(201, 181), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(202, 183), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(205, 189), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(205, 193), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(207, 194), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(209, 196), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(212, 200), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(214, 203), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(214, 204), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(214, 205), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(214, 207), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(215, 207), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(215, 208), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACCA0>  @(248,42)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(42,54)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACF70>  @(28,253)
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 1 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 1 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 1 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window_editor.ResizableRectIteem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(249,39)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(249,45)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(243, 27), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(242, 27), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(241, 27), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(241, 27), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(237, 28), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(236, 28), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(235, 29), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(233, 29), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(231, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(229, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(226, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(224, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(223, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(219, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(218, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(213, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(213, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(206, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(203, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(192, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(189, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(177, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(175, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(167, 31), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(144, 26), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(143, 26), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(142, 26), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(141, 26), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(141, 25), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(140, 25), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(139, 24), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(138, 24), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(137, 24), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(135, 23), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(134, 22), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(132, 22), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(130, 21), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(129, 20), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(128, 20), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(127, 19), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(127, 19), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(126, 18), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(126, 18), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(125, 18), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(124, 17), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(124, 16), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(124, 15), tam=(15, 27)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(132,35)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(124, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(123, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(121, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(120, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(120, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(119, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(118, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(118, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(117, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(117, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(115, 15), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(115, 14), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(114, 14), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(114, 13), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(114, 13), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(112, 12), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(112, 12), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(111, 11), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(111, 11), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(110, 10), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 9), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 9), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 8), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(108, 8), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 8), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 7), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 7), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 6), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 6), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 5), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(105, 4), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 4), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(103, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(103, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(101, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(99, 3), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(15, 27)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(113,30)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(15, 26)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(15, 26)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(16, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(17, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(17, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(18, 28)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(20, 28)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(20, 29)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(20, 29)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(21, 29)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(22, 29)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(23, 30)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(23, 30)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(24, 31)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(106,17)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(106,17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 3), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 2), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(98, 2), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(97, 2), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(97, 2), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(96, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(95, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(95, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(94, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(94, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(93, 1), tam=(24, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(24, 31)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACDC0>  @(116,33)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(25, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(25, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(26, 31)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(26, 32)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(26, 32)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(27, 32)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(28, 32)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(28, 33)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(28, 33)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(28, 34)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(29, 34)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(29, 35)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(29, 35)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(29, 37)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(30, 37)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(30, 37)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(30, 38)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(31, 38)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(31, 39)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(32, 40)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(32, 41)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(33, 42)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(34, 42)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(34, 43)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(34, 43)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(34, 43)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(35, 43)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(35, 43)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(36, 44)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 44)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 45)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 45)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 46)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 46)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 47)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 48)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 48)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(92, 1), tam=(37, 49)
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(96,113)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(3,91)
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 2 janelas para asd
 [AuxDialog] 🔗 Dados salvos w2 → pai asd
 [AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(6,110)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(105,3)
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
 [AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 3 janelas para asd
 [AuxDialog] 🔗 Dados salvos w3 → pai asd
 [AuxDialog] ➕ Janela de comparação adicionada: w3
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(7,6)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(104,90)
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para asd
 [AuxDialog] 🔗 Dados salvos w4 → pai asd
 [AuxDialog] ➕ Janela de comparação adicionada: w4
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x0000018A87A57D900>  @(85,5)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 5 janelas para asd
-[AuxDialog] 🔗 Dados salvos w5 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w5
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAC790>  @(250,41)
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🔗 Dados salvos w6 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w6
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(238,50)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(230, 38), tam=(20, 17)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(239,45)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(230, 39), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(228, 40), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(227, 42), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(225, 43), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(224, 44), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(223, 45), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(222, 46), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(217, 51), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(216, 52), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(215, 52), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(215, 53), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(213, 55), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(210, 57), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(207, 59), tam=(20, 17)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(214,68)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(206, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(204, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(202, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(198, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(190, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(185, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(180, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(123, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(121, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(119, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(118, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(116, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(115, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(114, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(113, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(112, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(111, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(110, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(108, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(108, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 59), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 60), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(105, 60), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 60), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 61), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 62), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 63), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 63), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 64), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(105, 65), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(105, 65), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 66), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 66), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 67), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 68), tam=(20, 17)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 71), tam=(20, 17)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACF70>  @(254,40)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACF70>  @(251,38)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(241, 30), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(230, 44), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(229, 45), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(227, 46), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(226, 47), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(224, 49), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(222, 51), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(218, 52), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(215, 54), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(212, 55), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(209, 57), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(204, 59), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(200, 60), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(195, 62), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(190, 64), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(185, 67), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(180, 69), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(167, 75), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(164, 76), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(160, 77), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(155, 78), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(152, 80), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(147, 82), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(146, 83), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(141, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(140, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(137, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(135, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(133, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(131, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(129, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(127, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(125, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(123, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(115, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(114, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(112, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(112, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(111, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(111, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(110, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(109, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(108, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(107, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 84), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(106, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 85), tam=(15, 27)
-[AuxDialog] 🔄 Janela asd atualizada: pos=(104, 86), tam=(15, 27)
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAC700>  @(247,234)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(214, 213), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAC700>  @(256,244)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(212, 209), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(210, 207), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(207, 204), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(205, 202), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(201, 197), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(198, 192), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(195, 191), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(193, 188), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(189, 185), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(188, 183), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(187, 182), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(185, 180), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(173, 161), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(172, 160), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(169, 159), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(168, 156), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(167, 156), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(167, 155), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(166, 155), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(166, 154), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(164, 154), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(162, 151), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(156, 148), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(150, 143), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(144, 140), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(139, 137), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(135, 134), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(130, 133), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(125, 129), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(123, 127), tam=(85, 80)
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD510>  @(63,256)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD510>  @(49,253)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(2, 221), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(2, 219), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(2, 218), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(34, 208), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(38, 207), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(40, 207), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(44, 206), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(48, 205), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(50, 203), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(53, 203), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(55, 202), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(58, 202), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(59, 201), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(60, 200), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(61, 200), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(62, 200), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(65, 200), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(65, 198), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(66, 198), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(69, 197), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(69, 196), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(70, 196), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(71, 196), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(72, 195), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(73, 195), tam=(68, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(75, 194), tam=(68, 71)
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window_editor.ResizableRectIteem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window_editor.ResizableRectIteem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window_editor.ResizableRectIteem'>
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(259,228)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(241,242)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(191, 178), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(190, 175), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(188, 170), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(184, 165), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(182, 160), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(179, 155), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(178, 153), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(177, 149), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(175, 146), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(174, 143), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(172, 139), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(171, 137), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(169, 134), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(168, 134), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(167, 131), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(164, 128), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(163, 126), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(162, 126), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(159, 122), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(157, 119), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(157, 118), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(156, 118), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AAD1B0>  @(263,22)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(213, 12), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(199, 32), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(187, 43), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(181, 49), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(178, 49), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(177, 49), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(176, 52), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(175, 52), tam=(82, 79)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(157, 52), tam=(82, 79)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AACF70>  @(64,43)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(0, -1), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(2, 0), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(3, 3), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(6, 8), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(11, 16), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(21, 27), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(51, 61), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(52, 61), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(52, 62), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(53, 64), tam=(83, 84)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(54, 64), tam=(83, 84)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(207,173)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(161, 148), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(163, 150), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(163, 151), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(163, 153), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(164, 155), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(166, 156), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(164, 155), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(216,193)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(160, 155), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(92, 145), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(92, 144), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(91, 144), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(90, 143), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(88, 142), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(86, 140), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(86, 138), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(86, 137), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(86, 135), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(137,172)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(87, 135), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(88, 134), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(91, 134), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(93, 132), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(94, 129), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(98, 121), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(99, 117), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(107, 105), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(109, 102), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(114, 94), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(115, 91), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(124, 79), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(125, 76), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(140, 59), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(146, 48), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(156, 36), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(158, 32), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(161, 31), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(163, 27), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(171, 22), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(173, 21), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(174, 21), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(174, 20), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(177, 20), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(178, 20), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(230,56)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(180, 20), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(182, 20), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(199, 40), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(199, 41), tam=(85, 80)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(85, 80)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(284,119)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(82, 77)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(80, 76)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(79, 76)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(77, 71)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(75, 67)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(74, 66)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(72, 63)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(71, 61)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(70, 60)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(69, 57)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(68, 54)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(66, 52)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(65, 51)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(61, 46)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(60, 44)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(60, 43)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(55, 38)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(54, 36)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(200, 42), tam=(53, 35)
-[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRectItem object at 0x00000018A87AADBD0>  @(225,56)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(199, 42), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(199, 45), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(198, 47), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(195, 59), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(190, 75), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(188, 92), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(184, 112), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(179, 135), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(174, 150), tam=(53, 35)
-[AuxDialog] 🔄 Janela qwe atualizada: pos=(174, 151), tam=(53, 35)
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
 [AuxDialog] 🎯 Posição selecionada: asd
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 6 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(244,29), tam=(13,25)
-[AuxDialog] 🔧 Redesenhando w2: pos=(95,112), tam=(33,39)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,109), tam=(25,38)
-[AuxDialog] 🔧 Redesenhando w4: pos=(7,6), tam=(29,42)
-[AuxDialog] 🔧 Redesenhando w5: pos=(84,5), tam=(39,49)
-[AuxDialog] 🔧 Redesenhando w6: pos=(231,40), tam=(18,15)
-[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 6 janelas para asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
 [AuxDialog] 🏭 Seleção tree → posição: asd
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,0), tam=(81,82)
-[AuxDialog] 🔧 Redesenhando w2: pos=(219,4), tam=(80,77)
-[AuxDialog] 🔧 Redesenhando w3: pos=(5,222), tam=(66,69)
-[AuxDialog] 🔧 Redesenhando w4: pos=(215,213), tam=(83,78)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
 [AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
 [AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[18:31:57] 🛑 PARADA DE EMERGÊNCIA!
-[18:31:57] 🛑 Desligando M70_Y2 e M80_Y2
-[18:31:57] 🛑 JOG Y2 PARADO
-[18:31:57] 🛑 Desligando M570_Y1 e M580_Y1
-[18:31:57] 🛑 JOG Y1 PARADO
-[18:31:57] 🛑 Desligando M1070_X e M1080_X
-[18:31:57] 🛑 JOG X PARADO
-[18:31:57] 🛑 Desligando M1570_Z e M1580_Z
-[18:31:57] 🛑 JOG Z PARADO
-[18:31:57] ⌨️ JOG via teclado interrompido por emergência
-[18:31:57] ✅ Todos os comandos desligados
-[18:31:58] Desconectado do CLP
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🎯 Posição selecionada: asd
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🏭 Seleção tree → posição: asd
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
+[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
+[AuxDialog] 🏭 Seleção tree → posição: qwe
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🎯 Posição selecionada: asd
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 4 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
+[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
+[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
+[AuxDialog] 🏭 Seleção tree → posição: asd
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
+[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4

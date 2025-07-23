@@ -31,7 +31,7 @@ class MultiAxisMotorController(QMainWindow):
         super().__init__()
         self.client = None
         self.connected = False
-        
+
         # Endereços Modbus CORRIGIDOS
         self.addresses = {
             # Memórias M - Endereços corrigidos conforme ladder real
