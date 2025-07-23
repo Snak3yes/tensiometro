@@ -31,12 +31,14 @@ class _AuxDialog(QDialog):
     def __init__(self,
                  pix_region,            # QPixmap da região capturada
                  ctrl_widget,           # InspectionConfigWidget (controles)
+                 update_callback=None,  # Função callback para atualização
                  parent=None):
         super().__init__(parent)
         self.setWindowTitle("Auxiliar de Inspeção")
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
         self._main_widget = ctrl_widget  # Referência ao widget principal
+        self._update_callback = update_callback  # Callback para atualização direta
 
         # ---------- COLUNA ESQUERDA  (imagem + editor ROI) -----------
         # Usa QGraphicsView para poder desenhar janelas via ROIWindowEditor
@@ -230,27 +232,6 @@ class _AuxDialog(QDialog):
                 self.log(f"🔄 Posição mecânica '{window_name}' atualizada em tempo real: pos={self.componentes[window_name]['posicao']}, dims={self.componentes[window_name]['dimensoes']}")
         
         self.log(f"🔄 Janela modificada: {self._describe_item(item)}")
-
-    def transfer_data_to_main(self):
-        """Transfere todos os dados para o widget principal"""
-        if not hasattr(self._main_widget, 'receive_auxiliary_data'):
-            self.log("⚠️ Widget principal não suporta recebimento de dados")
-            return
-            
-        try:
-            # CORREÇÃO CRÍTICA: Atualiza posições mecânicas ANTES de transferir
-            self._update_mechanical_positions_in_cache()
-            
-            # Transfere componentes e imagem
-            self._main_widget.receive_auxiliary_data(
-                componentes=self.componentes,
-                region_image=self._orig_bgr
-            )
-            
-            self.log(f"✅ {len(self.componentes)} componentes transferidos para o widget principal")
-            
-        except Exception as e:
-            self.log(f"❌ Erro ao transferir dados: {e}")
 
     # ------------ helpers internos ----------------------------------
     def _update_pix(self):
@@ -677,13 +658,18 @@ class _AuxDialog(QDialog):
             self.log(f"🔄 Posição '{comp_name}' restaurada com {len(comp_data.get('inspecoes', []))} janelas")
                         
     def closeEvent(self, event):
-        """Transfere dados para o widget principal antes de fechar"""
-        self.transfer_data_to_main()
-        
-        # NOVO: Força atualização do visor principal após transfer
-        if hasattr(self._main_widget, 'update_main_viewer'):
-            print(f"### tentativa de exibir automaticamente a atualização ###")
-            QTimer.singleShot(1000, self._main_widget.update_main_viewer)
+        """Atualiza posições e chama callback direto"""
+        try:
+            # Atualiza posições mecânicas no cache
+            self._update_mechanical_positions_in_cache()
+            
+            # Chama callback direto se disponível
+            if self._update_callback:
+                self._update_callback(self.componentes, self._orig_bgr)
+                print(f"[DEBUG] ✅ Callback direto executado com sucesso")
+            
+        except Exception as e:
+            print(f"[ERROR] Erro no closeEvent: {e}")
         super().closeEvent(event)        
 
 # ======================================================================
@@ -1623,6 +1609,11 @@ class InspectionConfigWidget(QGroupBox):
         print(f"[DEBUG] ✅ Update e repaint forçados")
 
     def _open_aux(self):
+        # NOVA ABORDAGEM: Callback direto
+        def update_callback(componentes, region_image):
+            """Callback que é chamado diretamente quando auxiliar fecha"""
+            print(f"[DEBUG] 🔄 Callback direto recebido: {len(componentes)} componentes")
+            self._update_main_with_data(componentes, region_image)
         # 1) widget de controle (lado direito)
         # no painel à direita omitimos o visor da região E o botão auxiliar
         ctrl_w = InspectionConfigWidget(
@@ -1652,13 +1643,31 @@ class InspectionConfigWidget(QGroupBox):
             if self._cached_auxiliary_data.get('region_image') is None:
                 self._cached_auxiliary_data['region_image'] = None
         # 3) cria diálogo e mostra
-        dlg = _AuxDialog(pix, ctrl_w, self)   # <-- 'self' = widget principal
+        dlg = _AuxDialog(pix, ctrl_w, update_callback, self)   # <-- callback direto
 
         # CORREÇÃO: Libera bloqueio após auxiliar estar totalmente inicializada
         self._initializing_auxiliary = False
 
         dlg.resize(900, 600)
         dlg.show()
+
+    def _update_main_with_data(self, componentes, region_image):
+        """Método simplificado para atualizar visor principal com dados da auxiliar"""
+        print(f"[DEBUG] 🔄 Atualizando visor principal diretamente: {len(componentes)} componentes")
+        
+        # Atualiza cache interno
+        self._cached_auxiliary_data['componentes'] = componentes.copy() if componentes else {}
+        if region_image is not None:
+            self._cached_auxiliary_data['region_image'] = region_image.copy()
+            self._last_roi_bgr = region_image.copy()
+            print(f"[DEBUG] Imagem atualizada: {region_image.shape}")
+        
+        # Chama atualização imediata - SEM delay
+        try:
+            self.update_main_viewer()
+            print(f"[DEBUG] ✅ Visor principal atualizado com sucesso")
+        except Exception as e:
+            print(f"[DEBUG] ❌ Erro na atualização: {e}")
 
     # ================================================================
     #  NOVO SISTEMA: CACHE SIMPLES PARA DADOS AUXILIARES
@@ -1703,34 +1712,9 @@ class InspectionConfigWidget(QGroupBox):
         print("========================\n")
         
     def receive_auxiliary_data(self, componentes, region_image):
-        """Recebe dados da janela auxiliar quando ela é fechada"""
-        print(f"[DEBUG] Recebendo dados: {len(componentes)} componentes")
-        
-        # Log detalhado dos dados recebidos
-        for nome, dados in componentes.items():
-            pos = dados.get('posicao', (0, 0))
-            dims = dados.get('dimensoes', (100, 100))
-            inspecoes = dados.get('inspecoes', [])
-            print(f"[DEBUG] Componente recebido '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
-            for i, insp in enumerate(inspecoes):
-                ipos = insp.get('posicao', (0, 0))
-                itam = insp.get('tamanho', (0, 0))
-                print(f"[DEBUG]   Inspeção {i+1}: pos={ipos}, tam={itam}")
-        self._cached_auxiliary_data['componentes'] = componentes.copy() if componentes else {}
-        if region_image is not None:
-            self._cached_auxiliary_data['region_image'] = region_image.copy()
-            # NOVO: Atualiza também _last_roi_bgr para garantir que exista imagem base
-            self._last_roi_bgr = region_image.copy()
-            print(f"[DEBUG] Imagem da região atualizada: {region_image.shape}")
-
-        print(f"[DEBUG] Cache atualizado: {len(self._cached_auxiliary_data['componentes'])} componentes")        
-
-        # NOVO: Chama automaticamente update_main_viewer após receber dados
-        if len(componentes) > 0:
-            print(f"[DEBUG] 🔄 Chamando update_main_viewer automaticamente...")
-            QTimer.singleShot(300, self.update_main_viewer)
-        else:
-            print(f"[DEBUG] ⚠️ Nenhum componente recebido - não atualizando visor")
+        """MÉTODO LEGACY - usar _update_main_with_data"""
+        print(f"[DEBUG] ⚠️ receive_auxiliary_data chamado - redirecionando para novo método")
+        self._update_main_with_data(componentes, region_image)
         
     def get_cached_auxiliary_data(self):
         """Retorna dados em cache para a auxiliar"""
