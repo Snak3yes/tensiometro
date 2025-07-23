@@ -1,32 +1,1161 @@
+(.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
+[15:32:38] Conectando ao CLP...
+[15:32:38] ✅ Conectado com sucesso!
+[15:32:38] 🔧 Endereços corrigidos conforme ladder real
+============================================================
+CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
+============================================================
+✅ MELHORIAS IMPLEMENTADAS:
+• Endereços corrigidos conforme planilha do ladder real
+• Controle de 4 eixos: Y2, Y1, Z, X
+• Botões HOME corrigidos: M350, M1350, M1850
+• Posições atuais via D3000, D3100, D3200
+• Indicadores LED de homing e leitura automática de velocidades
+• Sistema JOG integrado para TODOS os eixos com segurança
+✓ Controle via teclado para TODOS os eixos:
+  • X: ← →  • Y2: ↑ ↓  • Y1: W S  • Z: Q E
+• Movimentos absolutos com verificação de limites
+• Configurações de homing e limites salvos em ROM
+• Interface redesenhada para melhor usabilidade
+• Leitura em tempo real das posições dos motores corrigida
+• Status inicial e atualização automática dos LEDs de homing
+============================================================
+[15:32:40] ‚úÖ Configuração – leitura concluída
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+QPainter::begin: Paint device returned engine == 0, type: 3
+QPainter::setCompositionMode: Painter not active
+QPainter::fillRect: Painter not active
+QPainter::end: Painter not active, aborted
+[15:32:40] 📖 Lendo velocidades JOG atuais...
+[15:32:41] 📖 Lendo limites da ROM...
+[15:32:41] 📊 Limites Y2: 0 a 18000
+[15:32:41] 📊 Limites Y1: 0 a 18000
+[15:32:41] 📊 Limites X: 0 a 50000
+[15:32:41] 📊 Limites Z: 0 a 1000
+[15:32:42] 📖 Lendo status inicial das memórias de homing...
+[15:32:42] 🏠 Status inicial Homing Y2: REALIZADO
+[15:32:42] 🏠 Status inicial Homing Y1: REALIZADO
+[15:32:42] 🏠 Status inicial Homing X: REALIZADO
+[15:32:42] 🏠 Status inicial Homing Z: REALIZADO
+[15:32:42] 📖 Leitura inicial de homing concluída
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
 [AuxDialog] 📂 Widget principal - inicializando auxiliar: False
 [AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔧 Posição 'qew' atualizada no cache: pos=(192,26), dims=(132,168)
-[AuxDialog] 🔧 Posição 'asd' atualizada no cache: pos=(45,105), dims=(101,138)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[DEBUG] Cache auxiliar limpo - 0 componentes removidos
+[DEBUG] === _SHOW_PIXMAP INICIADO ===
+[DEBUG] Label: 
+[DEBUG] Imagem: (461, 615, 3)
+[DEBUG] Draw border: True
+[DEBUG] Dimensões da imagem: 615x461
+[DEBUG] Desenhando borda amarela...
+[DEBUG] Imagem convertida para RGB
+[DEBUG] QImage criada: 615x461
+[DEBUG] QPixmap escalado para: 337x253
+[DEBUG] Label size: 338x253
+[DEBUG] ✅ Pixmap definido no label
+[DEBUG] ✅ Update e repaint forçados
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D4DC0>  @(311,45)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D4DC0>  @(116,206)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] ➕ Posição mecânica adicionada à tree: asd
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(400,198)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(449,169)
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
+[AuxDialog] 🏭 Seleção tree → posição: qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(310, 44), dims=(205, 225)
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5AB0>  @(24,21)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(24,21), tam=(65,91)
+[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 1 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w1 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w1
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5AB0>  @(138,118)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(24,21), tam=(65,91)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(138,118), tam=(52,82)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w2 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w2
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🎯 Posição selecionada: asd
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: asd
+[AuxDialog] 📊 Componente asd tem 0 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
+[AuxDialog] 🏭 Seleção tree → posição: asd
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5630>  @(28,34)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(28,34), tam=(73,75)
+[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
+[AuxDialog] 🔗 Dados salvos w1 → pai asd
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w1
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5630>  @(97,132)
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando redesenho para 'asd' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(28,34), tam=(73,75)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(97,131), tam=(31,41)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para asd
+[AuxDialog] 🔗 Dados salvos w2 → pai asd
+[AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w2
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis        
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando transfer de 2 componentes
+[AuxDialog]   📤 'qwe': pos=(310, 44), dims=(205, 225)
+[AuxDialog]   📤 'asd': pos=(0, 0), dims=(100, 100)
+[AuxDialog] 🔧 Posição 'qwe' atualizada no cache: pos=(310,44), dims=(205,225)
+[AuxDialog] 🔧 Posição 'asd' atualizada no cache: pos=(115,205), dims=(153,195)
 [DEBUG] Recebendo dados: 2 componentes
-[DEBUG] Componente recebido 'qew': pos=(192, 26), dims=(132, 168), 2 inspeções
-[DEBUG]   Inspeção 1: pos=(26, 16), tam=(31, 52)
-[DEBUG]   Inspeção 2: pos=(79, 73), tam=(16, 41)
-[DEBUG] Componente recebido 'asd': pos=(45, 105), dims=(101, 138), 2 inspeções
-[DEBUG]   Inspeção 1: pos=(9, 27), tam=(25, 44)
-[DEBUG]   Inspeção 2: pos=(71, 43), tam=(11, 66)
-[DEBUG] Imagem da região atualizada: (300, 400, 3)
+[DEBUG] Componente recebido 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções
+[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
+[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
+[DEBUG] Componente recebido 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções
+[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
+[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
+[DEBUG] Imagem da região atualizada: (461, 615, 3)
 [DEBUG] Cache atualizado: 2 componentes
+[DEBUG] 🔄 Agendando update_main_viewer...
+[AuxDialog] 🔧 Chamando força atualização...
 [AuxDialog] ✅ 2 componentes transferidos para o widget principal        
+[DEBUG] 🔄 Atualização automática agendada para após fechamento
 [AuxDialog] 📂 Tentando carregar cache: 2 componentes disponíveis
-[AuxDialog] 📂 Cache 'qew': pos=(192, 26), dims=(132, 168), 2 inspeções
-[AuxDialog] 📂 Cache 'asd': pos=(45, 105), dims=(101, 138), 2 inspeções  
+[AuxDialog] 📂 Cache 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções
+[AuxDialog] 📂 Cache 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções 
 [AuxDialog] 📂 Widget principal - inicializando auxiliar: False
 [AuxDialog] 📂 Tentando carregar cache: 2 componentes disponíveis        
-[AuxDialog] 📂 Cache 'qew': pos=(192, 26), dims=(132, 168), 2 inspeções  
-[AuxDialog] 📂 Cache 'asd': pos=(45, 105), dims=(101, 138), 2 inspeções  
+[AuxDialog] 📂 Cache 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções  
+[AuxDialog] 📂 Cache 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções 
 [AuxDialog] 📂 Carregados 2 componentes do cache
 [AuxDialog] 📂 Total de componentes após carregar: 2
 🔍 Focando em: TODOS os itens
 🔍 Focando em: TODOS os itens
-Traceback (most recent call last):
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\teste_clp\inspection_config_widget.py", line 617, in load_cached_data
-    self.rebuild_interface_from_cache()
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\teste_clp\inspection_config_widget.py", line 631, in rebuild_interface_from_cache
-    node.setData(0, Qt.ItemDataRole.UserRole, item)
-NameError: name 'item' is not defined. Did you mean: 'iter'?
-(.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> 
+[AuxDialog] 📂 Recriando 'qwe': pos=(310, 44), dims=(205, 225)
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(309, 43), dims=(206, 226)
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
+[AuxDialog] 🔄 Posição 'qwe' restaurada com 2 janelas
+[AuxDialog] 📂 Recriando 'asd': pos=(115, 205), dims=(153, 195)
+[AuxDialog] 🔄 Posição mecânica 'asd' atualizada em tempo real: pos=(114, 204), dims=(154, 196)
+[AuxDialog] 🔄 Janela modificada: Posição “asd”
+[AuxDialog] ➕ Posição mecânica adicionada à tree: asd
+[AuxDialog] 🔄 Posição 'asd' restaurada com 2 janelas
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] Atualizando visor principal com 2 posições
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
+[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
+[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
+[DEBUG] Imagem base: 615x461 pixels
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG] Desenhando 2 posições em imagem 615x461
+[DEBUG] ✅ Texto 'qwe' adicionado
+[DEBUG] ✅ Posição 'qwe' processada completamente
+[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] ✅ Texto 'asd' adicionado
+[DEBUG] ✅ Posição 'asd' processada completamente
+[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
+[DEBUG] === _SHOW_PIXMAP INICIADO ===
+[DEBUG] Label:
+[DEBUG] Imagem: (461, 615, 3)
+[DEBUG] Draw border: True
+[DEBUG] Dimensões da imagem: 615x461
+[DEBUG] Desenhando borda amarela...
+[DEBUG] Imagem convertida para RGB
+[DEBUG] QImage criada: 615x461
+[DEBUG] QPixmap escalado para: 640x480
+[DEBUG] Label size: 640x480
+[DEBUG] ✅ Pixmap definido no label
+[DEBUG] ✅ Update e repaint forçados
+[DEBUG] 🔧 FORCE_MAIN_VIEWER_UPDATE chamado
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] Atualizando visor principal com 2 posições
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
+[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
+[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
+[DEBUG] Imagem base: 615x461 pixels
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG] Desenhando 2 posições em imagem 615x461
+[DEBUG] ✅ Texto 'qwe' adicionado
+[DEBUG] ✅ Posição 'qwe' processada completamente
+[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] ✅ Texto 'asd' adicionado
+[DEBUG] ✅ Posição 'asd' processada completamente
+[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
+[DEBUG] === _SHOW_PIXMAP INICIADO ===
+[DEBUG] Label:
+[DEBUG] Imagem: (461, 615, 3)
+[DEBUG] Draw border: True
+[DEBUG] Dimensões da imagem: 615x461
+[DEBUG] Desenhando borda amarela...
+[DEBUG] Imagem convertida para RGB
+[DEBUG] QImage criada: 615x461
+[DEBUG] QPixmap escalado para: 640x480
+[DEBUG] Label size: 640x480
+[DEBUG] ✅ Pixmap definido no label
+[DEBUG] ✅ Update e repaint forçados
+[DEBUG] ✅ Imagem atualizada no visor principal
+[DEBUG] ✅ Imagem atualizada no visor principal
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] Atualizando visor principal com 2 posições
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
+[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
+[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
+[DEBUG] Imagem base: 615x461 pixels
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG] Desenhando 2 posições em imagem 615x461
+[DEBUG] ✅ Texto 'qwe' adicionado
+[DEBUG] ✅ Posição 'qwe' processada completamente
+[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] ✅ Texto 'asd' adicionado
+[DEBUG] ✅ Posição 'asd' processada completamente
+[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
+[DEBUG] === _SHOW_PIXMAP INICIADO ===
+[DEBUG] Label:
+[DEBUG] Imagem: (461, 615, 3)
+[DEBUG] Draw border: True
+[DEBUG] Dimensões da imagem: 615x461
+[DEBUG] Desenhando borda amarela...
+[DEBUG] Imagem convertida para RGB
+[DEBUG] QImage criada: 615x461
+[DEBUG] QPixmap escalado para: 640x480
+[DEBUG] Label size: 640x480
+[DEBUG] ✅ Pixmap definido no label
+[DEBUG] ✅ Update e repaint forçados
+[DEBUG] ✅ Imagem atualizada no visor principal
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] Atualizando visor principal com 2 posições
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
+[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
+[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
+[DEBUG] Imagem base: 615x461 pixels
+[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
+[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
+[DEBUG] Desenhando 2 posições em imagem 615x461
+[DEBUG] ✅ Texto 'qwe' adicionado
+[DEBUG] ✅ Posição 'qwe' processada completamente
+[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] ✅ Texto 'asd' adicionado
+[DEBUG] ✅ Posição 'asd' processada completamente
+[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
+[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
+[DEBUG] === _SHOW_PIXMAP INICIADO ===
+[DEBUG] Label:
+[DEBUG] Imagem: (461, 615, 3)
+[DEBUG] Draw border: True
+[DEBUG] Dimensões da imagem: 615x461
+[DEBUG] Desenhando borda amarela...
+[DEBUG] Imagem convertida para RGB
+[DEBUG] QImage criada: 615x461
+[DEBUG] QPixmap escalado para: 640x480
+[DEBUG] Label size: 640x480
+[DEBUG] ✅ Pixmap definido no label
+[DEBUG] ✅ Update e repaint forçados
+[DEBUG] ✅ Imagem atualizada no visor principal
+
+[DEBUG] === FUNÇÃO DEBUG CHAMADA ===
+[DEBUG] === UPDATE_MAIN_VIEWER INICIADO ===
+[DEBUG] Componentes no cache: 0
+[DEBUG] Widget tem _last_roi_bgr: True
+[DEBUG] _last_roi_bgr é None: False
+
+=== DEBUG CACHE STATUS ===
+Componentes em cache: 0
+Imagem em cache: Não
+_last_roi_bgr: Sim
+========================
+
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] ⚠️ Nenhum componente no cache para exibir
+[DEBUG] ✅ update_main_viewer() chamado com sucesso
+[DEBUG] === FUNÇÃO DEBUG CONCLUÍDA ===
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🔄 Iniciando transfer de 0 componentes
+[DEBUG] Recebendo dados: 0 componentes
+[DEBUG] Imagem da região atualizada: (461, 615, 3)
+[DEBUG] Cache atualizado: 0 componentes
+[DEBUG] ⚠️ Nenhum componente recebido - não atualizando visor
+[AuxDialog] 🔧 Chamando força atualização...
+[AuxDialog] ✅ 0 componentes transferidos para o widget principal        
+[DEBUG] 🔄 Atualização automática agendada para após fechamento
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[DEBUG] 🔧 FORCE_MAIN_VIEWER_UPDATE chamado
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] ⚠️ Nenhum componente no cache para exibir
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] ⚠️ Nenhum componente no cache para exibir
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] ⚠️ Nenhum componente no cache para exibir
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis        
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
+[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
+[AuxDialog] ⏳ Aguardando inicialização completa...

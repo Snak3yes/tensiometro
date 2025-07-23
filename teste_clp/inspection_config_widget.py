@@ -93,6 +93,8 @@ class _AuxDialog(QDialog):
         vright.addWidget(self.btn_cmp)
         vright.addStretch()
 
+        
+
         h.addWidget(right_box, 1)          # 20 %
 
         # Garante que o preview interno e o botão auxiliar não apareçam
@@ -677,6 +679,11 @@ class _AuxDialog(QDialog):
     def closeEvent(self, event):
         """Transfere dados para o widget principal antes de fechar"""
         self.transfer_data_to_main()
+        
+        # NOVO: Força atualização do visor principal após transfer
+        if hasattr(self._main_widget, 'update_main_viewer'):
+            print(f"### tentativa de exibir automaticamente a atualização ###")
+            QTimer.singleShot(1000, self._main_widget.update_main_viewer)
         super().closeEvent(event)        
 
 # ======================================================================
@@ -1501,6 +1508,13 @@ class InspectionConfigWidget(QGroupBox):
         if self.btn_aux is not None:
             self.btn_aux.clicked.connect(self._open_aux)
 
+        # BOTÃO DE DEBUG - mantido apenas no widget principal
+        if self._show_aux_button:  # Só mostra se é o widget principal
+            debug_btn = QPushButton("🔧 DEBUG: Atualizar Visor")
+            debug_btn.clicked.connect(self.debug_update_viewer)
+            debug_btn.setStyleSheet("QPushButton { background-color: orange; color: white; font-weight: bold; }")
+            v.addWidget(debug_btn)
+
     # -------------------- tamanho fixo 4:3 ---------------------------
     def _update_region_aspect(self):
         """
@@ -1575,19 +1589,38 @@ class InspectionConfigWidget(QGroupBox):
         self.clear_auxiliary_cache()    
 
     def _show_pixmap(self, label: QLabel, img_bgr, *, draw_border=False):
-        if img_bgr is None: return
+        print(f"[DEBUG] === _SHOW_PIXMAP INICIADO ===")
+        print(f"[DEBUG] Label: {label.objectName() if hasattr(label, 'objectName') else 'unnamed'}")
+        print(f"[DEBUG] Imagem: {img_bgr.shape if img_bgr is not None else 'None'}")
+        print(f"[DEBUG] Draw border: {draw_border}")
+        if img_bgr is None: 
+            print(f"[DEBUG] ❌ Imagem é None - abortando")
+            return
         h,w,_ = img_bgr.shape
+        print(f"[DEBUG] Dimensões da imagem: {w}x{h}")
         if draw_border:
+            print(f"[DEBUG] Desenhando borda amarela...")
             img_bgr = cv2.rectangle(img_bgr.copy(), (0,0), (w-1,h-1),
                                     (0,255,255), 2)
         img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        print(f"[DEBUG] Imagem convertida para RGB")
         from PyQt6.QtGui import QImage, QPixmap
         qimg = QImage(img_rgb.data, w, h, 3*w, QImage.Format.Format_RGB888)
+        print(f"[DEBUG] QImage criada: {qimg.width()}x{qimg.height()}")
         px = QPixmap.fromImage(qimg).scaled(
             label.width(), label.height(),
             Qt.AspectRatioMode.KeepAspectRatio,
             Qt.TransformationMode.SmoothTransformation)
+        print(f"[DEBUG] QPixmap escalado para: {px.width()}x{px.height()}")
+        print(f"[DEBUG] Label size: {label.width()}x{label.height()}")
+
         label.setPixmap(px)
+        print(f"[DEBUG] ✅ Pixmap definido no label")
+        
+        # NOVO: Força atualização visual
+        label.update()
+        label.repaint()
+        print(f"[DEBUG] ✅ Update e repaint forçados")
 
     def _open_aux(self):
         # 1) widget de controle (lado direito)
@@ -1653,6 +1686,11 @@ class InspectionConfigWidget(QGroupBox):
     def debug_cache_status(self):
         """Método para debug - mostra status atual do cache"""
         componentes = self._cached_auxiliary_data.get('componentes', {})
+        # DEBUG DETALHADO
+        print(f"[DEBUG] === UPDATE_MAIN_VIEWER INICIADO ===")
+        print(f"[DEBUG] Componentes no cache: {len(componentes)}")
+        print(f"[DEBUG] Widget tem _last_roi_bgr: {hasattr(self, '_last_roi_bgr')}")
+        print(f"[DEBUG] _last_roi_bgr é None: {getattr(self, '_last_roi_bgr', None) is None}")
         print(f"\n=== DEBUG CACHE STATUS ===")
         print(f"Componentes em cache: {len(componentes)}")
         print(f"Imagem em cache: {'Sim' if self._cached_auxiliary_data.get('region_image') is not None else 'Não'}")
@@ -1685,24 +1723,56 @@ class InspectionConfigWidget(QGroupBox):
             self._last_roi_bgr = region_image.copy()
             print(f"[DEBUG] Imagem da região atualizada: {region_image.shape}")
 
-        print(f"[DEBUG] Cache atualizado: {len(self._cached_auxiliary_data['componentes'])} componentes")
-        
-        # Atualiza o visor principal com as posições mecânicas
-        QTimer.singleShot(100, self.update_main_viewer)  # Pequeno delay para garantir que tudo está pronto
+        print(f"[DEBUG] Cache atualizado: {len(self._cached_auxiliary_data['componentes'])} componentes")        
+
+        # NOVO: Chama automaticamente update_main_viewer após receber dados
+        if len(componentes) > 0:
+            print(f"[DEBUG] 🔄 Chamando update_main_viewer automaticamente...")
+            QTimer.singleShot(300, self.update_main_viewer)
+        else:
+            print(f"[DEBUG] ⚠️ Nenhum componente recebido - não atualizando visor")
         
     def get_cached_auxiliary_data(self):
         """Retorna dados em cache para a auxiliar"""
         return self._cached_auxiliary_data.copy()
+    
+    def debug_update_viewer(self):
+        """Função de debug para testar atualização do visor"""
+        print(f"\n[DEBUG] === FUNÇÃO DEBUG CHAMADA ===")
+        
+        # Debug do cache
+        self.debug_cache_status()
+        
+        # Força atualização
+        try:
+            self.update_main_viewer()
+            print(f"[DEBUG] ✅ update_main_viewer() chamado com sucesso")
+        except Exception as e:
+            print(f"[DEBUG] ❌ Erro em update_main_viewer(): {e}")
+            import traceback
+            traceback.print_exc()
+            
+        print(f"[DEBUG] === FUNÇÃO DEBUG CONCLUÍDA ===")
         
     def update_main_viewer(self):
         """Atualiza o visor principal com as posições mecânicas do cache"""
+        print(f"[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente")
         componentes = self._cached_auxiliary_data.get('componentes', {})
         
         if not componentes:
-            print(f"[DEBUG] Nenhum componente no cache para exibir")
+            print(f"[DEBUG] ⚠️ Nenhum componente no cache para exibir")
             return
             
         print(f"[DEBUG] Atualizando visor principal com {len(componentes)} posições")
+
+        # DEBUG: Log detalhado dos componentes
+        for nome, dados in componentes.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            insp_count = len(dados.get('inspecoes', []))
+            print(f"[DEBUG] Componente '{nome}': pos={pos}, dims={dims}, {insp_count} inspeções")
+            for i, insp in enumerate(dados.get('inspecoes', [])):
+                print(f"[DEBUG]   Inspeção {i+1}: pos={insp.get('posicao', (0,0))}, tam={insp.get('tamanho', (0,0))}")
         
         # CORREÇÃO: Verifica se há imagem base disponível
         if not hasattr(self, '_last_roi_bgr') or self._last_roi_bgr is None:
@@ -1712,6 +1782,7 @@ class InspectionConfigWidget(QGroupBox):
             if cached_image is not None:
                 self._last_roi_bgr = cached_image.copy()
                 print(f"[DEBUG] ✅ Imagem restaurada do cache: {self._last_roi_bgr.shape}")
+            
             elif hasattr(self, 'lbl_region') and self.lbl_region.pixmap():
                 # Fallback: usa imagem do label se existir
                 print(f"[DEBUG] Tentando usar imagem do label como base")
@@ -1727,8 +1798,18 @@ class InspectionConfigWidget(QGroupBox):
                     print(f"[DEBUG] ❌ Erro ao converter pixmap: {e}")
                     return
             else:
-                print(f"[DEBUG] ❌ Nenhuma imagem disponível")
-                return
+                # NOVO: Tenta criar imagem padrão se não houver nenhuma
+                print(f"[DEBUG] 🔧 Criando imagem padrão para desenho...")
+                try:
+                    import numpy as np
+                    # Cria imagem padrão 400x300 (cinza escuro)
+                    default_image = np.full((300, 400, 3), (64, 64, 64), dtype=np.uint8)
+                    self._last_roi_bgr = default_image
+                    self._cached_auxiliary_data['region_image'] = default_image.copy()
+                    print(f"[DEBUG] ✅ Imagem padrão criada: {default_image.shape}")
+                except Exception as e:
+                    print(f"[DEBUG] ❌ Erro ao criar imagem padrão: {e}")
+                    return
         
         # Garante que o cache tem a imagem atual
         if self._cached_auxiliary_data.get('region_image') is None and self._last_roi_bgr is not None:
@@ -1773,10 +1854,9 @@ class InspectionConfigWidget(QGroupBox):
             return None
             
     def _draw_positions_on_image(self, img_bgr, componentes):
-        """Desenha retângulos das posições mecânicas sobre a imagem"""
-        
+        """Desenha retângulos das posições mecânicas sobre a imagem"""            
         h_img, w_img = img_bgr.shape[:2]
-        print(f"[DEBUG] Desenhando em imagem {w_img}x{h_img}")
+        print(f"[DEBUG] Desenhando {len(componentes)} posições em imagem {w_img}x{h_img}")
         
         posicoes_desenhadas = 0
         inspecoes_desenhadas = 0
@@ -1788,57 +1868,42 @@ class InspectionConfigWidget(QGroupBox):
             # Usa coordenadas da posição mecânica
             pos_x, pos_y = pos
             pos_w, pos_h = dims
-            
-            print(f"[DEBUG] Processando posição '{nome}': pos=({pos_x},{pos_y}), dims=({pos_w}x{pos_h})")
-            
-            
+                                            
             # CORREÇÃO: Verifica se coordenadas estão dentro da imagem
             if pos_x < 0 or pos_y < 0 or pos_x + pos_w > w_img or pos_y + pos_h > h_img:
-                print(f"[DEBUG] ⚠️ Posição '{nome}' fora da imagem: ({pos_x},{pos_y}) {pos_w}x{pos_h} vs imagem {w_img}x{h_img}")
+    
                 # Ajusta coordenadas para ficar dentro da imagem
                 pos_x = max(0, min(pos_x, w_img - 1))
                 pos_y = max(0, min(pos_y, h_img - 1))
                 pos_w = min(pos_w, w_img - pos_x)
-                pos_h = min(pos_h, h_img - pos_y)
-                print(f"[DEBUG] Ajustado para: ({pos_x},{pos_y}) {pos_w}x{pos_h}")
+                pos_h = min(pos_h, h_img - pos_y)                
+             
+            # Verifica se dimensões são válidas após ajuste
+            if pos_w <= 0 or pos_h <= 0:
+                print(f"[DEBUG] ❌ Dimensões inválidas após ajuste: {pos_w}x{pos_h} - pulando")
+                continue
             
             # Desenha retângulo VERMELHO para a posição mecânica (como solicitado)
-            cv2.rectangle(img_bgr, (pos_x, pos_y), (pos_x + pos_w, pos_y + pos_h), (0, 0, 255), 3)  # Vermelho, espessura 3
+            try:
+                cv2.rectangle(img_bgr, (pos_x, pos_y), (pos_x + pos_w, pos_y + pos_h), (0, 0, 255), 3)  # Vermelho, espessura 3
+                
+            except Exception as e:
+                print(f"[DEBUG] ❌ Erro ao desenhar retângulo vermelho: {e}")
+                continue
             posicoes_desenhadas += 1
             
             # Adiciona texto com o nome
-            cv2.putText(img_bgr, nome, (pos_x, pos_y - 10),
+            try:
+                cv2.putText(img_bgr, nome, (pos_x, pos_y - 10),
                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)  # Texto vermelho
+                print(f"[DEBUG] ✅ Texto '{nome}' adicionado")
+            except Exception as e:
+                print(f"[DEBUG] ⚠️ Erro ao adicionar texto: {e}")
+            print(f"[DEBUG] ✅ Posição '{nome}' processada completamente")
 
-            print(f"[DEBUG] Posição '{nome}' desenhada em ({pos_x},{pos_y}) {pos_w}x{pos_h}")
+            # REMOVIDO: Desenho das janelas azuis (não necessário no visor principal)
+            print(f"[DEBUG] ✅ Posição '{nome}' concluída - janelas de inspeção serão exibidas apenas no visor ROI")
 
-            # CORREÇÃO CRÍTICA: Desenha janelas de inspeção com coordenadas CORRETAS
-            for insp in dados.get('inspecoes', []):
-                ix, iy = insp.get('posicao', (0, 0))
-                iw, ih = insp.get('tamanho', (20, 20))
-
-                print(f"[DEBUG] Janela inspeção bruta: pos=({ix},{iy}), tam=({iw},{ih})")
-                
-                # CORREÇÃO FUNDAMENTAL: As coordenadas das janelas de inspeção JÁ são absolutas
-                # (vem da cena ROI que tem as mesmas dimensões da imagem original)
-                # NÃO deve somar com a posição mecânica
-                abs_x = ix
-                abs_y = iy
-                
-                # Garantir que coordenadas não sejam negativas
-                abs_x = max(0, abs_x)
-                abs_y = max(0, abs_y)
-                
-                print(f"[DEBUG] Janela inspeção absoluta: pos=({abs_x},{abs_y}), tam=({iw},{ih})")
-                
-                # Verifica limites para janelas de inspeção
-                if abs_x >= 0 and abs_y >= 0 and abs_x + iw <= w_img and abs_y + ih <= h_img:
-                    cv2.rectangle(img_bgr, (abs_x, abs_y), (abs_x + iw, abs_y + ih), (255, 0, 0), 2)  # Azul
-                    inspecoes_desenhadas += 1
-                    print(f"[DEBUG] Inspeção desenhada em ({abs_x},{abs_y}) {iw}x{ih}")
-                else:
-                    print(f"[DEBUG] ⚠️ Inspeção fora da imagem: ({abs_x},{abs_y}) {iw}x{ih}")
-         
         print(f"[DEBUG] Resultado: {posicoes_desenhadas} posições e {inspecoes_desenhadas} inspeções desenhadas")
         
         return img_bgr
