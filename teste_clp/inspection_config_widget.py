@@ -36,6 +36,7 @@ class _AuxDialog(QDialog):
         self.setWindowTitle("Auxiliar de Inspeção")
         self.setWindowModality(Qt.WindowModality.NonModal)
         self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        self._main_widget = ctrl_widget  # Referência ao widget principal
 
         # ---------- COLUNA ESQUERDA  (imagem + editor ROI) -----------
         # Usa QGraphicsView para poder desenhar janelas via ROIWindowEditor
@@ -193,6 +194,62 @@ class _AuxDialog(QDialog):
         # Variável para guardar o pai das janelas de comparação
         self._comparison_parent_uid = None
 
+        # NOVO: Carrega dados do cache ao inicializar
+        self.load_cached_data()
+    
+    def _update_mechanical_positions_in_cache(self):
+        """Atualiza as coordenadas das posições mecânicas no cache com as posições atuais"""
+        for window in self.region_editor.windows:
+            if isinstance(window, ResizableRectItem):
+                window_name = getattr(window, 'name', None)
+                if window_name and window_name in self.componentes:
+                    # CORREÇÃO: Captura posição atual da janela no editor
+                    pos_rect = window.sceneBoundingRect()
+                    atual_x = int(pos_rect.x())
+                    atual_y = int(pos_rect.y())
+                    atual_w = int(pos_rect.width())
+                    atual_h = int(pos_rect.height())
+                    
+                    # Atualiza no cache
+                    self.componentes[window_name]['posicao'] = (atual_x, atual_y)
+                    self.componentes[window_name]['dimensoes'] = (atual_w, atual_h)
+                    
+                    self.log(f"🔧 Posição '{window_name}' atualizada no cache: pos=({atual_x},{atual_y}), dims=({atual_w},{atual_h})")
+ 
+    def _on_window_changed(self, item):
+        """Callback chamado quando janela é modificada - salva automaticamente"""
+        # CORREÇÃO: Atualiza dados no cache se for posição mecânica
+        if isinstance(item, ResizableRectItem):
+            window_name = getattr(item, 'name', None)
+            if window_name and window_name in self.componentes:
+                pos_rect = item.sceneBoundingRect()
+                self.componentes[window_name]['posicao'] = (int(pos_rect.x()), int(pos_rect.y()))
+                self.componentes[window_name]['dimensoes'] = (int(pos_rect.width()), int(pos_rect.height()))
+                self.log(f"🔄 Posição mecânica '{window_name}' atualizada em tempo real: pos={self.componentes[window_name]['posicao']}, dims={self.componentes[window_name]['dimensoes']}")
+        
+        self.log(f"🔄 Janela modificada: {self._describe_item(item)}")
+
+    def transfer_data_to_main(self):
+        """Transfere todos os dados para o widget principal"""
+        if not hasattr(self._main_widget, 'receive_auxiliary_data'):
+            self.log("⚠️ Widget principal não suporta recebimento de dados")
+            return
+            
+        try:
+            # CORREÇÃO CRÍTICA: Atualiza posições mecânicas ANTES de transferir
+            self._update_mechanical_positions_in_cache()
+            
+            # Transfere componentes e imagem
+            self._main_widget.receive_auxiliary_data(
+                componentes=self.componentes,
+                region_image=self._orig_bgr
+            )
+            
+            self.log(f"✅ {len(self.componentes)} componentes transferidos para o widget principal")
+            
+        except Exception as e:
+            self.log(f"❌ Erro ao transferir dados: {e}")
+
     # ------------ helpers internos ----------------------------------
     def _update_pix(self):
         """Escala novamente a partir da imagem original (evita cascata)."""
@@ -201,11 +258,7 @@ class _AuxDialog(QDialog):
         if not self._orig_pix.isNull():
             self._pix_item.setPixmap(self._orig_pix)
             self.view_region.fitInView(self._pix_item,
-                                       Qt.AspectRatioMode.KeepAspectRatio)
-            
-    def _on_window_changed(self, item):
-        """Callback chamado quando janela é modificada - salva automaticamente"""
-        self.log(f"🔄 Janela modificada: {self._describe_item(item)}")
+                                       Qt.AspectRatioMode.KeepAspectRatio)            
     
     def _get_selected_mechanical_position_node(self):
         """Retorna o nó da posição mecânica atualmente selecionado na tree"""
@@ -239,6 +292,62 @@ class _AuxDialog(QDialog):
             self._select_tree_node_for_item(selected_item)
             
             self.log(f"🎯 Posição selecionada: {getattr(selected_item, 'name', '?')}")
+    
+    def _update_roi_from_selection(self):
+        """
+        Recorta a área da Posição Mecânica selecionada e mostra
+        na view_roi preservando a resolução original.
+        """
+        if self.view_roi is None or self._orig_bgr is None:
+            return        
+        sel = [it for it in self.view_region.scene().selectedItems()
+               if isinstance(it, ResizableRectItem)]
+        if not sel:
+            return
+        
+        # CORREÇÃO: Evita redesenho desnecessário
+        item = sel[0]
+        component_name = getattr(item, 'name', None)
+        if not component_name:
+            return
+            
+        # Verifica se mudou a seleção para evitar redesenhos repetitivos
+        if hasattr(self, '_last_selected_component') and self._last_selected_component == component_name:
+            return
+        self._last_selected_component = component_name
+        
+        # ... resto da função mantém igual ...
+        # usa retângulo do item já mapeado p/ cena (inclui posição)
+        r_scene = item.mapRectToScene(item.rect())
+        x, y, w, h = map(int, [r_scene.x(), r_scene.y(),
+                               r_scene.width(), r_scene.height()])
+        h_img, w_img, _ = self._orig_bgr.shape
+        # limita dentro da imagem
+        x = max(0, min(x, w_img - 1))
+        y = max(0, min(y, h_img - 1))
+        w = max(1, min(w, w_img - x))
+        h = max(1, min(h, h_img - y))
+        roi_bgr = self._orig_bgr[y:y + h, x:x + w].copy()
+        if roi_bgr.size == 0:
+            return
+        
+        # Atualiza o visor ROI
+        roi_px = InspectionConfigWidget._bgr_to_pixmap(roi_bgr)  # qualidade máx.
+
+        # CORREÇÃO: Remove apenas o pixmap anterior, mantém janelas de comparação
+        scene = self.view_roi.scene()
+        # Remove apenas o item de imagem anterior (se existir)
+        if hasattr(self, '_roi_pix_item') and self._roi_pix_item:
+            scene.removeItem(self._roi_pix_item)
+        
+        # Adiciona nova imagem
+        self._roi_pix_item = scene.addPixmap(roi_px)
+        self.view_roi.fitInView(self._roi_pix_item,
+                                Qt.AspectRatioMode.KeepAspectRatio)
+        
+        # FORÇO redesenho se necessário
+        if component_name and component_name in self.componentes:
+            self._redesenhar_janelas_inspecao(component_name)
             
     # ===================  TREEVIEW Sync  ============================
     def _on_window_added(self, item):
@@ -399,6 +508,176 @@ class _AuxDialog(QDialog):
             self.parent().log(message)
         else:
             print(f"[AuxDialog] {message}")
+
+    def rebuild_interface_from_cache(self):
+        """Reconstroi TreeView e editores baseado nos componentes em cache"""
+        # Limpa TreeView atual
+        self.tree.clear()
+        
+        # CORREÇÃO: Limpa editor antes de recriar
+        if hasattr(self.region_editor, 'windows'):
+            for window in list(self.region_editor.windows):
+                try:
+                    if window.scene():
+                        window.scene().removeItem(window)
+                except RuntimeError:
+                    pass
+            self.region_editor.windows.clear()
+        
+        # Adiciona posições mecânicas ao region_editor e TreeView
+        for comp_name, comp_data in self.componentes.items():
+            pos = comp_data.get('posicao', (0, 0))
+            dims = comp_data.get('dimensoes', (100, 100))
+            
+            self.log(f"📂 Recriando '{comp_name}': pos={pos}, dims={dims}")
+            
+            # CORREÇÃO: Usa coordenadas salvas no cache
+            item = self.region_editor.add_window(
+                x=pos[0], y=pos[1], 
+                w=dims[0], h=dims[1],
+                name=comp_name, 
+                deletable=True
+            )
+            
+            # Adiciona à TreeView
+            node = QTreeWidgetItem([comp_name])
+            node.setData(0, Qt.ItemDataRole.UserRole, item)
+            self.tree.addTopLevelItem(node)
+             
+            # Adiciona janelas de inspeção como subnós
+            for i, inspecao in enumerate(comp_data.get('inspecoes', []), 1):
+                comp_node = QTreeWidgetItem([f"w{i}"])
+                
+                # Cria placeholder para a janela de comparação
+                placeholder_data = {
+                    'type': 'comparison_placeholder',
+                    'component_name': comp_name,
+                    'window_name': f"w{i}",
+                    'inspecao_ref': inspecao
+                }
+                comp_node.setData(0, Qt.ItemDataRole.UserRole, placeholder_data)
+                inspecao['tree_node'] = comp_node
+                node.addChild(comp_node)
+                node.setExpanded(True)
+            
+            self.log(f"🔄 Posição '{comp_name}' restaurada com {len(comp_data.get('inspecoes', []))} janelas")
+
+    # ================================================================
+    #  NOVO SISTEMA: CARREGAMENTO E TRANSFERÊNCIA DE DADOS
+    # ================================================================
+    
+    def load_cached_data(self):
+        """Carrega dados do cache do widget principal"""
+        if not hasattr(self._main_widget, 'get_cached_auxiliary_data'):
+           self.log("Widget principal não suporta cache")
+           return
+            
+        cached_data = self._main_widget.get_cached_auxiliary_data()
+        componentes_cache = cached_data.get('componentes', {})
+
+        # DEBUGGING DETALHADO das coordenadas
+        if not hasattr(self, 'componentes'):
+            self.componentes = {}
+            self.log("⚠️ Dicionário componentes não existia - inicializado")
+            
+        if not hasattr(self, 'region_editor') or self.region_editor is None:
+            self.log("❌ region_editor não disponível - cancelando reconstrução")
+            return
+        self.log(f"📂 Tentando carregar cache: {len(componentes_cache)} componentes disponíveis")
+        for nome, dados in componentes_cache.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            inspecoes = dados.get('inspecoes', [])
+            self.log(f"📂 Cache '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
+            
+            # ALERTA se posição for (0,0)
+            if pos == (0, 0) and dims == (100, 100):
+                self.log(f"⚠️ POSIÇÃO SUSPEITA para '{nome}': pode estar em posição padrão")
+
+        # DEBUGGING: Mostra estado do widget principal
+        self.log(f"📂 Widget principal - inicializando auxiliar: {getattr(self._main_widget, '_initializing_auxiliary', 'N/A')}")
+        
+        # NOVO: Se está inicializando e não tem dados, aguarda um pouco
+        if not componentes_cache and hasattr(self._main_widget, '_initializing_auxiliary'):
+            self.log("⏳ Aguardando inicialização completa...")
+            QTimer.singleShot(100, self.load_cached_data)  # Tenta novamente em 100ms
+            return
+
+        # DEBUGGING: Log detalhado do que está sendo carregado
+        self.log(f"📂 Tentando carregar cache: {len(componentes_cache)} componentes disponíveis")
+        for nome, dados in componentes_cache.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            inspecoes = dados.get('inspecoes', [])
+            self.log(f"📂 Cache '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
+       
+        if not componentes_cache:
+            self.log("Nenhum dado em cache para carregar")
+            return
+            
+        # Carrega componentes do cache
+        self.componentes.update(componentes_cache)
+        self.log(f"📂 Carregados {len(componentes_cache)} componentes do cache")
+        self.log(f"📂 Total de componentes após carregar: {len(self.componentes)}")
+        
+        # Reconstroi a interface baseada nos dados carregados
+        self.rebuild_interface_from_cache()
+        
+    def rebuild_interface_from_cache(self):
+        """Reconstroi TreeView e editores baseado nos componentes em cache"""
+        # Limpa TreeView atual
+        self.tree.clear()
+        # CORREÇÃO: Limpa editor antes de recriar
+        if hasattr(self.region_editor, 'windows'):
+            for window in list(self.region_editor.windows):
+                try:
+                    if window.scene():
+                        window.scene().removeItem(window)
+                except RuntimeError:
+                    pass
+            self.region_editor.windows.clear()
+        
+        # Adiciona posições mecânicas ao region_editor e TreeView
+        for comp_name, comp_data in self.componentes.items():
+            pos = comp_data.get('posicao', (0, 0))
+            dims = comp_data.get('dimensoes', (100, 100))
+            
+            self.log(f"📂 Recriando '{comp_name}': pos={pos}, dims={dims}")
+            
+            # CORREÇÃO CRÍTICA: Cria o item no region_editor usando coordenadas do cache
+            item = self.region_editor.add_window(
+                x=pos[0], y=pos[1], 
+                w=dims[0], h=dims[1],
+                name=comp_name, 
+                deletable=True
+            )                 
+            
+            # Adiciona à TreeView
+            node = QTreeWidgetItem([comp_name])
+            node.setData(0, Qt.ItemDataRole.UserRole, item)
+            self.tree.addTopLevelItem(node)
+            # Adiciona janelas de inspeção como subnós
+            for i, inspecao in enumerate(comp_data.get('inspecoes', []), 1):
+                comp_node = QTreeWidgetItem([f"w{i}"])
+                
+                # Cria placeholder para a janela de comparação
+                placeholder_data = {
+                    'type': 'comparison_placeholder',
+                    'component_name': comp_name,
+                    'window_name': f"w{i}",
+                    'inspecao_ref': inspecao
+                }
+                comp_node.setData(0, Qt.ItemDataRole.UserRole, placeholder_data)
+                inspecao['tree_node'] = comp_node
+                node.addChild(comp_node)
+                node.setExpanded(True)
+            
+            self.log(f"🔄 Posição '{comp_name}' restaurada com {len(comp_data.get('inspecoes', []))} janelas")
+                        
+    def closeEvent(self, event):
+        """Transfere dados para o widget principal antes de fechar"""
+        self.transfer_data_to_main()
+        super().closeEvent(event)        
 
 # ======================================================================
 #  EVENT-FILTER  (cliques nos visores)  +  logs auxiliares
@@ -924,9 +1203,7 @@ class _AuxDialog(QDialog):
                 rect_item.component_name = componente
 
                 # NOVO: Metadados extras para debugging
-                rect_item.original_inspecao_data = inspecao
-                
-                
+                rect_item.original_inspecao_data = inspecao                                
                 
                 # DEBUGGING: Confirma associação bidirecional
                 self.log(f"🔗 Associação bidirecional completa: TreeView({inspecao['tree_node'].text(0)}) ↔ Janela({rect_item.inspecao_name})")
@@ -1136,6 +1413,13 @@ class InspectionConfigWidget(QGroupBox):
         self._show_size_controls = show_size_controls
         self._show_region_button = show_region_button
         self._build_ui()
+        # Cache simples para dados da janela auxiliar
+        self._cached_auxiliary_data = {
+            'componentes': {},           # posições mecânicas + janelas
+            'region_image': None         # imagem da região (BGR)
+        }
+        # Flag para controlar limpeza de cache durante inicialização
+        self._initializing_auxiliary = False
 
     # ---------------- construção ----------------------------
     def _build_ui(self):
@@ -1287,6 +1571,8 @@ class InspectionConfigWidget(QGroupBox):
         self._last_roi_bgr = roi          # guarda original p/ alta qualidade
         self._show_pixmap(self.lbl_region, roi, draw_border=True)
         self.regionCaptured.emit(roi)
+        # Limpa cache quando nova região é definida
+        self.clear_auxiliary_cache()    
 
     def _show_pixmap(self, label: QLabel, img_bgr, *, draw_border=False):
         if img_bgr is None: return
@@ -1313,19 +1599,249 @@ class InspectionConfigWidget(QGroupBox):
             show_size_controls=False,      # ‼ remove Largura / Altura
             show_region_button=False       # ‼ remove “Definir região”
         )
+        # CORREÇÃO CRÍTICA: Bloqueia limpeza de cache durante inicialização da auxiliar
+        self._initializing_auxiliary = True
         ctrl_w.spin_w.setValue(self.spin_w.value())
         ctrl_w.spin_h.setValue(self.spin_h.value())
         ctrl_w.spin_sim.setValue(self.spin_sim.value())
+        # Passa referência do cache para o widget de controle
+        ctrl_w._cached_auxiliary_data = self._cached_auxiliary_data
+        ctrl_w._last_roi_bgr = self._last_roi_bgr
         # 2) obtém ROI em resolução total, se disponível
         if self._last_roi_bgr is not None:
             pix = self._bgr_to_pixmap(self._last_roi_bgr)
+            # CORREÇÃO: Não sobrescreve cache existente durante inicialização
+            if self._cached_auxiliary_data.get('region_image') is None:
+                self._cached_auxiliary_data['region_image'] = self._last_roi_bgr.copy()
         else:
             pix = self.lbl_region.pixmap()
-
+            # Não força None se já há dados em cache
+            if self._cached_auxiliary_data.get('region_image') is None:
+                self._cached_auxiliary_data['region_image'] = None
         # 3) cria diálogo e mostra
         dlg = _AuxDialog(pix, ctrl_w, self)   # <-- 'self' = widget principal
+
+        # CORREÇÃO: Libera bloqueio após auxiliar estar totalmente inicializada
+        self._initializing_auxiliary = False
+
         dlg.resize(900, 600)
         dlg.show()
+
+    # ================================================================
+    #  NOVO SISTEMA: CACHE SIMPLES PARA DADOS AUXILIARES
+    # ================================================================
+    
+    def clear_auxiliary_cache(self):
+        """Limpa o cache de dados auxiliares"""
+        # CORREÇÃO: Não limpa cache se estiver inicializando auxiliar
+        if hasattr(self, '_initializing_auxiliary') and self._initializing_auxiliary:
+            print(f"[DEBUG] Limpeza de cache bloqueada - inicializando auxiliar")
+            return
+        old_count = len(self._cached_auxiliary_data.get('componentes', {}))
+        self._cached_auxiliary_data = {
+            'componentes': {},
+            'region_image': None
+        }
+        print(f"[DEBUG] Cache auxiliar limpo - {old_count} componentes removidos")
+        
+        # CORREÇÃO: Também limpa o visor principal se necessário
+        if hasattr(self, 'lbl_region') and hasattr(self, '_last_roi_bgr') and self._last_roi_bgr is not None:
+            # Mostra imagem sem as posições
+            self._show_pixmap(self.lbl_region, self._last_roi_bgr, draw_border=True)
+            print(f"[DEBUG] Visor principal limpo")
+
+    def debug_cache_status(self):
+        """Método para debug - mostra status atual do cache"""
+        componentes = self._cached_auxiliary_data.get('componentes', {})
+        print(f"\n=== DEBUG CACHE STATUS ===")
+        print(f"Componentes em cache: {len(componentes)}")
+        print(f"Imagem em cache: {'Sim' if self._cached_auxiliary_data.get('region_image') is not None else 'Não'}")
+        print(f"_last_roi_bgr: {'Sim' if self._last_roi_bgr is not None else 'Não'}")
+        for nome, dados in componentes.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            insp_count = len(dados.get('inspecoes', []))
+            print(f"  '{nome}': pos={pos}, dims={dims}, {insp_count} inspeções")
+        print("========================\n")
+        
+    def receive_auxiliary_data(self, componentes, region_image):
+        """Recebe dados da janela auxiliar quando ela é fechada"""
+        print(f"[DEBUG] Recebendo dados: {len(componentes)} componentes")
+        
+        # Log detalhado dos dados recebidos
+        for nome, dados in componentes.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            inspecoes = dados.get('inspecoes', [])
+            print(f"[DEBUG] Componente recebido '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
+            for i, insp in enumerate(inspecoes):
+                ipos = insp.get('posicao', (0, 0))
+                itam = insp.get('tamanho', (0, 0))
+                print(f"[DEBUG]   Inspeção {i+1}: pos={ipos}, tam={itam}")
+        self._cached_auxiliary_data['componentes'] = componentes.copy() if componentes else {}
+        if region_image is not None:
+            self._cached_auxiliary_data['region_image'] = region_image.copy()
+            # NOVO: Atualiza também _last_roi_bgr para garantir que exista imagem base
+            self._last_roi_bgr = region_image.copy()
+            print(f"[DEBUG] Imagem da região atualizada: {region_image.shape}")
+
+        print(f"[DEBUG] Cache atualizado: {len(self._cached_auxiliary_data['componentes'])} componentes")
+        
+        # Atualiza o visor principal com as posições mecânicas
+        QTimer.singleShot(100, self.update_main_viewer)  # Pequeno delay para garantir que tudo está pronto
+        
+    def get_cached_auxiliary_data(self):
+        """Retorna dados em cache para a auxiliar"""
+        return self._cached_auxiliary_data.copy()
+        
+    def update_main_viewer(self):
+        """Atualiza o visor principal com as posições mecânicas do cache"""
+        componentes = self._cached_auxiliary_data.get('componentes', {})
+        
+        if not componentes:
+            print(f"[DEBUG] Nenhum componente no cache para exibir")
+            return
+            
+        print(f"[DEBUG] Atualizando visor principal com {len(componentes)} posições")
+        
+        # CORREÇÃO: Verifica se há imagem base disponível
+        if not hasattr(self, '_last_roi_bgr') or self._last_roi_bgr is None:
+            print(f"[DEBUG] ⚠️ Nenhuma imagem base disponível (_last_roi_bgr é None)")
+            # Tenta usar imagem do cache se existir
+            cached_image = self._cached_auxiliary_data.get('region_image')
+            if cached_image is not None:
+                self._last_roi_bgr = cached_image.copy()
+                print(f"[DEBUG] ✅ Imagem restaurada do cache: {self._last_roi_bgr.shape}")
+            elif hasattr(self, 'lbl_region') and self.lbl_region.pixmap():
+                # Fallback: usa imagem do label se existir
+                print(f"[DEBUG] Tentando usar imagem do label como base")
+                try:
+                    # Converte pixmap para BGR
+                    pixmap = self.lbl_region.pixmap()
+                    self._last_roi_bgr = self._qpixmap_to_bgr(pixmap)
+                    if self._last_roi_bgr is None:
+                        print(f"[DEBUG] ❌ Falha ao converter pixmap para BGR")
+                        return
+                    print(f"[DEBUG] ✅ Imagem convertida: {self._last_roi_bgr.shape}")
+                except Exception as e:
+                    print(f"[DEBUG] ❌ Erro ao converter pixmap: {e}")
+                    return
+            else:
+                print(f"[DEBUG] ❌ Nenhuma imagem disponível")
+                return
+        
+        # Garante que o cache tem a imagem atual
+        if self._cached_auxiliary_data.get('region_image') is None and self._last_roi_bgr is not None:
+            self._cached_auxiliary_data['region_image'] = self._last_roi_bgr.copy()
+            print(f"[DEBUG] ✅ Cache atualizado com imagem atual")
+        
+        # Log das dimensões da imagem base
+        h, w = self._last_roi_bgr.shape[:2]
+        print(f"[DEBUG] Imagem base: {w}x{h} pixels")
+        
+        # Log dos dados dos componentes
+        for nome, dados in componentes.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+
+            inspecoes = dados.get('inspecoes', [])
+            print(f"[DEBUG] Componente '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
+        
+        try:
+            img_with_positions = self._draw_positions_on_image(
+                self._last_roi_bgr.copy(), 
+                componentes
+            )
+            self._show_pixmap(self.lbl_region, img_with_positions, draw_border=True)
+            print(f"[DEBUG] ✅ Imagem atualizada no visor principal")
+        except Exception as e:
+            print(f"[DEBUG] ❌ Erro ao desenhar posições: {e}")
+
+    def _qpixmap_to_bgr(self, pixmap):
+        """Converte QPixmap para numpy BGR"""
+        try:
+            if pixmap.isNull():
+                return None
+            image = pixmap.toImage().convertToFormat(QImage.Format.Format_RGB888)
+            w, h = image.width(), image.height()
+            ptr = image.bits().asstring(w * h * 3)
+            import numpy as np
+            arr = np.frombuffer(ptr, np.uint8).reshape((h, w, 3))
+            return cv2.cvtColor(arr, cv2.COLOR_RGB2BGR)
+        except Exception as e:
+            print(f"[DEBUG] Erro na conversão QPixmap->BGR: {e}")
+            return None
+            
+    def _draw_positions_on_image(self, img_bgr, componentes):
+        """Desenha retângulos das posições mecânicas sobre a imagem"""
+        
+        h_img, w_img = img_bgr.shape[:2]
+        print(f"[DEBUG] Desenhando em imagem {w_img}x{h_img}")
+        
+        posicoes_desenhadas = 0
+        inspecoes_desenhadas = 0
+        
+        for nome, dados in componentes.items():
+            pos = dados.get('posicao', (0, 0))
+            dims = dados.get('dimensoes', (100, 100))
+            
+            # Usa coordenadas da posição mecânica
+            pos_x, pos_y = pos
+            pos_w, pos_h = dims
+            
+            print(f"[DEBUG] Processando posição '{nome}': pos=({pos_x},{pos_y}), dims=({pos_w}x{pos_h})")
+            
+            
+            # CORREÇÃO: Verifica se coordenadas estão dentro da imagem
+            if pos_x < 0 or pos_y < 0 or pos_x + pos_w > w_img or pos_y + pos_h > h_img:
+                print(f"[DEBUG] ⚠️ Posição '{nome}' fora da imagem: ({pos_x},{pos_y}) {pos_w}x{pos_h} vs imagem {w_img}x{h_img}")
+                # Ajusta coordenadas para ficar dentro da imagem
+                pos_x = max(0, min(pos_x, w_img - 1))
+                pos_y = max(0, min(pos_y, h_img - 1))
+                pos_w = min(pos_w, w_img - pos_x)
+                pos_h = min(pos_h, h_img - pos_y)
+                print(f"[DEBUG] Ajustado para: ({pos_x},{pos_y}) {pos_w}x{pos_h}")
+            
+            # Desenha retângulo VERMELHO para a posição mecânica (como solicitado)
+            cv2.rectangle(img_bgr, (pos_x, pos_y), (pos_x + pos_w, pos_y + pos_h), (0, 0, 255), 3)  # Vermelho, espessura 3
+            posicoes_desenhadas += 1
+            
+            # Adiciona texto com o nome
+            cv2.putText(img_bgr, nome, (pos_x, pos_y - 10),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)  # Texto vermelho
+
+            print(f"[DEBUG] Posição '{nome}' desenhada em ({pos_x},{pos_y}) {pos_w}x{pos_h}")
+
+            # CORREÇÃO CRÍTICA: Desenha janelas de inspeção com coordenadas CORRETAS
+            for insp in dados.get('inspecoes', []):
+                ix, iy = insp.get('posicao', (0, 0))
+                iw, ih = insp.get('tamanho', (20, 20))
+
+                print(f"[DEBUG] Janela inspeção bruta: pos=({ix},{iy}), tam=({iw},{ih})")
+                
+                # CORREÇÃO FUNDAMENTAL: As coordenadas das janelas de inspeção JÁ são absolutas
+                # (vem da cena ROI que tem as mesmas dimensões da imagem original)
+                # NÃO deve somar com a posição mecânica
+                abs_x = ix
+                abs_y = iy
+                
+                # Garantir que coordenadas não sejam negativas
+                abs_x = max(0, abs_x)
+                abs_y = max(0, abs_y)
+                
+                print(f"[DEBUG] Janela inspeção absoluta: pos=({abs_x},{abs_y}), tam=({iw},{ih})")
+                
+                # Verifica limites para janelas de inspeção
+                if abs_x >= 0 and abs_y >= 0 and abs_x + iw <= w_img and abs_y + ih <= h_img:
+                    cv2.rectangle(img_bgr, (abs_x, abs_y), (abs_x + iw, abs_y + ih), (255, 0, 0), 2)  # Azul
+                    inspecoes_desenhadas += 1
+                    print(f"[DEBUG] Inspeção desenhada em ({abs_x},{abs_y}) {iw}x{ih}")
+                else:
+                    print(f"[DEBUG] ⚠️ Inspeção fora da imagem: ({abs_x},{abs_y}) {iw}x{ih}")
+         
+        print(f"[DEBUG] Resultado: {posicoes_desenhadas} posições e {inspecoes_desenhadas} inspeções desenhadas")
+        
+        return img_bgr
     
     # ------------------------------------------------------------------
     #  Utilitário estático – converte numpy BGR → QPixmap sem downscale
