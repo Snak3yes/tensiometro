@@ -419,11 +419,30 @@ class _AuxDialog(QDialog):
                 # NOVA FUNCIONALIDADE: Detecta clique em janela azul para sincronizar TreeView
                 if (hasattr(it, 'item_type') and it.item_type == 'inspection'):
                     self._handle_blue_window_click(it)
+                    # NOVO: Força seleção visual da janela clicada
+                    try:
+                        self.view_roi.scene().clearSelection()
+                        it.setSelected(True)
+                        self.view_roi.scene().update()
+                        self.view_roi.viewport().update()
+                    except RuntimeError:
+                        self.log("⚠️ Erro ao selecionar janela azul clicada")
+                        pass
         return super().eventFilter(obj, ev)
     
     def _handle_blue_window_click(self, blue_window):
         """Manipula clique em janela azul para sincronizar com TreeView"""
         self.log(f"🖱️ Clique na janela azul: {getattr(blue_window, 'inspecao_name', '?')}")
+
+        # NOVO: Força seleção visual imediata
+        try:
+            self.view_roi.scene().clearSelection()
+            blue_window.setSelected(True)
+            self.view_roi.scene().update()
+            self.view_roi.viewport().update()
+        except RuntimeError:
+            self.log("⚠️ Erro ao selecionar janela azul clicada")
+            pass
         
         # Encontra o nó correspondente na TreeView
         tree_node = getattr(blue_window, 'tree_node', None)
@@ -432,6 +451,9 @@ class _AuxDialog(QDialog):
             self._updating_tree_selection = True
             try:
                 self.tree.setCurrentItem(tree_node)
+                # NOVO: Força expansão do nó pai para visibilidade
+                if tree_node.parent():
+                    tree_node.parent().setExpanded(True)
                 self.log(f"✅ TreeView sincronizada: {tree_node.text(0)} selecionado")
                 
                 # Também garante que a posição mecânica pai seja selecionada
@@ -444,22 +466,8 @@ class _AuxDialog(QDialog):
     
     def _sync_parent_selection_from_comparison(self, blue_window):
         """Garante que a posição mecânica pai seja selecionada quando janela azul é clicada"""
-        component_name = getattr(blue_window, 'componente', None)
-        if not component_name:
-            return
-            
-        # Encontra a posição mecânica pai
-        for window in self.region_editor.windows:
-            if getattr(window, 'name', None) == component_name:
-                try:
-                    self.view_region.scene().clearSelection()
-                    window.setSelected(True)
-                    self.view_region.centerOn(window)
-                    self.log(f"✅ Posição pai '{component_name}' selecionada via clique em janela azul")
-                    break
-                except RuntimeError:
-                    self.log("⚠️ Erro ao sincronizar posição pai")
-                    break
+        # Usa método centralizado
+        self._ensure_parent_position_selected(blue_window)
 
     # ------------------------  helpers interno ------------------------
     def _describe_item(self, it) -> str:
@@ -634,41 +642,47 @@ class _AuxDialog(QDialog):
             # NOVO: Selecionou janela de comparação (w*) - sincronização completa
             self.log(f"🎯 Seleção tree → janela comparação: {node.text(0)}")
 
-            # 1. Seleciona a janela azul no visor direito
+            # 1. CRÍTICO: Seleciona a janela azul no visor direito e centraliza
             try:
                 if self.view_roi:
                     self.view_roi.scene().clearSelection()
                     item.setSelected(True)
                     self.view_roi.centerOn(item)
+                    # Força atualização visual da seleção
+                    self.view_roi.scene().update()
+                    self.view_roi.viewport().update()
                     self.log(f"✅ Janela azul selecionada e centralizada")
             except RuntimeError:
                 self.log("⚠️ Erro ao selecionar janela azul")
             
-            # 2. CORREÇÃO: Garante ROI da posição pai SEM alterar seleção TreeView
-            parent_item = None
-            # Busca pelo componente pai através dos dados
-            component_name = getattr(item, 'componente', None)
-            if component_name:
-                for window in self.region_editor.windows:
-                    if getattr(window, 'name', None) == component_name:
-                        parent_item = window
-                        break
-                    
-            if parent_item:
-                try:
-                    # CORREÇÃO: Garante que ROI está correto SEM alterar seleção visual
-                    current_selection = self.view_region.scene().selectedItems()
-                    if not current_selection or current_selection[0] != parent_item:
-                        self.view_region.scene().clearSelection()
-                        parent_item.setSelected(True)
-                    # Atualiza ROI para mostrar a posição pai
-                    self._update_roi_from_selection()
-                    self.log(f"✅ Posição mecânica pai '{component_name}' selecionada")
-                except RuntimeError:
-                    self.log("⚠️ Erro ao selecionar posição mecânica pai")
-        
+            # 2. Garante que posição mecânica pai seja selecionada no visor esquerdo
+            self._ensure_parent_position_selected(item)
+                                    
         else:
             self.log(f"⚠️ Tipo de item desconhecido selecionado: {type(item)}")
+    def _ensure_parent_position_selected(self, comparison_item):
+        """Garante que a posição mecânica pai esteja selecionada no visor esquerdo"""
+        component_name = getattr(comparison_item, 'componente', None)
+        if not component_name:
+            return
+            
+        # Encontra a posição mecânica pai
+        for window in self.region_editor.windows:
+            if getattr(window, 'name', None) == component_name:
+                try:
+                    # Seleciona no visor esquerdo apenas se necessário
+                    current_selection = self.view_region.scene().selectedItems()
+                    if not current_selection or current_selection[0] != window:
+                        self.view_region.scene().clearSelection()
+                        window.setSelected(True)
+                        self.view_region.centerOn(window)
+                        # Força atualização do ROI
+                        self._update_roi_from_selection()
+                        self.log(f"✅ Posição pai '{component_name}' selecionada automaticamente")
+                    break
+                except RuntimeError:
+                    self.log("⚠️ Erro ao selecionar posição mecânica pai")
+                    break
 
     def _handle_comparison_placeholder_selection(self, node, placeholder_data, keep_selection=False):
         """Manipula seleção de placeholder de janela de comparação"""
@@ -689,34 +703,36 @@ class _AuxDialog(QDialog):
                     target_window = blue_window
                     break
         
-        # 3. Seleciona e centraliza a janela azul
+        # 3. CRÍTICO: Seleciona e centraliza a janela azul com feedback visual
         if target_window:
             try:
                 if self.view_roi:
                     self.view_roi.scene().clearSelection()
                     target_window.setSelected(True)
                     self.view_roi.centerOn(target_window)
+                    # NOVO: Força feedback visual da seleção
+                    self.view_roi.scene().update()
+                    self.view_roi.viewport().update()
                     self.log(f"✅ Janela azul {window_name} selecionada via placeholder")
             except RuntimeError:
                 self.log("⚠️ Erro ao selecionar janela azul via placeholder")
         
-        # 4. Garante que a posição mecânica pai seja selecionada
-        for window in self.region_editor.windows:
-            if getattr(window, 'name', None) == component_name:
-                try:
-                    # CORREÇÃO: Só altera seleção se realmente necessário
-                    current_selection = self.view_region.scene().selectedItems()
-                    if not current_selection or current_selection[0] != window:
-                        self.view_region.scene().clearSelection()
-                        window.setSelected(True)
-                    self._update_roi_from_selection()
-                    self.log(f"✅ Posição pai '{component_name}' selecionada via placeholder")
-                    # NOVO: Se keep_selection=True, volta seleção TreeView para o item w*
-                    if keep_selection:
-                        QTimer.singleShot(50, lambda: self.tree.setCurrentItem(node))
-                    break
-                except RuntimeError:
-                    self.log("⚠️ Erro ao selecionar posição pai via placeholder")
+        # 4. Garante posição pai selecionada
+        if target_window:
+            self._ensure_parent_position_selected(target_window)
+            
+            # NOVO: Se keep_selection=True, volta seleção TreeView para o item w*
+            if keep_selection:
+                QTimer.singleShot(100, lambda: self._force_tree_selection(node))
+                
+    def _force_tree_selection(self, node):
+        """Força seleção de um nó específico na TreeView"""
+        try:
+            self._updating_tree_selection = True
+            self.tree.setCurrentItem(node)
+            self.log(f"🔄 TreeView forçada para: {node.text(0)}")
+        finally:
+            self._updating_tree_selection = False
     
     # ------------ slot: novo ROI vindo do painel --------------------
     def _on_region_captured(self, img_bgr):
@@ -901,12 +917,16 @@ class _AuxDialog(QDialog):
                 # CORREÇÃO: Substitui placeholder pela janela azul real
                 inspecao['tree_node'].setData(0, Qt.ItemDataRole.UserRole, rect_item)
                 self.log(f"🔗 Nó '{inspecao['tree_node'].text(0)}' associado à janela azul (substitui placeholder)")
-                # Associa a janela azul ao nó da tree
+                # CRÍTICO: Associação bidirecional completa
                 rect_item.tree_node = inspecao['tree_node']
                 rect_item.inspecao_name = f"w{i+1}"
 
-                # NOVO: Configura a janela para responder a cliques na TreeView
                 rect_item.component_name = componente
+
+                # NOVO: Metadados extras para debugging
+                rect_item.original_inspecao_data = inspecao
+                
+                
                 
                 # DEBUGGING: Confirma associação bidirecional
                 self.log(f"🔗 Associação bidirecional completa: TreeView({inspecao['tree_node'].text(0)}) ↔ Janela({rect_item.inspecao_name})")
@@ -923,6 +943,31 @@ class _AuxDialog(QDialog):
         self.log(f"🎯 Cena ROI agora tem {total_items_scene} janelas de inspeção visíveis")
         
         self.log(f"🔄 Redesenhadas {len(self.componentes[componente].get('inspecoes', []))} janelas para {componente}")    
+
+    # ============== NOVO: SCENE EVENT FILTER PARA JANELAS AZUIS ==============
+    def sceneEventFilter(self, watched, event):
+        """Event filter específico para janelas azuis"""
+        try:
+            from PyQt6.QtCore import QEvent
+            
+            # Só processa cliques do mouse em janelas azuis
+            if (hasattr(watched, 'item_type') and 
+                watched.item_type == 'inspection' and
+                event.type() == QEvent.Type.GraphicsSceneMousePress):
+                
+                self.log(f"🎯 Scene Event Filter: clique em {getattr(watched, 'inspecao_name', '?')}")
+                
+                # Chama handler específico
+                self._handle_blue_window_click(watched)
+                
+                # Propaga o evento normalmente
+                return False
+                
+        except Exception as e:
+            self.log(f"⚠️ Erro no scene event filter: {e}")
+            
+        # Propaga evento para handlers normais
+        return False
 
     # mantém proporção 4:3 na imagem grande
     def resizeEvent(self, ev):
