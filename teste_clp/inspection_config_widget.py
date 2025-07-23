@@ -6,7 +6,7 @@ from PyQt6.QtWidgets import (
 from roi_window_editor import ROIWindowEditor, ResizableRectItem
 from selectable_rect_item import SelectableResizableRectItem
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
-from PyQt6.QtGui import QPixmap, QPainter, QImage, QPen
+from PyQt6.QtGui import QPixmap, QPainter, QImage, QPen, QColor
 import cv2
 import os
 
@@ -175,6 +175,10 @@ class _AuxDialog(QDialog):
         # Flags de controle
         self._criando_item = False
 
+        # Configuração da TreeView para permitir seleção individual
+        self.tree.setSelectionMode(QTreeWidget.SelectionMode.SingleSelection)
+        
+
         # ------------ NOVA SINCRONIZAÇÃO com ROIWindowEditor ------------
         self.view_region.scene().selectionChanged.connect(self._on_position_selection_changed)
         self.tree.itemSelectionChanged.connect(self._on_tree_selection_changed) 
@@ -317,14 +321,16 @@ class _AuxDialog(QDialog):
         existing_count = len(self.componentes[parent_name]['inspecoes'])
         comp_name = f"w{existing_count + 1}"
         
-        # Adiciona aos dados do componente (como no gerador)
+        # Salva referência bidirecional
         inspecao_data = {
             'posicao': (x_orig, y_orig),
             'tamanho': (w_orig, h_orig),
             'threshold': 100,  # valor padrão
             'cor_pixel': 'branco',
             'percentual_minimo': 50.0,
-            'roi_editor_item': roi_item  # referência para sincronização
+            'roi_editor_item': roi_item,  # referência para sincronização
+            'tree_node': None,            # será preenchido abaixo
+            'blue_window': None           # será preenchido no redesenho
         }
         
         self.componentes[parent_name]['inspecoes'].append(inspecao_data)
@@ -342,9 +348,35 @@ class _AuxDialog(QDialog):
         self.log(f"🔗 Dados salvos {comp_name} → pai {parent_name}")
         # Cria subnó na TreeView
         comp_node = QTreeWidgetItem([comp_name])
-        comp_node.setData(0, Qt.ItemDataRole.UserRole, roi_item)
+        # CORREÇÃO CRÍTICA: Associa imediatamente a um placeholder que será substituído
+        placeholder_data = {
+            'type': 'comparison_placeholder',
+            'component_name': parent_name,
+            'window_name': comp_name,
+            'inspecao_ref': inspecao_data
+        }
+        comp_node.setData(0, Qt.ItemDataRole.UserRole, placeholder_data)
+
+        # Log detalhado da associação
+        self.log(f"🔗 Criando nó TreeView '{comp_name}' com placeholder")
+
+        # Salva referência bidirecional
+        inspecao_data['tree_node'] = comp_node
         parent_node.addChild(comp_node)
         parent_node.setExpanded(True)
+
+        # NOVO: Força atualização visual da TreeView
+        self.tree.update()
+        self.tree.repaint()
+        
+        # NOVO: Torna o item explicitamente selecionável
+        comp_node.setFlags(
+            comp_node.flags() | 
+            Qt.ItemFlag.ItemIsSelectable | 
+            Qt.ItemFlag.ItemIsEnabled
+        )
+
+        
         
         self.log(f"➕ Janela de comparação adicionada: {comp_name}")
 
@@ -384,7 +416,50 @@ class _AuxDialog(QDialog):
                                                int(ev.position().y()))
                 it  = self.view_roi.scene().itemAt(pos, self.view_roi.transform())
                 self._log_click("vis. DIR", it, pos)
+                # NOVA FUNCIONALIDADE: Detecta clique em janela azul para sincronizar TreeView
+                if (hasattr(it, 'item_type') and it.item_type == 'inspection'):
+                    self._handle_blue_window_click(it)
         return super().eventFilter(obj, ev)
+    
+    def _handle_blue_window_click(self, blue_window):
+        """Manipula clique em janela azul para sincronizar com TreeView"""
+        self.log(f"🖱️ Clique na janela azul: {getattr(blue_window, 'inspecao_name', '?')}")
+        
+        # Encontra o nó correspondente na TreeView
+        tree_node = getattr(blue_window, 'tree_node', None)
+        if tree_node:
+            # Evita loops infinitos
+            self._updating_tree_selection = True
+            try:
+                self.tree.setCurrentItem(tree_node)
+                self.log(f"✅ TreeView sincronizada: {tree_node.text(0)} selecionado")
+                
+                # Também garante que a posição mecânica pai seja selecionada
+                self._sync_parent_selection_from_comparison(blue_window)
+                
+            finally:
+                self._updating_tree_selection = False
+        else:
+            self.log("⚠️ Nó da TreeView não encontrado para janela azul")
+    
+    def _sync_parent_selection_from_comparison(self, blue_window):
+        """Garante que a posição mecânica pai seja selecionada quando janela azul é clicada"""
+        component_name = getattr(blue_window, 'componente', None)
+        if not component_name:
+            return
+            
+        # Encontra a posição mecânica pai
+        for window in self.region_editor.windows:
+            if getattr(window, 'name', None) == component_name:
+                try:
+                    self.view_region.scene().clearSelection()
+                    window.setSelected(True)
+                    self.view_region.centerOn(window)
+                    self.log(f"✅ Posição pai '{component_name}' selecionada via clique em janela azul")
+                    break
+                except RuntimeError:
+                    self.log("⚠️ Erro ao sincronizar posição pai")
+                    break
 
     # ------------------------  helpers interno ------------------------
     def _describe_item(self, it) -> str:
@@ -406,8 +481,14 @@ class _AuxDialog(QDialog):
     # ------------------------------------------------------------------
     def _on_tree_item_clicked(self, item: QTreeWidgetItem, col: int):
         data = item.data(0, Qt.ItemDataRole.UserRole)
-        kind = ("Cmp" if hasattr(data, "comparison_name")
-                else "Posição mecânica")
+        if isinstance(data, dict) and data.get('type') == 'comparison_placeholder':
+            kind = f"Placeholder w* ({data.get('window_name')})"
+        elif hasattr(data, 'item_type') and data.item_type == 'inspection':
+            kind = f"Janela azul ({getattr(data, 'inspecao_name', '?')})"
+        elif isinstance(data, ResizableRectItem):
+            kind = "Posição mecânica"
+        else:
+            kind = f"Desconhecido ({type(data)})"
         self.log(f"🖱️ Click Tree → {kind}: {item.text(0)}")
 
     def _on_window_removed(self, item):
@@ -506,17 +587,29 @@ class _AuxDialog(QDialog):
         # CORREÇÃO: Distingue entre posição mecânica e janela de comparação
         is_mechanical_position = False
         is_comparison_window = False
+        comparison_placeholder = False
         
         if isinstance(item, ResizableRectItem):
             # Verifica se é posição mecânica (está na cena esquerda)
             if item in self.region_editor.windows:
                 is_mechanical_position = True
-            # Verifica se é janela de comparação (tem parent_uid)
-            elif hasattr(item, 'parent_uid') and item.parent_uid is not None:
-                is_comparison_window = True
-            # CORREÇÃO: Verifica se é SelectableResizableRectItem (janela azul redesenhada)
-            elif hasattr(item, 'item_type') and item.item_type == 'inspection':
-                is_comparison_window = True
+        elif isinstance(item, dict) and item.get('type') == 'comparison_placeholder':
+            # NOVO: Placeholder para janelas de comparação (antes do redesenho)
+            comparison_placeholder = True
+            self.log(f"🔍 Detectado placeholder para: {item.get('window_name')}")
+        elif hasattr(item, 'item_type') and item.item_type == 'inspection':
+            # Janela azul já redesenhada
+            is_comparison_window = True
+        
+        # NOVA LÓGICA: Trata placeholder como janela de comparação
+        if comparison_placeholder:
+            # CORREÇÃO: Converte placeholder MAS MANTÉM seleção no item w*
+            self._handle_comparison_placeholder_selection(node, item, keep_selection=True)
+            return
+            # CORREÇÃO: Janela azul de comparação (SelectableResizableRectItem)
+            is_comparison_window = True
+        elif isinstance(item, ResizableRectItem) and hasattr(item, 'parent_uid'):
+            is_comparison_window = True            
         
         if is_mechanical_position:
             # Seleciona na cena principal
@@ -538,39 +631,92 @@ class _AuxDialog(QDialog):
             self.log(f"🏭 Seleção tree → posição: {node.text(0)}")
 
         elif is_comparison_window:
-            # Selecionou janela de comparação - seleciona apenas ela no visor direito
+            # NOVO: Selecionou janela de comparação (w*) - sincronização completa
+            self.log(f"🎯 Seleção tree → janela comparação: {node.text(0)}")
+
+            # 1. Seleciona a janela azul no visor direito
             try:
                 if self.view_roi:
                     self.view_roi.scene().clearSelection()
                     item.setSelected(True)
                     self.view_roi.centerOn(item)
+                    self.log(f"✅ Janela azul selecionada e centralizada")
             except RuntimeError:
-                pass
+                self.log("⚠️ Erro ao selecionar janela azul")
             
-            # Encontra e seleciona a posição mecânica pai na cena esquerda
+            # 2. CORREÇÃO: Garante ROI da posição pai SEM alterar seleção TreeView
             parent_item = None
-            for window in self.region_editor.windows:
-                if hasattr(window, 'id') and window.id == item.parent_uid:
-                    parent_item = window
-                    break
+            # Busca pelo componente pai através dos dados
+            component_name = getattr(item, 'componente', None)
+            if component_name:
+                for window in self.region_editor.windows:
+                    if getattr(window, 'name', None) == component_name:
+                        parent_item = window
+                        break
                     
             if parent_item:
                 try:
-                    self.view_region.scene().clearSelection() 
-                    parent_item.setSelected(True)
-                    self.view_region.centerOn(parent_item)
+                    # CORREÇÃO: Garante que ROI está correto SEM alterar seleção visual
+                    current_selection = self.view_region.scene().selectedItems()
+                    if not current_selection or current_selection[0] != parent_item:
+                        self.view_region.scene().clearSelection()
+                        parent_item.setSelected(True)
                     # Atualiza ROI para mostrar a posição pai
                     self._update_roi_from_selection()
+                    self.log(f"✅ Posição mecânica pai '{component_name}' selecionada")
                 except RuntimeError:
-                    pass
-            
-            self.log(f"🎯 Seleção tree → janela comparação: {node.text(0)}")
-            # CORREÇÃO: Garante que todas as janelas permaneçam visíveis
-            if self.roi_editor:
-                self.roi_editor.focus_on_parent(None)
+                    self.log("⚠️ Erro ao selecionar posição mecânica pai")
         
         else:
             self.log(f"⚠️ Tipo de item desconhecido selecionado: {type(item)}")
+
+    def _handle_comparison_placeholder_selection(self, node, placeholder_data, keep_selection=False):
+        """Manipula seleção de placeholder de janela de comparação"""
+        component_name = placeholder_data.get('component_name')
+        window_name = placeholder_data.get('window_name')
+        
+        self.log(f"🎯 Seleção tree → janela comparação: {window_name} (via placeholder)")
+        
+        # 1. Força redesenho para criar as janelas azuis se necessário
+        if component_name and component_name in self.componentes:
+            self._redesenhar_janelas_inspecao(component_name)
+            
+        # 2. Encontra a janela azul correspondente após redesenho
+        target_window = None
+        if component_name in self.inspecao_items:
+            for blue_window in self.inspecao_items[component_name]:
+                if hasattr(blue_window, 'inspecao_name') and blue_window.inspecao_name == window_name:
+                    target_window = blue_window
+                    break
+        
+        # 3. Seleciona e centraliza a janela azul
+        if target_window:
+            try:
+                if self.view_roi:
+                    self.view_roi.scene().clearSelection()
+                    target_window.setSelected(True)
+                    self.view_roi.centerOn(target_window)
+                    self.log(f"✅ Janela azul {window_name} selecionada via placeholder")
+            except RuntimeError:
+                self.log("⚠️ Erro ao selecionar janela azul via placeholder")
+        
+        # 4. Garante que a posição mecânica pai seja selecionada
+        for window in self.region_editor.windows:
+            if getattr(window, 'name', None) == component_name:
+                try:
+                    # CORREÇÃO: Só altera seleção se realmente necessário
+                    current_selection = self.view_region.scene().selectedItems()
+                    if not current_selection or current_selection[0] != window:
+                        self.view_region.scene().clearSelection()
+                        window.setSelected(True)
+                    self._update_roi_from_selection()
+                    self.log(f"✅ Posição pai '{component_name}' selecionada via placeholder")
+                    # NOVO: Se keep_selection=True, volta seleção TreeView para o item w*
+                    if keep_selection:
+                        QTimer.singleShot(50, lambda: self.tree.setCurrentItem(node))
+                    break
+                except RuntimeError:
+                    self.log("⚠️ Erro ao selecionar posição pai via placeholder")
     
     # ------------ slot: novo ROI vindo do painel --------------------
     def _on_region_captured(self, img_bgr):
@@ -742,12 +888,28 @@ class _AuxDialog(QDialog):
 
             # Item criado - libera callbacks
             self._criando_item = False
-            
+
             # Metadados para identificação
             rect_item.item_type = 'inspection'
             rect_item.componente = componente
             rect_item.inspecao_ref = inspecao
             rect_item.deletavel = True
+
+            # NOVO: Estabelece associação bidirecional TreeView ↔ Janela Azul
+            inspecao['blue_window'] = rect_item
+            if inspecao.get('tree_node'):
+                # CORREÇÃO: Substitui placeholder pela janela azul real
+                inspecao['tree_node'].setData(0, Qt.ItemDataRole.UserRole, rect_item)
+                self.log(f"🔗 Nó '{inspecao['tree_node'].text(0)}' associado à janela azul (substitui placeholder)")
+                # Associa a janela azul ao nó da tree
+                rect_item.tree_node = inspecao['tree_node']
+                rect_item.inspecao_name = f"w{i+1}"
+
+                # NOVO: Configura a janela para responder a cliques na TreeView
+                rect_item.component_name = componente
+                
+                # DEBUGGING: Confirma associação bidirecional
+                self.log(f"🔗 Associação bidirecional completa: TreeView({inspecao['tree_node'].text(0)}) ↔ Janela({rect_item.inspecao_name})")
             
             scene.addItem(rect_item)
             self.inspecao_items[componente].append(rect_item)
@@ -760,7 +922,7 @@ class _AuxDialog(QDialog):
                                if hasattr(item, 'item_type') and item.item_type == 'inspection'])
         self.log(f"🎯 Cena ROI agora tem {total_items_scene} janelas de inspeção visíveis")
         
-        self.log(f"🔄 Redesenhadas {len(self.componentes[componente].get('inspecoes', []))} janelas para {componente}")
+        self.log(f"🔄 Redesenhadas {len(self.componentes[componente].get('inspecoes', []))} janelas para {componente}")    
 
     # mantém proporção 4:3 na imagem grande
     def resizeEvent(self, ev):

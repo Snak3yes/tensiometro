@@ -1,7 +1,7 @@
 PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
-[08:05:50] Conectando ao CLP...
-[08:05:50] ✅ Conectado com sucesso!
-[08:05:50] 🔧 Endereços corrigidos conforme ladder real
+[09:05:21] Conectando ao CLP...
+[09:05:21] ✅ Conectado com sucesso!
+[09:05:21] 🔧 Endereços corrigidos conforme ladder real
 ============================================================
 CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 ============================================================
@@ -60,47 +60,32 @@ QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
 QPainter::end: Painter not active, aborted
-[08:05:51] ‚úÖ Configuração – leitura concluída
-[08:05:52] 📖 Lendo velocidades JOG atuais...
-[08:05:53] 📖 Lendo limites da ROM...
-[08:05:53] 📊 Limites Y2: 0 a 18000
-[08:05:53] 📊 Limites Y1: 0 a 18000
-[08:05:53] 📊 Limites X: 0 a 50000
-[08:05:53] 📊 Limites Z: 0 a 1000
-[08:05:54] 📖 Lendo status inicial das memórias de homing...
-[08:05:54] 🏠 Status inicial Homing Y2: REALIZADO
-[08:05:54] 🏠 Status inicial Homing Y1: REALIZADO
-[08:05:54] 🏠 Status inicial Homing X: REALIZADO
-[08:05:54] 🏠 Status inicial Homing Z: REALIZADO
-[08:05:54] 📖 Leitura inicial de homing concluída
-[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A457490>  @(235,5)
+[09:05:22] ‚úÖ Configuração – leitura concluída
+[09:05:23] 📖 Lendo velocidades JOG atuais...
+[09:05:24] 📖 Lendo limites da ROM...
+[09:05:24] 📊 Limites Y2: 0 a 18000
+[09:05:24] 📊 Limites Y1: 0 a 18000
+[09:05:24] 📊 Limites X: 0 a 50000
+[09:05:24] 📊 Limites Z: 0 a 1000
+[09:05:25] 📖 Lendo status inicial das memórias de homing...
+[09:05:25] 🏠 Status inicial Homing Y2: REALIZADO
+[09:05:25] 🏠 Status inicial Homing Y1: REALIZADO
+[09:05:25] 🏠 Status inicial Homing X: REALIZADO
+[09:05:25] 🏠 Status inicial Homing Z: REALIZADO
+[09:05:25] 📖 Leitura inicial de homing concluída
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x000001F3B66677F0>  @(2234,2)
 [AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
-[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A457490>  @(84,158)
-[AuxDialog] ➕ Posição mecânica adicionada à tree: asd
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(483,191)
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(443,149)
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🎯 Posição selecionada: qwe
@@ -108,503 +93,120 @@ QPainter::end: Painter not active, aborted
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
 [AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-[AuxDialog] 🔄 Janela modificada: Posição “qwe”
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “asd”  @(158,216)
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🎯 Posição selecionada: asd
-[AuxDialog] 🔄 Janela modificada: Posição “asd”
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(442,139)
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-[AuxDialog] 🔄 Janela modificada: Posição “qwe”
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(5,4)
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x000001F3B66AC0D0>  @(22,2)
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (1 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
 [AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 1 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w1 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
 [AuxDialog] ➕ Janela de comparação adicionada: w1
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(205,4)
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem object at 0x000001F3B66AC0D0>  @(2201,2)
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w2 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
 [AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(6,213)
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (3 janelas)
+[AuxDialog] 🔍 Detectado placeholder para: w2
+[AuxDialog] 🎯 Seleção tree → janela comparação: w2 (via placeholder)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 3 janelas para qwe
-[AuxDialog] 🔗 Dados salvos w3 → pai qwe
-[AuxDialog] ➕ Janela de comparação adicionada: w3
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(220,208)
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔗 Dados salvos w4 → pai qwe
-[AuxDialog] ➕ Janela de comparação adicionada: w4
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(3,2)
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (1 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
-[AuxDialog] 🔗 Dados salvos w1 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w1
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(3,91)
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (2 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 2 janelas para asd
-[AuxDialog] 🔗 Dados salvos w2 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(105,3)
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (3 janelas)
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Janela azul w2 selecionada via placeholder
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 2 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 3 janelas para asd
-[AuxDialog] 🔗 Dados salvos w3 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w3
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002BB6A4AC3A0>  @(104,90)
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Posição pai 'qwe' selecionada via placeholder
+[AuxDialog] 🖱️ Click Tree → Janela azul (w2): w2
+[AuxDialog] 🎯 Seleção tree → janela comparação: w1
+[AuxDialog] ✅ Janela azul selecionada e centralizada
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 📊 Componente qwe tem 2 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🔗 Dados salvos w4 → pai asd
-[AuxDialog] ➕ Janela de comparação adicionada: w4
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-🔍 Focando em: TODOS os itens
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Posição mecânica pai 'qwe' selecionada
+[AuxDialog] 🖱️ Click Tree → Janela azul (w1): w1
+[AuxDialog] 🎯 Seleção tree → janela comparação: w2
+[AuxDialog] ✅ Janela azul selecionada e centralizada
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
+[AuxDialog] 📊 Componente qwe tem 2 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Posição mecânica pai 'qwe' selecionada
+[AuxDialog] 🖱️ Click Tree → Janela azul (w2): w2
+[AuxDialog] 🎯 Seleção tree → janela comparação: w1
+[AuxDialog] ✅ Janela azul selecionada e centralizada
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
+[AuxDialog] 📊 Componente qwe tem 2 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Posição mecânica pai 'qwe' selecionada
+[AuxDialog] 🖱️ Click Tree → Janela azul (w1): w1
+[AuxDialog] 🎯 Seleção tree → janela comparação: w2
+[AuxDialog] ✅ Janela azul selecionada e centralizada
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w1
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w3
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(4,3), tam=(87,77)
-[AuxDialog] 🔧 Redesenhando w2: pos=(204,3), tam=(90,73)
-[AuxDialog] 🔧 Redesenhando w3: pos=(6,213), tam=(75,78)
-[AuxDialog] 🔧 Redesenhando w4: pos=(220,208), tam=(77,79)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
-[AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 4 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (4 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🔧 Redesenhando w1: pos=(3,2), tam=(45,42)
-[AuxDialog] 🔧 Redesenhando w2: pos=(3,91), tam=(39,38)
-[AuxDialog] 🔧 Redesenhando w3: pos=(105,2), tam=(51,40)
-[AuxDialog] 🔧 Redesenhando w4: pos=(103,89), tam=(51,39)
-[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 4 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w2
-[AuxDialog] ⚠️ Tipo de item desconhecido selecionado: <class 'roi_window__editor.ResizableRectItem'>
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: w4
+[AuxDialog] 📊 Componente qwe tem 2 janelas salvas
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] 🔧 Redesenhando w1: pos=(2,2), tam=(89,93)
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] 🔧 Redesenhando w2: pos=(201,2), tam=(93,89)
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Posição mecânica pai 'qwe' selecionada
+[AuxDialog] 🖱️ Click Tree → Janela azul (w2): w2
