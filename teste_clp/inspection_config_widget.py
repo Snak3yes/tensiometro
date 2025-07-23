@@ -172,6 +172,8 @@ class _AuxDialog(QDialog):
 
         # Inicializa dicionário de componentes (essencial!)
         self.componentes = {}
+        # Flags de controle
+        self._criando_item = False
 
         # ------------ NOVA SINCRONIZAÇÃO com ROIWindowEditor ------------
         self.view_region.scene().selectionChanged.connect(self._on_position_selection_changed)
@@ -322,9 +324,7 @@ class _AuxDialog(QDialog):
             'threshold': 100,  # valor padrão
             'cor_pixel': 'branco',
             'percentual_minimo': 50.0,
-            'roi_editor_item': roi_item,  # referência para sincronização
-            'original_posicao': (x_orig, y_orig),  # guarda coordenadas originais
-            'original_tamanho': (w_orig, h_orig)   # guarda dimensões originais
+            'roi_editor_item': roi_item  # referência para sincronização
         }
         
         self.componentes[parent_name]['inspecoes'].append(inspecao_data)
@@ -641,12 +641,11 @@ class _AuxDialog(QDialog):
         NOVA IMPLEMENTAÇÃO: Identica ao gerador de projetos
         Redesenha todas as janelas de comparação para o componente especificado
         """
-        # Marca que está redesenhando (evita callbacks)
-        self._redesenhando = True
+        
         # Verifica se componentes foi inicializado
         if not hasattr(self, 'componentes'):
             self.componentes = {}
-            self._redesenhando = False
+            
             return
         if componente not in self.componentes:
             return
@@ -682,9 +681,9 @@ class _AuxDialog(QDialog):
         cor_azul = Qt.GlobalColor.blue
 
         for i, inspecao in enumerate(self.componentes[componente].get('inspecoes', [])):
-            # CORREÇÃO: Usa coordenadas originais em vez das atualizadas pelo callback
-            x_orig, y_orig = inspecao.get('original_posicao', inspecao['posicao'])
-            w_orig, h_orig = inspecao.get('original_tamanho', inspecao['tamanho'])
+            # CORREÇÃO CRÍTICA: Usa coordenadas ATUAIS (que incluem modificações do usuário)
+            x_orig, y_orig = inspecao['posicao']
+            w_orig, h_orig = inspecao['tamanho']
 
             # DEBUGGING: Log das coordenadas que serão usadas
             self.log(f"🔧 Redesenhando w{i+1}: pos=({x_orig},{y_orig}), tam=({w_orig},{h_orig})")
@@ -696,20 +695,26 @@ class _AuxDialog(QDialog):
             graphicsView_w = w_orig
             graphicsView_h = h_orig
 
-            # CORREÇÃO: Usa coordenadas originais em vez das atualizadas pelo callback
+            # CORREÇÃO CRÍTICA: Callback que salva alterações do usuário
             def _on_insp_change(item, d=inspecao, comp=componente):
                 """Atualiza dados quando item é modificado"""
-                # Evita atualizar durante redesenho automático
-                if hasattr(self, '_redesenhando') and self._redesenhando:
+                # CORREÇÃO: Permite salvar alterações do usuário mesmo durante redesenho
+                # Só bloqueia durante a criação inicial do item
+                if hasattr(self, '_criando_item') and self._criando_item:
                     return
                 br = item.sceneBoundingRect()
-                # Atualiza apenas as coordenadas atuais, preserva originais
+                # CORREÇÃO CRÍTICA: Atualiza coordenadas principais (que são usadas no redesenho)
                 new_pos = (int(br.x()), int(br.y()))
                 new_tam = (int(br.width()), int(br.height()))
                 d['posicao'] = new_pos
                 d['tamanho'] = new_tam
+                # NOVO: Também atualiza originais para manter consistência
+                d['original_posicao'] = new_pos
+                d['original_tamanho'] = new_tam
                 self.log(f"🔄 Janela {comp} atualizada: pos={d['posicao']}, tam={d['tamanho']}")
-            
+            # Marca que está criando item (evita callback durante criação)
+            self._criando_item = True
+
             # Cria item visual
             
             rect_item = SelectableResizableRectItem(
@@ -718,6 +723,9 @@ class _AuxDialog(QDialog):
                 pen=QPen(cor_azul, 2),
                 change_callback=_on_insp_change
             )
+
+            # Item criado - libera callbacks
+            self._criando_item = False
             
             # Metadados para identificação
             rect_item.item_type = 'inspection'
@@ -730,8 +738,6 @@ class _AuxDialog(QDialog):
 
         # Força atualização da visualização
         self.view_roi.viewport().update()
-        # Marca que terminou o redesenho APÓS todas as operações
-        self._redesenhando = False
 
         # DEBUGGING: Log do resultado final
         total_items_scene = len([item for item in scene.items() 
