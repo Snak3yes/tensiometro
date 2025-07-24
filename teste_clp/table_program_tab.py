@@ -456,6 +456,42 @@ class TableProgramTab(QWidget):
         elif key == 'barcode':
             w,h = self.barcode_cfg.roi_size()
             return {'action':'barcode', 'width':w, 'height':h}
+        elif key == 'inspect':
+            # 1) Dados completos (posições mecânicas + janelas azuis)
+            aux_data = self.inspect_cfg.get_cached_auxiliary_data()
+            comp_dict = aux_data.get('componentes', {})
+
+            # -----------------------------------------------------------------
+            #  SANITIZAÇÃO:
+            #     • mantemos SOMENTE coordenadas e dimensões das janelas;
+            #     • cada janela ('w1' …) recebe sua própria “similaridade”;
+            #     • campo 'nome' é salvo para uso futuro.
+            # -----------------------------------------------------------------
+            sim_min = float(self.inspect_cfg.spin_sim.value()) / 100.0
+
+            def _clean_inspecao(idx: int, insp: dict) -> dict:
+                return {
+                    'nome':       f"w{idx+1}",
+                    'posicao':    tuple(insp.get('posicao', (0, 0))),
+                    'tamanho':    tuple(insp.get('tamanho', (0, 0))),
+                    'similaridade': sim_min
+                }
+
+            serializable_comp = {}
+            
+            for nome, dados in comp_dict.items():
+                insp_list = dados.get('inspecoes', [])
+                serializable_comp[nome] = dict(
+                    posicao    = tuple(dados.get('posicao', (0, 0))),
+                    dimensoes  = tuple(dados.get('dimensoes', (0, 0))),
+                    inspecoes  = [_clean_inspecao(i, insp)
+                                  for i, insp in enumerate(insp_list)]
+                )
+
+            return {
+                'action':      'inspect',
+                'componentes': serializable_comp
+            }
         elif key == 'dot':
             pat = self.dots_view.current_pattern()
             if pat is None:

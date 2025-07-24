@@ -1,0 +1,256 @@
+[
+  {
+    "name": "1",
+    "x": 33765.0,
+    "y": 8491.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect",
+      "componentes": {
+        "qwe": {
+          "posicao": [
+            236,
+            84
+          ],
+          "dimensoes": [
+            312,
+            303
+          ],
+          "similaridade": 0.95,
+          "inspecoes": [
+            {
+              "posicao": [
+                11,
+                212
+              ],
+              "tamanho": [
+                76,
+                74
+              ]
+            },
+            {
+              "posicao": [
+                87,
+                98
+              ],
+              "tamanho": [
+                82,
+                99
+              ]
+            },
+            {
+              "posicao": [
+                203,
+                27
+              ],
+              "tamanho": [
+                44,
+                64
+              ]
+            },
+            {
+              "posicao": [
+                203,
+                177
+              ],
+              "tamanho": [
+                89,
+                98
+              ]
+            },
+            {
+              "posicao": [
+                14,
+                22
+              ],
+              "tamanho": [
+                63,
+                81
+              ]
+            },
+            {
+              "posicao": [
+                14,
+                10
+              ],
+              "tamanho": [
+                36,
+                28
+              ]
+            }
+          ]
+        },
+        "asd": {
+          "posicao": [
+            86,
+            91
+          ],
+          "dimensoes": [
+            159,
+            143
+          ],
+          "similaridade": 0.95,
+          "inspecoes": [
+            {
+              "posicao": [
+                3,
+                3
+              ],
+              "tamanho": [
+                44,
+                43
+              ]
+            },
+            {
+              "posicao": [
+                108,
+                88
+              ],
+              "tamanho": [
+                46,
+                43
+              ]
+            },
+            {
+              "posicao": [
+                105,
+                4
+              ],
+              "tamanho": [
+                45,
+                39
+              ]
+            },
+            {
+              "posicao": [
+                10,
+                83
+              ],
+              "tamanho": [
+                49,
+                42
+              ]
+            }
+          ]
+        },
+        "dfg": {
+          "posicao": [
+            88,
+            246
+          ],
+          "dimensoes": [
+            160,
+            127
+          ],
+          "similaridade": 0.95,
+          "inspecoes": [
+            {
+              "posicao": [
+                96,
+                7
+              ],
+              "tamanho": [
+                48,
+                27
+              ]
+            },
+            {
+              "posicao": [
+                12,
+                79
+              ],
+              "tamanho": [
+                38,
+                35
+              ]
+            },
+            {
+              "posicao": [
+                94,
+                70
+              ],
+              "tamanho": [
+                53,
+                40
+              ]
+            },
+            {
+              "posicao": [
+                10,
+                6
+              ],
+              "tamanho": [
+                54,
+                34
+              ]
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "2",
+    "x": 36146.0,
+    "y": 5855.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect",
+      "componentes": {
+        "ghj": {
+          "posicao": [
+            131,
+            59
+          ],
+          "dimensoes": [
+            393,
+            264
+          ],
+          "similaridade": 0.95,
+          "inspecoes": [
+            {
+              "posicao": [
+                37,
+                26
+              ],
+              "tamanho": [
+                93,
+                84
+              ]
+            },
+            {
+              "posicao": [
+                223,
+                137
+              ],
+              "tamanho": [
+                122,
+                92
+              ]
+            },
+            {
+              "posicao": [
+                247,
+                34
+              ],
+              "tamanho": [
+                111,
+                70
+              ]
+            },
+            {
+              "posicao": [
+                56,
+                157
+              ],
+              "tamanho": [
+                98,
+                64
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+]

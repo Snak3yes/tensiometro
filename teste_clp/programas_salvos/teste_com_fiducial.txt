@@ -47,5 +47,15 @@
       "dot_name": "processador",
       "dot_qty": 100
     }
+  },
+  {
+    "name": "5",
+    "x": 34064.0,
+    "y": 8473.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect"
+    }
   }
+
 ]

@@ -11,6 +11,8 @@ from typing import List
 
 from program_io_widget         import ProgramStorageBackend
 from inspection_positions_widget import InspectionPositionsWidget, InspectionPosition
+from adhesive_program_manager import AdhesiveProgramManager
+import os
 
 
 class TablePositionsBackend(ProgramStorageBackend):
@@ -32,6 +34,44 @@ class TablePositionsBackend(ProgramStorageBackend):
                          "z":   p.z,
                          "meta": p.meta or {}})
         Path(filename).write_text(json.dumps(data, indent=2), 'utf-8')
+
+        # ------------------------------------------------------------------
+        #  NOVO: cria estrutura /modelos/<prog>/regioes/... sempre que
+        #        existir pelo menos um ponto com ação = 'inspect'.
+        # ------------------------------------------------------------------
+        try:
+            # Nome do programa = nome do arquivo sem extensão
+            prog_name = Path(filename).stem
+            # Raiz = mesma pasta do *.m?  (mantém simples)
+            base_dir  = Path(filename).parent
+            mgr = AdhesiveProgramManager(base_dir)
+            # Se já existir não apaga – somente garante estrutura
+            try:
+                mgr.create_program(prog_name, overwrite=False)
+            except FileExistsError:
+                mgr.model_dir = Path(base_dir) / "modelos" / prog_name
+
+            for idx, p in enumerate(self._w.positions(), 1):
+                meta = p.meta or {}
+                if meta.get("action") != "inspect":
+                    continue
+                componentes : dict = meta.get("componentes", {})
+                if not componentes:
+                    continue
+
+                # Cada posição de inspeção recebe uma pasta “regiao_<n>”
+                regiao = f"regiao_{idx}"
+                for comp_name, comp_data in componentes.items():
+                    inspecoes = comp_data.get("inspecoes", [])
+                    # Cria sub-pastas w1, w2…
+                    for i in range(max(1, len(inspecoes))):
+                        w_name = f"w{i+1}"
+                        mgr.ensure_position_dirs(regiao, comp_name, w_name)
+        except Exception as exc:
+            # não falha a gravação do programa se a estrutura de pastas
+            # não puder ser criada (por exemplo, permissão)
+            print("[WARN] Falha ao preparar pasta de inspeção:", exc)
+
         return True
 
     # ------------------ carregar ----------------

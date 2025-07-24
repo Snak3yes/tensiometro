@@ -484,8 +484,24 @@ class _AuxDialog(QDialog):
                 self.tree.setCurrentItem(node)
                 return
     
-    def log(self, message):
-        """Helper para logging (usa o log do controller se disponível)"""
+    # ------------------------------------------------------------------
+    #  LOG   (agora com supressão de mensagens muito frequentes)
+    # ------------------------------------------------------------------
+    _SUPPRESS_PATTERNS = (
+        "Tentando carregar cache:",
+        "Widget principal - inicializando auxiliar:"
+    )
+
+    def log(self, message: str):
+        """
+        Helper para logging.  Mensagens que contenham qualquer um dos
+        fragmentos listados em `_SUPPRESS_PATTERNS` são ignoradas
+        para evitar poluição do log.
+        """
+        for pat in self._SUPPRESS_PATTERNS:
+            if pat in message:
+                return                      # suprime
+
         if hasattr(self, '_c') and hasattr(self._c, 'log'):
             self._c.log(message)
         elif hasattr(self, 'parent') and hasattr(self.parent(), 'log'):

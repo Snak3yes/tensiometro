@@ -1,0 +1,202 @@
+[
+  {
+    "name": "1",
+    "x": 36339.0,
+    "y": 5596.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect",
+      "componentes": {}
+    }
+  },
+  {
+    "name": "2",
+    "x": 33421.0,
+    "y": 8496.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect",
+      "componentes": {
+        "vbn": {
+          "posicao": [
+            304,
+            75
+          ],
+          "dimensoes": [
+            290,
+            311
+          ],
+          "inspecoes": [
+            {
+              "nome": "w1",
+              "posicao": [
+                47,
+                38
+              ],
+              "tamanho": [
+                56,
+                72
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w2",
+              "posicao": [
+                156,
+                115
+              ],
+              "tamanho": [
+                76,
+                117
+              ],
+              "similaridade": 0.95
+            }
+          ]
+        },
+        "uio": {
+          "posicao": [
+            148,
+            91
+          ],
+          "dimensoes": [
+            152,
+            129
+          ],
+          "inspecoes": [
+            {
+              "nome": "w1",
+              "posicao": [
+                15,
+                17
+              ],
+              "tamanho": [
+                19,
+                24
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w2",
+              "posicao": [
+                88,
+                42
+              ],
+              "tamanho": [
+                26,
+                44
+              ],
+              "similaridade": 0.95
+            }
+          ]
+        },
+        "jkl": {
+          "posicao": [
+            124,
+            234
+          ],
+          "dimensoes": [
+            205,
+            156
+          ],
+          "inspecoes": [
+            {
+              "nome": "w1",
+              "posicao": [
+                37,
+                22
+              ],
+              "tamanho": [
+                42,
+                64
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w2",
+              "posicao": [
+                123,
+                53
+              ],
+              "tamanho": [
+                36,
+                59
+              ],
+              "similaridade": 0.95
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "name": "3",
+    "x": 42757.0,
+    "y": 9221.0,
+    "z": 0.0,
+    "meta": {
+      "action": "inspect",
+      "componentes": {
+        "nhy": {
+          "posicao": [
+            140,
+            65
+          ],
+          "dimensoes": [
+            336,
+            321
+          ],
+          "inspecoes": [
+            {
+              "nome": "w1",
+              "posicao": [
+                24,
+                6
+              ],
+              "tamanho": [
+                85,
+                93
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w2",
+              "posicao": [
+                236,
+                8
+              ],
+              "tamanho": [
+                71,
+                82
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w3",
+              "posicao": [
+                21,
+                252
+              ],
+              "tamanho": [
+                90,
+                63
+              ],
+              "similaridade": 0.95
+            },
+            {
+              "nome": "w4",
+              "posicao": [
+                231,
+                249
+              ],
+              "tamanho": [
+                85,
+                64
+              ],
+              "similaridade": 0.95
+            }
+          ]
+        }
+      }
+    }
+  }
+]
