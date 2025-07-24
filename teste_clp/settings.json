@@ -50,5 +50,6 @@
     "z1_z_pulses": 700,
     "z1_width_mm": 37.0,
     "z1_height_mm": 29.0
-  }
+  },
+  "projects_dir": "C:\\Users\\sense\\PycharmProjects\\cnc_aoi\\teste_clp\\Projetos"
 }

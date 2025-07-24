@@ -57,6 +57,20 @@ class AdhesiveProgramManager:
         self.base_dir = Path(base_dir).resolve()
         self.model_dir: Path | None = None
 
+    # ------------------------------------------------------------------
+    #  Propriedade de compatibilidade
+    #  Várias partes do código legado ainda acessam `prog_mgr.path`.
+    #  Para não precisar alterar todos os módulos, expomos `.path`
+    #  como alias somente-leitura para `model_dir`.
+    # ------------------------------------------------------------------
+    @property
+    def path(self) -> Path | None:
+        """
+        Alias para `model_dir`.
+        Retorna None até `create_program()` ser chamado.
+        """
+        return self.model_dir
+
     # --------------- criação do PROGRAMA --------------------------
     def create_program(self, name: str, overwrite: bool = True) -> Path:
         """
@@ -136,6 +150,20 @@ class AdhesiveProgramManager:
         # referência global (janela azul) — sobrescreve
         ref_dir = dest / "referencia"
         roi_pil.save(ref_dir / "referencia.png", format="PNG", compress_level=0)
+
+    # ------------------------------------------------------------------
+    #  NOVO: salva imagem completa da região logo que é criada
+    # ------------------------------------------------------------------
+    def save_region(self, regiao: str, img_pil: "Image.Image"):
+        """
+        Salva  regioes/<regiao>/<regiao>.png  (sobre-escreve).
+        """
+        if not self.model_dir:
+            raise RuntimeError("create_program() ainda não foi chamado.")
+        target_dir = self.model_dir / "regioes" / regiao
+        target_dir.mkdir(parents=True, exist_ok=True)
+        img_pil.save(target_dir / f"{regiao}.png",
+                     format="PNG", compress_level=0)
 
     # --------------- LOG de execução -----------------------------
     def new_log_session(self, codigo_lote: str) -> Path:

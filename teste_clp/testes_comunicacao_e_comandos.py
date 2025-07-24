@@ -21,7 +21,8 @@ from sequence_control import (
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QLabel, QSpinBox, QPushButton, 
                             QGroupBox, QGridLayout, QTabWidget, QTextEdit,
-                            QFrame, QSizePolicy, QCheckBox, QScrollArea)
+                            QFrame, QSizePolicy, QCheckBox, QScrollArea,
+                            QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
@@ -195,6 +196,10 @@ class MultiAxisMotorController(QMainWindow):
             'X': 0
         }
 
+        # ---------------- CONTEXTO DO PROJETO -----------------
+        self.prog_mgr            = None   # AdhesiveProgramManager ou None
+        self.current_proj_name   = None   # string ou None
+
         # ------------------------------------------------------------------
         #  SPINBOX “FANTASMA” PARA CADA EIXO (necessário para o backend PLC)
         # ------------------------------------------------------------------
@@ -238,6 +243,12 @@ class MultiAxisMotorController(QMainWindow):
         self.settings = SettingsManager()
         self.table_limits = self.settings.table_limits
 
+        # ------------------------------------------------------------
+        #  Diretório-base dos projetos (…\Projetos\modelos\…)
+        # ------------------------------------------------------------
+        self.projects_dir = self.settings.projects_dir
+        self.projects_dir.mkdir(parents=True, exist_ok=True)
+
         # --------------- câmera ------------------------------
         self.camera_manager = CameraManager(self.settings.camera_index)
 
@@ -263,6 +274,8 @@ class MultiAxisMotorController(QMainWindow):
         self.virtual_home: dict[int,dict[str,int]] = self.settings.virtual_home
 
         self.init_ui()
+        # Ao iniciar, criação/edição de programa fica BLOQUEADA
+        QTimer.singleShot(0, lambda: self._set_creation_controls_enabled(False))
         self.connect_plc()
 
         # Lê velocidades salvas na ROM após conectar
@@ -324,6 +337,11 @@ class MultiAxisMotorController(QMainWindow):
         act_saveas.triggered.connect(self._save_as_project)
         act_exit.triggered.connect(self.close)
         menu_cfg   = menubar.addMenu("Configurações")
+
+        # =====================  NOVO  ▸  PREFERÊNCIAS  ===============
+        menu_pref  = menubar.addMenu("Preferências")
+        act_setdir = menu_pref.addAction("Definir caminho Modelos…")
+        act_setdir.triggered.connect(self._set_models_path)
         menu_prog  = menubar.addMenu("Programa")
         act_limits = menu_cfg.addAction("Limites de mesa…")
         act_limits.triggered.connect(self._open_limits_dialog)
@@ -515,32 +533,106 @@ class MultiAxisMotorController(QMainWindow):
     #  AÇÕES DO MENU “ARQUIVO”
     # =================================================================
     def _new_project(self):
-        """Limpa todas as listas de posições das abas."""
+        """
+        Inicia um NOVO programa.
+        Passos:
+          1. usuário já está na aba Mesa 1 ou Mesa 2;
+          2. pergunta nome do programa;
+          3. cria imediatamente  modelos/<nome>/…  (estrutura base);
+          4. limpa listas e libera botões de criação.
+        """
+        from PyQt6.QtWidgets import QInputDialog
+        mesa_tab = self.tab_widget.currentWidget()
+        if mesa_tab not in self.mesa_tabs.values():
+            QMessageBox.warning(self, "Novo projeto",
+                                "Antes de criar um projeto, selecione a aba Mesa 1 ou Mesa 2.")
+            return
+
+        proj_name, ok = QInputDialog.getText(
+            self, "Novo Projeto",
+            "Nome do novo programa:",
+            text=""
+        )
+        if not ok or not proj_name.strip():
+            return                          # cancelado
+        proj_name = proj_name.strip()
+
+        # Cria a pasta-raiz imediatamente
         try:
-            if hasattr(self, "inspect_widget"):
-                self.inspect_widget.clear()
-            for tab in getattr(self, "mesa_tabs", {}).values():
-                tab.inspect_widget.clear()
-            self._current_project_file = None
-            self.log("■■ Novo projeto iniciado")
+            from adhesive_program_manager import AdhesiveProgramManager
+            # garante …/<Projetos>/  existente
+            self.projects_dir.mkdir(parents=True, exist_ok=True)
+            self.prog_mgr = AdhesiveProgramManager(self.projects_dir)
+            # overwrite=True  ➜ recria estrutura completa sempre
+            self.proj_root = self.prog_mgr.create_program(proj_name, overwrite=True)
+            self.current_proj_name = proj_name
+            self.log(f"■■ Estrutura base criada: {self.proj_root}")
+        except FileExistsError:
+            QMessageBox.warning(self, "Projeto existente",
+                                f"O programa “{proj_name}” já existe.")
+            return
         except Exception as exc:
-            self.log(f"■ Erro em Novo Projeto: {exc}")
+            self.log(f"■ Erro ao criar estrutura do projeto: {exc}")
+            QMessageBox.critical(self, "Erro", str(exc))
+            return
+
+        # Limpa listas das abas
+        for tab in self.mesa_tabs.values():
+            tab.inspect_widget.clear()
+
+        # Libera botões de criação / ação
+        self._set_creation_controls_enabled(True)
+        self._current_project_file = None
+        self.log(f"■■ Novo projeto “{proj_name}” iniciado")
+
+    # =================================================================
+    #  DEFINIR DIRETÓRIO BASE  (Preferências ▸ Definir caminho Modelos)
+    # =================================================================
+    def _set_models_path(self):
+        from PyQt6.QtWidgets import QFileDialog
+        sel = QFileDialog.getExistingDirectory(
+            self, "Escolha a pasta onde será criado “Projetos”")
+        if not sel:
+            return
+        base = Path(sel).resolve()
+        projetos_path = base / "Projetos"
+        try:
+            projetos_path.mkdir(parents=True, exist_ok=True)
+        except Exception as exc:
+            QMessageBox.critical(self, "Erro",
+                                 f"Não foi possível criar “Projetos”:\n{exc}")
+            return
+        # persiste
+        self.projects_dir = projetos_path
+        self.settings.projects_dir = projetos_path
+        self.settings.save()
+        self.log(f"■ Diretório de projetos definido para: {projetos_path}")
+        QMessageBox.information(self, "Preferências",
+                                f"Caminho configurado:\n{projetos_path}")
 
     # --- salvar / abrir utilizando ProgramIOWidget já existente ------
     def _save_project(self):
         """Salva arquivo referente à aba ativa."""
+        if not self.current_proj_name or not self.projects_dir:
+            QMessageBox.warning(self, "Salvar",
+                                "Nenhum projeto em edição ou pasta padrão indefinida.")
+            return
         widget = self._current_prog_widget()
-        if getattr(widget, "_last_file", None):
-            try:
-                ok = widget._backend.save_to_file(widget._last_file)
-                if ok:
-                    self.log(f"Projeto salvo em {widget._last_file}")
-                else:
-                    self.log("■ Falha ao salvar projeto")
-            except Exception as exc:
-                self.log(f"■ Erro ao salvar: {exc}")
-        else:
-            self._save_as_project()
+        # sufixo .m1 / .m2 conforme backend
+        suffix = getattr(widget, "_default_suf", ".json")
+        mesa_id = 1 if suffix.endswith("1") else 2
+        dest = self.projects_dir / f"{self.current_proj_name}{suffix}"
+        try:
+            ok = widget._backend.save_to_file(str(dest))
+            if ok:
+                widget._last_file = str(dest)
+                self.log(f"Projeto salvo em {dest}")
+                QMessageBox.information(self, "Salvar",
+                                        f"Projeto salvo com sucesso em:\n{dest}")
+            else:
+                QMessageBox.critical(self, "Erro", "Falha ao salvar o projeto.")
+        except Exception as exc:
+            QMessageBox.critical(self, "Erro", str(exc))
 
     def _save_as_project(self):
         """Abre diálogo de ‘Salvar Como…’ reaproveitando ProgramIOWidget."""
@@ -550,7 +642,39 @@ class MultiAxisMotorController(QMainWindow):
     def _open_project(self):
         """Abre projeto (diálogo de arquivo) via ProgramIOWidget oculto."""
         widget = self._current_prog_widget()
+        old_enabled = widget.isEnabled()
         widget._on_load_clicked()
+        # se carregou com sucesso (_last_file setado), habilita botões
+        if getattr(widget, "_last_file", None):
+            # garante ponteiro do gerente de programa
+            try:
+                from adhesive_program_manager import AdhesiveProgramManager
+                proj_path = Path(widget._last_file).resolve()
+                proj_name = proj_path.stem
+                self.prog_mgr = AdhesiveProgramManager(proj_path.parent)
+                self.prog_mgr.create_program(proj_name, overwrite=False)
+                self.current_proj_name = proj_name
+            except Exception:
+                pass
+            self._set_creation_controls_enabled(True)
+
+    # -----------------------------------------------------------------
+    #  Habilita / desabilita botões de criação (ActionSelector + Add)
+    # -----------------------------------------------------------------
+    def _set_creation_controls_enabled(self, enabled: bool):
+        """
+        Ativa ou bloqueia os botões que só devem ser usados quando um
+        projeto está em edição (novo ou aberto).
+        """
+        for mesa_tab in self.mesa_tabs.values():
+            # selector de ação
+            mesa_tab.action_selector.setEnabled(enabled)
+            # botão “Adicionar posição atual”
+            mesa_tab.inspect_widget.btn_add.setEnabled(enabled)
+        # movimento / salvar posição da aba principal
+        if hasattr(self, 'inspect_widget'):
+            self.inspect_widget.btn_add.setEnabled(enabled)
+        
 
     def _open_focus_dialog(self):
         from focus_calibration_dialog import FocusCalibrationDialog

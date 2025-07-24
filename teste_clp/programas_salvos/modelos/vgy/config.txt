@@ -1,3 +1,0 @@
-model_name=vgy
-created_at=2025-07-24 15:16:32.012210
-created_by=adhesive_program_manager

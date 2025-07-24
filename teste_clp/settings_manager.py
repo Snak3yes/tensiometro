@@ -34,7 +34,10 @@ class SettingsManager:
                 "z1_z_pulses": 700,
                 "z1_width_mm": 30.5,
                 "z1_height_mm": 22.5
-            }
+            },
+            # ------- NOVO: pasta-raiz dos projetos -----------------
+            # será algo como  C:\QualquerLugar\Projetos
+            "projects_dir": str((Path.home() / "Projetos").resolve())
         }
         self.load()
 
@@ -111,3 +114,13 @@ class SettingsManager:
     @camera_fov.setter
     def camera_fov(self, d: dict):
         self.data["camera_fov"] = d
+
+    # ------------ PASTA «PROJETOS» ----------------------------------
+    @property
+    def projects_dir(self) -> Path:
+        return Path(self.data.get("projects_dir",
+                                  str(Path.home() / "Projetos"))).resolve()
+
+    @projects_dir.setter
+    def projects_dir(self, p: Path | str):
+        self.data["projects_dir"] = str(Path(p).resolve())

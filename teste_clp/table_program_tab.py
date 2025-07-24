@@ -8,6 +8,8 @@ from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QFrame, QSizePoli
 from PyQt6.QtCore    import Qt, QTimer
 from PyQt6.QtGui     import QPixmap
 import base64, cv2
+import numpy as np
+from PIL import Image
 import time
 
 from inspection_config_widget import InspectionConfigWidget
@@ -343,8 +345,11 @@ class TableProgramTab(QWidget):
 
         self.inspect_widget.positionAdded.connect(
             lambda _: self.seq_widget.set_positions(self._to_model()))
+        # NOVO: criação imediata das pastas / imagens
+        self.inspect_widget.positionAdded.connect(self._on_position_added)
         self.inspect_widget.positionRemoved.connect(
-            lambda _: self.seq_widget.set_positions(self._to_model()))
+            lambda _: self.seq_widget.set_positions(self._to_model()))        
+
         self.prog_widget.fileLoaded.connect(
             lambda _: self.seq_widget.set_positions(self._to_model()))
 
@@ -366,6 +371,66 @@ class TableProgramTab(QWidget):
 
         # ============================ PERSONALIZAÇÃO UI ================
         self._adapt_widgets_for_single_y()
+
+    # ------------------------------------------------------------------
+    #  NOVO  –  cria estrutura e salva imagens no ato da adição
+    # ------------------------------------------------------------------
+    def _on_position_added(self, pos):
+        """
+        Executado logo após o usuário clicar “Adicionar posição atual”.
+        Cria as pastas da região / posição mecânica / w*  e salva:
+            – imagem da região completa   (regioes/regiao_<n>/<...>.png)
+            – ROI azul de cada janela     (…/w*/referencia/referencia.png)
+            – JSON mínimo                 (…/<posicao>_w*.json)
+        """
+        if not getattr(self.ctrl, "prog_mgr", None):
+            # programa ainda não criado (deveria existir)
+            return
+        meta = pos.meta or {}
+        if meta.get("action") != "inspect":
+            return
+        try:
+            # ---------------------- Nomes base -------------------------
+            regiao_idx  = self.inspect_widget.positions().index(pos) + 1
+            regiao_name = f"regiao_{regiao_idx}"
+            # Posição mecânica usa o nome dado pelo ROI editor
+            componentes = meta.get("componentes", {})
+            region_png  = meta.get("_region_png")
+            if region_png:
+                np_img = cv2.imdecode(np.frombuffer(region_png, np.uint8),
+                                      cv2.IMREAD_COLOR)
+                if np_img is not None and np_img.size:
+                    self.ctrl.prog_mgr.save_region(
+                        regiao_name, Image.fromarray(
+                            cv2.cvtColor(np_img, cv2.COLOR_BGR2RGB)))
+            # ---------------------- w* e janelas -----------------------
+            for posicao_nome, comp_data in componentes.items():
+                inspecoes = comp_data.get("inspecoes", [])
+                for insp in inspecoes:
+                    # crop ROI azul da imagem da região
+                    if region_png is None:
+                        continue
+                    x, y   = insp.get("posicao", (0, 0))
+                    w, h   = insp.get("tamanho", (0, 0))
+                    if w == 0 or h == 0:
+                        continue
+                    roi_bgr = np_img[y:y+h, x:x+w].copy()
+                    if roi_bgr.size == 0:
+                        continue
+                    roi_pil = Image.fromarray(
+                        cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2RGB))
+                    w_nome  = insp.get("nome") or insp.get("window_name") \
+                              or f"w{inspecoes.index(insp)+1}"
+                    # salva estrutura + arquivos
+                    self.ctrl.prog_mgr.save_blue_reference(
+                        regiao_name,
+                        posicao_nome,
+                        w_nome,
+                        roi_pil,
+                        meta=insp      # JSON simples
+                    )
+        except Exception as exc:
+            self.ctrl.log(f"■ Erro ao criar estrutura da posição: {exc}")
 
     # ------------------------------------------------------------------
     #  Clique no vídeo → mover cabeça
@@ -444,8 +509,9 @@ class TableProgramTab(QWidget):
             tmpl = self.fiducial_cfg.template_image()
             if tmpl is None:
                 return None
-            _, buf = self.cv2.imencode('.png', tmpl)
-            b64 = self.base64.b64encode(buf).decode('ascii')
+            # Usa diretamente os módulos importados no topo
+            _, buf = cv2.imencode('.png', tmpl)
+            b64 = base64.b64encode(buf).decode('ascii')
             return {
                 'action': 'fiducial',
                 'window': self.fiducial_cfg.spin_window.value(),
@@ -490,7 +556,19 @@ class TableProgramTab(QWidget):
 
             return {
                 'action':      'inspect',
-                'componentes': serializable_comp
+                'componentes': serializable_comp,                
+                # ------------------------------------------------------------------
+                #  ROI COMPLETA (PNG *bytes*, NÃO base64)
+                #  • É apenas um payload temporário para o backend
+                #    salvar os .png na árvore de pastas.
+                #  • Será removido antes do JSON final, portanto não
+                #    aparece no arquivo *.m1 / *.m2.
+                # ------------------------------------------------------------------
+                '_region_png': (lambda _img=self.inspect_cfg
+                                          ._cached_auxiliary_data
+                                          .get('region_image'):
+                                (None if _img is None else
+                                 cv2.imencode('.png', _img)[1].tobytes()))()
             }
         elif key == 'dot':
             pat = self.dots_view.current_pattern()

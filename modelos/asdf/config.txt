@@ -1,0 +1,3 @@
+model_name=asdf
+created_at=2025-07-24 17:39:34.371309
+created_by=adhesive_program_manager

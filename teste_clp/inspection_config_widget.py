@@ -489,7 +489,9 @@ class _AuxDialog(QDialog):
     # ------------------------------------------------------------------
     _SUPPRESS_PATTERNS = (
         "Tentando carregar cache:",
-        "Widget principal - inicializando auxiliar:"
+        "Widget principal - inicializando auxiliar:",
+        "Aguardando inicialização completa",       
+        "⏳ Aguardando inicialização completa"     
     )
 
     def log(self, message: str):

@@ -1,0 +1,3 @@
+model_name=teste_projeto
+created_at=2025-07-24 17:31:05.899441
+created_by=adhesive_program_manager

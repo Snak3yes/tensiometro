@@ -6,13 +6,14 @@ Extensões   Mesa 1 → *.m1
             Mesa 2 → *.m2
 """
 from pathlib import Path
-import json
 from typing import List
 
 from program_io_widget         import ProgramStorageBackend
 from inspection_positions_widget import InspectionPositionsWidget, InspectionPosition
 from adhesive_program_manager import AdhesiveProgramManager
-import os
+import os, copy, json, cv2, numpy as np
+from PIL import Image
+
 
 
 class TablePositionsBackend(ProgramStorageBackend):
@@ -33,11 +34,83 @@ class TablePositionsBackend(ProgramStorageBackend):
                          "y":   y,
                          "z":   p.z,
                          "meta": p.meta or {}})
-        Path(filename).write_text(json.dumps(data, indent=2), 'utf-8')
+        # ------------------------------------------------------------------
+        #  EXTRA 1 ‑ gera estrutura de pastas + salva imagens (.png)
+        # ------------------------------------------------------------------
+        try:
+            prog_name = Path(filename).stem
+            base_dir  = Path(filename).parent
+            mgr = AdhesiveProgramManager(base_dir)
+            try:
+                mgr.create_program(prog_name, overwrite=False)
+            except FileExistsError:
+                mgr.model_dir = Path(base_dir) / "modelos" / prog_name
+
+            # percorre pontos para salvar imagens
+            for idx, p in enumerate(self._w.positions(), 1):
+                meta = p.meta or {}
+                if meta.get("action") != "inspect":
+                    continue
+
+                # ---------------- imagem da REGIÃO -----------------
+                regiao_name = f"regiao_{idx}"
+                region_bytes = meta.get("_region_png")
+                if not region_bytes:
+                    continue
+                np_img      = cv2.imdecode(np.frombuffer(region_bytes, np.uint8),
+                                           cv2.IMREAD_COLOR)
+                if np_img is None:
+                    continue
+                region_pil  = Image.fromarray(cv2.cvtColor(np_img,
+                                                           cv2.COLOR_BGR2RGB))
+                mgr.save_region(regiao_name, region_pil)
+                # ---------------- janelas w* -----------------------
+                componentes = meta.get("componentes", {})
+                for posicao_nome, comp_data in componentes.items():
+                    for insp in comp_data.get("inspecoes", []):
+                        x, y   = insp.get("posicao", (0, 0))
+                        w, h   = insp.get("tamanho", (0, 0))
+                        roi    = np_img[y:y+h, x:x+w]
+                        if roi.size == 0:
+                            continue
+                        roi_pil = Image.fromarray(cv2.cvtColor(roi,
+                                                               cv2.COLOR_BGR2RGB))
+                        w_nome  = insp.get("nome", "w?")
+                        meta_js = {
+                            "janela_azul": (x, y, w, h),
+                            "similaridade": insp.get("similaridade", 0.9)
+                        }
+                        mgr.save_blue_reference(regiao_name,
+                                                posicao_nome,
+                                                w_nome,
+                                                roi_pil,
+                                                meta_js)
+
+        except Exception as exc:
+            print("[WARN] Falha ao salvar imagens de inspeção:", exc)
 
         # ------------------------------------------------------------------
-        #  NOVO: cria estrutura /modelos/<prog>/regioes/... sempre que
-        #        existir pelo menos um ponto com ação = 'inspect'.
+        #  EXTRA 2 ‑ remove chaves temporárias antes de serializar JSON
+        # ------------------------------------------------------------------
+        json_ready: List[dict] = []
+        for p in self._w.positions():
+            y = p.y1 if self._y_axis == 'Y1' else p.y2
+            m = copy.deepcopy(p.meta or {})
+            if m.get("action") == "inspect":
+                # descarta payload binário antes do JSON
+                m.pop("_region_png", None)
+            json_ready.append({
+                "name": p.name,
+                "x":    p.x,
+                "y":    y,
+                "z":    p.z,
+                "meta": m
+            })
+
+        Path(filename).write_text(json.dumps(json_ready, indent=2), 'utf-8')
+
+        # ------------------------------------------------------------------
+        #  EXTRA 3 ‑ apenas garante árvore vazia quando não havia w*
         # ------------------------------------------------------------------
         try:
             # Nome do programa = nome do arquivo sem extensão
