@@ -1494,13 +1494,6 @@ class InspectionConfigWidget(QGroupBox):
         if self.btn_aux is not None:
             self.btn_aux.clicked.connect(self._open_aux)
 
-        # BOTÃO DE DEBUG - mantido apenas no widget principal
-        if self._show_aux_button:  # Só mostra se é o widget principal
-            debug_btn = QPushButton("🔧 DEBUG: Atualizar Visor")
-            debug_btn.clicked.connect(self.debug_update_viewer)
-            debug_btn.setStyleSheet("QPushButton { background-color: orange; color: white; font-weight: bold; }")
-            v.addWidget(debug_btn)
-
     # -------------------- tamanho fixo 4:3 ---------------------------
     def _update_region_aspect(self):
         """

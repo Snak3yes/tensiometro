@@ -23,8 +23,8 @@
   },
   "camera_index": 2,
   "focus_calibration": {
-    "a": 0.35714285714285715,
-    "b": 400.0
+    "a": 0.4185714285714286,
+    "b": 367.0
   },
   "axis_calibration": {
     "X": 100.0,
