@@ -1433,15 +1433,30 @@ class InspectionConfigWidget(QGroupBox):
         if self._show_region_button:
             v.addWidget(self.btn_region)
 
-        # visor grande (4:3) – largura elástica, altura controlada
-        self.lbl_region = AspectRatioLabel("Região")
-        self._style_label(self.lbl_region)
-        # já possui SizePolicy.Expanding|Expanding no construtor
-        # exibe apenas se solicitado
+        # ----------------------------------------------------------
+        #  NOVO VISOR PRINCIPAL  (QGraphicsView  +  ROIWindowEditor)
+        # ----------------------------------------------------------
+        self.view_region = QGraphicsView()
+        self.view_region.setRenderHints(
+            QPainter.RenderHint.SmoothPixmapTransform |
+            QPainter.RenderHint.Antialiasing
+        )
+        self.view_region.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                       QSizePolicy.Policy.Expanding)
+        scene = QGraphicsScene(self.view_region)
+        self.view_region.setScene(scene)
+        # item que exibirá o QPixmap da região
+        self._region_pix_item = scene.addPixmap(QPixmap())
+        # editor que torna as janelas vermelhas clicáveis
+        self.region_editor = ROIWindowEditor(self.view_region)
+
+        # Mantém o mesmo nome (“lbl_region”) para compatibilidade externa
+        self.lbl_region = self.view_region
+
         if self._show_region:
-            v.addWidget(self.lbl_region)
+            v.addWidget(self.view_region)
         else:
-            self.lbl_region.setVisible(False)
+            self.view_region.setVisible(False)
 
         # visor pequeno (ROI mecânico)
         # visor ROI menor (metade da largura, 4:3, centrado)
@@ -1453,8 +1468,9 @@ class InspectionConfigWidget(QGroupBox):
         self.lbl_roi.setSizePolicy(QSizePolicy.Policy.Fixed,
                                    QSizePolicy.Policy.Fixed)
         v.addWidget(self.lbl_roi)
-        # Garante que ambos os visores começam com a geometria correta
+        # Ajusta aspecto inicial do visor ROI
         self._update_roi_aspect()
+
 
         # similaridade + salvar
         hsim = QHBoxLayout()
@@ -1493,6 +1509,22 @@ class InspectionConfigWidget(QGroupBox):
         # botão “Aux. de inspeção” só existe se show_aux_button=True
         if self.btn_aux is not None:
             self.btn_aux.clicked.connect(self._open_aux)
+
+    # --------------------------------------------------------------
+    #  NOVO: coloca imagem na cena principal
+    # --------------------------------------------------------------
+    def _set_main_pixmap(self, img_bgr):
+        """Actualiza o QGraphicsPixmapItem da região principal."""
+        if img_bgr is None:
+            self._region_pix_item.setPixmap(QPixmap())
+            return
+        h, w = img_bgr.shape[:2]
+        img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
+        qimg = QImage(img_rgb.data, w, h, 3 * w, QImage.Format.Format_RGB888)
+        self._region_pix_item.setPixmap(QPixmap.fromImage(qimg))
+        # mantém 4:3
+        self.view_region.fitInView(self._region_pix_item,
+                                   Qt.AspectRatioMode.KeepAspectRatio)
 
     # -------------------- tamanho fixo 4:3 ---------------------------
     def _update_region_aspect(self):
@@ -1550,7 +1582,7 @@ class InspectionConfigWidget(QGroupBox):
         if img_bgr is None:
             return
         self._last_roi_bgr = img_bgr
-        self._show_pixmap(self.lbl_region, img_bgr, draw_border=True)
+        self._set_main_pixmap(img_bgr)
 
     def _capture_region(self):
         frame = self._grab_frame()
@@ -1562,7 +1594,7 @@ class InspectionConfigWidget(QGroupBox):
         x0 = max(0, cx-ww//2); y0 = max(0, cy-hh//2)
         roi = frame[y0:y0 + hh, x0:x0 + ww].copy()
         self._last_roi_bgr = roi          # guarda original p/ alta qualidade
-        self._show_pixmap(self.lbl_region, roi, draw_border=True)
+        self._set_main_pixmap(roi)
         self.regionCaptured.emit(roi)
         # Limpa cache quando nova região é definida
         self.clear_auxiliary_cache()    
@@ -1631,7 +1663,7 @@ class InspectionConfigWidget(QGroupBox):
             if self._cached_auxiliary_data.get('region_image') is None:
                 self._cached_auxiliary_data['region_image'] = self._last_roi_bgr.copy()
         else:
-            pix = self.lbl_region.pixmap()
+            pix = self._bgr_to_pixmap(self._last_roi_bgr) if self._last_roi_bgr is not None else QPixmap()
             # Não força None se já há dados em cache
             if self._cached_auxiliary_data.get('region_image') is None:
                 self._cached_auxiliary_data['region_image'] = None
@@ -1681,8 +1713,8 @@ class InspectionConfigWidget(QGroupBox):
         
         # CORREÇÃO: Também limpa o visor principal se necessário
         if hasattr(self, 'lbl_region') and hasattr(self, '_last_roi_bgr') and self._last_roi_bgr is not None:
-            # Mostra imagem sem as posições
-            self._show_pixmap(self.lbl_region, self._last_roi_bgr, draw_border=True)
+            # Reexibe apenas a imagem-base
+            self._set_main_pixmap(self._last_roi_bgr)
             print(f"[DEBUG] Visor principal limpo")
 
     def debug_cache_status(self):
@@ -1805,15 +1837,45 @@ class InspectionConfigWidget(QGroupBox):
             inspecoes = dados.get('inspecoes', [])
             print(f"[DEBUG] Componente '{nome}': pos={pos}, dims={dims}, {len(inspecoes)} inspeções")
         
-        try:
-            img_with_positions = self._draw_positions_on_image(
-                self._last_roi_bgr.copy(), 
-                componentes
+        # Exibe APENAS a imagem, sem desenhar retângulos nela
+        # (os retângulos agora serão itens clicáveis sobrepostos na cena)
+        self._set_main_pixmap(self._last_roi_bgr)
+
+        # -----------------------------------------------------------------
+        #  NOVO: cria/actualiza retângulos clicáveis para cada posição
+        # -----------------------------------------------------------------
+        self._refresh_clickable_position_items(componentes)
+        print(f"[DEBUG] ‚úÖ Visor principal atualizado com itens clicáveis")
+ 
+    # -----------------------------------------------------------------
+    #  NOVO  –  retângulos vermelhos clicáveis no visor principal
+    # -----------------------------------------------------------------
+    def _refresh_clickable_position_items(self, componentes):
+        """
+        Remove janelas antigas e cria novas janelas vermelhas clicáveis
+        correspondentes às posições mecânicas do cache.
+        """
+        # 1) remove janelas existentes
+        for win in list(self.region_editor.windows):
+            try:
+                if win.scene():
+                    win.scene().removeItem(win)
+            except RuntimeError:
+                pass
+        self.region_editor.windows.clear()
+
+        # 2) recria uma janela para cada componente
+        red_pen = QPen(Qt.GlobalColor.red, 2)
+        for nome, dados in componentes.items():
+            pos_x, pos_y = dados.get('posicao', (0, 0))
+            dim_w, dim_h = dados.get('dimensoes', (100, 100))
+            self.region_editor.add_window(
+                x=pos_x, y=pos_y,
+                w=dim_w, h=dim_h,
+                pen=red_pen,
+                name=nome,
+                deletable=False          # protegidas de deleção acidental
             )
-            self._show_pixmap(self.lbl_region, img_with_positions, draw_border=True)
-            print(f"[DEBUG] ✅ Imagem atualizada no visor principal")
-        except Exception as e:
-            print(f"[DEBUG] ❌ Erro ao desenhar posições: {e}")
 
     def _qpixmap_to_bgr(self, pixmap):
         """Converte QPixmap para numpy BGR"""
@@ -1904,5 +1966,8 @@ class InspectionConfigWidget(QGroupBox):
     
     def resizeEvent(self, ev):
         super().resizeEvent(ev)
-        # region já é automático; apenas ROI necessita ajuste
         self._update_roi_aspect()
+        # mantém a imagem “fit” no novo tamanho
+        if hasattr(self, 'view_region'):
+            self.view_region.fitInView(self._region_pix_item,
+                                       Qt.AspectRatioMode.KeepAspectRatio)
