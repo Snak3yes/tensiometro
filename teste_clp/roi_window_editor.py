@@ -56,18 +56,23 @@ class ResizableRectItem(QGraphicsRectItem):
         name: Optional[str] = None,
         meta: Optional[Dict[str, Any]] = None,
         parent_uid: Optional[int] = None,
-        parent: Optional[QGraphicsItem] = None
+        parent: Optional[QGraphicsItem] = None,
+        editable: bool = True            # NOVO: janelas “somente-seleção” no visor principal
     ):
         super().__init__(x, y, w, h, parent)
+        self.editable: bool = editable
         self.id: int = next(self._id_counter)
         self.parent_uid: Optional[int] = parent_uid
         # --------------------------------------------------------
-        self.setFlags(
+        # ItemIsMovable + redimensionamento só se editable=True
+        flags = (
             QGraphicsItem.GraphicsItemFlag.ItemIsSelectable |
-            QGraphicsItem.GraphicsItemFlag.ItemIsMovable |
             QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges
         )
-        self.setAcceptHoverEvents(True)
+        if self.editable:
+            flags |= QGraphicsItem.GraphicsItemFlag.ItemIsMovable
+        self.setFlags(flags)
+        self.setAcceptHoverEvents(self.editable)
         self._active_handle: Optional[str] = None
         self._pen_custom = pen
         self.change_callback = change_callback
@@ -127,16 +132,17 @@ class ResizableRectItem(QGraphicsRectItem):
 
     # ---------------- eventos  -------------------------------
     def hoverMoveEvent(self, ev):
-        self.setCursor(self._cursor_for(self._handle_at(ev.pos())))
+        if self.editable:
+            self.setCursor(self._cursor_for(self._handle_at(ev.pos())))
         super().hoverMoveEvent(ev)
 
     def mousePressEvent(self, ev):
-        if ev.button() == Qt.MouseButton.LeftButton:
+        if self.editable and ev.button() == Qt.MouseButton.LeftButton:
             self._active_handle = self._handle_at(ev.pos())
         super().mousePressEvent(ev)
 
     def mouseMoveEvent(self, ev):
-        if self._active_handle:
+        if self.editable and self._active_handle:
             self._resize(ev.pos())
             if callable(self.change_callback):
                 self.change_callback(self)
@@ -185,7 +191,8 @@ class ResizableRectItem(QGraphicsRectItem):
             pen = self.pen_selected
         painter.setPen(pen)
         painter.drawRect(self.rect())
-        if self.isSelected():
+        # Alças de redimensionamento apenas se editável
+        if self.isSelected() and self.editable:
             painter.setBrush(self.handle_brush)
             painter.setPen(self.handle_pen)
             for rect in self._all_handles().values():
@@ -278,7 +285,8 @@ class ROIWindowEditor(QObject):
                    name: Optional[str] = None,
                    meta: Optional[Dict[str, Any]] = None,
                    change_cb: Optional[Callable[[ResizableRectItem], None]] = None,
-                   parent: Optional[ResizableRectItem] = None
+                   parent: Optional[ResizableRectItem] = None,
+                   editable: bool = True          # NOVO
                    ) -> ResizableRectItem:
 
         item_parent_uid = parent.id if parent else None
@@ -290,7 +298,8 @@ class ROIWindowEditor(QObject):
             meta=meta,
             parent_uid=item_parent_uid,
             parent=parent,                       # hierarquia Qt
-            change_callback=self._wrap_change_cb(change_cb)
+            change_callback=self._wrap_change_cb(change_cb),
+            editable=editable
         )
         # CORREÇÃO: Sempre adiciona à cena se não há pai Qt Graphics
         # (mesmo que tenha parent_uid para associação lógica)

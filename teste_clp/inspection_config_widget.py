@@ -493,59 +493,7 @@ class _AuxDialog(QDialog):
         else:
             print(f"[AuxDialog] {message}")
 
-    def rebuild_interface_from_cache(self):
-        """Reconstroi TreeView e editores baseado nos componentes em cache"""
-        # Limpa TreeView atual
-        self.tree.clear()
-        
-        # CORREÇÃO: Limpa editor antes de recriar
-        if hasattr(self.region_editor, 'windows'):
-            for window in list(self.region_editor.windows):
-                try:
-                    if window.scene():
-                        window.scene().removeItem(window)
-                except RuntimeError:
-                    pass
-            self.region_editor.windows.clear()
-        
-        # Adiciona posições mecânicas ao region_editor e TreeView
-        for comp_name, comp_data in self.componentes.items():
-            pos = comp_data.get('posicao', (0, 0))
-            dims = comp_data.get('dimensoes', (100, 100))
-            
-            self.log(f"📂 Recriando '{comp_name}': pos={pos}, dims={dims}")
-            
-            # CORREÇÃO: Usa coordenadas salvas no cache
-            item = self.region_editor.add_window(
-                x=pos[0], y=pos[1], 
-                w=dims[0], h=dims[1],
-                name=comp_name, 
-                deletable=True
-            )
-            
-            # Adiciona à TreeView
-            node = QTreeWidgetItem([comp_name])
-            node.setData(0, Qt.ItemDataRole.UserRole, item)
-            self.tree.addTopLevelItem(node)
-             
-            # Adiciona janelas de inspeção como subnós
-            for i, inspecao in enumerate(comp_data.get('inspecoes', []), 1):
-                comp_node = QTreeWidgetItem([f"w{i}"])
-                
-                # Cria placeholder para a janela de comparação
-                placeholder_data = {
-                    'type': 'comparison_placeholder',
-                    'component_name': comp_name,
-                    'window_name': f"w{i}",
-                    'inspecao_ref': inspecao
-                }
-                comp_node.setData(0, Qt.ItemDataRole.UserRole, placeholder_data)
-                inspecao['tree_node'] = comp_node
-                node.addChild(comp_node)
-                node.setExpanded(True)
-            
-            self.log(f"🔄 Posição '{comp_name}' restaurada com {len(comp_data.get('inspecoes', []))} janelas")
-
+    
     # ================================================================
     #  NOVO SISTEMA: CARREGAMENTO E TRANSFERÊNCIA DE DADOS
     # ================================================================
@@ -633,7 +581,8 @@ class _AuxDialog(QDialog):
                 x=pos[0], y=pos[1], 
                 w=dims[0], h=dims[1],
                 name=comp_name, 
-                deletable=True
+                deletable=True,
+                editable=False
             )                 
             
             # Adiciona à TreeView
@@ -1909,7 +1858,8 @@ class InspectionConfigWidget(QGroupBox):
                 w=dim_w, h=dim_h,
                 pen=red_pen,
                 name=nome,
-                deletable=False          # protegidas de deleção acidental
+                deletable=False,         # protegidas de deleção acidental
+                editable=False          # protegidas de deleção acidental
             )
 
     def _qpixmap_to_bgr(self, pixmap):
