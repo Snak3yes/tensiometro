@@ -1403,6 +1403,14 @@ class InspectionConfigWidget(QGroupBox):
         # Mantém o mesmo nome (“lbl_region”) para compatibilidade externa
         self.lbl_region = self.view_region
 
+        # --------------------------------------------------------------
+        #  Sempre que o usuário selecionar uma Posição Mecânica
+        #  no visor “Região”, recortamos a área correspondente
+        #  e a exibimos no pequeno visor ‘ROI’ aqui do painel
+        # --------------------------------------------------------------
+        self.view_region.scene().selectionChanged.connect(
+            self._update_roi_from_selection_main)
+
         if self._show_region:
             v.addWidget(self.view_region)
         else:
@@ -1961,3 +1969,44 @@ class InspectionConfigWidget(QGroupBox):
         if hasattr(self, "view_region"):
             self.view_region.fitInView(self._region_pix_item,
                                        Qt.AspectRatioMode.KeepAspectRatio)
+            
+    # --------------------------------------------------------------
+    #  NOVO MÉTODO – mostra ROI da posição mecânica selecionada
+    # --------------------------------------------------------------
+    def _update_roi_from_selection_main(self):
+        """
+        Exibe, no visor ‘ROI’ deste painel, o conteúdo da
+        Posição Mecânica (ResizableRectItem) atualmente selecionada
+        no visor principal (‘Região’).
+        """
+        # É necessário ter imagem de referência
+        if self._last_roi_bgr is None:
+            return
+
+        # Há item selecionado?
+        sel_items = [it for it in self.view_region.scene().selectedItems()
+                     if isinstance(it, ResizableRectItem)]
+        if not sel_items:
+            return
+
+        item = sel_items[0]
+
+        # Converte retângulo do item para coordenadas de cena
+        r_scene = item.mapRectToScene(item.rect())
+        x, y, w, h = map(int, [r_scene.x(), r_scene.y(),
+                               r_scene.width(), r_scene.height()])
+
+        h_img, w_img, _ = self._last_roi_bgr.shape
+
+        # Garante que o recorte está dentro da imagem
+        x = max(0, min(x, w_img - 1))
+        y = max(0, min(y, h_img - 1))
+        w = max(1, min(w, w_img - x))
+        h = max(1, min(h, h_img - y))
+
+        roi_bgr = self._last_roi_bgr[y:y + h, x:x + w].copy()
+        if roi_bgr.size == 0:
+            return
+
+        # Mostra no visor ‘ROI’
+        self._show_pixmap(self.lbl_roi, roi_bgr)
