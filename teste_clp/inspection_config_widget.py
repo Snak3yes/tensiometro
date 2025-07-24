@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 from roi_window_editor import ROIWindowEditor, ResizableRectItem
 from selectable_rect_item import SelectableResizableRectItem
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
+from PyQt6.QtGui  import QGuiApplication
 from PyQt6.QtGui import QPixmap, QPainter, QImage, QPen, QColor
 import cv2
 import os
@@ -1458,6 +1459,9 @@ class InspectionConfigWidget(QGroupBox):
         else:
             self.view_region.setVisible(False)
 
+        # garante 4:3 e largura ≤ 15 % da tela já na criação
+        self._adjust_region_size()
+
         # visor pequeno (ROI mecânico)
         # visor ROI menor (metade da largura, 4:3, centrado)
         self.lbl_roi = QLabel("ROI")
@@ -1525,6 +1529,37 @@ class InspectionConfigWidget(QGroupBox):
         # mantém 4:3
         self.view_region.fitInView(self._region_pix_item,
                                    Qt.AspectRatioMode.KeepAspectRatio)
+        
+    # --------------------------------------------------------------
+    #  AJUSTE 4:3  (imagem “Região”)  +  limite 15 % largura da tela
+    # --------------------------------------------------------------
+    def _adjust_region_size(self):
+        """
+        Mantém o visor 'Região' com proporção 4:3, limitando sua largura
+        a, no máximo, 15 % da largura do monitor principal.
+        """
+        if not hasattr(self, "view_region"):
+            return
+
+        # Largura máxima baseada em 15 % da largura da tela
+        scr   = QGuiApplication.primaryScreen()
+        if scr is None:
+            return
+        max_w = int(scr.size().width() * 0.18)
+
+        # Largura realmente disponível no layout da coluna
+        col_w = max(10, self.width())
+        tgt_w = min(col_w, max_w)
+        tgt_h = int(tgt_w * 3 / 4)   # 4:3
+
+        # Define dimensões fixas
+        self.view_region.setFixedWidth(tgt_w)
+        self.view_region.setFixedHeight(tgt_h)
+
+        # Re-ajusta a imagem para caber
+        if hasattr(self, "_region_pix_item") and self._region_pix_item:
+            self.view_region.fitInView(self._region_pix_item,
+                                       Qt.AspectRatioMode.KeepAspectRatio)
 
     # -------------------- tamanho fixo 4:3 ---------------------------
     def _update_region_aspect(self):
@@ -1966,8 +2001,13 @@ class InspectionConfigWidget(QGroupBox):
     
     def resizeEvent(self, ev):
         super().resizeEvent(ev)
+        # Visor ROI (pequeno) continua com ajuste já existente
         self._update_roi_aspect()
-        # mantém a imagem “fit” no novo tamanho
-        if hasattr(self, 'view_region'):
+
+        # Novo: mantém visor 'Região' em 4:3 e ≤ 15 % da tela
+        self._adjust_region_size()
+
+        # Re-encaixa a imagem na área disponível
+        if hasattr(self, "view_region"):
             self.view_region.fitInView(self._region_pix_item,
                                        Qt.AspectRatioMode.KeepAspectRatio)
