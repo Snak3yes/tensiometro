@@ -2007,6 +2007,51 @@ class InspectionConfigWidget(QGroupBox):
         roi_bgr = self._last_roi_bgr[y:y + h, x:x + w].copy()
         if roi_bgr.size == 0:
             return
+        
+        # ----------------------------------------------------------
+        #       desenha as “janelas azuis” (comparações de imagem)
+        #       pertencentes a esta posição mecânica, se existirem.
+        # ----------------------------------------------------------
+        component_name = getattr(item, 'name', None)
+        if component_name:
+            roi_bgr = self._draw_comparison_windows(roi_bgr, component_name)
 
         # Mostra no visor ‘ROI’
         self._show_pixmap(self.lbl_roi, roi_bgr)
+
+    # --------------------------------------------------------------
+    #  Desenha retângulos AZUIS das janelas de comparação
+    #  sobre a imagem do ROI recortado.
+    # --------------------------------------------------------------
+    def _draw_comparison_windows(self, img_bgr, component_name):
+        """
+        Sobrepõe à imagem ‘img_bgr’ (numpy BGR) os retângulos das
+        janelas de comparação (cor azul) pertencentes ao componente
+        ‘component_name’.  As coordenadas já estão no mesmo espaço
+        do ROI, portanto basta desenhar diretamente.
+        """
+        comp_dict = self._cached_auxiliary_data.get('componentes', {})
+        comp_data = comp_dict.get(component_name)
+        if not comp_data:
+            return img_bgr
+
+        inspecoes = comp_data.get('inspecoes', [])
+        if not inspecoes:
+            return img_bgr
+
+        h_img, w_img = img_bgr.shape[:2]
+        for insp in inspecoes:
+            (x, y) = insp.get('posicao', (0, 0))
+            (w, h) = insp.get('tamanho', (0, 0))
+            # garante que o retângulo fica dentro da imagem
+            x = max(0, min(x, w_img - 1))
+            y = max(0, min(y, h_img - 1))
+            w = max(1, min(w, w_img - x))
+            h = max(1, min(h, h_img - y))
+            # desenha: cor BGR -> azul (255,0,0)
+            import cv2
+            cv2.rectangle(img_bgr,
+                          (int(x), int(y)),
+                          (int(x + w), int(y + h)),
+                          (255, 0, 0), 2)
+        return img_bgr
