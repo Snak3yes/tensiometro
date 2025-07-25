@@ -17,7 +17,7 @@ from dataclasses import dataclass
 
 from PyQt6.QtCore import QThread, pyqtSignal, QObject, Qt
 from PyQt6.QtWidgets import (
-    QWidget, QGroupBox, QVBoxLayout, QPushButton,
+    QWidget, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton,
     QProgressBar, QLabel, QFileDialog, QMessageBox
 )
 
@@ -49,6 +49,8 @@ class MotionBackend(Protocol):
     def wait_for_idle(self) -> bool: ...
     # opcional, mas ajuda:
     def set_feed_rate(self, feed_rate: float): ...
+    # novo: habilita ou não o uso do offset câmera↔nozzle
+    def set_offset_mode(self, apply_offset: bool): ...
 
 
 class CameraBackend(Protocol):
@@ -69,12 +71,15 @@ class SequenceRunnerThread(QThread):
                  motion: MotionBackend,
                  camera: CameraBackend | None,
                  positions: List[InspectionPosition],
+                 *,
+                 apply_mode: bool,              # True = APPLY  / False = VIEW
                  feed_rate: float = 1000.0):
         super().__init__()
         self._motion     = motion
         self._camera     = camera
         self._positions  = positions
         self._feed_rate  = feed_rate
+        self._apply_mode = apply_mode      # guarda selecção do usuário
         self._stop_flag  = False
 
     def request_stop(self):
@@ -94,6 +99,22 @@ class SequenceRunnerThread(QThread):
                 if self._stop_flag:
                     self.error.emit("Execução interrompida pelo usuário")
                     return
+                
+                # ---------------------------------------------------
+                #  DECIDE SE OFFSET É APLICADO NESTE PONTO
+                #  • VIEW  → nunca aplica
+                #  • APPLY → depende do tipo da ação
+                # ---------------------------------------------------
+                if not self._apply_mode:           # modo VIEW
+                    apply_off = False
+                else:                              # modo APPLY
+                    a = (pos.camera_params or {}).get("action")
+                    apply_off = a not in ("barcode", "fiducial", "inspect")
+                if hasattr(self._motion, "set_offset_mode"):
+                    try:
+                        self._motion.set_offset_mode(apply_off)
+                    except Exception:
+                        pass
 
                 ok = self._motion.move_to_absolute_position(
                     pos.x, pos.y2, pos.y1, pos.z, feed_rate=self._feed_rate)
@@ -184,6 +205,19 @@ class SequenceControlWidget(QWidget):
 
         v.addWidget(self._btn_execute)
         v.addWidget(self._btn_stop)
+
+        # ------------------- NOVO SELETOR VIEW / APPLY ------------------
+        hmode = QHBoxLayout()
+        from PyQt6.QtWidgets import QRadioButton, QLabel as _QLabel
+        self.radio_view   = QRadioButton("View")
+        self.radio_apply  = QRadioButton("Apply")
+        self.radio_apply.setChecked(True)          # default = aplicar offset
+        hmode.addWidget(_QLabel("Offset:"))
+        hmode.addWidget(self.radio_view)
+        hmode.addWidget(self.radio_apply)
+        hmode.addStretch()
+        v.addLayout(hmode)
+
         v.addWidget(self._progress)
         v.addWidget(self._status)
 
@@ -194,6 +228,27 @@ class SequenceControlWidget(QWidget):
         # ligações
         self._btn_execute.clicked.connect(self._start)
         self._btn_stop.clicked.connect(self._stop)
+
+        # troca de modo view/apply
+        self.radio_view.toggled.connect(
+            lambda checked: self._on_mode_changed(checked))
+ 
+    # ----------------------------- modo offset ------------------------
+    def _on_mode_changed(self, view_checked: bool):
+        """
+        view_checked = True  → modo VIEW (não aplica offset)
+        False                → radio_apply ativo (aplica offset)
+        """
+        apply_off = not view_checked
+        if hasattr(self._motion, "set_offset_mode"):
+            try:
+                self._motion.set_offset_mode(apply_off)
+            except Exception:
+                pass
+        self._status.setText("Modo: VIEW (nozzle)" if view_checked
+                             else "Modo: APPLY (camera)")
+
+
 
     # ------------------------ handlers -----------------------------
     def _start(self):
@@ -210,7 +265,10 @@ class SequenceControlWidget(QWidget):
         self._btn_stop.setEnabled(True)
 
         self._runner = SequenceRunnerThread(
-            self._motion, self._camera, self._positions
+            self._motion,
+            self._camera,
+            self._positions,
+            apply_mode=self.radio_apply.isChecked()   # passa modo global
         )
         self._runner.progress.connect(self._on_progress)
         self._runner.imageCaptured.connect(self.imageCaptured)

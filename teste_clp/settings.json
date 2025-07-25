@@ -51,5 +51,9 @@
     "z1_width_mm": 37.0,
     "z1_height_mm": 29.0
   },
+  "camera_nozzle_offset": {
+    "x": 24,
+    "y": -4586
+  },
   "projects_dir": "C:\\Users\\sense\\PycharmProjects\\cnc_aoi\\teste_clp\\Projetos"
 }

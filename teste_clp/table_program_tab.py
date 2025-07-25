@@ -771,11 +771,22 @@ class TableProgramTab(QWidget):
     def _to_model(self):
         out = []
         for p in self.inspect_widget.positions():
+            # meta da ação (dot / barcode / fiducial / inspect)
+            action_key = None
+            if isinstance(p.meta, dict):
+                action_key = p.meta.get("action")
+            cam_params = {"action": action_key} if action_key else {}
             # Salva somente X, Y (desta mesa) e Z
             if self.y_axis == 'Y1':
                 out.append(InspectionPosition(name=p.name,
-                                              x=p.x, y1=p.y1, y2=None, z=p.z))
+                                              x=p.x,
+                                              y1=p.y1, y2=None,
+                                              z=p.z,
+                                              camera_params=cam_params))
             else:
                 out.append(InspectionPosition(name=p.name,
-                                              x=p.x, y2=p.y2, y1=None, z=p.z))
+                                              x=p.x,
+                                              y2=p.y2, y1=None,
+                                              z=p.z,
+                                              camera_params=cam_params))
         return out

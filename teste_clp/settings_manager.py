@@ -35,6 +35,10 @@ class SettingsManager:
                 "z1_width_mm": 30.5,
                 "z1_height_mm": 22.5
             },
+            # ------------   OFFSET CÂMERA  →  NOZZLE    ---------------
+            # Guardado em PULSOS (mesma unidade dos motores).
+            "camera_nozzle_offset": {"x": 0, "y": 0},
+
             # ------- NOVO: pasta-raiz dos projetos -----------------
             # será algo como  C:\QualquerLugar\Projetos
             "projects_dir": str((Path.home() / "Projetos").resolve())
@@ -114,6 +118,16 @@ class SettingsManager:
     @camera_fov.setter
     def camera_fov(self, d: dict):
         self.data["camera_fov"] = d
+
+    # ------------ OFFSET CÂMERA↔NOZZLE ------------------------------
+    @property
+    def cam_noz_offset(self) -> dict[str, int]:
+        off = self.data.get("camera_nozzle_offset", {"x": 0, "y": 0})
+        return {"x": int(off.get("x", 0)), "y": int(off.get("y", 0))}
+
+    @cam_noz_offset.setter
+    def cam_noz_offset(self, off: dict[str, int]):
+        self.data["camera_nozzle_offset"] = {"x": int(off["x"]), "y": int(off["y"])}
 
     # ------------ PASTA «PROJETOS» ----------------------------------
     @property

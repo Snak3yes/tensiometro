@@ -6,6 +6,7 @@ from virtual_home_dialog import ConfigHomeDialog
 from axis_calibration_dialog import AxisCalibrationDialog
 from settings_manager import SettingsManager
 from camera_manager   import CameraManager
+from alignment_dialog import AlignmentDialog
 # widgets externos importados
 from table_program_tab           import TableProgramTab
 from axes_control_tab            import AxesControlTab
@@ -243,6 +244,11 @@ class MultiAxisMotorController(QMainWindow):
         self.settings = SettingsManager()
         self.table_limits = self.settings.table_limits
 
+        # -------------------------------------------------------------
+        #  OFFSET CÂMERA ↔ NOZZLE deve existir ANTES do backend PLC
+        # -------------------------------------------------------------
+        self.camera_nozzle_offset = self.settings.cam_noz_offset
+
         # ------------------------------------------------------------
         #  Diretório-base dos projetos (…\Projetos\modelos\…)
         # ------------------------------------------------------------
@@ -258,10 +264,8 @@ class MultiAxisMotorController(QMainWindow):
 
         # backend de movimento criado uma única vez e reutilizado
         self._plc_motion_backend = PLCMotionBackend(self)
-
         # ---------------- STEPS/MM  -----------------------------
         self.steps_per_mm: dict[str,float] = self.settings.axis_steps
-
         # -------- escala da câmera (mm/pixel) -------------------
         self.mm_per_pixel: float = self.settings.camera_mm_per_pixel
 
@@ -365,6 +369,10 @@ class MultiAxisMotorController(QMainWindow):
         act_homecfg = menu_cfg.addAction("Homing Virtual…")
         act_homecfg.triggered.connect(self._open_virtual_home_dialog)
 
+        # ------------- NOVO  –  ALINHAMENTO NOZZLE/CÂMERA ---------
+        act_align = menu_cfg.addAction("Alinhamento Nozzle↔Câmera…")
+        act_align.triggered.connect(self._open_alignment_dialog)
+
         # ------------------ DOT PATTERNS ---------------------------
         act_dots = menu_prog.addAction("Padrões de Dots…")
         act_dots.triggered.connect(self._open_dot_dialog)
@@ -463,6 +471,27 @@ class MultiAxisMotorController(QMainWindow):
         if not hasattr(self, "_prog_widgets"):
             self._prog_widgets = []
         self._prog_widgets.append(widget)
+
+    # ================================================================
+    #       ALINHAMENTO NOZZLE  ↔  CÂMERA   (offset X,Y)
+    # ================================================================
+    def _open_alignment_dialog(self):
+        
+        dlg = AlignmentDialog(self, self)          # não modal
+        dlg.offsetSaved.connect(self._save_nozzle_offset)
+        dlg.show()
+
+    def _save_nozzle_offset(self, off: dict[str, int]):
+        """Salvo em memória e disco."""
+        self.camera_nozzle_offset = off
+        self.settings.cam_noz_offset = off
+        self.settings.save()
+        self.log(f"■ Offset câmera↔nozzle salvo: ΔX={off['x']}  ΔY={off['y']}")
+
+        # informa backend caso já exista
+        if hasattr(self, "_plc_motion_backend"):
+            self._plc_motion_backend._off_x = off.get("x", 0)
+            self._plc_motion_backend._off_y = off.get("y", 0)
 
     def _current_prog_widget(self):
         """Devolve o ProgramIOWidget associado à aba visível."""
@@ -2414,7 +2443,10 @@ class PLCMotionBackend(MotionBackend):
     """
     def __init__(self, ctrl: MultiAxisMotorController):
         self._c = ctrl
+        self._off_x = ctrl.camera_nozzle_offset.get("x", 0)
+        self._off_y = ctrl.camera_nozzle_offset.get("y", 0)
         self._feed = 1000
+        self._apply_offset = True      # default = APPLY
         self._targets: dict[str,int] = {}   # destino mais recente por eixo
 
     # --------------------------------------------------------------
@@ -2427,14 +2459,22 @@ class PLCMotionBackend(MotionBackend):
         self._feed = feed_rate
         try:
             # Escreve apenas eixos cujo valor não é None
-            if x  is not None:  self._move_axis('X',  int(x))
-            if y2 is not None:  self._move_axis('Y2', int(y2))
-            if y1 is not None:  self._move_axis('Y1', int(y1))
+            dx = self._off_x if self._apply_offset else 0
+            dy = self._off_y if self._apply_offset else 0
+            if x  is not None:  self._move_axis('X',  int(x)  - dx)
+            if y2 is not None:  self._move_axis('Y2', int(y2) - dy)
+            if y1 is not None:  self._move_axis('Y1', int(y1) - dy)
             if z  is not None:  self._move_axis('Z',  int(z))
             return True
         except Exception as exc:
             self._c.log(f"Erro move_to_abs: {exc}")
             return False
+    
+    # --------------------------------------------------------------
+    #  NOVO: muda modo de offset  (True = APPLY, False = VIEW)
+    # --------------------------------------------------------------
+    def set_offset_mode(self, apply_offset: bool):
+        self._apply_offset = bool(apply_offset)
 
     def _move_axis(self, axis: str, pulses: int):
         spin = getattr(self._c, f"pulsos_spin_{axis}")
