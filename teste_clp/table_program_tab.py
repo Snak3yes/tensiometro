@@ -298,6 +298,11 @@ class TableProgramTab(QWidget):
             validate_position=self._validate_position,
             get_action_context=self._current_action_context
         )
+
+        # ――――― NOVO: duplo-clique leva a cabeça até a posição ――――――
+        self.inspect_widget.list_widget.itemDoubleClicked.connect(
+            self._on_position_double_clicked)
+
         v_right.addWidget(self.inspect_widget)
 
         # --- backend que salva 3 eixos + extensão dedicada ------------
@@ -372,6 +377,41 @@ class TableProgramTab(QWidget):
 
         # ============================ PERSONALIZAÇÃO UI ================
         self._adapt_widgets_for_single_y()
+
+    # ==================================================================
+    #  DUAS LINHAS →  duplo-clique na lista “Posições de Inspeção”
+    # ==================================================================
+    def _on_position_double_clicked(self, item):
+        """
+        Move a cabeça para as coordenadas salvas no ponto
+        que o usuário clicou duas vezes na Tree/List.
+        """
+        row = self.inspect_widget.list_widget.row(item)
+        try:
+            pos = self.inspect_widget.positions()[row]
+        except IndexError:
+            return
+
+        # extrai destino absoluto
+        tgt_x = int(pos.x)
+        tgt_y = int(pos.y1 if self.y_axis == "Y1" else pos.y2)
+        tgt_z = int(pos.z)
+        y_axis = self.y_axis
+
+        # escreve spinBoxes “fantasma” para que o backend PLC use
+        self.ctrl.pulsos_spin_X.setValue(tgt_x)
+        getattr(self.ctrl, f"pulsos_spin_{y_axis}").setValue(tgt_y)
+        self.ctrl.pulsos_spin_Z.setValue(tgt_z)
+
+        # desloca cada eixo (X e Y juntos; Z por último ou primeiro,
+        # conforme preferir – aqui fazemos X/Y depois Z para segurança)
+        self.ctrl.move_axis_absolute("X")
+        self.ctrl.move_axis_absolute(y_axis)
+        self.ctrl.move_axis_absolute("Z")
+
+        self.ctrl.log(
+            f"■ Duplo-clique: movendo para {pos.name}  "
+            f"(X={tgt_x}, {y_axis}={tgt_y}, Z={tgt_z})")
 
     # ------------------------------------------------------------------
     #  NOVO  –  cria estrutura e salva imagens no ato da adição
