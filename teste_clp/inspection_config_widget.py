@@ -58,12 +58,17 @@ class _AuxDialog(QDialog):
         )
         self._pix_item = self.view_region.scene().addPixmap(self._orig_pix)
         # Posições mecânicas — pede nome ao concluir
+        _aux_dir = (os.path.join(ctrl_widget._c.prog_mgr.path, "arquivos_auxiliares")
+                    if hasattr(ctrl_widget, '_c') and hasattr(ctrl_widget._c, 'prog_mgr')
+                       and ctrl_widget._c.prog_mgr else None)
+        if _aux_dir:
+            os.makedirs(_aux_dir, exist_ok=True)
         self.region_editor = ROIWindowEditor(
-            self.view_region, 
-            ask_name=True, 
-            autosave_path=os.path.join(ctrl_widget._c.prog_mgr.path, "mechanical_positions.json") if hasattr(ctrl_widget, '_c') and hasattr(ctrl_widget._c, 'prog_mgr') and ctrl_widget._c.prog_mgr else None
+            self.view_region,
+            ask_name=True,
+            autosave_path=(os.path.join(_aux_dir, "mechanical_positions.json")
+                           if _aux_dir else None)
         )
-
         # ---------- mantém cópia BGR da imagem para recortes ----------
         # numpy BGR correspondente – usado para recortes exatos
         self._orig_bgr = None
@@ -118,11 +123,14 @@ class _AuxDialog(QDialog):
                 QPainter.RenderHint.Antialiasing
             )
             self.view_roi.scene().addPixmap(roi_pix)
+            _aux_dir2 = _aux_dir    # mesma pasta calculada acima
+            if _aux_dir2:
+                os.makedirs(_aux_dir2, exist_ok=True)
             self.roi_editor = ROIWindowEditor(
                 self.view_roi,
-                autosave_path=os.path.join(ctrl_widget._c.prog_mgr.path, "comparison_windows.json") if hasattr(ctrl_widget, '_c') and hasattr(ctrl_widget._c, 'prog_mgr') and ctrl_widget._c.prog_mgr else None
+                autosave_path=(os.path.join(_aux_dir2, "comparison_windows.json")
+                               if _aux_dir2 else None)
             )
-
             parent_lay = roi_label.parentWidget().layout()
             idx = parent_lay.indexOf(roi_label)
             parent_lay.removeWidget(roi_label)
@@ -382,34 +390,28 @@ class _AuxDialog(QDialog):
             return
         
         # NOVA LÓGICA: Converte para dados do componente (como no gerador)
-        # Obtém coordenadas da janela ROI em relação à ROI original
-        roi_rect = roi_item.rect()
-            
-        # Converte coordenadas da cena ROI para coordenadas absolutas da ROI
-        if parent_name not in self.componentes:
-            # Inicializa dados do componente se não existir
-            pos_rect = parent_item.sceneBoundingRect()
-            self.componentes[parent_name] = {
-                'posicao': (int(pos_rect.x()), int(pos_rect.y())),
-                'dimensoes': (int(pos_rect.width()), int(pos_rect.height())),
-               'roi': None,  # será preenchido quando necessário
-                'inspecoes': []
-            }
-        
-        # Calcula coordenadas absolutas (simula o sistema do gerador)
-        scene_rect = self.view_roi.sceneRect()
-        # Para simplicidade, assume que a cena ROI tem o mesmo tamanho da ROI
-        roi_w, roi_h = scene_rect.width(), scene_rect.height()
-        
-        if roi_w > 0 and roi_h > 0:
-            # Coordenadas absolutas na ROI original
-            x_orig = int(roi_rect.x())
-            y_orig = int(roi_rect.y())
-            w_orig = int(roi_rect.width())
-            h_orig = int(roi_rect.height())
-        else:
-            x_orig, y_orig, w_orig, h_orig = int(roi_rect.x()), int(roi_rect.y()), int(roi_rect.width()), int(roi_rect.height())
-        
+        # ------------------------------------------------------------
+        #  NOVO: guarda POSIÇÃO ABSOLUTA dentro da imagem da REGIÃO
+        # ------------------------------------------------------------
+        roi_rect   = roi_item.rect()                        # rel. à ROI
+        par_scene  = parent_item.sceneBoundingRect()        # abs. REGIÃO
+        par_x, par_y = int(par_scene.x()), int(par_scene.y())
+
+        # Garante entrada e ACTUALIZA coordenadas da posição mecânica
+        comp_entry = self.componentes.setdefault(
+            parent_name,
+            {'posicao': (par_x, par_y),
+             'dimensoes': (int(par_scene.width()), int(par_scene.height())),
+             'inspecoes': []}
+        )
+        comp_entry['posicao']   = (par_x, par_y)
+        comp_entry['dimensoes'] = (int(par_scene.width()), int(par_scene.height()))
+
+        # Coordenadas ABSOLUTAS da janela azul
+        x_orig = par_x + int(roi_rect.x())
+        y_orig = par_y + int(roi_rect.y())
+        w_orig = int(roi_rect.width())
+        h_orig = int(roi_rect.height())
         # Conta janelas existentes para gerar nome
         existing_count = len(self.componentes[parent_name]['inspecoes'])
         comp_name = f"w{existing_count + 1}"
@@ -1034,17 +1036,22 @@ class _AuxDialog(QDialog):
             self.log(f"🔄 Atualizando ROI para componente: {component_name}")
             # FORÇA redesenho mesmo se componente não tem janelas (para limpar cena)
             if component_name:
-                # Garante que componente existe no dicionário
-                if component_name not in self.componentes:
-                    self.componentes[component_name] = {
-                        'posicao': (0, 0),
-                        'dimensoes': (100, 100),
-                        'roi': None,
-                        'inspecoes': []  # Lista vazia
-                    }
-                inspecoes_count = len(self.componentes[component_name].get('inspecoes', []))
-                self.log(f"📊 Componente {component_name} tem {inspecoes_count} janelas salvas")
-                # SEMPRE chama redesenho (vai limpar cena se não há janelas)
+                # POSIÇÃO *REAL* da posição mecânica
+                par_scene  = item.sceneBoundingRect()
+                pos_tuple  = (int(par_scene.x()),  int(par_scene.y()))
+                dim_tuple  = (int(par_scene.width()), int(par_scene.height()))
+
+                comp = self.componentes.setdefault(
+                    component_name,
+                    {'posicao': pos_tuple,
+                     'dimensoes': dim_tuple,
+                     'inspecoes': []}
+                )
+                # mantém sempre actualizados
+                comp['posicao']   = pos_tuple
+                comp['dimensoes'] = dim_tuple
+
+                # redesenha (ou limpa) janelas do componente
                 self._redesenhar_janelas_inspecao(component_name)
 
     def _redesenhar_janelas_inspecao(self, componente):
@@ -1099,30 +1106,37 @@ class _AuxDialog(QDialog):
         cor_azul = Qt.GlobalColor.blue
 
         for i, inspecao in enumerate(self.componentes[componente].get('inspecoes', [])):
-            # CORREÇÃO CRÍTICA: Usa coordenadas ATUAIS (que incluem modificações do usuário)
-            x_orig, y_orig = inspecao['posicao']
+            # -------------------------------------------------------------
+            # 1. Posição absoluta (salva no dicionário)
+            x_abs, y_abs = inspecao['posicao']
             w_orig, h_orig = inspecao['tamanho']
-
-            # DEBUGGING: Log das coordenadas que serão usadas
-            self.log(f"🔧 Redesenhando w{i+1}: pos=({x_orig},{y_orig}), tam=({w_orig},{h_orig})")
-
-            # Para simplicidade, usa coordenadas diretas (pode ser ajustado se necessário)
-            # No gerador original, há conversão de escala aqui
-            graphicsView_x = x_orig
-            graphicsView_y = y_orig
+            # 2. Deslocamento da ROI mecânica (ponto-pai)
+            pai_x, pai_y = self.componentes[componente]['posicao']
+            # 3. Converte para COORDENADA RELATIVA à imagem exibida
+            graphicsView_x = x_abs - pai_x
+            graphicsView_y = y_abs - pai_y
+            # DEBUG
+            self.log(f"■ Redesenhando w{i+1}: abs=({x_abs},{y_abs}) "
+                     f"→ rel=({graphicsView_x},{graphicsView_y}) "
+                     f"tam=({w_orig},{h_orig})")
             graphicsView_w = w_orig
             graphicsView_h = h_orig
 
             # CORREÇÃO CRÍTICA: Callback que salva alterações do usuário
-            def _on_insp_change(item, d=inspecao, comp=componente):
+            def _on_insp_change(item,
+                                d=inspecao,
+                                comp=componente,
+                                off_x=pai_x,
+                                off_y=pai_y):
                 """Atualiza dados quando item é modificado"""
                 # CORREÇÃO: Permite salvar alterações do usuário mesmo durante redesenho
                 # Só bloqueia durante a criação inicial do item
                 if hasattr(self, '_criando_item') and self._criando_item:
                     return
                 br = item.sceneBoundingRect()
-                # CORREÇÃO CRÍTICA: Atualiza coordenadas principais (que são usadas no redesenho)
-                new_pos = (int(br.x()), int(br.y()))
+                # Converte de volta para absoluta somando o offset da ROI
+                new_pos = (int(br.x()) + off_x,
+                           int(br.y()) + off_y)
                 new_tam = (int(br.width()), int(br.height()))
                 d['posicao'] = new_pos
                 d['tamanho'] = new_tam
@@ -1607,7 +1621,49 @@ class InspectionConfigWidget(QGroupBox):
         self._set_main_pixmap(roi)
         self.regionCaptured.emit(roi)
         # Limpa cache quando nova região é definida
-        self.clear_auxiliary_cache()    
+        self.clear_auxiliary_cache() 
+
+    # ================================================================
+    #  NOVO  –  limpeza completa dos visores Região / ROI
+    # ================================================================
+    def clear_views(self):
+        """
+        Apaga as imagens exibidas nos visores 'Região' e 'ROI' e remove
+        todas as janelas (vermelhas/azuis) desenhadas nesses visores.
+        Usado quando o utilizador adiciona um ponto de INSPEÇÃO
+        para iniciar a próxima configuração “do zero”.
+        """
+        # ----------- limpa imagem da REGIÃO --------------------------
+        self._set_main_pixmap(None)
+        # remove retângulos do editor da Região
+        for it in list(self.region_editor.windows):
+            try:
+                if it.scene():
+                    self.region_editor.view.scene().removeItem(it)
+            except RuntimeError:
+                pass
+        self.region_editor.windows.clear()
+        # ----------- limpa ROI --------------------------------------
+        self.lbl_roi.clear()
+        if hasattr(self, "_roi_pix_item") and self._roi_pix_item:
+            try:
+                if self.view_roi and self._roi_pix_item.scene():
+                    self.view_roi.scene().removeItem(self._roi_pix_item)
+            except RuntimeError:
+                pass
+            self._roi_pix_item = None
+        # remove janelas de comparação
+        if hasattr(self, "roi_editor") and self.roi_editor:
+            for it in list(self.roi_editor.windows):
+                try:
+                    if it.scene():
+                        it.scene().removeItem(it)
+                except RuntimeError:
+                    pass
+            self.roi_editor.windows.clear()
+        # zera caches visuais
+        self._last_roi_bgr = None
+        self._cached_auxiliary_data['region_image'] = None
 
     def _show_pixmap(self, label: QLabel, img_bgr, *, draw_border=False):
         print(f"[DEBUG] === _SHOW_PIXMAP INICIADO ===")
@@ -2032,7 +2088,11 @@ class InspectionConfigWidget(QGroupBox):
         # ----------------------------------------------------------
         component_name = getattr(item, 'name', None)
         if component_name:
-            roi_bgr = self._draw_comparison_windows(roi_bgr, component_name)
+            roi_bgr = self._draw_comparison_windows(
+                roi_bgr,
+                component_name,
+                roi_origin=(x, y)        # origem ABS da ROI
+            )
 
         # Mostra no visor ‘ROI’
         self._show_pixmap(self.lbl_roi, roi_bgr)
@@ -2041,7 +2101,10 @@ class InspectionConfigWidget(QGroupBox):
     #  Desenha retângulos AZUIS das janelas de comparação
     #  sobre a imagem do ROI recortado.
     # --------------------------------------------------------------
-    def _draw_comparison_windows(self, img_bgr, component_name):
+    def _draw_comparison_windows(self,
+                                 img_bgr,
+                                 component_name,
+                                 roi_origin=(0, 0)):
         """
         Sobrepõe à imagem ‘img_bgr’ (numpy BGR) os retângulos das
         janelas de comparação (cor azul) pertencentes ao componente
@@ -2059,7 +2122,10 @@ class InspectionConfigWidget(QGroupBox):
 
         h_img, w_img = img_bgr.shape[:2]
         for insp in inspecoes:
-            (x, y) = insp.get('posicao', (0, 0))
+            # Converte coordenadas ABS ➜ relativas à ROI recortada
+            (x_abs, y_abs) = insp.get('posicao', (0, 0))
+            x = x_abs - roi_origin[0]
+            y = y_abs - roi_origin[1]
             (w, h) = insp.get('tamanho', (0, 0))
             # garante que o retângulo fica dentro da imagem
             x = max(0, min(x, w_img - 1))

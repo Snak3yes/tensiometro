@@ -86,7 +86,8 @@ class AdhesiveProgramManager:
             shutil.rmtree(self.model_dir)
 
         # cria tronco principal
-        for sub in ("logs", "regioes"):
+        # sub-pastas fixas
+        for sub in ("logs", "regioes", "arquivos_auxiliares"):
             (self.model_dir / sub).mkdir(parents=True, exist_ok=True)
 
         # grava config.txt minimal   (mesma linha de raciocínio do PM original)

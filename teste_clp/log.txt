@@ -1,7 +1,7 @@
 (.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
-[15:32:38] Conectando ao CLP...
-[15:32:38] ✅ Conectado com sucesso!
-[15:32:38] 🔧 Endereços corrigidos conforme ladder real
+[11:28:06] Conectando ao CLP...
+[11:28:06] ✅ Conectado com sucesso!
+[11:28:06] 🔧 Endereços corrigidos conforme ladder real
 ============================================================
 CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 ============================================================
@@ -20,7 +20,6 @@ CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 • Leitura em tempo real das posições dos motores corrigida
 • Status inicial e atualização automática dos LEDs de homing
 ============================================================
-[15:32:40] ‚úÖ Configuração – leitura concluída
 QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
@@ -61,601 +60,31 @@ QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
 QPainter::end: Painter not active, aborted
-[15:32:40] 📖 Lendo velocidades JOG atuais...
-[15:32:41] 📖 Lendo limites da ROM...
-[15:32:41] 📊 Limites Y2: 0 a 18000
-[15:32:41] 📊 Limites Y1: 0 a 18000
-[15:32:41] 📊 Limites X: 0 a 50000
-[15:32:41] 📊 Limites Z: 0 a 1000
-[15:32:42] 📖 Lendo status inicial das memórias de homing...
-[15:32:42] 🏠 Status inicial Homing Y2: REALIZADO
-[15:32:42] 🏠 Status inicial Homing Y1: REALIZADO
-[15:32:42] 🏠 Status inicial Homing X: REALIZADO
-[15:32:42] 🏠 Status inicial Homing Z: REALIZADO
-[15:32:42] 📖 Leitura inicial de homing concluída
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
+[11:28:07] ‚úÖ Configuração – leitura concluída
+[11:28:08] 📖 Lendo velocidades JOG atuais...
+[11:28:09] 📖 Lendo limites da ROM...
+[11:28:09] 📊 Limites Y2: 0 a 18000
+[11:28:09] 📊 Limites Y1: 0 a 18000
+[11:28:09] 📊 Limites X: 0 a 50000
+[11:28:09] 📊 Limites Z: 0 a 1000
+[11:28:10] 📖 Lendo status inicial das memórias de homing...
+[11:28:10] 🏠 Status inicial Homing Y2: REALIZADO
+[11:28:10] 🏠 Status inicial Homing Y1: REALIZADO
+[11:28:10] 🏠 Status inicial Homing X: REALIZADO
+[11:28:10] 🏠 Status inicial Homing Z: REALIZADO
+[11:28:10] 📖 Leitura inicial de homing concluída
+[11:28:15] ■■ Estrutura base criada: C:\Users\sense\PycharmProjects\cnc_aoi\teste_clp\Projetos\modelos\qwe
+[11:28:15] ■■ Novo projeto “qwe” iniciado
 [DEBUG] Cache auxiliar limpo - 0 componentes removidos
-[DEBUG] === _SHOW_PIXMAP INICIADO ===
-[DEBUG] Label: 
-[DEBUG] Imagem: (461, 615, 3)
-[DEBUG] Draw border: True
-[DEBUG] Dimensões da imagem: 615x461
-[DEBUG] Desenhando borda amarela...
-[DEBUG] Imagem convertida para RGB
-[DEBUG] QImage criada: 615x461
-[DEBUG] QPixmap escalado para: 337x253
-[DEBUG] Label size: 338x253
-[DEBUG] ✅ Pixmap definido no label
-[DEBUG] ✅ Update e repaint forçados
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D4DC0>  @(311,45)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
+[DEBUG] Visor principal limpo
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DE320>  @(111,6)
 [AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D4DC0>  @(116,206)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] ➕ Posição mecânica adicionada à tree: asd
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(400,198)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(449,169)
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
-[AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
@@ -663,499 +92,1098 @@ QPainter::end: Painter not active, aborted
 [AuxDialog] 🎯 Posição selecionada: qwe
 🔍 Focando em: TODOS os itens
 [AuxDialog] 🔄 Atualizando ROI para componente: qwe
-[AuxDialog] 📊 Componente qwe tem 0 janelas salvas
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (0 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
 [AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 0 janelas para qwe
 [AuxDialog] 🏭 Seleção tree → posição: qwe
-[AuxDialog] 🎯 Posição selecionada: qwe
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(310, 44), dims=(205, 225)
-[AuxDialog] 🔄 Janela modificada: Posição “qwe”
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5AB0>  @(24,21)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: qwe
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DE440>  @(43,23)
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (1 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(24,21), tam=(65,91)
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(152,27) tam=(87,232)  
 [AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 1 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w1 → pai qwe
 [AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
 [AuxDialog] ➕ Janela de comparação adicionada: w1
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5AB0>  @(138,118)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DE440>  @(10,25)
 [AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(24,21), tam=(65,91)
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(152,27) tam=(87,232)  
 [AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
 [AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
-[AuxDialog] 🔧 Redesenhando w2: pos=(138,118), tam=(52,82)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(119,29) tam=(87,214)  
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
 [AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
 [AuxDialog] 🔗 Dados salvos w2 → pai qwe
 [AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
 [AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(258,96)
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(110, 5), dims=(178, 276)
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 🔍 Detectado placeholder para: w2
+[AuxDialog] 🎯 Seleção tree → janela comparação: w2 (via placeholder)
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
 [AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🎯 Posição selecionada: asd
-🔍 Focando em: TODOS os itens
-[AuxDialog] 🔄 Atualizando ROI para componente: asd
-[AuxDialog] 📊 Componente asd tem 0 janelas salvas
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (0 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
-[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 0 janelas para asd
-[AuxDialog] 🏭 Seleção tree → posição: asd
-[AuxDialog] 🖱️ Click Tree → Posição mecânica: asd
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5630>  @(28,34)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (1 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(28,34), tam=(73,75)
-[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 1 janelas para asd
-[AuxDialog] 🔗 Dados salvos w1 → pai asd
-[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
-[AuxDialog] ➕ Janela de comparação adicionada: w1
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000001CC155D5630>  @(97,132)
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔄 Iniciando redesenho para 'asd' (2 janelas)
-[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
-[AuxDialog] 🔧 Redesenhando w1: pos=(28,34), tam=(73,75)
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
 [AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
 [AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
-[AuxDialog] 🔧 Redesenhando w2: pos=(97,131), tam=(31,41)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
 [AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
-[AuxDialog] 🔄 Redesenhadas 2 janelas para asd
-[AuxDialog] 🔗 Dados salvos w2 → pai asd
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] ✅ Janela azul w2 selecionada via placeholder
+[AuxDialog] 🖱️ Click Tree → Janela azul (w2): w2
+[AuxDialog] 🔄 TreeView forçada para: w2
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DE320>  @(330,67)
+[AuxDialog] ➕ Posição mecânica adicionada à tree: dfg
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “dfg”  @(359,119)
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para dfg
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para dfg
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para dfg
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para dfg
+[AuxDialog] 🎯 Posição selecionada: dfg
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para dfg
+[AuxDialog] 🏭 Seleção tree → posição: dfg
+[AuxDialog] 🎯 Posição selecionada: dfg
+[AuxDialog] 🔄 Posição mecânica 'dfg' atualizada em tempo real: pos=(329, 66), dims=(42, 96)
+[AuxDialog] 🔄 Janela modificada: Posição “dfg”
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DEF80>  @(12,22)
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 1 janelas para dfg
+[AuxDialog] 🔗 Dados salvos w1 → pai dfg
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w1
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DEF80>  @(9,63)
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para dfg
+[AuxDialog] 🔗 Dados salvos w2 → pai dfg
 [AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
 [AuxDialog] ➕ Janela de comparação adicionada: w2
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis        
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔄 Iniciando transfer de 2 componentes
-[AuxDialog]   📤 'qwe': pos=(310, 44), dims=(205, 225)
-[AuxDialog]   📤 'asd': pos=(0, 0), dims=(100, 100)
-[AuxDialog] 🔧 Posição 'qwe' atualizada no cache: pos=(310,44), dims=(205,225)
-[AuxDialog] 🔧 Posição 'asd' atualizada no cache: pos=(115,205), dims=(153,195)
-[DEBUG] Recebendo dados: 2 componentes
-[DEBUG] Componente recebido 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções
-[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
-[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
-[DEBUG] Componente recebido 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções
-[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
-[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
-[DEBUG] Imagem da região atualizada: (461, 615, 3)
-[DEBUG] Cache atualizado: 2 componentes
-[DEBUG] 🔄 Agendando update_main_viewer...
-[AuxDialog] 🔧 Chamando força atualização...
-[AuxDialog] ✅ 2 componentes transferidos para o widget principal        
-[DEBUG] 🔄 Atualização automática agendada para após fechamento
-[AuxDialog] 📂 Tentando carregar cache: 2 componentes disponíveis
-[AuxDialog] 📂 Cache 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções
-[AuxDialog] 📂 Cache 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções 
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] 📂 Tentando carregar cache: 2 componentes disponíveis        
-[AuxDialog] 📂 Cache 'qwe': pos=(310, 44), dims=(205, 225), 2 inspeções  
-[AuxDialog] 📂 Cache 'asd': pos=(115, 205), dims=(153, 195), 2 inspeções 
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x00000221753DEF80>  @(23,6)
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para dfg
+[AuxDialog] 🔗 Dados salvos w3 → pai dfg
+[AuxDialog] 🔗 Criando nó TreeView 'w3' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w3
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(199,135)
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para qwe
+[AuxDialog] 🏭 Seleção tree → posição: qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(110, 5), dims=(178, 276)
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x0000022175438D30>  @(57,55)
+[AuxDialog] 🖱️ Clique na janela azul: w2
+[AuxDialog] ✅ TreeView sincronizada: w2 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w3 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w3' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w3
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x0000022175438CA0>  @(48,155)
+[AuxDialog] 🖱️ Clique na janela azul: w2
+[AuxDialog] ✅ TreeView sincronizada: w2 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w4 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w4' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w4
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x00000221754395A0>  @(115,136)
+[AuxDialog] 🖱️ Clique na janela azul: w1
+[AuxDialog] ✅ TreeView sincronizada: w1 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w5 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w5' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w5
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para dfg
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para dfg
+[AuxDialog] 🎯 Posição selecionada: dfg
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: dfg
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para dfg
+[AuxDialog] 🏭 Seleção tree → posição: dfg
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: dfg
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x0000022175438430>  @(29,68)
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(357,133) → rel=(28,67) tam=(5,13)    
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para dfg
+[AuxDialog] 🔗 Dados salvos w4 → pai dfg
+[AuxDialog] 🔗 Criando nó TreeView 'w4' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w4
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x0000022175438430>  @(31,42)
+[AuxDialog] 🔄 Iniciando redesenho para 'dfg' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(340,87) → rel=(11,21) tam=(15,32)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(338,129) → rel=(9,63) tam=(14,14)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(352,72) → rel=(23,6) tam=(7,10)      
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(357,133) → rel=(28,67) tam=(5,13)    
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(359,107) → rel=(30,41) tam=(4,16)    
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para dfg
+[AuxDialog] 🔗 Dados salvos w5 → pai dfg
+[AuxDialog] 🔗 Criando nó TreeView 'w5' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w5
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “qwe”  @(237,72)
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: qwe
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para qwe
+[AuxDialog] 🏭 Seleção tree → posição: qwe
+[AuxDialog] 🎯 Posição selecionada: qwe
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(110, 5), dims=(178, 276)
+[AuxDialog] 🔄 Janela modificada: Posição “qwe”
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x0000022175439000>  @(17,33)
+[AuxDialog] 🖱️ Clique na janela azul: w2
+[AuxDialog] ✅ TreeView sincronizada: w2 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (6 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] ■ Redesenhando w6: abs=(127,37) → rel=(17,32) tam=(35,55)    
+[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 6 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w6 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w6' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w6
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x0000022175439090>  @(24,151)
+[AuxDialog] 🖱️ Clique na janela azul: w2
+[AuxDialog] ✅ TreeView sincronizada: w2 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (7 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] ■ Redesenhando w6: abs=(127,37) → rel=(17,32) tam=(35,55)    
+[AuxDialog] 🔗 Nó 'w6' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w6) ↔ Janela(w6)
+[AuxDialog] ■ Redesenhando w7: abs=(133,156) → rel=(23,151) tam=(38,36)  
+[AuxDialog] 🎯 Cena ROI agora tem 7 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 7 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w7 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w7' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w7
+[AuxDialog] 🖱️ Click vis. DIR: <selectable_rect_item.SelectableResizableRRectItem object at 0x000002217543B130>  @(110,63)
+[AuxDialog] 🖱️ Clique na janela azul: w1
+[AuxDialog] ✅ TreeView sincronizada: w1 selecionado
+[AuxDialog] 🔄 Iniciando redesenho para 'qwe' (8 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(152,27) → rel=(42,22) tam=(87,232)   
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(119,29) → rel=(9,24) tam=(87,214)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(166,59) → rel=(56,54) tam=(37,57)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(157,159) → rel=(47,154) tam=(34,29)  
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(224,141) → rel=(114,136) tam=(27,52) 
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] ■ Redesenhando w6: abs=(127,37) → rel=(17,32) tam=(35,55)    
+[AuxDialog] 🔗 Nó 'w6' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w6) ↔ Janela(w6)
+[AuxDialog] ■ Redesenhando w7: abs=(133,156) → rel=(23,151) tam=(38,36)  
+[AuxDialog] 🔗 Nó 'w7' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w7) ↔ Janela(w7)
+[AuxDialog] ■ Redesenhando w8: abs=(220,67) → rel=(110,62) tam=(35,46)   
+[AuxDialog] 🎯 Cena ROI agora tem 8 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 8 janelas para qwe
+[AuxDialog] 🔗 Dados salvos w8 → pai qwe
+[AuxDialog] 🔗 Criando nó TreeView 'w8' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w8
+[AuxDialog] 🔧 Posição 'qwe' atualizada no cache: pos=(110,5), dims=(178,276)
+[AuxDialog] 🔧 Posição 'dfg' atualizada no cache: pos=(329,66), dims=(42,96)
+[DEBUG] 🔄 Callback direto recebido: 2 componentes
+[DEBUG] 🔄 Atualizando visor principal diretamente: 2 componentes        
+[DEBUG] Imagem atualizada: (300, 400, 3)
+[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
+[DEBUG] Atualizando visor principal com 2 posições
+[DEBUG] Componente 'qwe': pos=(110, 5), dims=(178, 276), 8 inspeções     
+[DEBUG]   Inspeção 1: pos=(152, 27), tam=(87, 232)
+[DEBUG]   Inspeção 2: pos=(119, 29), tam=(87, 214)
+[DEBUG]   Inspeção 3: pos=(166, 59), tam=(37, 57)
+[DEBUG]   Inspeção 4: pos=(157, 159), tam=(34, 29)
+[DEBUG]   Inspeção 5: pos=(224, 141), tam=(27, 52)
+[DEBUG]   Inspeção 6: pos=(127, 37), tam=(35, 55)
+[DEBUG]   Inspeção 7: pos=(133, 156), tam=(38, 36)
+[DEBUG]   Inspeção 8: pos=(220, 67), tam=(35, 46)
+[DEBUG] Componente 'dfg': pos=(329, 66), dims=(42, 96), 5 inspeções      
+[DEBUG]   Inspeção 1: pos=(340, 87), tam=(15, 32)
+[DEBUG]   Inspeção 2: pos=(338, 129), tam=(14, 14)
+[DEBUG]   Inspeção 3: pos=(352, 72), tam=(7, 10)
+[DEBUG]   Inspeção 4: pos=(357, 133), tam=(5, 13)
+[DEBUG]   Inspeção 5: pos=(359, 107), tam=(4, 16)
+[DEBUG] Imagem base: 400x300 pixels
+[DEBUG] Componente 'qwe': pos=(110, 5), dims=(178, 276), 8 inspeções     
+[DEBUG] Componente 'dfg': pos=(329, 66), dims=(42, 96), 5 inspeções      
+[DEBUG] ‚úÖ Visor principal atualizado com itens clicáveis
+[DEBUG] ✅ Visor principal atualizado com sucesso
+[DEBUG] ✅ Callback direto executado com sucesso
+[AuxDialog] 📂 Cache 'qwe': pos=(110, 5), dims=(178, 276), 8 inspeções
+[AuxDialog] 📂 Cache 'dfg': pos=(329, 66), dims=(42, 96), 5 inspeções
+[AuxDialog] 📂 Cache 'qwe': pos=(110, 5), dims=(178, 276), 8 inspeções   
+[AuxDialog] 📂 Cache 'dfg': pos=(329, 66), dims=(42, 96), 5 inspeções    
 [AuxDialog] 📂 Carregados 2 componentes do cache
 [AuxDialog] 📂 Total de componentes após carregar: 2
 🔍 Focando em: TODOS os itens
 🔍 Focando em: TODOS os itens
-[AuxDialog] 📂 Recriando 'qwe': pos=(310, 44), dims=(205, 225)
-[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(309, 43), dims=(206, 226)
+[AuxDialog] 📂 Recriando 'qwe': pos=(110, 5), dims=(178, 276)
+[AuxDialog] 🔄 Posição mecânica 'qwe' atualizada em tempo real: pos=(109, 4), dims=(179, 277)
 [AuxDialog] 🔄 Janela modificada: Posição “qwe”
 [AuxDialog] ➕ Posição mecânica adicionada à tree: qwe
-[AuxDialog] 🔄 Posição 'qwe' restaurada com 2 janelas
-[AuxDialog] 📂 Recriando 'asd': pos=(115, 205), dims=(153, 195)
-[AuxDialog] 🔄 Posição mecânica 'asd' atualizada em tempo real: pos=(114, 204), dims=(154, 196)
-[AuxDialog] 🔄 Janela modificada: Posição “asd”
-[AuxDialog] ➕ Posição mecânica adicionada à tree: asd
-[AuxDialog] 🔄 Posição 'asd' restaurada com 2 janelas
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] Atualizando visor principal com 2 posições
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
-[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
-[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
-[DEBUG] Imagem base: 615x461 pixels
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG] Desenhando 2 posições em imagem 615x461
-[DEBUG] ✅ Texto 'qwe' adicionado
-[DEBUG] ✅ Posição 'qwe' processada completamente
-[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] ✅ Texto 'asd' adicionado
-[DEBUG] ✅ Posição 'asd' processada completamente
-[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
+[AuxDialog] 🔄 Posição 'qwe' restaurada com 8 janelas
+[AuxDialog] 📂 Recriando 'dfg': pos=(329, 66), dims=(42, 96)
+[AuxDialog] 🔄 Posição mecânica 'dfg' atualizada em tempo real: pos=(328, 65), dims=(43, 97)
+[AuxDialog] 🔄 Janela modificada: Posição “dfg”
+[AuxDialog] ➕ Posição mecânica adicionada à tree: dfg
+[AuxDialog] 🔄 Posição 'dfg' restaurada com 5 janelas
 [DEBUG] === _SHOW_PIXMAP INICIADO ===
-[DEBUG] Label:
-[DEBUG] Imagem: (461, 615, 3)
-[DEBUG] Draw border: True
-[DEBUG] Dimensões da imagem: 615x461
-[DEBUG] Desenhando borda amarela...
+[DEBUG] Label: 
+[DEBUG] Imagem: (276, 178, 3)
+[DEBUG] Draw border: False
+[DEBUG] Dimensões da imagem: 178x276
 [DEBUG] Imagem convertida para RGB
-[DEBUG] QImage criada: 615x461
-[DEBUG] QPixmap escalado para: 640x480
-[DEBUG] Label size: 640x480
+[DEBUG] QImage criada: 178x276
+[DEBUG] QPixmap escalado para: 89x138
+[DEBUG] Label size: 184x138
 [DEBUG] ✅ Pixmap definido no label
 [DEBUG] ✅ Update e repaint forçados
-[DEBUG] 🔧 FORCE_MAIN_VIEWER_UPDATE chamado
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] Atualizando visor principal com 2 posições
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
-[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
-[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
-[DEBUG] Imagem base: 615x461 pixels
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG] Desenhando 2 posições em imagem 615x461
-[DEBUG] ✅ Texto 'qwe' adicionado
-[DEBUG] ✅ Posição 'qwe' processada completamente
-[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] ✅ Texto 'asd' adicionado
-[DEBUG] ✅ Posição 'asd' processada completamente
-[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
 [DEBUG] === _SHOW_PIXMAP INICIADO ===
-[DEBUG] Label:
-[DEBUG] Imagem: (461, 615, 3)
-[DEBUG] Draw border: True
-[DEBUG] Dimensões da imagem: 615x461
-[DEBUG] Desenhando borda amarela...
+[DEBUG] Label: 
+[DEBUG] Imagem: (96, 42, 3)
+[DEBUG] Draw border: False
+[DEBUG] Dimensões da imagem: 42x96
 [DEBUG] Imagem convertida para RGB
-[DEBUG] QImage criada: 615x461
-[DEBUG] QPixmap escalado para: 640x480
-[DEBUG] Label size: 640x480
+[DEBUG] QImage criada: 42x96
+[DEBUG] QPixmap escalado para: 60x138
+[DEBUG] Label size: 184x138
 [DEBUG] ✅ Pixmap definido no label
 [DEBUG] ✅ Update e repaint forçados
-[DEBUG] ✅ Imagem atualizada no visor principal
-[DEBUG] ✅ Imagem atualizada no visor principal
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] Atualizando visor principal com 2 posições
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
-[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
-[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
-[DEBUG] Imagem base: 615x461 pixels
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG] Desenhando 2 posições em imagem 615x461
-[DEBUG] ✅ Texto 'qwe' adicionado
-[DEBUG] ✅ Posição 'qwe' processada completamente
-[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] ✅ Texto 'asd' adicionado
-[DEBUG] ✅ Posição 'asd' processada completamente
-[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
 [DEBUG] === _SHOW_PIXMAP INICIADO ===
-[DEBUG] Label:
-[DEBUG] Imagem: (461, 615, 3)
-[DEBUG] Draw border: True
-[DEBUG] Dimensões da imagem: 615x461
-[DEBUG] Desenhando borda amarela...
+[DEBUG] Label: 
+[DEBUG] Imagem: (276, 178, 3)
+[DEBUG] Draw border: False
+[DEBUG] Dimensões da imagem: 178x276
 [DEBUG] Imagem convertida para RGB
-[DEBUG] QImage criada: 615x461
-[DEBUG] QPixmap escalado para: 640x480
-[DEBUG] Label size: 640x480
+[DEBUG] QImage criada: 178x276
+[DEBUG] QPixmap escalado para: 89x138
+[DEBUG] Label size: 184x138
 [DEBUG] ✅ Pixmap definido no label
 [DEBUG] ✅ Update e repaint forçados
-[DEBUG] ✅ Imagem atualizada no visor principal
+[11:29:59] 📝 Escrevendo parâmetros Eixo X: Posição=39329
+[11:29:59] 📝 Posição alvo do eixo X escrita: 39329
+[11:29:59] ✓ D1100_X verificado: 39329
+[11:29:59] 🚀 Movendo eixo X para posição 39329
+[11:29:59]  Pulso M1050_X enviado
+[11:29:59] 🚀 Pulso M1050_X enviado – alvo 39329
+[11:29:59] 📍 Movimento relativo X: 36261 + 3068 = 39329
+[11:29:59] 📝 Escrevendo parâmetros Eixo Y1: Posição=4013
+[11:29:59] 📝 Posição alvo do eixo Y1 escrita: 4013
+[11:29:59] ✓ D600_Y1 verificado: 4013
+[11:29:59] 🚀 Movendo eixo Y1 para posição 4013
+[11:29:59]  Pulso M550_Y1 enviado
+[11:29:59] 🚀 Pulso M550_Y1 enviado – alvo 4013
+[11:29:59] 📍 Movimento relativo Y1: 5132 + -1119 = 4013
+[11:29:59] ■ Clique: ΔX=3068  ΔY=-1119 pulsos  (destino X=39329, Y=4013) 
+[11:30:00] 📝 Escrevendo parâmetros Eixo X: Posição=37467
+[11:30:00] 📝 Posição alvo do eixo X escrita: 37467
+[11:30:00] ✓ D1100_X verificado: 37467
+[11:30:00] 🚀 Movendo eixo X para posição 37467
+[11:30:00]  Pulso M1050_X enviado
+[11:30:00] 🚀 Pulso M1050_X enviado – alvo 37467
+[11:30:00] 📍 Movimento relativo X: 39329 + -1862 = 37467
+[11:30:00] 📝 Escrevendo parâmetros Eixo Y1: Posição=4990
+[11:30:00] 📝 Posição alvo do eixo Y1 escrita: 4990
+[11:30:00] ✓ D600_Y1 verificado: 4990
+[11:30:00] 🚀 Movendo eixo Y1 para posição 4990
+[11:30:00]  Pulso M550_Y1 enviado
+[11:30:00] 🚀 Pulso M550_Y1 enviado – alvo 4990
+[11:30:00] 📍 Movimento relativo Y1: 4013 + 977 = 4990
+[11:30:00] ■ Clique: ΔX=-1862  ΔY=977 pulsos  (destino X=37467, Y=4990)  
+[11:30:01] 📝 Escrevendo parâmetros Eixo X: Posição=35262
+[11:30:01] 📝 Posição alvo do eixo X escrita: 35262
+[11:30:01] ✓ D1100_X verificado: 35262
+[11:30:01] 🚀 Movendo eixo X para posição 35262
+[11:30:01]  Pulso M1050_X enviado
+[11:30:01] 🚀 Pulso M1050_X enviado – alvo 35262
+[11:30:01] 📍 Movimento relativo X: 37467 + -2205 = 35262
+[11:30:01] 📝 Escrevendo parâmetros Eixo Y1: Posição=6029
+[11:30:01] 📝 Posição alvo do eixo Y1 escrita: 6029
+[11:30:01] ✓ D600_Y1 verificado: 6029
+[11:30:01] 🚀 Movendo eixo Y1 para posição 6029
+[11:30:01]  Pulso M550_Y1 enviado
+[11:30:01] 🚀 Pulso M550_Y1 enviado – alvo 6029
+[11:30:01] 📍 Movimento relativo Y1: 4990 + 1039 = 6029
+[11:30:01] ■ Clique: ΔX=-2205  ΔY=1039 pulsos  (destino X=35262, Y=6029) 
+[11:30:01] 📝 Escrevendo parâmetros Eixo X: Posição=32993
+[11:30:01] 📝 Posição alvo do eixo X escrita: 32993
+[11:30:01] ✓ D1100_X verificado: 32993
+[11:30:01] 🚀 Movendo eixo X para posição 32993
+[11:30:01]  Pulso M1050_X enviado
+[11:30:01] 🚀 Pulso M1050_X enviado – alvo 32993
+[11:30:01] 📍 Movimento relativo X: 35262 + -2269 = 32993
+[11:30:01] 📝 Escrevendo parâmetros Eixo Y1: Posição=7068
+[11:30:01] 📝 Posição alvo do eixo Y1 escrita: 7068
+[11:30:01] ✓ D600_Y1 verificado: 7068
+[11:30:01] 🚀 Movendo eixo Y1 para posição 7068
+[11:30:01]  Pulso M550_Y1 enviado
+[11:30:01] 🚀 Pulso M550_Y1 enviado – alvo 7068
+[11:30:01] 📍 Movimento relativo Y1: 6029 + 1039 = 7068
+[11:30:01] ■ Clique: ΔX=-2269  ΔY=1039 pulsos  (destino X=32993, Y=7068) 
+[11:30:02] 📝 Escrevendo parâmetros Eixo X: Posição=33578
+[11:30:02] 📝 Posição alvo do eixo X escrita: 33578
+[11:30:02] ✓ D1100_X verificado: 33578
+[11:30:02] 🚀 Movendo eixo X para posição 33578
+[11:30:02]  Pulso M1050_X enviado
+[11:30:02] 🚀 Pulso M1050_X enviado – alvo 33578
+[11:30:02] 📍 Movimento relativo X: 32993 + 585 = 33578
+[11:30:02] 📝 Escrevendo parâmetros Eixo Y1: Posição=8129
+[11:30:02] 📝 Posição alvo do eixo Y1 escrita: 8129
+[11:30:02] ✓ D600_Y1 verificado: 8129
+[11:30:02] 🚀 Movendo eixo Y1 para posição 8129
+[11:30:02]  Pulso M550_Y1 enviado
+[11:30:02] 🚀 Pulso M550_Y1 enviado – alvo 8129
+[11:30:02] 📍 Movimento relativo Y1: 7068 + 1061 = 8129
+[11:30:02] ■ Clique: ΔX=585  ΔY=1061 pulsos  (destino X=33578, Y=8129)   
+[11:30:03] 📝 Escrevendo parâmetros Eixo X: Posição=33821
+[11:30:03] 📝 Posição alvo do eixo X escrita: 33821
+[11:30:03] ✓ D1100_X verificado: 33821
+[11:30:03] 🚀 Movendo eixo X para posição 33821
+[11:30:03]  Pulso M1050_X enviado
+[11:30:03] 🚀 Pulso M1050_X enviado – alvo 33821
+[11:30:03] 📍 Movimento relativo X: 33578 + 243 = 33821
+[11:30:03] 📝 Escrevendo parâmetros Eixo Y1: Posição=9077
+[11:30:03] 📝 Posição alvo do eixo Y1 escrita: 9077
+[11:30:03] ✓ D600_Y1 verificado: 9077
+[11:30:03] 🚀 Movendo eixo Y1 para posição 9077
+[11:30:03]  Pulso M550_Y1 enviado
+[11:30:03] 🚀 Pulso M550_Y1 enviado – alvo 9077
+[11:30:03] 📍 Movimento relativo Y1: 8129 + 948 = 9077
+[11:30:03] ■ Clique: ΔX=243  ΔY=948 pulsos  (destino X=33821, Y=9077)    
+[11:30:05] 📝 Escrevendo parâmetros Eixo X: Posição=34114
+[11:30:05] 📝 Posição alvo do eixo X escrita: 34114
+[11:30:05] ✓ D1100_X verificado: 34114
+[11:30:05] 🚀 Movendo eixo X para posição 34114
+[11:30:05]  Pulso M1050_X enviado
+[11:30:05] 🚀 Pulso M1050_X enviado – alvo 34114
+[11:30:05] 📍 Movimento relativo X: 33821 + 293 = 34114
+[11:30:05] 📝 Escrevendo parâmetros Eixo Y1: Posição=8957
+[11:30:05] 📝 Posição alvo do eixo Y1 escrita: 8957
+[11:30:05] ✓ D600_Y1 verificado: 8957
+[11:30:05] 🚀 Movendo eixo Y1 para posição 8957
+[11:30:05]  Pulso M550_Y1 enviado
+[11:30:05] 🚀 Pulso M550_Y1 enviado – alvo 8957
+[11:30:05] 📍 Movimento relativo Y1: 9077 + -120 = 8957
+[11:30:05] ■ Clique: ΔX=293  ΔY=-120 pulsos  (destino X=34114, Y=8957)   
+[DEBUG] Cache auxiliar limpo - 2 componentes removidos
+[DEBUG] Visor principal limpo
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1510>  @(25,22)
+[AuxDialog] ➕ Posição mecânica adicionada à tree: gjhk
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “gjhk”  @(109,80)
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para gjhk
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para gjhk
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para gjhk
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para gjhk
+[AuxDialog] 🎯 Posição selecionada: gjhk
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para gjhk
+[AuxDialog] 🏭 Seleção tree → posição: gjhk
+[AuxDialog] 🎯 Posição selecionada: gjhk
+[AuxDialog] 🔄 Posição mecânica 'gjhk' atualizada em tempo real: pos=(24, 21), dims=(134, 140)
+[AuxDialog] 🔄 Janela modificada: Posição “gjhk”
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC2200>  @(29,27)
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 1 janelas para gjhk
+[AuxDialog] 🔗 Dados salvos w1 → pai gjhk
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w1
+[AuxDialog] 🖱️ Click vis. ESQ: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1510>  @(269,53)
+[AuxDialog] ➕ Posição mecânica adicionada à tree: hjkl
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para hjkl
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para hjkl
+[AuxDialog] 🎯 Posição selecionada: hjkl
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (0 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] 🎯 Cena ROI agora tem 0 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 0 janelas para hjkl
+[AuxDialog] 🏭 Seleção tree → posição: hjkl
+[AuxDialog] 🖱️ Click Tree → Posição mecânica: hjkl
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(15,26)
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+[AuxDialog] 🔗 Dados salvos w2 → pai gjhk
+[AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w2
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(42,10)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (1 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🎯 Cena ROI agora tem 1 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 1 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w1 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w1' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w1
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(17,18)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w2 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w2' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w2
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(45,34)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (3 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🎯 Cena ROI agora tem 3 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 3 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w3 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w3' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w3
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(12,74)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (4 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🎯 Cena ROI agora tem 4 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 4 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w4 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w4' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w4
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC1630>  @(9,15)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w5 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w5' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w5
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “gjhk”  @(99,114)
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+[AuxDialog] 🎯 Posição selecionada: gjhk
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: gjhk
+[AuxDialog] 🔄 Iniciando redesenho para 'gjhk' (2 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(53,47) → rel=(29,26) tam=(42,73)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(38,46) → rel=(14,25) tam=(18,28)     
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] 🎯 Cena ROI agora tem 2 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 2 janelas para gjhk
+[AuxDialog] 🏭 Seleção tree → posição: gjhk
+[AuxDialog] 🎯 Posição selecionada: gjhk
+[AuxDialog] 🔄 Posição mecânica 'gjhk' atualizada em tempo real: pos=(24, 21), dims=(134, 140)
+[AuxDialog] 🔄 Janela modificada: Posição “gjhk”
+[AuxDialog] 🖱️ Click vis. ESQ: Posição “hjkl”  @(306,108)
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+[AuxDialog] 🎯 Posição selecionada: hjkl
+🔍 Focando em: TODOS os itens
+[AuxDialog] 🔄 Atualizando ROI para componente: hjkl
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (5 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas       
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(310,62) tam=(7,12)    
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(284,70) tam=(27,44)   
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(313,86) tam=(22,30)   
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(280,125) tam=(13,11) 
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(277,67) tam=(46,54)   
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] 🎯 Cena ROI agora tem 5 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 5 janelas para hjkl
+[AuxDialog] 🏭 Seleção tree → posição: hjkl
+[AuxDialog] 🎯 Posição selecionada: hjkl
+[AuxDialog] 🔄 Posição mecânica 'hjkl' atualizada em tempo real: pos=(268, 52), dims=(78, 92)
+[AuxDialog] 🔄 Janela modificada: Posição “hjkl”
+[AuxDialog] 🖱️ Click vis. DIR: <PyQt6.QtWidgets.QGraphicsPixmapItem objecct at 0x000002216ECC30A0>  @(29,24)
+[AuxDialog] 🔄 Iniciando redesenho para 'hjkl' (6 janelas)
+[AuxDialog] 🧹 Cena ROI limpa - todas as janelas antigas removidas
+[AuxDialog] ■ Redesenhando w1: abs=(310,62) → rel=(42,10) tam=(7,12)     
+[AuxDialog] 🔗 Nó 'w1' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w1) ↔ Janela(w1)
+[AuxDialog] ■ Redesenhando w2: abs=(284,70) → rel=(16,18) tam=(27,44)    
+[AuxDialog] 🔗 Nó 'w2' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w2) ↔ Janela(w2)
+[AuxDialog] ■ Redesenhando w3: abs=(313,86) → rel=(45,34) tam=(22,30)    
+[AuxDialog] 🔗 Nó 'w3' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w3) ↔ Janela(w3)
+[AuxDialog] ■ Redesenhando w4: abs=(280,125) → rel=(12,73) tam=(13,11)   
+[AuxDialog] 🔗 Nó 'w4' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w4) ↔ Janela(w4)
+[AuxDialog] ■ Redesenhando w5: abs=(277,67) → rel=(9,15) tam=(46,54)     
+[AuxDialog] 🔗 Nó 'w5' associado à janela azul (substitui placeholder)   
+[AuxDialog] 🔗 Associação bidirecional completa: TreeView(w5) ↔ Janela(w5)
+[AuxDialog] ■ Redesenhando w6: abs=(296,75) → rel=(28,23) tam=(16,28)    
+[AuxDialog] 🎯 Cena ROI agora tem 6 janelas de inspeção visíveis
+[AuxDialog] 🔄 Redesenhadas 6 janelas para hjkl
+[AuxDialog] 🔗 Dados salvos w6 → pai hjkl
+[AuxDialog] 🔗 Criando nó TreeView 'w6' com placeholder
+[AuxDialog] ➕ Janela de comparação adicionada: w6
+[AuxDialog] 🔧 Posição 'gjhk' atualizada no cache: pos=(24,21), dims=(134,140)
+[AuxDialog] 🔧 Posição 'hjkl' atualizada no cache: pos=(268,52), dims=(78,92)
+[DEBUG] 🔄 Callback direto recebido: 2 componentes
+[DEBUG] 🔄 Atualizando visor principal diretamente: 2 componentes        
+[DEBUG] Imagem atualizada: (300, 400, 3)
 [DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
 [DEBUG] Atualizando visor principal com 2 posições
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG]   Inspeção 1: pos=(24, 21), tam=(65, 91)
-[DEBUG]   Inspeção 2: pos=(138, 118), tam=(52, 82)
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG]   Inspeção 1: pos=(28, 34), tam=(73, 75)
-[DEBUG]   Inspeção 2: pos=(97, 131), tam=(31, 41)
-[DEBUG] Imagem base: 615x461 pixels
-[DEBUG] Componente 'qwe': pos=(309, 43), dims=(206, 226), 2 inspeções    
-[DEBUG] Componente 'asd': pos=(114, 204), dims=(154, 196), 2 inspeções   
-[DEBUG] Desenhando 2 posições em imagem 615x461
-[DEBUG] ✅ Texto 'qwe' adicionado
-[DEBUG] ✅ Posição 'qwe' processada completamente
-[DEBUG] ✅ Posição 'qwe' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] ✅ Texto 'asd' adicionado
-[DEBUG] ✅ Posição 'asd' processada completamente
-[DEBUG] ✅ Posição 'asd' concluída - janelas de inspeção serão exibidas apenas no visor ROI
-[DEBUG] Resultado: 2 posições e 0 inspeções desenhadas
-[DEBUG] === _SHOW_PIXMAP INICIADO ===
-[DEBUG] Label:
-[DEBUG] Imagem: (461, 615, 3)
-[DEBUG] Draw border: True
-[DEBUG] Dimensões da imagem: 615x461
-[DEBUG] Desenhando borda amarela...
-[DEBUG] Imagem convertida para RGB
-[DEBUG] QImage criada: 615x461
-[DEBUG] QPixmap escalado para: 640x480
-[DEBUG] Label size: 640x480
-[DEBUG] ✅ Pixmap definido no label
-[DEBUG] ✅ Update e repaint forçados
-[DEBUG] ✅ Imagem atualizada no visor principal
-
-[DEBUG] === FUNÇÃO DEBUG CHAMADA ===
-[DEBUG] === UPDATE_MAIN_VIEWER INICIADO ===
-[DEBUG] Componentes no cache: 0
-[DEBUG] Widget tem _last_roi_bgr: True
-[DEBUG] _last_roi_bgr é None: False
-
-=== DEBUG CACHE STATUS ===
-Componentes em cache: 0
-Imagem em cache: Não
-_last_roi_bgr: Sim
-========================
-
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] ⚠️ Nenhum componente no cache para exibir
-[DEBUG] ✅ update_main_viewer() chamado com sucesso
-[DEBUG] === FUNÇÃO DEBUG CONCLUÍDA ===
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 🔄 Iniciando transfer de 0 componentes
-[DEBUG] Recebendo dados: 0 componentes
-[DEBUG] Imagem da região atualizada: (461, 615, 3)
-[DEBUG] Cache atualizado: 0 componentes
-[DEBUG] ⚠️ Nenhum componente recebido - não atualizando visor
-[AuxDialog] 🔧 Chamando força atualização...
-[AuxDialog] ✅ 0 componentes transferidos para o widget principal        
-[DEBUG] 🔄 Atualização automática agendada para após fechamento
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[DEBUG] 🔧 FORCE_MAIN_VIEWER_UPDATE chamado
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] ⚠️ Nenhum componente no cache para exibir
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] ⚠️ Nenhum componente no cache para exibir
-[DEBUG] 🎯 UPDATE_MAIN_VIEWER chamado automaticamente
-[DEBUG] ⚠️ Nenhum componente no cache para exibir
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis        
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
-[AuxDialog] 📂 Tentando carregar cache: 0 componentes disponíveis
-[AuxDialog] 📂 Widget principal - inicializando auxiliar: False
-[AuxDialog] ⏳ Aguardando inicialização completa...
+[DEBUG] Componente 'gjhk': pos=(24, 21), dims=(134, 140), 2 inspeções    
+[DEBUG]   Inspeção 1: pos=(53, 47), tam=(42, 73)
+[DEBUG]   Inspeção 2: pos=(38, 46), tam=(18, 28)
+[DEBUG] Componente 'hjkl': pos=(268, 52), dims=(78, 92), 6 inspeções     
+[DEBUG]   Inspeção 1: pos=(310, 62), tam=(7, 12)
+[DEBUG]   Inspeção 2: pos=(284, 70), tam=(27, 44)
+[DEBUG]   Inspeção 3: pos=(313, 86), tam=(22, 30)
+[DEBUG]   Inspeção 4: pos=(280, 125), tam=(13, 11)
+[DEBUG]   Inspeção 5: pos=(277, 67), tam=(46, 54)
+[DEBUG]   Inspeção 6: pos=(296, 75), tam=(16, 28)
+[DEBUG] Imagem base: 400x300 pixels
+[DEBUG] Componente 'gjhk': pos=(24, 21), dims=(134, 140), 2 inspeções    
+[DEBUG] Componente 'hjkl': pos=(268, 52), dims=(78, 92), 6 inspeções     
+[DEBUG] ‚úÖ Visor principal atualizado com itens clicáveis
+[DEBUG] ✅ Visor principal atualizado com sucesso
+[DEBUG] ✅ Callback direto executado com sucesso
+[AuxDialog] 📂 Cache 'gjhk': pos=(24, 21), dims=(134, 140), 2 inspeções
+[AuxDialog] 📂 Cache 'hjkl': pos=(268, 52), dims=(78, 92), 6 inspeções
+[AuxDialog] 📂 Cache 'gjhk': pos=(24, 21), dims=(134, 140), 2 inspeções  
+[AuxDialog] 📂 Cache 'hjkl': pos=(268, 52), dims=(78, 92), 6 inspeções   
+[AuxDialog] 📂 Carregados 2 componentes do cache
+[AuxDialog] 📂 Total de componentes após carregar: 2
+🔍 Focando em: TODOS os itens
+🔍 Focando em: TODOS os itens
+[AuxDialog] 📂 Recriando 'gjhk': pos=(24, 21), dims=(134, 140)
+[AuxDialog] 🔄 Posição mecânica 'gjhk' atualizada em tempo real: pos=(23, 20), dims=(135, 141)
+[AuxDialog] 🔄 Janela modificada: Posição “gjhk”
+[AuxDialog] ➕ Posição mecânica adicionada à tree: gjhk
+[AuxDialog] 🔄 Posição 'gjhk' restaurada com 2 janelas
+[AuxDialog] 📂 Recriando 'hjkl': pos=(268, 52), dims=(78, 92)
+[AuxDialog] 🔄 Posição mecânica 'hjkl' atualizada em tempo real: pos=(267, 51), dims=(79, 93)
+[AuxDialog] 🔄 Janela modificada: Posição “hjkl”
+[AuxDialog] ➕ Posição mecânica adicionada à tree: hjkl
+[AuxDialog] 🔄 Posição 'hjkl' restaurada com 6 janelas

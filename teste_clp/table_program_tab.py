@@ -306,7 +306,8 @@ class TableProgramTab(QWidget):
         self.prog_widget = ProgramIOWidget(
             backend,
             file_filter=file_filter,
-            default_suffix=f".m{self.mesa}"
+            default_suffix=f".m{self.mesa}",
+            default_dir=self.ctrl.projects_dir
         )
         v_right.addWidget(self.prog_widget)
         # remove botões Salvar/Carregar da interface desta aba
@@ -410,8 +411,9 @@ class TableProgramTab(QWidget):
                     # crop ROI azul da imagem da região
                     if region_png is None:
                         continue
-                    x, y   = insp.get("posicao", (0, 0))
-                    w, h   = insp.get("tamanho", (0, 0))
+                    # As coordenadas já vêm em pixels absolutos
+                    x, y = insp.get("posicao", (0, 0))
+                    w, h = insp.get("tamanho", (0, 0))
                     if w == 0 or h == 0:
                         continue
                     roi_bgr = np_img[y:y+h, x:x+w].copy()
@@ -431,6 +433,14 @@ class TableProgramTab(QWidget):
                     )
         except Exception as exc:
             self.ctrl.log(f"■ Erro ao criar estrutura da posição: {exc}")
+        # ------------------------------------------------------------------
+        #  NOVO  –  limpa visores ‘Região’ e ‘ROI’ após adicionar INSPEÇÃO
+        # ------------------------------------------------------------------
+        try:
+            if self.inspect_cfg:
+                self.inspect_cfg.clear_views()
+        except Exception as exc:
+            self.ctrl.log(f"■ Erro ao limpar visores de inspeção: {exc}")
 
     # ------------------------------------------------------------------
     #  Clique no vídeo → mover cabeça

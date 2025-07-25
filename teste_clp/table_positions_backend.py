@@ -45,6 +45,8 @@ class TablePositionsBackend(ProgramStorageBackend):
                 mgr.create_program(prog_name, overwrite=False)
             except FileExistsError:
                 mgr.model_dir = Path(base_dir) / "modelos" / prog_name
+            # garante pasta de arquivos auxiliares
+            (mgr.model_dir / "arquivos_auxiliares").mkdir(parents=True, exist_ok=True)
 
             # percorre pontos para salvar imagens
             for idx, p in enumerate(self._w.positions(), 1):
@@ -68,23 +70,38 @@ class TablePositionsBackend(ProgramStorageBackend):
                 componentes = meta.get("componentes", {})
                 for posicao_nome, comp_data in componentes.items():
                     for insp in comp_data.get("inspecoes", []):
-                        x, y   = insp.get("posicao", (0, 0))
-                        w, h   = insp.get("tamanho", (0, 0))
-                        roi    = np_img[y:y+h, x:x+w]
+                        # As coordenadas já estão em pixels absolutos
+                        x, y = map(int, insp.get("posicao", (0, 0)))
+                        w, h = map(int, insp.get("tamanho", (0, 0)))
+
+                        # Ignora valores vazios ou negativos
+                        if w <= 0 or h <= 0:
+                            continue
+
+                        # Garante que o recorte não ultrapasse a borda da imagem
+                        img_h, img_w = np_img.shape[:2]
+                        x = max(0, min(x, img_w - 1))
+                        y = max(0, min(y, img_h - 1))
+                        w = min(w, img_w - x)
+                        h = min(h, img_h - y)
+
+                        roi = np_img[y:y + h, x:x + w]
                         if roi.size == 0:
                             continue
-                        roi_pil = Image.fromarray(cv2.cvtColor(roi,
-                                                               cv2.COLOR_BGR2RGB))
+
+                        roi_pil = Image.fromarray(
+                            cv2.cvtColor(roi, cv2.COLOR_BGR2RGB))
                         w_nome  = insp.get("nome", "w?")
                         meta_js = {
                             "janela_azul": (x, y, w, h),
                             "similaridade": insp.get("similaridade", 0.9)
                         }
-                        mgr.save_blue_reference(regiao_name,
-                                                posicao_nome,
-                                                w_nome,
-                                                roi_pil,
-                                                meta_js)
+                        mgr.save_blue_reference(
+                            regiao_name,
+                            posicao_nome,
+                            w_nome,
+                            roi_pil,
+                            meta_js)
 
         except Exception as exc:
             print("[WARN] Falha ao salvar imagens de inspeção:", exc)

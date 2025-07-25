@@ -38,6 +38,7 @@ class ProgramIOWidget(QWidget):
                  *,
                  file_filter: str = "Arquivos JSON (*.json)",
                  default_suffix: str = ".json",
+                 default_dir: str | Path = "",
                  parent=None) -> None:
         super().__init__(parent)
         if not isinstance(backend, ProgramStorageBackend):
@@ -47,6 +48,7 @@ class ProgramIOWidget(QWidget):
         self._backend = backend
         self._file_filter   = file_filter
         self._default_suf   = default_suffix
+        self._default_dir   = str(default_dir) if default_dir else ""
         self._build_ui()
 
     # ------------------------------------------------------------------
@@ -97,7 +99,9 @@ class ProgramIOWidget(QWidget):
 
     def _on_load_clicked(self):
         fname, _ = QFileDialog.getOpenFileName(
-            self, "Carregar Programa", "", self._file_filter
+            self, "Carregar Programa",
+            self._default_dir,
+            self._file_filter
         )
         if not fname:
             return

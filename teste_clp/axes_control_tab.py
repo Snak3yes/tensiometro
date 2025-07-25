@@ -75,8 +75,15 @@ class AxesControlTab(QWidget):
         self.inspect_widget.setMaximumHeight(260)
         right_col.addWidget(self.inspect_widget)
 
+        # Aba de controle global → utiliza extensão genérica .json
         backend = InspectionPositionsBackend(self.inspect_widget)
-        self.prog_widget = ProgramIOWidget(backend)
+        file_filter = "Programas (*.json)"
+        self.prog_widget = ProgramIOWidget(
+            backend,
+            file_filter=file_filter,
+            default_suffix=".json",
+            default_dir=self.ctrl.projects_dir
+        )
         right_col.addWidget(self.prog_widget)
         # Esconde grupo de botões (passará a ser acessado via menu)
         self.prog_widget.hide()

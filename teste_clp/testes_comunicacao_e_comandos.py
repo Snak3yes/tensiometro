@@ -459,7 +459,10 @@ class MultiAxisMotorController(QMainWindow):
         """Acopla sinais de load/save para lembrar o último arquivo usado."""
         widget._last_file = None
         widget.fileSaved.connect(lambda f, w=widget: setattr(w, "_last_file", f))
-        widget.fileLoaded.connect(lambda f, w=widget: setattr(w, "_last_file", f))
+        # mantém lista para futura atualização do default_dir
+        if not hasattr(self, "_prog_widgets"):
+            self._prog_widgets = []
+        self._prog_widgets.append(widget)
 
     def _current_prog_widget(self):
         """Devolve o ProgramIOWidget associado à aba visível."""
@@ -606,6 +609,10 @@ class MultiAxisMotorController(QMainWindow):
         self.projects_dir = projetos_path
         self.settings.projects_dir = projetos_path
         self.settings.save()
+        # actualiza diretório-padrão nos ProgramIOWidgets já existentes
+        for w in getattr(self, "_prog_widgets", []):
+            if hasattr(w, "_default_dir"):
+                w._default_dir = str(projetos_path)
         self.log(f"■ Diretório de projetos definido para: {projetos_path}")
         QMessageBox.information(self, "Preferências",
                                 f"Caminho configurado:\n{projetos_path}")
