@@ -24,11 +24,15 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QGroupBox, QGridLayout, QTabWidget, QTextEdit,
                             QFrame, QSizePolicy, QCheckBox, QScrollArea,
                             QMessageBox)
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread
 from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
 
 class MultiAxisMotorController(QMainWindow):
+    # -----------------------------------------------------------------
+    #  S I G N A L   (garante acesso aos widgets só no thread GUI)
+    # -----------------------------------------------------------------
+    logRequested = pyqtSignal(str)        # emitido por qualquer thread
     def __init__(self):
         super().__init__()
         self.client = None
@@ -169,6 +173,12 @@ class MultiAxisMotorController(QMainWindow):
             'D1100_X': 1100,    # POSIÇÃO ABSOLUTA DEFINIDA PELO USUÁRIO (X) - ENTRADA
             'D1150_X': 1150,    # POSIÇÃO ABSOLUTA DEFINIDA (X)
             'D21000_X': 21000,  # VELOCIDADE DE DESLOCAMENTO (X)
+
+            # ---------------- DOT CONTROL --------------------------
+            # D-registradores para frequência e quantidade de aplicação
+            # (mudaram de D4000 / D4100 → D24000 / D24100 no ladder)
+            'D24000_FREQ': 24000,   # Frequência (Hz) dos dots
+            'D24100_QTY':  24100,   # Quantidade de dots
             
             # Registradores de status (leitura)
             'D3100_Y2': 3100,   # POSIÇÃO ATUAL MOTOR Y2 (cópia do SR460)
@@ -236,7 +246,10 @@ class MultiAxisMotorController(QMainWindow):
             ('D22020', 'Jog+ X'),  ('D22070', 'Jog- X'),
             ('D22030', 'Jog+ Z'),  ('D22080', 'Jog- Z'),
             ('D22100', 'Tempo Acel. Jog'),
-            ('D22110', 'Tempo Desac. Jog')
+            ('D22110', 'Tempo Desac. Jog'),
+            # ---------- DOT --------------------------------------
+            ('D24000_FREQ', 'Frequência dot  (Hz)'),
+            ('D24100_QTY',  'Quantidade dot')
         ]
 
         # -------------- limites de trabalho (padrão) + persistência ---
@@ -298,23 +311,39 @@ class MultiAxisMotorController(QMainWindow):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # Permite capturar teclas
         
         # Timer para atualização
+        # ---------------------- logger seguro -------------------------
+        self.logRequested.connect(self._append_log)    # slot GUI
+
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_status)
         self.timer.start(500)
         
-    def log(self, msg):
-        """Log no terminal e na interface"""
-        timestamp = time.strftime('%H:%M:%S')
-        log_msg = f"[{timestamp}] {msg}"
-        print(log_msg)
-        
-        if hasattr(self, 'log_text'):
-            self.log_text.append(log_msg)
-            if self.log_text.document().lineCount() > 100:
-                cursor = self.log_text.textCursor()
-                cursor.movePosition(cursor.MoveOperation.Start)
-                cursor.select(cursor.SelectionType.LineUnderCursor)
-                cursor.removeSelectedText()
+    # ===============  LOG thread-safe  =================================
+    def log(self, msg: str):
+        """
+        Pode ser chamado de QUALQUER thread.
+        No thread GUI a mensagem é escrita imediatamente;
+        nos demais threads emite-se logRequested.
+        """
+        ts = time.strftime("%H:%M:%S")
+        full = f"[{ts}] {msg}"
+        print(full, flush=True)
+        if QThread.currentThread() is self.thread():      # GUI?
+            self._append_log(full)
+        else:
+            self.logRequested.emit(full)
+
+    def _append_log(self, text: str):
+        """Slot executado SEMPRE no thread GUI"""
+        if not hasattr(self, "log_text"):
+            return
+        self.log_text.append(text)
+        # mantém no máx. 100 linhas
+        if self.log_text.document().lineCount() > 100:
+            cursor = self.log_text.textCursor()
+            cursor.movePosition(cursor.MoveOperation.Start)
+            cursor.select(cursor.SelectionType.LineUnderCursor)
+            cursor.removeSelectedText()
         
     def init_ui(self):
         self.setWindowTitle("Controle Multi-Eixos - Delta AS (ENDEREÇOS LADDER REAIS)")
@@ -691,6 +720,8 @@ class MultiAxisMotorController(QMainWindow):
                 self.prog_mgr.create_program(proj_name, overwrite=False)
                 self.current_proj_name = proj_name
             except Exception:
+                QMessageBox.critical(self, "Erro",
+                                     "Não foi possível abrir o programa selecionado.")
                 pass
             self._set_creation_controls_enabled(True)
 
@@ -896,7 +927,8 @@ class MultiAxisMotorController(QMainWindow):
                     spin.blockSignals(True)
                     spin.setValue(value)
                     spin.blockSignals(False)
-            except Exception:
+            except Exception as exc:
+                self.log(f"‚ùå Falha ao ler {reg_key}: {exc}")
                 continue
         self.log("‚úÖ Configuração – leitura concluída")
 
@@ -1107,14 +1139,14 @@ class MultiAxisMotorController(QMainWindow):
             self.log(f" Erro na etapa 2 do homing geral: {e}")
 
     # ---------------------------------------------------------
-    # Helper interno – envia pulso de 200 ms em uma memória M
+    # Helper interno – envia pulso de 20 ms em uma memória M
     # ---------------------------------------------------------
     def _pulse_coil(self, mem_key):
-        """Liga o coil por 200 ms e depois desliga (edge-trigger)."""
+        """Liga o coil por 20 ms e depois desliga (edge-trigger)."""
         try:
             addr = self.addresses[mem_key]
             self.client.write_coil(addr, True)
-            QTimer.singleShot(200, lambda a=addr: self.client.write_coil(a, False))
+            QTimer.singleShot(100, lambda a=addr: self.client.write_coil(a, False))
             self.log(f" Pulso {mem_key} enviado")
         except Exception as e:
             self.log(f" Falha ao pulsar {mem_key}: {e}")
@@ -1129,6 +1161,8 @@ class MultiAxisMotorController(QMainWindow):
             ('Y0.1',  'Dir Eixo 1'),
             ('Y0.2',  'Pulso Eixo 2'), 
             ('Y0.3',  'Dir Eixo 2'),
+            ('Y0.4',  'Pulso Eixo 3'),
+            ('Y0.5',  'Dir Eixo 3'),
             ('Y0.6',  'Pulso Eixo 4'),
             ('Y0.7',  'Dir Eixo 4'),
             ('Y0.10', 'Y0.10 (SHOT)')
@@ -1153,9 +1187,11 @@ class MultiAxisMotorController(QMainWindow):
         
         memories = ['M0_Y2', 'M50_Y2', 'M100_Y2', 'M500_Y1', 'M550_Y1', 'M600_Y1',
                     'M1500_Z', 'M1550_Z', 'M1600_Z', 'M1000_X', 'M1050_X', 'M1100_X', 
-                    'M5000', 'M350', 'M850', 'M1350', 'M1850', 'M300', 'M800', 'M1300', 'M1800',
+                    'M5000', 'M5001', 
+                    'M350', 'M850', 'M1350', 'M1850',
+                    'M300', 'M800', 'M1300', 'M1800',
                     'M70_Y2', 'M570_Y1', 'M1070_X', 'M1570_Z']
-        
+
         for i, mem in enumerate(memories):
             layout.addWidget(QLabel(f"{mem}:"), i//4, (i%4)*2)
             status_label = QLabel("OFF")
@@ -1469,12 +1505,12 @@ class MultiAxisMotorController(QMainWindow):
                         label.setText(str(value))
                         
                 except Exception as e:
-                    # Falha silenciosa para não poluir logs
+                    self.log(f"⚠️ Erro ao ler posição {axis} ({reg_name}): {e}")                        
                     continue
                     
         except Exception as e:
             # Falha silenciosa para não afetar outras operações
-            pass
+            self.log(f"⚠️ Erro ao ler posições: {e}")
     
     def monitor_homing_status(self):
         """Função dedicada APENAS para monitorar status de homing em tempo real"""
@@ -1508,11 +1544,11 @@ class MultiAxisMotorController(QMainWindow):
                                 self.log(f"🔄 LED Homing {axis} atualizado: {'VERDE' if state else 'CINZA'}")
                         
                 except Exception as e:
-                    # Silencioso para não poluir
+                    self.log(f"⚠️ Erro ao ler status de homing {axis}: {e}")
                     continue
                     
         except Exception as e:
-            # Silencioso
+            self.log(f"⚠️ Erro ao monitorar status de homing: {e}")
             pass
     
     def test_homing_status(self):
@@ -1621,16 +1657,31 @@ class MultiAxisMotorController(QMainWindow):
                 
             self.log(f"📝 Escrevendo parâmetros Eixo {axis_name}: Posição={pulsos_value}")
             
-            # Escreve INT32 completo
-            result1 = self.write_dword(pulsos_addr, pulsos_value)
-
-            if result1.isError():
-                self.log(f"❌ Erro ao escrever parâmetros eixo {axis_name}")
+            # -----------------------------------------------------------
+            # 1) POSIÇÃO ABSOLUTA  (sempre grava)
+            # -----------------------------------------------------------
+            if self.write_dword(pulsos_addr, pulsos_value).isError():
+                self.log(f"■ Erro ao escrever posição {axis_name}")
                 return
 
-            self.log(f"📝 Posição alvo do eixo {axis_name} escrita: {pulsos_value}")
+            # -----------------------------------------------------------
+            # 2) VELOCIDADE         (novo) – pega do spinBox da aba
+            #    Config. Registradores ou usa default 20000 Hz
+            # -----------------------------------------------------------
+            try:
+                vel_spin = self.findChild(QSpinBox, f"cfg_spin_{v_addr_key}")
+                vel_value = vel_spin.value() if vel_spin else 20000
+            except Exception:
+                vel_value = 20000
 
-            # Verifica se foi escrito
+            if self.write_dword(vel_addr, vel_value).isError():
+                self.log(f"■ Erro ao escrever velocidade {axis_name}")
+                return
+
+            # LOG
+            self.log(f"■ Eixo {axis_name}: pos={pulsos_value}  vel={vel_value}")
+
+            # Verifica se posição ficou realmente gravada
             self.verify_write(pulsos_addr, pulsos_value, p_addr_key)
             
         except Exception as e:
@@ -1918,7 +1969,7 @@ class MultiAxisMotorController(QMainWindow):
                 return False
                 
         except Exception as e:
-            # Não loga erro para não poluir - pode acontecer se CLP não estiver conectado
+            self.log(f"⚠️ Erro ao verificar segurança JOG {axis_name}: {e}")
             return False
             
     def update_jog_status(self, axis_name, status_text, color):
@@ -2240,7 +2291,10 @@ class MultiAxisMotorController(QMainWindow):
                 'M50_Y2': (self.addresses['M50_Y2'], getattr(self, 'M50_Y2_status', None)),
                 'M500_Y1': (self.addresses['M500_Y1'], getattr(self, 'M500_Y1_status', None)),
                 'M550_Y1': (self.addresses['M550_Y1'], getattr(self, 'M550_Y1_status', None)),
+                # Disparo e status da aplicadora
                 'M5000': (self.addresses['M5000'], getattr(self, 'M5000_status', None)),
+                'M5001': (self.addresses['M5001'], getattr(self, 'M5001_status', None)),
+                
                 'M350': (self.addresses['M350'], getattr(self, 'M350_status', None)),
                 'M850': (self.addresses['M850'], getattr(self, 'M850_status', None)),
                 'M1350': (self.addresses['M1350'], getattr(self, 'M1350_status', None)),
@@ -2269,10 +2323,17 @@ class MultiAxisMotorController(QMainWindow):
                     # Atualiza label se existir
                     if label is not None:
                         label.setText("ON" if state else "OFF")
-                        label.setStyleSheet(
-                            "QLabel { background-color: red; color: white; padding: 5px; }" if state 
-                            else "QLabel { background-color: gray; color: white; padding: 5px; }"
-                        )
+                        # Para M5001 usamos cor laranja enquanto ativo
+                        if name == 'M5001':
+                            label.setStyleSheet(
+                                "QLabel { background-color: orange; color: black; padding: 5px; }" if state
+                                else "QLabel { background-color: gray; color: white; padding: 5px; }"
+                            )
+                        else:
+                            label.setStyleSheet(
+                                "QLabel { background-color: red; color: white; padding: 5px; }" if state
+                                else "QLabel { background-color: gray; color: white; padding: 5px; }"
+                            )
                                             
                 # Atualiza status JOG ativo para todos os eixos
                 if name in ['M70_Y2', 'M570_Y1', 'M1070_X', 'M1570_Z']:
@@ -2351,11 +2412,9 @@ class MultiAxisMotorController(QMainWindow):
                             "QLabel { background-color: lightgray; padding: 5px; }"
                         )
                 except Exception as e:
-                    # Silencia erros para não poluir log
-                    pass
+                    self.log(f"⚠️ Erro ao ler registrador {name}: {e}")
         except Exception as e:
-            # Silencia erros de status update para não poluir log
-            pass
+            self.log(f"⚠️ Erro ao atualizar status: {e}")
     
     # ------------------------------------------------------------------
     #  Fornece posição atual para o widget de inspeção
@@ -2448,6 +2507,11 @@ class PLCMotionBackend(MotionBackend):
         self._feed = 1000
         self._apply_offset = True      # default = APPLY
         self._targets: dict[str,int] = {}   # destino mais recente por eixo
+        # registrador de QUANTIDADE de dots
+        self._addr_qty = ctrl.addresses.get('D24100_QTY')
+        # coils para dot
+        self._addr_trig = ctrl.addresses.get('M5000')
+        self._addr_stat = ctrl.addresses.get('M5001')
 
     # --------------------------------------------------------------
     def move_to_absolute_position(self,
@@ -2457,6 +2521,10 @@ class PLCMotionBackend(MotionBackend):
                                   z:  float | None,
                                   feed_rate: float = 1000) -> bool:
         self._feed = feed_rate
+        # ----------------------------------------------------------------
+        # LIMPA destinos da execução anterior  ← BUG FIX travamento 2ª run
+        # ----------------------------------------------------------------
+        self._targets.clear()
         try:
             # Escreve apenas eixos cujo valor não é None
             dx = self._off_x if self._apply_offset else 0
@@ -2467,6 +2535,7 @@ class PLCMotionBackend(MotionBackend):
             if z  is not None:  self._move_axis('Z',  int(z))
             return True
         except Exception as exc:
+            print(f"Erro move_to_absolute_position: {exc}")
             self._c.log(f"Erro move_to_abs: {exc}")
             return False
     
@@ -2505,7 +2574,8 @@ class PLCMotionBackend(MotionBackend):
 
                 try:
                     pos = self._c.read_dword(pos_regs[axis])
-                except Exception:
+                except Exception as exc:
+                    self._c.log(f"Erro ao ler posição do eixo {axis}: {exc}")
                     pos = None
 
                 if pos is None or abs(pos - target) > 1:
@@ -2523,6 +2593,72 @@ class PLCMotionBackend(MotionBackend):
     # --------------------------------------------------------------
     def set_feed_rate(self, fr: float):
         self._feed = fr
+
+    # --------------------------------------------------------------
+    #  DOT – grava SOMENTE a quantidade (D24100)
+    # --------------------------------------------------------------
+    def apply_dot_qty(self, qty: int):
+        if not self._c.connected:
+            return
+        try:
+            if self._addr_qty is not None:
+                self._c.write_dword(self._addr_qty, int(qty))
+                self._c.log(f"■ DOT qty → D24100={qty}")
+        except Exception as exc:
+            self._c.log(f"■ Erro ao escrever DOT cfg: {exc}")
+
+    # --------------------------------------------------------------
+    #  DISPARO DO DOT (pulso M5000)  + espera M5001
+    # --------------------------------------------------------------
+    def trigger_dot(self, pulse_ms: int = 100) -> bool:
+        """
+        Gera um pulso no coil M5000.  Retorna True se escrito com sucesso.
+        """
+        if not self._c.connected or self._addr_trig is None:
+            return False
+        try:
+            self._c.client.write_coil(self._addr_trig, True)
+            time.sleep(pulse_ms / 1000.0)
+            self._c.client.write_coil(self._addr_trig, False)
+            self._c.log("■ Pulso M5000 enviado")
+            return True
+        except Exception as exc:
+            self._c.log(f"■ Erro no pulso M5000: {exc}")
+            return False
+
+    def wait_dot_complete(self, timeout: float = 10.0) -> bool:
+        """
+        Aguarda M5001 ligar (start) e desligar (fim) dentro do timeout.
+        """
+        if not self._c.connected or self._addr_stat is None:
+            return True          # nada a esperar – não bloqueia
+        t0 = time.time()
+        # espera LIGAR
+        while time.time() - t0 < timeout:
+            try:
+                r = self._c.client.read_coils(self._addr_stat, count=1)
+                if not r.isError() and r.bits[0]:
+                    break
+            except Exception as exc:
+                self._c.log(f"Erro ao esperar M5001=ON: {exc}")
+                pass
+            time.sleep(0.05)
+        else:
+            self._c.log("■ Timeout esperando M5001=ON")
+            return False
+
+        # espera DESLIGAR
+        while time.time() - t0 < timeout:
+            try:
+                r = self._c.client.read_coils(self._addr_stat, count=1)
+                if not r.isError() and not r.bits[0]:
+                    self._c.log("■ Dot concluído (M5001=OFF)")
+                    return True
+            except Exception as exc:
+                self._c.log(f"Erro ao esperar M5001=OFF: {exc}")
+            time.sleep(0.05)
+        self._c.log("■ Timeout esperando M5001=OFF")
+        return False
 
 def main():
     app = QApplication(sys.argv)

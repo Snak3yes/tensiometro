@@ -4,7 +4,7 @@ Aba de programação de uma mesa (Mesa 1 ou Mesa 2).
 Mostra controles para X, Y (lógico) e Z apenas.
 """
 
-from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QFrame, QSizePolicy, QLabel
+from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QFrame, QSizePolicy, QLabel, QSpinBox
 from PyQt6.QtCore    import Qt, QTimer
 from PyQt6.QtGui     import QPixmap
 import base64, cv2
@@ -628,7 +628,10 @@ class TableProgramTab(QWidget):
                 'action':   'dot',
                 'dot_id':   pat.id,
                 'dot_name': pat.name,
-                'dot_qty':  pat.qty
+                'dot_qty':  pat.qty,
+                # freq default será lida da aba Config Registradores
+                'dot_freq_hz': self.ctrl.findChild(QSpinBox,
+                                      "cfg_spin_D24000_FREQ").value()
             }
         else:
             return {'action': key}
@@ -771,11 +774,17 @@ class TableProgramTab(QWidget):
     def _to_model(self):
         out = []
         for p in self.inspect_widget.positions():
-            # meta da ação (dot / barcode / fiducial / inspect)
-            action_key = None
-            if isinstance(p.meta, dict):
-                action_key = p.meta.get("action")
-            cam_params = {"action": action_key} if action_key else {}
+            # ----------------------------------------------------------
+            #  GUARDA META COMPLETA NO InspectionPosition
+            #
+            #  • Precisamos do campo dot_qty no runner para escrever
+            #    D24100, portanto não pode ser descartado aqui.
+            #  • camera_params agora recebe **todo** o dict meta
+            #    (se existir) preservando "action", "dot_qty", etc.
+            # ----------------------------------------------------------
+            cam_params = (p.meta.copy()              # dict completo
+                          if isinstance(p.meta, dict)
+                          else None)
             # Salva somente X, Y (desta mesa) e Z
             if self.y_axis == 'Y1':
                 out.append(InspectionPosition(name=p.name,

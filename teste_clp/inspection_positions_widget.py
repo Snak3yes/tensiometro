@@ -202,6 +202,8 @@ class InspectionPositionsWidget(QWidget):
         txt = (f"{pos.name}.  "
                f"X={pos.x:.2f}  Y2={pos.y2:.2f}  "
                f"Y1={pos.y1:.2f}  Z={pos.z:.2f}")
+        if pos.meta and pos.meta.get("action") == "dot":
+            txt += f"  [dot {pos.meta.get('dot_qty',1)}]"
         item = QListWidgetItem(txt)
         self.list_widget.addItem(item)
 

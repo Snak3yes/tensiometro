@@ -12,9 +12,9 @@ Dependências:
 """
 
 from __future__ import annotations
+import time                    # ← NECESSÁRIO para wait_for_idle / trigger_dot
 from typing import List, Protocol, Callable, Dict, Any
 from dataclasses import dataclass
-
 from PyQt6.QtCore import QThread, pyqtSignal, QObject, Qt
 from PyQt6.QtWidgets import (
     QWidget, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton,
@@ -51,6 +51,8 @@ class MotionBackend(Protocol):
     def set_feed_rate(self, feed_rate: float): ...
     # novo: habilita ou não o uso do offset câmera↔nozzle
     def set_offset_mode(self, apply_offset: bool): ...
+    # opcional – grava SOMENTE a quantidade de dots
+    def apply_dot_qty(self, qty: int): ...
 
 
 class CameraBackend(Protocol):
@@ -114,6 +116,7 @@ class SequenceRunnerThread(QThread):
                     try:
                         self._motion.set_offset_mode(apply_off)
                     except Exception:
+                        print("[seq] Falha ao definir modo de offset")
                         pass
 
                 ok = self._motion.move_to_absolute_position(
@@ -129,12 +132,38 @@ class SequenceRunnerThread(QThread):
                 # evita que o próximo comando seja enfileirado antes
                 # do CLP realmente liberar todos os eixos.
                 self.msleep(100)            # (== 0,1 s)
+                # --------------------------------------------------
+                #  AÇÃO “dot” → escreve freq/qty antes do pulso
+                # --------------------------------------------------
+                if (pos.camera_params or {}).get("action") == "dot":
+                    # aplica configurações de dot (freq e qty)
+                    qty = int((pos.camera_params or {}).get("dot_qty", 1))
+                    if hasattr(self._motion, "apply_dot_qty"):
+                        try:
+                            self._motion.apply_dot_qty(qty)
+                        except Exception:
+                            print("[seq] Falha ao aplicar dot settings")
+                            pass
 
+                    # 1. envia PULSO em M5000
+                    if hasattr(self._motion, "trigger_dot"):
+                        ok = self._motion.trigger_dot()
+                        if not ok:
+                            self.error.emit("Falha ao acionar dot – M5000")
+                            return
+
+                    # 2. espera conclusão via M5001
+                    if hasattr(self._motion, "wait_dot_complete"):
+                        ok = self._motion.wait_dot_complete(timeout=10.0)
+                        if not ok:
+                            self.error.emit("Timeout aguardando fim do dot (M5001)")
+                            return
                 if self._camera is not None:
                     try:
                         img = self._camera.capture(pos.camera_params or None)
                         self.imageCaptured.emit(img)
                     except Exception as exc:
+                        print(f"[seq] Erro ao capturar imagem: {exc}")
                         self.error.emit(f"Erro na captura: {exc}")
                         return
 
@@ -143,6 +172,7 @@ class SequenceRunnerThread(QThread):
             self.finished.emit()
 
         except Exception as exc:
+            print(f"[seq] Erro na execução da sequência: {exc}")
             self.error.emit(str(exc))
 
 
@@ -186,6 +216,7 @@ class SequenceControlWidget(QWidget):
         try:
             self.set_positions(loader())
         except Exception as exc:
+            print(f"[seq] Falha ao carregar posições: {exc}")
             QMessageBox.critical(self, "Erro", f"Falha ao carregar posições:\n{exc}")
 
     # ------------------------ UI -----------------------------------
@@ -244,6 +275,7 @@ class SequenceControlWidget(QWidget):
             try:
                 self._motion.set_offset_mode(apply_off)
             except Exception:
+                print("[seq] Falha ao definir modo de offset")
                 pass
         self._status.setText("Modo: VIEW (nozzle)" if view_checked
                              else "Modo: APPLY (camera)")
@@ -252,11 +284,24 @@ class SequenceControlWidget(QWidget):
 
     # ------------------------ handlers -----------------------------
     def _start(self):
+        # ----------------- verifica posições -----------------
         if not self._positions:
             QMessageBox.warning(self, "Aviso", "Nenhuma posição definida")
             return
-        if self._runner and self._runner.isRunning():
-            return     # já rodando
+        # ----------------- encerra runner anterior ------------
+        if self._runner is not None:
+            if self._runner.isRunning():
+                QMessageBox.warning(self, "Execução",
+                                    "A sequência ainda está em andamento.")
+                return
+            # desconecta e destrói completamente
+            try:
+                self._runner.finished.disconnect()
+                self._runner.error.disconnect()
+            except Exception:
+                pass
+            self._runner.deleteLater()
+            self._runner = None
 
         self._progress.setRange(0, len(self._positions))
         self._progress.setValue(0)
@@ -289,12 +334,21 @@ class SequenceControlWidget(QWidget):
         self._btn_execute.setEnabled(True)
         self._btn_stop.setEnabled(False)
         self.sequenceFinished.emit()
+        # ---------- encerra thread e limpa ponteiro -----------
+        if self._runner:
+            self._runner.wait(1000)
+            self._runner.deleteLater()
+            self._runner = None
 
     def _on_error(self, msg: str):
         self._status.setText(f"Erro: {msg}")
         self._btn_execute.setEnabled(True)
         self._btn_stop.setEnabled(False)
         self.sequenceError.emit(msg)
+        if self._runner:
+            self._runner.wait(1000)
+            self._runner.deleteLater()
+            self._runner = None
 
 
 # ----------------------------------------------------------------------
