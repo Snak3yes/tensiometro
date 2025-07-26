@@ -133,9 +133,13 @@ class SequenceRunnerThread(QThread):
                 # do CLP realmente liberar todos os eixos.
                 self.msleep(100)            # (== 0,1 s)
                 # --------------------------------------------------
-                #  AÇÃO “dot” → escreve freq/qty antes do pulso
+                #  AÇÃO “dot”
+                #  A frequência (D24000) permanece a que o operador
+                #  definiu na aba “Config. Registradores”.
                 # --------------------------------------------------
-                if (pos.camera_params or {}).get("action") == "dot":
+                action = (pos.camera_params or {}).get("action")
+
+                if action == "dot" and self._apply_mode:    # << APPLY apenas
                     # aplica configurações de dot (freq e qty)
                     qty = int((pos.camera_params or {}).get("dot_qty", 1))
                     if hasattr(self._motion, "apply_dot_qty"):
@@ -158,6 +162,8 @@ class SequenceRunnerThread(QThread):
                         if not ok:
                             self.error.emit("Timeout aguardando fim do dot (M5001)")
                             return
+                # Se modo VIEW, apenas registra que o ponto DOT foi visitado
+                # (sem aplicar cola).
                 if self._camera is not None:
                     try:
                         img = self._camera.capture(pos.camera_params or None)
@@ -277,8 +283,9 @@ class SequenceControlWidget(QWidget):
             except Exception:
                 print("[seq] Falha ao definir modo de offset")
                 pass
-        self._status.setText("Modo: VIEW (nozzle)" if view_checked
-                             else "Modo: APPLY (camera)")
+        self._status.setText("Modo: VIEW (somente visualização)"
+                             if view_checked else
+                             "Modo: APPLY (produção)")
 
 
 
