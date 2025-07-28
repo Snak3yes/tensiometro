@@ -523,10 +523,48 @@ class MultiAxisMotorController(QMainWindow):
         """Acopla sinais de load/save para lembrar o último arquivo usado."""
         widget._last_file = None
         widget.fileSaved.connect(lambda f, w=widget: setattr(w, "_last_file", f))
+        # ─── NOVO ───
+        # sempre que um programa for CARREGADO por este widget
+        # (botão “Carregar Programa” nas abas), ajusta estado global
+        widget.fileLoaded.connect(
+            lambda f, w=widget: self._on_program_loaded(f, w))
         # mantém lista para futura atualização do default_dir
         if not hasattr(self, "_prog_widgets"):
             self._prog_widgets = []
         self._prog_widgets.append(widget)
+
+    # ================================================================
+    #  handler único para qualquer ProgramIOWidget.fileLoaded
+    # ================================================================
+    def _on_program_loaded(self, filepath: str, widget):
+        """
+        • cria (ou re-usa) AdhesiveProgramManager para a pasta do arquivo;
+        • grava current_proj_name;
+        • habilita imediatamente todos os botões de criação/edição.
+        """
+        try:
+            from adhesive_program_manager import AdhesiveProgramManager
+            path = Path(filepath).resolve()
+            prog_name = path.stem
+            self.prog_mgr = AdhesiveProgramManager(path.parent)
+            try:
+                # tenta criar; se já existir apenas re-usa
+                self.prog_mgr.create_program(prog_name, overwrite=False)
+            except FileExistsError:
+                # programa já existe → apenas aponta o diretório
+                self.prog_mgr.model_dir = (
+                    self.prog_mgr.base_dir / "modelos" / prog_name)
+            self.current_proj_name = prog_name
+
+            # memoriza no widget para futuros “Salvar”
+            widget._last_file = str(path)
+
+            # libera botões de criação/edição
+            self._set_creation_controls_enabled(True)
+
+            self.log(f"■ Projeto “{prog_name}” carregado: {path.name}")
+        except Exception as exc:
+            self.log(f"■ Erro ao processar programa carregado: {exc}")
 
     # ================================================================
     #       ALINHAMENTO NOZZLE  ↔  CÂMERA   (offset X,Y)
@@ -763,7 +801,12 @@ class MultiAxisMotorController(QMainWindow):
                 proj_path = Path(widget._last_file).resolve()
                 proj_name = proj_path.stem
                 self.prog_mgr = AdhesiveProgramManager(proj_path.parent)
-                self.prog_mgr.create_program(proj_name, overwrite=False)
+                try:
+                    self.prog_mgr.create_program(proj_name, overwrite=False)
+                except FileExistsError:
+                    # estrutura já criada anteriormente → ok
+                    self.prog_mgr.model_dir = (
+                        self.prog_mgr.base_dir / "modelos" / proj_name)
                 self.current_proj_name = proj_name
             except Exception:
                 QMessageBox.critical(self, "Erro",

@@ -100,7 +100,9 @@ class TableProgramTab(QWidget):
         cx = p.width()//2; cy = p.height()//2
         pa.drawLine(cx-100, cy, cx+100, cy)
         pa.drawLine(cx, cy-100, cx, cy+100)
-        # -------- overlays se ação = fiducial -----------------------
+        # -------------------------------------------------------------
+        #  OVERLAY 1 – seletor em “fiducial” (edição)
+        # -------------------------------------------------------------
         if self.action_selector.current_action() == 'fiducial':
             win = self._fid_window
             rad = self._fid_radius
@@ -127,6 +129,25 @@ class TableProgramTab(QWidget):
                     pa.drawRect(int(x*sx), int(y*sy), int(w*sx), int(h*sy))
                 else:
                     self._match_info = None
+        # -------------------------------------------------------------
+        #  OVERLAY 2 – execução automática
+        #     • Se _match_info existir, desenhamos o retângulo SEM
+        #       limite de tempo; ele será limpo pelo sinal fidClear
+        #       quando o cabeçote chegar ao próximo ponto.
+        # -------------------------------------------------------------
+        elif self._match_info and self.action_selector.current_action() != 'fiducial':
+            sx = pix.width()  / self._last_frame_sz[0]
+            sy = pix.height() / self._last_frame_sz[1]
+            rect, color, t0 = self._match_info
+            # mantém no máximo 2 s
+            if time.time() - t0 > 2.0:
+                self._match_info = None
+            else:
+                x, y, w0, h0 = rect
+                pen_m = QPen(color, 2)
+                pa.setPen(pen_m)
+                pa.drawRect(int(x*sx), int(y*sy), int(w0*sx), int(h0*sy))
+            
         elif self.action_selector.current_action() == 'barcode':
             bw, bh = self._bc_w, self._bc_h
             sx = pix.width()  / self._last_frame_sz[0]
@@ -320,6 +341,8 @@ class TableProgramTab(QWidget):
 
         self.seq_widget = SequenceControlWidget(
             motion=self.ctrl._plc_motion_backend, camera=None)
+        self.seq_widget.fidMatch.connect(self._on_fid_match)
+        self.seq_widget.fidClear.connect(lambda: setattr(self, "_match_info", None))
         v_right.addWidget(self.seq_widget)
 
         v_right.addStretch()

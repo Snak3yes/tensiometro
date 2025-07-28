@@ -68,6 +68,11 @@ class SequenceRunnerThread(QThread):
     imageCaptured     = pyqtSignal(object)    # imagem capturada
     finished          = pyqtSignal()
     error             = pyqtSignal(str)
+    # ---------- feedback visual do fiducial -------------
+    #  mesmo formato usado pelo FiducialConfigWidget
+    #      similarity(%) , ok? , x , y , w , h
+    fidMatch          = pyqtSignal(float, bool, int, int, int, int)
+    fidClear          = pyqtSignal()
 
     def __init__(self,
                  motion: MotionBackend,
@@ -86,6 +91,7 @@ class SequenceRunnerThread(QThread):
         # deslocamento acumulado por fiducial (pulsos)
         self._dx_acc = 0
         self._dy_acc = 0
+        self._prev_was_fid = False
 
     def request_stop(self):
         self._stop_flag = True
@@ -136,6 +142,14 @@ class SequenceRunnerThread(QThread):
                 # do CLP realmente liberar todos os eixos.
                 self.msleep(100)            # (== 0,1 s)
                 # --------------------------------------------------
+                #  Após a CHEGADA ao ponto atual…………
+                #  se o ponto ANTERIOR era um fiducial
+                #  ⇒ limpamos o overlay agora (o retângulo ficou
+                #     visível durante todo o deslocamento).
+                # --------------------------------------------------
+                if self._prev_was_fid:
+                    self.fidClear.emit()
+                # --------------------------------------------------
                 #  AÇÃO “dot”
                 #  A frequência (D24000) permanece a que o operador
                 #  definiu na aba “Config. Registradores”.
@@ -150,8 +164,12 @@ class SequenceRunnerThread(QThread):
                     if err:
                         self.error.emit(err)
                         return
+                    # marca que ESTE ponto é fiducial
+                    self._prev_was_fid = True
                     self.progress.emit(idx, total)
                     continue
+                else:
+                    self._prev_was_fid = False
 
                 if action == "dot" and self._apply_mode:    # << APPLY apenas
                     # aplica configurações de dot (freq e qty)
@@ -242,6 +260,7 @@ class SequenceRunnerThread(QThread):
         cx_i = w//2
         cy_i = h//2
 
+        similarity = max_val * 100
         dx_pix = cx_t - cx_i
         dy_pix = cy_t - cy_i
 
@@ -258,6 +277,11 @@ class SequenceRunnerThread(QThread):
         self._dy_acc += dy_p
         if hasattr(self._motion, "apply_dynamic_offset"):
             self._motion.apply_dynamic_offset(self._dx_acc, self._dy_acc)
+
+        # ------------------- FEEDBACK VISUAL --------------------------
+        # janela encontrada (verde se OK, vermelho se não passou no thresh)
+        ok_match = similarity >= meta.get("threshold", 70)
+        self.fidMatch.emit(similarity, ok_match, tx, ty, t_w, t_h)
 
         ctrl.log(f"★ Fiducial OK  ΔX={dx_p}  ΔY={dy_p} pulsos  "
                  f"(offset acumulado X={self._dx_acc}  Y={self._dy_acc})")
@@ -281,6 +305,9 @@ class SequenceControlWidget(QWidget):
     imageCaptured = pyqtSignal(object)
     sequenceFinished = pyqtSignal()
     sequenceError = pyqtSignal(str)
+    # encaminha feedback do fiducial aos interessados (TableProgramTab)
+    fidMatch = pyqtSignal(float, bool, int, int, int, int)
+    fidClear = pyqtSignal()
 
     def __init__(self,
                  motion: MotionBackend,
@@ -408,6 +435,7 @@ class SequenceControlWidget(QWidget):
         self._runner.imageCaptured.connect(self.imageCaptured)
         self._runner.finished.connect(self._on_finished)
         self._runner.error.connect(self._on_error)
+        self._runner.fidMatch.connect(self.fidMatch)
         self._runner.start()
 
     def _stop(self):
