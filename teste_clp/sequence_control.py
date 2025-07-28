@@ -83,6 +83,9 @@ class SequenceRunnerThread(QThread):
         self._feed_rate  = feed_rate
         self._apply_mode = apply_mode      # guarda selecção do usuário
         self._stop_flag  = False
+        # deslocamento acumulado por fiducial (pulsos)
+        self._dx_acc = 0
+        self._dy_acc = 0
 
     def request_stop(self):
         self._stop_flag = True
@@ -139,6 +142,17 @@ class SequenceRunnerThread(QThread):
                 # --------------------------------------------------
                 action = (pos.camera_params or {}).get("action")
 
+                # ==================================================
+                #          F  I  D  U  C  I  A  L
+                # ==================================================
+                if action == "fiducial":
+                    err = self._process_fiducial(pos)
+                    if err:
+                        self.error.emit(err)
+                        return
+                    self.progress.emit(idx, total)
+                    continue
+
                 if action == "dot" and self._apply_mode:    # << APPLY apenas
                     # aplica configurações de dot (freq e qty)
                     qty = int((pos.camera_params or {}).get("dot_qty", 1))
@@ -180,6 +194,74 @@ class SequenceRunnerThread(QThread):
         except Exception as exc:
             print(f"[seq] Erro na execução da sequência: {exc}")
             self.error.emit(str(exc))
+
+    # ------------------------------------------------------------------
+    #  Processamento do ponto “fiducial”
+    # ------------------------------------------------------------------
+    def _process_fiducial(self, pos) -> str | None:
+        """
+        Executa template matching, move a cabeça para o centro
+        encontrado e calcula novo offset para o backend.
+        Retorna msg de erro  ou None em caso de sucesso.
+        """
+        meta = pos.camera_params or {}
+        b64  = meta.get("template_png_b64")
+        if not b64:
+            return "Fiducial sem template"
+        import base64, cv2, numpy as np, math, time
+
+        # ----- converte template b64 → gray ---------------------------
+        try:
+            tmp_png = base64.b64decode(b64)
+            tmp = cv2.imdecode(np.frombuffer(tmp_png, np.uint8),
+                               cv2.IMREAD_GRAYSCALE)
+        except Exception as exc:
+            return f"Template inválido: {exc}"
+
+        # captura frame atual (RGB numpy)
+        cam = getattr(self._motion, "_c").camera_manager
+        ok, frame_bgr = cam._cap.read()
+        if not ok:
+            return "Frame indisponível"
+        gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+
+        # template-matching
+        res = cv2.matchTemplate(gray, tmp, cv2.TM_CCOEFF_NORMED)
+        _, max_val, _, max_loc = cv2.minMaxLoc(res)
+        if max_val*100 < meta.get("threshold", 70):
+            return "Fiducial não encontrado (similaridade baixa)"
+
+        # coordenadas do centro encontrado
+        t_h, t_w = tmp.shape
+        tx, ty   = max_loc
+        cx_t = tx + t_w//2
+        cy_t = ty + t_h//2
+
+        # centro da imagem
+        h, w = gray.shape
+        cx_i = w//2
+        cy_i = h//2
+
+        dx_pix = cx_t - cx_i
+        dy_pix = cy_t - cy_i
+
+        # ----- converte para pulsos -----------------------------------
+        ctrl  = getattr(self._motion, "_c")
+        y_axis = 'Y1' if ctrl.tab_widget.currentWidget().y_axis == 'Y1' else 'Y2'
+        z_cur = ctrl.current_positions['Z']
+        dx_p, dy_p = ctrl.pulses_from_pixels(dx_pix, dy_pix, z_cur, y_axis)
+
+        # ------------------------------------------------------------------
+        # NÃO movemos a cabeça agora; usamos apenas offset dinâmico.
+        # ------------------------------------------------------------------
+        self._dx_acc += dx_p
+        self._dy_acc += dy_p
+        if hasattr(self._motion, "apply_dynamic_offset"):
+            self._motion.apply_dynamic_offset(self._dx_acc, self._dy_acc)
+
+        ctrl.log(f"★ Fiducial OK  ΔX={dx_p}  ΔY={dy_p} pulsos  "
+                 f"(offset acumulado X={self._dx_acc}  Y={self._dy_acc})")
+        return None
 
 
 # ----------------------------------------------------------------------

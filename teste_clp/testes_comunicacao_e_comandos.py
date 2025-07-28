@@ -1,6 +1,7 @@
 import sys
 import time
 import json
+import cv2
 from pathlib import Path
 from virtual_home_dialog import ConfigHomeDialog
 from axis_calibration_dialog import AxisCalibrationDialog
@@ -406,6 +407,10 @@ class MultiAxisMotorController(QMainWindow):
         act_dots = menu_prog.addAction("Padrões de Dots…")
         act_dots.triggered.connect(self._open_dot_dialog)
 
+        # ------------- NOVO  –  CONVERSOR DE MESA --------------------
+        act_conv = menu_prog.addAction("Converter programa da outra mesa…")
+        act_conv.triggered.connect(self._open_converter_dialog)
+
         # --------------------- BANNER DE CONEXÃO (rodapé) -------------
         # Usa o status-bar nativo do QMainWindow (aparece no rodapé).
         self.status_bar = self.statusBar()          # QStatusBar
@@ -489,6 +494,28 @@ class MultiAxisMotorController(QMainWindow):
         self._register_prog_widget(mesa1_tab.prog_widget)
         self._register_prog_widget(mesa2_tab.prog_widget)
 
+    # ================================================================
+    #  CONVERSOR MESA1 ⇆ MESA2
+    # ================================================================
+    def _open_converter_dialog(self):
+        """Abre (ou traz à frente) a janela de conversão de programa."""
+        w = self.tab_widget.currentWidget()
+        if w not in self.mesa_tabs.values():
+            QMessageBox.warning(self, "Converter",
+                                "Selecione primeiro a aba Mesa 1 ou Mesa 2.")
+            return
+        if not hasattr(self, "_conv_dialog"):
+            from program_converter_dialog import ProgramConverterDialog
+            self._conv_dialog = ProgramConverterDialog(self, w)
+        else:
+            # actualiza referência da aba actual
+            self._conv_dialog.mesa_tab = w
+            self._conv_dialog.setWindowTitle(
+                f"Conversor de Programa – Mesa {w.mesa}")
+        self._conv_dialog.show()
+        self._conv_dialog.raise_()
+        self._conv_dialog.activateWindow()
+
     # -----------------------------------------------------------------
     # Helpers para ProgramIOWidget por aba
     # -----------------------------------------------------------------
@@ -539,6 +566,25 @@ class MultiAxisMotorController(QMainWindow):
     def pulses_from_mm(self, axis: str, mm: float) -> int:
         """Converte mm → pulsos utilizando a calibração do eixo."""
         return int(round(mm * self.steps_per_mm.get(axis, 1.0)))
+    
+    # ---------- NOVO: pixels → pulsos  -------------------------------
+    def pulses_from_pixels(self, dx_pix: float, dy_pix: float, z_pos: int,
+                           y_axis: str = "Y1") -> tuple[int,int]:
+        """
+        Converte deslocamento em pixels (no frame da câmera) em pulsos
+        dos eixos X e Y dados o z_pos (pulsos Z).
+        """
+        # calcula mm/pixel a partir dos coef. do FOV
+        c = self._calc_fov_coeffs()
+        w_mm = c["aX"]*z_pos + c["bX"]
+        h_mm = c["aY"]*z_pos + c["bY"]
+        mmpp_x = w_mm / self.camera_manager._cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        mmpp_y = h_mm / self.camera_manager._cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        dx_mm = dx_pix * mmpp_x
+        dy_mm = dy_pix * mmpp_y
+        dx_p = self.pulses_from_mm("X",  dx_mm)
+        dy_p = self.pulses_from_mm(y_axis, dy_mm)
+        return dx_p, dy_p
 
     def _set_axis_steps(self, axis: str, steps: float):
         """Atualiza fator steps/mm de um eixo e persiste em settings."""
@@ -2506,6 +2552,9 @@ class PLCMotionBackend(MotionBackend):
         self._off_y = ctrl.camera_nozzle_offset.get("y", 0)
         self._feed = 1000
         self._apply_offset = True      # default = APPLY
+        # ---------- deslocamento dinâmico calculado por fiducial -----
+        self._dx_dyn = 0          # em pulsos
+        self._dy_dyn = 0
         self._targets: dict[str,int] = {}   # destino mais recente por eixo
         # registrador de QUANTIDADE de dots
         self._addr_qty = ctrl.addresses.get('D24100_QTY')
@@ -2545,9 +2594,23 @@ class PLCMotionBackend(MotionBackend):
     def set_offset_mode(self, apply_offset: bool):
         self._apply_offset = bool(apply_offset)
 
+    # ===============================================================
+    #  recebe ΔX / ΔY (pulsos) calculado pelo fiducial
+    # ===============================================================
+    def apply_dynamic_offset(self, dx_pulses: int, dy_pulses: int):
+        self._dx_dyn = dx_pulses
+        self._dy_dyn = dy_pulses
+        self._c.log(f"■ Offset dinâmico aplicado: ΔX={dx_pulses}  ΔY={dy_pulses}")
+
     def _move_axis(self, axis: str, pulses: int):
+        # acrescenta deslocamento dinâmico a X/Y apenas
+        if axis == "X":
+            pulses += self._dx_dyn
+        elif axis in ("Y1", "Y2"):
+            pulses += self._dy_dyn
+
         spin = getattr(self._c, f"pulsos_spin_{axis}")
-        spin.setValue(pulses)
+        spin.setValue(int(pulses))
         self._c.move_axis_absolute(axis)
         self._targets[axis] = pulses
         # Não bloqueia aqui – wait_for_idle fará polling
