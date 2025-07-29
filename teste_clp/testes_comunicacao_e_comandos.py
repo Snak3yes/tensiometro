@@ -1658,12 +1658,12 @@ class MultiAxisMotorController(QMainWindow):
             try:
                 addr = self.addresses[mem_name]
                 result = self.client.read_coils(addr, count=1)
-                
+
                 if not result.isError():
                     state = result.bits[0]
                     status_text = "REALIZADO" if state else "NÃO REALIZADO"
                     self.log(f"🏠 Homing {axis} ({mem_name}): {status_text}")
-                    
+
                     # Força atualização do LED
                     homing_led = getattr(self, f'homing_led_{axis}', None)
                     if homing_led:
@@ -1677,7 +1677,7 @@ class MultiAxisMotorController(QMainWindow):
 
                 # Também força verificação dedicada
                 QTimer.singleShot(200, self.force_homing_status_check)
-                                
+
             except Exception as e:
                 self.log(f"❌ Erro ao testar {mem_name}: {e}")
 
@@ -1690,7 +1690,7 @@ class MultiAxisMotorController(QMainWindow):
                     delattr(self, f'_last_led_status_{axis}')
                 if hasattr(self, f'_last_homing_status_M{axis}'):
                     delattr(self, f'_last_homing_status_M{axis}')
-                    
+
             self.log("🔄 Forçando atualização completa dos LEDs...")
 
             # Força leitura imediata

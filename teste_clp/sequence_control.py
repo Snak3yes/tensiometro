@@ -16,6 +16,9 @@ import time                    # ← NECESSÁRIO para wait_for_idle / trigger_do
 from typing import List, Protocol, Callable, Dict, Any
 from dataclasses import dataclass
 from PyQt6.QtCore import QThread, pyqtSignal, QObject, Qt
+from pathlib import Path
+from barcode_scanner import BarcodeScanner
+from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton,
     QProgressBar, QLabel, QFileDialog, QMessageBox
@@ -73,6 +76,9 @@ class SequenceRunnerThread(QThread):
     #      similarity(%) , ok? , x , y , w , h
     fidMatch          = pyqtSignal(float, bool, int, int, int, int)
     fidClear          = pyqtSignal()
+    # ---- overlay + código lido -------------------------------------
+    bcMatch           = pyqtSignal(bool, int, int, int, int, str)  # ok,x,y,w,h,data
+    bcClear           = pyqtSignal()
 
     def __init__(self,
                  motion: MotionBackend,
@@ -92,6 +98,10 @@ class SequenceRunnerThread(QThread):
         self._dx_acc = 0
         self._dy_acc = 0
         self._prev_was_fid = False
+        self._prev_was_bc  = False
+
+        self._scanner   = BarcodeScanner()
+        self._session_dir: Path | None = None   # pasta logs/<…>
 
     def request_stop(self):
         self._stop_flag = True
@@ -149,6 +159,14 @@ class SequenceRunnerThread(QThread):
                 # --------------------------------------------------
                 if self._prev_was_fid:
                     self.fidClear.emit()
+
+                # --------------------------------------------------
+                #  limpa overlay do BARCODE
+                # --------------------------------------------------
+                if self._prev_was_bc:
+                    self.bcClear.emit()
+
+                # --------------------------------------------------
                 # --------------------------------------------------
                 #  AÇÃO “dot”
                 #  A frequência (D24000) permanece a que o operador
@@ -170,6 +188,19 @@ class SequenceRunnerThread(QThread):
                     continue
                 else:
                     self._prev_was_fid = False
+                
+                # =================================================
+                #          B  A  R  C  O  D  E
+                # =================================================
+                if action == "barcode":
+                    err = self._process_barcode(pos)
+                    if err:
+                        self.error.emit(err); return
+                    self._prev_was_bc = True
+                    self.progress.emit(idx, total)
+                    continue
+                else:
+                    self._prev_was_bc = False
 
                 if action == "dot" and self._apply_mode:    # << APPLY apenas
                     # aplica configurações de dot (freq e qty)
@@ -212,6 +243,74 @@ class SequenceRunnerThread(QThread):
         except Exception as exc:
             print(f"[seq] Erro na execução da sequência: {exc}")
             self.error.emit(str(exc))
+
+    # ------------------------------------------------------------------
+    #  Processamento do ponto “barcode”
+    # ------------------------------------------------------------------
+    def _process_barcode(self, pos) -> str | None:
+        meta = pos.camera_params or {}
+        w_roi = int(meta.get("width", 400))
+        h_roi = int(meta.get("height", 150))
+
+        cam = getattr(self._motion, "_c").camera_manager
+
+        # ------------------ calcula ROI central ----------------------
+        # (basta fazer 1×; w_img/h_img só são precisos para cx/cy)
+        ok, frame0 = cam._cap.read()
+        if not ok:
+            return "Frame indisponível"
+        h_img, w_img, _ = frame0.shape
+        cx, cy = w_img // 2, h_img // 2
+        x0 = max(0, cx - w_roi // 2)
+        y0 = max(0, cy - h_roi // 2)
+        roi = (x0, y0, w_roi, h_roi)
+
+        # ============================================================
+        #  DELAYs:
+        #     • 0,1 s para estabilizar depois do movimento
+        #     • se falhar, +0,2 s e tenta novamente
+        # ============================================================
+        self.msleep(100)          # 0,1 s
+
+        code = None
+        for attempt in (1, 2):
+            ok, frame = cam._cap.read()
+            if not ok:
+                return "Frame indisponível"
+            results = self._scanner.scan(frame, roi=roi)
+            if results:
+                code = results[0].data.strip()
+                break
+            # primeira tentativa falhou → feedback vermelho + espera
+            if attempt == 1:
+                self.bcMatch.emit(False, x0, y0, w_roi, h_roi, "")
+                self.msleep(200)      # +0,2 s
+
+        if code is None:
+            # segunda falha → erro
+            self.bcMatch.emit(False, x0, y0, w_roi, h_roi, "")
+            return "Leitura de código de barras falhou (2 tentativas)"
+
+        # ---------------- sucesso -----------------------------------
+        self.bcMatch.emit(True, x0, y0, w_roi, h_roi, code)
+
+        # -------- grava no histórico ---------------------------------
+        ctrl = getattr(self._motion, "_c")
+        pm   = getattr(ctrl, "prog_mgr", None)
+        if pm:
+            try:
+                if self._session_dir is None:
+                    self._session_dir = pm.new_log_session(code)
+                pm.append_json_log(self._session_dir, {
+                    "evento": "barcode",
+                    "codigo": code,
+                    "t": datetime.now().isoformat()
+                })
+            except Exception as exc:
+                ctrl.log(f"■ Falha ao registrar barcode: {exc}")
+
+        ctrl.log(f"★ Barcode lido: {code}")
+        return None
 
     # ------------------------------------------------------------------
     #  Processamento do ponto “fiducial”
@@ -308,6 +407,8 @@ class SequenceControlWidget(QWidget):
     # encaminha feedback do fiducial aos interessados (TableProgramTab)
     fidMatch = pyqtSignal(float, bool, int, int, int, int)
     fidClear = pyqtSignal()
+    bcMatch  = pyqtSignal(bool, int, int, int, int, str)
+    bcClear  = pyqtSignal()
 
     def __init__(self,
                  motion: MotionBackend,
@@ -349,6 +450,10 @@ class SequenceControlWidget(QWidget):
 
         self._status = QLabel("Sem sequência")
 
+        # ----------------------- FEEDBACK BARCODE -------------------
+        self._lbl_bc = QLabel("Código: —")
+        self._lbl_bc.setStyleSheet("QLabel { background:gray; padding:3px; }")
+
         v.addWidget(self._btn_execute)
         v.addWidget(self._btn_stop)
 
@@ -366,6 +471,8 @@ class SequenceControlWidget(QWidget):
 
         v.addWidget(self._progress)
         v.addWidget(self._status)
+
+        v.addWidget(self._lbl_bc)
 
         main = QVBoxLayout(self)
         main.addWidget(grp)
@@ -422,6 +529,7 @@ class SequenceControlWidget(QWidget):
         self._progress.setRange(0, len(self._positions))
         self._progress.setValue(0)
         self._status.setText("Executando…")
+        self._lbl_bc.setText("Código: —")
         self._btn_execute.setEnabled(False)
         self._btn_stop.setEnabled(True)
 
@@ -436,6 +544,13 @@ class SequenceControlWidget(QWidget):
         self._runner.finished.connect(self._on_finished)
         self._runner.error.connect(self._on_error)
         self._runner.fidMatch.connect(self.fidMatch)
+        self._runner.fidClear.connect(self.fidClear)
+        self._runner.bcMatch.connect(self.bcMatch)
+        self._runner.bcClear.connect(self.bcClear)
+
+        # ---------- exibe código lido na própria UI -----------------
+        self._runner.bcMatch.connect(self._on_bc_match)
+
         self._runner.start()
 
     def _stop(self):
@@ -456,6 +571,22 @@ class SequenceControlWidget(QWidget):
             self._runner.wait(1000)
             self._runner.deleteLater()
             self._runner = None
+
+    # ---------------------------------------------------------------
+    #  B A R C O D E   s l o t
+    # ---------------------------------------------------------------
+    def _on_bc_match(self, ok: bool, x:int, y:int, w:int, h:int, text:str):
+        """
+        Atualiza label “Código:” logo abaixo do status.
+        • ok = True  → mostra texto do código
+        • ok = False → indica falha
+        A label não é limpa pelo bcClear; permanece visível
+        até nova leitura ou até o operador iniciar outra execução.
+        """
+        if ok and text:
+            self._lbl_bc.setText(f"Código: {text}")
+        else:
+            self._lbl_bc.setText("Código: — (não lido)")
 
     def _on_error(self, msg: str):
         self._status.setText(f"Erro: {msg}")

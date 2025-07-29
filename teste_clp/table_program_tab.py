@@ -148,7 +148,7 @@ class TableProgramTab(QWidget):
                 pa.setPen(pen_m)
                 pa.drawRect(int(x*sx), int(y*sy), int(w0*sx), int(h0*sy))
             
-        elif self.action_selector.current_action() == 'barcode':
+        elif (self.action_selector.current_action() == 'barcode' or self._bc_match):
             bw, bh = self._bc_w, self._bc_h
             sx = pix.width()  / self._last_frame_sz[0]
             sy = pix.height() / self._last_frame_sz[1]
@@ -345,6 +345,10 @@ class TableProgramTab(QWidget):
         self.seq_widget.fidClear.connect(lambda: setattr(self, "_match_info", None))
         v_right.addWidget(self.seq_widget)
 
+        # ---------- BARCODE em execução ------------------------------
+        self.seq_widget.bcMatch.connect(self._on_bc_runtime)
+        self.seq_widget.bcClear.connect(lambda: setattr(self, "_bc_match", None))
+
         v_right.addStretch()
         w_right = QWidget(); w_right.setLayout(v_right)
         grid.addWidget(w_right, 0, 2)
@@ -400,6 +404,14 @@ class TableProgramTab(QWidget):
 
         # ============================ PERSONALIZAÇÃO UI ================
         self._adapt_widgets_for_single_y()
+    
+    # -------- barcode recebido DURANTE A EXECUÇÃO --------------------
+    def _on_bc_runtime(self, ok: bool, x:int, y:int, w:int, h:int, text:str):
+        from PyQt6.QtGui import QColor
+        color = Qt.GlobalColor.green if ok else Qt.GlobalColor.red
+        self._bc_match = ((x, y, w, h), QColor(color), time.time())
+        if ok:
+            self.ctrl.log(f"■ Barcode={text}")
 
     # ==================================================================
     #  DUAS LINHAS →  duplo-clique na lista “Posições de Inspeção”

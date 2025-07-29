@@ -33,7 +33,7 @@ class BarcodeConfigWidget(QGroupBox):
         v.addWidget(btn_test)
         self.lbl_result = QLabel("—")
         self.lbl_result.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_result.setStyleSheet("QLabel { background:#ECEFF1; padding:4px; }")
+        self.lbl_result.setStyleSheet("QLabel { background:gray; padding:4px; }")
         v.addWidget(self.lbl_result)
         v.addStretch()
         # sinais
@@ -63,11 +63,12 @@ class BarcodeConfigWidget(QGroupBox):
         results = self._scanner.scan(frame, roi=roi)
         if results:
             r = results[0]
-            self.lbl_result.setStyleSheet("QLabel { background:#C8E6C9; padding:4px; }")
+            # cor da letra preta
+            self.lbl_result.setStyleSheet("QLabel { background:#C8E6C9; padding:4px; color: black; }")
             self.lbl_result.setText(f"{r.type}: {r.data}")
             self.testFinished.emit(True, x0, y0, ww, hh)
         else:
-            self.lbl_result.setStyleSheet("QLabel { background:#FFCDD2; padding:4px; }")
+            self.lbl_result.setStyleSheet("QLabel { background:#FFCDD2; padding:4px; color: black; }")
             self.lbl_result.setText("Nenhum código encontrado")
             self.testFinished.emit(False, x0, y0, ww, hh)
 
