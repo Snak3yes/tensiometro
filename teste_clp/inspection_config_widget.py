@@ -252,13 +252,7 @@ class _AuxDialog(QDialog):
             self.view_region.fitInView(self._pix_item,
                                        Qt.AspectRatioMode.KeepAspectRatio)            
     
-    def _get_selected_mechanical_position_node(self):
-        """Retorna o nó da posição mecânica atualmente selecionado na tree"""
-        selected_items = self.tree.selectedItems()
-        if not selected_items:
-            return None
-        
-        return selected_items[0] if selected_items else None
+    
     def _on_position_selection_changed(self):
         """
         Chamado quando seleção muda no visor de posições mecânicas.
@@ -284,62 +278,6 @@ class _AuxDialog(QDialog):
             self._select_tree_node_for_item(selected_item)
             
             self.log(f"🎯 Posição selecionada: {getattr(selected_item, 'name', '?')}")
-    
-    def _update_roi_from_selection(self):
-        """
-        Recorta a área da Posição Mecânica selecionada e mostra
-        na view_roi preservando a resolução original.
-        """
-        if self.view_roi is None or self._orig_bgr is None:
-            return        
-        sel = [it for it in self.view_region.scene().selectedItems()
-               if isinstance(it, ResizableRectItem)]
-        if not sel:
-            return
-        
-        # CORREÇÃO: Evita redesenho desnecessário
-        item = sel[0]
-        component_name = getattr(item, 'name', None)
-        if not component_name:
-            return
-            
-        # Verifica se mudou a seleção para evitar redesenhos repetitivos
-        if hasattr(self, '_last_selected_component') and self._last_selected_component == component_name:
-            return
-        self._last_selected_component = component_name
-        
-        # ... resto da função mantém igual ...
-        # usa retângulo do item já mapeado p/ cena (inclui posição)
-        r_scene = item.mapRectToScene(item.rect())
-        x, y, w, h = map(int, [r_scene.x(), r_scene.y(),
-                               r_scene.width(), r_scene.height()])
-        h_img, w_img, _ = self._orig_bgr.shape
-        # limita dentro da imagem
-        x = max(0, min(x, w_img - 1))
-        y = max(0, min(y, h_img - 1))
-        w = max(1, min(w, w_img - x))
-        h = max(1, min(h, h_img - y))
-        roi_bgr = self._orig_bgr[y:y + h, x:x + w].copy()
-        if roi_bgr.size == 0:
-            return
-        
-        # Atualiza o visor ROI
-        roi_px = InspectionConfigWidget._bgr_to_pixmap(roi_bgr)  # qualidade máx.
-
-        # CORREÇÃO: Remove apenas o pixmap anterior, mantém janelas de comparação
-        scene = self.view_roi.scene()
-        # Remove apenas o item de imagem anterior (se existir)
-        if hasattr(self, '_roi_pix_item') and self._roi_pix_item:
-            scene.removeItem(self._roi_pix_item)
-        
-        # Adiciona nova imagem
-        self._roi_pix_item = scene.addPixmap(roi_px)
-        self.view_roi.fitInView(self._roi_pix_item,
-                                Qt.AspectRatioMode.KeepAspectRatio)
-        
-        # FORÇO redesenho se necessário
-        if component_name and component_name in self.componentes:
-            self._redesenhar_janelas_inspecao(component_name)
             
     # ===================  TREEVIEW Sync  ============================
     def _on_window_added(self, item):
@@ -749,50 +687,6 @@ class _AuxDialog(QDialog):
                 self.tree.takeTopLevelItem(i)
                 self.log(f"➖ Posição mecânica removida da tree")
                 return
-    def _on_comparison_window_removed(self, item):
-        """Remove janela de comparação da tree"""
-        # Remove subitens (janelas de comparação)
-        for i in range(self.tree.topLevelItemCount()):
-            parent_node = self.tree.topLevelItem(i)
-            # Procura subitens que correspondam ao item
-            for j in range(parent_node.childCount()):
-                child_node = parent_node.child(j)
-                if child_node.data(0, Qt.ItemDataRole.UserRole) is item:
-                    parent_node.removeChild(child_node)
-                    self.log(f"➖ Janela de comparação removida da tree")
-                    return
-    
-    def _is_item_valid(self, item):
-        """Verifica se um item Qt ainda é válido"""
-        if item is None:
-            return False
-        try:
-            # Tenta acessar uma propriedade básica - se falhar, objeto foi deletado
-            _ = item.scene()
-            return True
-        except RuntimeError:
-            # Objeto C++ foi deletado
-            return False
-        
-    def _find_and_select_tree_node(self, item):
-        """Encontra e seleciona o nó correspondente na TreeView"""
-        if not self._is_item_valid(item):
-            return
-            
-        # Procura em itens de primeiro nível
-        for i in range(self.tree.topLevelItemCount()):
-            n = self.tree.topLevelItem(i)
-            if n and n.data(0, Qt.ItemDataRole.UserRole) is item:
-                self.tree.setCurrentItem(n)
-                return
-    
-    def _safe_clear_tree_selection(self):
-        """Limpa seleção da TreeView de forma segura"""
-        try:
-            self._updating_tree_selection = True
-            self.tree.clearSelection()
-        finally:
-            self._updating_tree_selection = False
     
     def _safe_select_tree_node(self, node):
         """Seleciona nó na TreeView de forma segura"""
@@ -1583,13 +1477,7 @@ class InspectionConfigWidget(QGroupBox):
                                        Qt.AspectRatioMode.KeepAspectRatio)
 
     # -------------------- tamanho fixo 4:3 ---------------------------
-    def _update_region_aspect(self):
-        """
-        Agora é responsabilidade do próprio AspectRatioLabel via
-        height-for-width.  Esta função existe apenas por compatibilidade
-        e pode ser chamada livremente sem causar efeitos colaterais.
-        """
-        pass   # nada a fazer – proporção garantida pelo widget
+    
 
     def _update_roi_aspect(self):
         """
@@ -1814,52 +1702,10 @@ class InspectionConfigWidget(QGroupBox):
             # Reexibe apenas a imagem-base
             self._set_main_pixmap(self._last_roi_bgr)
             print(f"[DEBUG] Visor principal limpo")
-
-    def debug_cache_status(self):
-        """Método para debug - mostra status atual do cache"""
-        componentes = self._cached_auxiliary_data.get('componentes', {})
-        # DEBUG DETALHADO
-        print(f"[DEBUG] === UPDATE_MAIN_VIEWER INICIADO ===")
-        print(f"[DEBUG] Componentes no cache: {len(componentes)}")
-        print(f"[DEBUG] Widget tem _last_roi_bgr: {hasattr(self, '_last_roi_bgr')}")
-        print(f"[DEBUG] _last_roi_bgr é None: {getattr(self, '_last_roi_bgr', None) is None}")
-        print(f"\n=== DEBUG CACHE STATUS ===")
-        print(f"Componentes em cache: {len(componentes)}")
-        print(f"Imagem em cache: {'Sim' if self._cached_auxiliary_data.get('region_image') is not None else 'Não'}")
-        print(f"_last_roi_bgr: {'Sim' if self._last_roi_bgr is not None else 'Não'}")
-        for nome, dados in componentes.items():
-            pos = dados.get('posicao', (0, 0))
-            dims = dados.get('dimensoes', (100, 100))
-            insp_count = len(dados.get('inspecoes', []))
-            print(f"  '{nome}': pos={pos}, dims={dims}, {insp_count} inspeções")
-        print("========================\n")
-        
-    def receive_auxiliary_data(self, componentes, region_image):
-        """MÉTODO LEGACY - usar _update_main_with_data"""
-        print(f"[DEBUG] ⚠️ receive_auxiliary_data chamado - redirecionando para novo método")
-        self._update_main_with_data(componentes, region_image)
         
     def get_cached_auxiliary_data(self):
         """Retorna dados em cache para a auxiliar"""
         return self._cached_auxiliary_data.copy()
-    
-    def debug_update_viewer(self):
-        """Função de debug para testar atualização do visor"""
-        print(f"\n[DEBUG] === FUNÇÃO DEBUG CHAMADA ===")
-        
-        # Debug do cache
-        self.debug_cache_status()
-        
-        # Força atualização
-        try:
-            self.update_main_viewer()
-            print(f"[DEBUG] ✅ update_main_viewer() chamado com sucesso")
-        except Exception as e:
-            print(f"[DEBUG] ❌ Erro em update_main_viewer(): {e}")
-            import traceback
-            traceback.print_exc()
-            
-        print(f"[DEBUG] === FUNÇÃO DEBUG CONCLUÍDA ===")
         
     def update_main_viewer(self):
         """Atualiza o visor principal com as posições mecânicas do cache"""
@@ -1993,61 +1839,6 @@ class InspectionConfigWidget(QGroupBox):
         except Exception as e:
             print(f"[DEBUG] Erro na conversão QPixmap->BGR: {e}")
             return None
-            
-    def _draw_positions_on_image(self, img_bgr, componentes):
-        """Desenha retângulos das posições mecânicas sobre a imagem"""            
-        h_img, w_img = img_bgr.shape[:2]
-        print(f"[DEBUG] Desenhando {len(componentes)} posições em imagem {w_img}x{h_img}")
-        
-        posicoes_desenhadas = 0
-        inspecoes_desenhadas = 0
-        
-        for nome, dados in componentes.items():
-            pos = dados.get('posicao', (0, 0))
-            dims = dados.get('dimensoes', (100, 100))
-            
-            # Usa coordenadas da posição mecânica
-            pos_x, pos_y = pos
-            pos_w, pos_h = dims
-                                            
-            # CORREÇÃO: Verifica se coordenadas estão dentro da imagem
-            if pos_x < 0 or pos_y < 0 or pos_x + pos_w > w_img or pos_y + pos_h > h_img:
-    
-                # Ajusta coordenadas para ficar dentro da imagem
-                pos_x = max(0, min(pos_x, w_img - 1))
-                pos_y = max(0, min(pos_y, h_img - 1))
-                pos_w = min(pos_w, w_img - pos_x)
-                pos_h = min(pos_h, h_img - pos_y)                
-             
-            # Verifica se dimensões são válidas após ajuste
-            if pos_w <= 0 or pos_h <= 0:
-                print(f"[DEBUG] ❌ Dimensões inválidas após ajuste: {pos_w}x{pos_h} - pulando")
-                continue
-            
-            # Desenha retângulo VERMELHO para a posição mecânica (como solicitado)
-            try:
-                cv2.rectangle(img_bgr, (pos_x, pos_y), (pos_x + pos_w, pos_y + pos_h), (0, 0, 255), 3)  # Vermelho, espessura 3
-                
-            except Exception as e:
-                print(f"[DEBUG] ❌ Erro ao desenhar retângulo vermelho: {e}")
-                continue
-            posicoes_desenhadas += 1
-            
-            # Adiciona texto com o nome
-            try:
-                cv2.putText(img_bgr, nome, (pos_x, pos_y - 10),
-                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)  # Texto vermelho
-                print(f"[DEBUG] ✅ Texto '{nome}' adicionado")
-            except Exception as e:
-                print(f"[DEBUG] ⚠️ Erro ao adicionar texto: {e}")
-            print(f"[DEBUG] ✅ Posição '{nome}' processada completamente")
-
-            # REMOVIDO: Desenho das janelas azuis (não necessário no visor principal)
-            print(f"[DEBUG] ✅ Posição '{nome}' concluída - janelas de inspeção serão exibidas apenas no visor ROI")
-
-        print(f"[DEBUG] Resultado: {posicoes_desenhadas} posições e {inspecoes_desenhadas} inspeções desenhadas")
-        
-        return img_bgr
     
     # ------------------------------------------------------------------
     #  Utilitário estático – converte numpy BGR → QPixmap sem downscale

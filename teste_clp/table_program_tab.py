@@ -512,13 +512,6 @@ class TableProgramTab(QWidget):
         self.ctrl.log(f"■ Posição {pos.name} atualizada: "
                       f"X={x:.0f}  Y={'Y1' if self.y_axis=='Y1' else 'Y2'}="
                       f"{y1 if self.y_axis=='Y1' else y2:.0f}  Z={z:.0f}")
-        
-    # ---------------------------------------------------------------
-    #  Sai do modo edição sem alterar nada
-    # ---------------------------------------------------------------
-    def leave_edit_mode(self):
-        # zera offset dinâmico
-        self.ctrl._plc_motion_backend.apply_dynamic_offset(0, 0)
     
     # -------- barcode recebido DURANTE A EXECUÇÃO --------------------
     def _on_bc_runtime(self, ok: bool, x:int, y:int, w:int, h:int, text:str):
