@@ -75,3 +75,10 @@ class BarcodeConfigWidget(QGroupBox):
     # exportação p/ meta-dados
     def roi_size(self):
         return self.spin_w.value(), self.spin_h.value()
+    
+    # -------------- NOVO: carregar valores salvos ------------------
+    def load_from_meta(self, meta: dict):
+        w = int(meta.get("width", 400))
+        h = int(meta.get("height", 150))
+        self.spin_w.setValue(w)
+        self.spin_h.setValue(h)

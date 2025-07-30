@@ -409,6 +409,7 @@ class SequenceControlWidget(QWidget):
     fidClear = pyqtSignal()
     bcMatch  = pyqtSignal(bool, int, int, int, int, str)
     bcClear  = pyqtSignal()
+    progressIdx = pyqtSignal(int)
 
     def __init__(self,
                  motion: MotionBackend,
@@ -560,6 +561,7 @@ class SequenceControlWidget(QWidget):
     def _on_progress(self, idx: int, total: int):
         self._progress.setValue(idx)
         self._status.setText(f"{idx}/{total} concluídos")
+        self.progressIdx.emit(idx)
 
     def _on_finished(self):
         self._status.setText("Concluída")

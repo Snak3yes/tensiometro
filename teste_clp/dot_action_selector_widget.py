@@ -25,6 +25,23 @@ class DotActionSelectorWidget(QGroupBox):
         ("barcode",  "Barcode"),
         ("inspect",  "Inspeção")
     ]
+    # ================================================================
+    #  NOVO  –  permite selecionar programaticamente a ação
+    # ================================================================
+    def select_action(self, key: str) -> None:
+        """
+        Marca o botão correspondente a `key`
+        e emite actionChanged(key).
+        """
+        for btn in self._group.buttons():
+            # propriedade foi gravada no __init__ como "actionKey"
+            if btn.property("actionKey") == key:
+                btn.setChecked(True)
+                # garante que o sinal seja disparado mesmo
+                # quando a seleção veio de fora (duplo-clique)
+                self.actionChanged.emit(key)
+                break
+
     def __init__(self, parent=None):
         super().__init__("Ação Selecionada", parent)
         h = QHBoxLayout(self)

@@ -40,3 +40,21 @@ class DotPatternsWidget(QGroupBox):
         self.tree.clear()
         for p in self.man.patterns():
             QTreeWidgetItem(self.tree, [str(p.id), p.name, str(p.qty)])
+
+    # =============================================================
+    #  Seleciona o padrão cujo `pat_id` coincide com o informado.
+    #  Percorre o QTreeWidget e marca o item correspondente.
+    # =============================================================
+    def select_pattern_by_id(self, pat_id: int | str) -> None:
+        try:
+            pat_id = int(pat_id)
+        except Exception:
+            return
+
+        tree = self.tree
+        for i in range(tree.topLevelItemCount()):
+            it = tree.topLevelItem(i)
+            if int(it.text(0)) == pat_id:
+                tree.setCurrentItem(it)
+                tree.scrollToItem(it)
+                break

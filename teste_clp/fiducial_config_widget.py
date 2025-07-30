@@ -79,6 +79,14 @@ class FiducialConfigWidget(QGroupBox):
         self.spin_radius.valueChanged.connect(
             lambda _: self.parametersChanged.emit(self.spin_window.value(),
                                                   self.spin_radius.value()))
+              
+    # -------------- NOVO ------------------------------------------
+    def load_from_meta(self, meta: dict):
+        self.spin_window.setValue(int(meta.get("window", 50)))
+        self.spin_radius.setValue(int(meta.get("radius", 80)))
+        self.spin_thresh.setValue(int(meta.get("threshold", 70)))
+        # template já está contido em meta; não há necessidade de
+        # repor a imagem aqui.
 
     # --------------------------------------------------------------
     def _grab_frame(self):

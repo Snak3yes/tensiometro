@@ -1396,6 +1396,38 @@ class InspectionConfigWidget(QGroupBox):
         # Flag para controlar limpeza de cache durante inicialização
         self._initializing_auxiliary = False
 
+    # ================================================================
+    #  NOVO  –  carregar parâmetros vindos de um ponto existente
+    # ================================================================
+    def load_from_meta(self, meta: dict):
+        """
+        Preenche largura, altura e similaridade mínima de acordo com
+        o dicionário salvo no ponto selecionado.
+        A estrutura completa de ‘componentes’ também é carregada no
+        cache interno para que as janelas apareçam automaticamente
+        no painel.
+        """
+        # --- ROI principal (usa primeiro componente, se houver) -----
+        comp_dict = meta.get("componentes", {})
+        if comp_dict:
+            # pega dimensões do primeiro componente para sugerir ROI
+            first = next(iter(comp_dict.values()))
+            w, h = first.get("dimensoes", (self.spin_w.value(),
+                                           self.spin_h.value()))
+            self.spin_w.setValue(int(w))
+            self.spin_h.setValue(int(h))
+
+        # --- similaridade mínima ------------------------------------
+        sim = meta.get("similaridade", None)
+        if sim is not None:
+            self.spin_sim.setValue(int(float(sim)*100))
+
+        # --- cache dos componentes / janelas ------------------------
+        if comp_dict:
+            self._cached_auxiliary_data['componentes'] = comp_dict
+            # força reconstrução imediata dos retângulos
+            self.update_main_viewer()
+
     # ---------------- construção ----------------------------
     def _build_ui(self):
         v = QVBoxLayout(self)
@@ -1858,7 +1890,10 @@ class InspectionConfigWidget(QGroupBox):
                 self._last_roi_bgr = cached_image.copy()
                 print(f"[DEBUG] ✅ Imagem restaurada do cache: {self._last_roi_bgr.shape}")
             
-            elif hasattr(self, 'lbl_region') and self.lbl_region.pixmap():
+            # lbl_region hoje é QGraphicsView; só usa o pixmap se
+            # ainda for um QLabel legado.
+            elif isinstance(getattr(self, 'lbl_region', None), QLabel) \
+                    and self.lbl_region.pixmap():
                 # Fallback: usa imagem do label se existir
                 print(f"[DEBUG] Tentando usar imagem do label como base")
                 try:

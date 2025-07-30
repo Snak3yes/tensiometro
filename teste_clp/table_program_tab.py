@@ -4,7 +4,7 @@ Aba de programação de uma mesa (Mesa 1 ou Mesa 2).
 Mostra controles para X, Y (lógico) e Z apenas.
 """
 
-from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QFrame, QSizePolicy, QLabel, QSpinBox
+from PyQt6.QtWidgets import QWidget, QGridLayout, QVBoxLayout, QFrame, QSizePolicy, QLabel, QSpinBox, QPushButton, QMessageBox
 from PyQt6.QtCore    import Qt, QTimer
 from PyQt6.QtGui     import QPixmap
 import base64, cv2
@@ -241,6 +241,9 @@ class TableProgramTab(QWidget):
         # ---------- SELETOR DE AÇÃO --------------------------------
         self.action_selector = DotActionSelectorWidget()
         v_left.addWidget(self.action_selector)
+
+        
+
         # ---------- STACK DE CONFIGURAÇÕES -------------------------
         self._config_stack = QStackedWidget()
         # página 0 – DOTS
@@ -320,9 +323,27 @@ class TableProgramTab(QWidget):
             get_action_context=self._current_action_context
         )
 
-        # ――――― NOVO: duplo-clique leva a cabeça até a posição ――――――
+        # ------------------------------------------------------------------
+        #  Botões EDITAR e REMOVER – tratativa personalizada
+        #  • Remove o handler padrão de remoção (sem confirmação)
+        #  • Conecta nosso slot com caixa de diálogo
+        # ------------------------------------------------------------------
+        self.inspect_widget.btn_edit.clicked.connect(self._on_edit_clicked)
+        try:
+            # desconecta handler automático configurado no widget
+            self.inspect_widget.btn_remove.clicked.disconnect()
+        except TypeError:
+            pass
+        self.inspect_widget.btn_remove.clicked.connect(self._on_remove_clicked)
+
+        # ――――― duplo-clique leva a cabeça até a posição ――――――
         self.inspect_widget.list_widget.itemDoubleClicked.connect(
             self._on_position_double_clicked)
+        # qualquer mudança de seleção (clique simples, setas, PgUp, …)
+        # bloqueia o botão até que outro duplo-clique seja feito
+        self.inspect_widget.list_widget.itemSelectionChanged.connect(
+            lambda: [self.inspect_widget.btn_edit.setEnabled(False),
+                     self.inspect_widget.btn_remove.setEnabled(False)])
 
         v_right.addWidget(self.inspect_widget)
 
@@ -348,6 +369,9 @@ class TableProgramTab(QWidget):
         # ---------- BARCODE em execução ------------------------------
         self.seq_widget.bcMatch.connect(self._on_bc_runtime)
         self.seq_widget.bcClear.connect(lambda: setattr(self, "_bc_match", None))
+
+        # ---------- realça linha que está sendo executada ------------
+        self.seq_widget.progressIdx.connect(self._on_exec_progress)
 
         v_right.addStretch()
         w_right = QWidget(); w_right.setLayout(v_right)
@@ -376,6 +400,9 @@ class TableProgramTab(QWidget):
         self.mov_widget.jogStop.connect(self._on_jog_stop)
         self.mov_widget.goToZeroRequested.connect(self._go_center)
 
+        # inserir posição dispara renumeração do gráfico
+        self.inspect_widget.positionInserted.connect(
+            lambda _: self.seq_widget.set_positions(self._to_model()))
         self.inspect_widget.positionAdded.connect(
             lambda _: self.seq_widget.set_positions(self._to_model()))
         # NOVO: criação imediata das pastas / imagens
@@ -404,6 +431,67 @@ class TableProgramTab(QWidget):
 
         # ============================ PERSONALIZAÇÃO UI ================
         self._adapt_widgets_for_single_y()
+
+    # ---------------------------------------------------------------
+    #  Seleciona na lista a linha que o runner acabou de concluir
+    # ---------------------------------------------------------------
+    def _on_exec_progress(self, idx: int):
+        """
+        Recebe 1-based `idx` do SequenceRunnerThread e realça a linha
+        correspondente (idx-1) no QListWidget.
+        """
+        row = idx - 1
+        lw  = self.inspect_widget.list_widget
+        if 0 <= row < lw.count():
+            lw.setCurrentRow(row)
+            lw.scrollToItem(lw.item(row))
+
+    # ------------------------------------------------------------------
+    def _on_edit_clicked(self):
+        """Substitui meta do ponto selecionado pelo que estiver nos widgets."""
+        cur_item = self.inspect_widget.list_widget.currentItem()
+        if cur_item is None:
+            return
+        row = self.inspect_widget.list_widget.row(cur_item)
+        positions = self.inspect_widget.positions()
+        if row >= len(positions):
+            return
+        # ------------------------ 1. nova AÇÃO ------------------------
+        new_meta = self._current_action_context()
+        if new_meta is None:
+            QMessageBox.warning(self, "Ação inválida",
+                                "Configure a ação antes de salvar.")
+            return
+
+        # ------------------------ 2. nova POSIÇÃO ---------------------
+        cur_dict = self._get_current_position() or {}
+        x  = float(cur_dict.get("x", 0))
+        y1 = float(cur_dict.get("y1", 0))
+        y2 = float(cur_dict.get("y2", 0))
+        z  = float(cur_dict.get("z", 0))
+
+        # valida dentro da área da mesa
+        if callable(self._validate_position):
+            err = self._validate_position(x, y2, y1, z)
+            if err:
+                QMessageBox.warning(self, "Fora dos limites", err)
+                return
+
+        # ------------------------ 3. aplica ao objeto -----------------
+        pos              = positions[row]      # objeto existente
+        pos.x, pos.y1, pos.y2, pos.z = x, y1, y2, z
+        pos.camera_params = new_meta
+        setattr(pos, "meta", new_meta)         # retro-compat.
+
+        # ------------------------ 4. refresca lista ------------------
+        self.inspect_widget._renumber_items()
+        self.inspect_widget._renumber_items()
+        self.inspect_widget.btn_edit.setEnabled(False)
+        # notifica sequence widget
+        self.seq_widget.set_positions(self._to_model())
+        self.ctrl.log(f"■ Posição {pos.name} atualizada: "
+                      f"X={x:.0f}  Y={'Y1' if self.y_axis=='Y1' else 'Y2'}="
+                      f"{y1 if self.y_axis=='Y1' else y2:.0f}  Z={z:.0f}")
     
     # -------- barcode recebido DURANTE A EXECUÇÃO --------------------
     def _on_bc_runtime(self, ok: bool, x:int, y:int, w:int, h:int, text:str):
@@ -447,6 +535,55 @@ class TableProgramTab(QWidget):
         self.ctrl.log(
             f"■ Duplo-clique: movendo para {pos.name}  "
             f"(X={tgt_x}, {y_axis}={tgt_y}, Z={tgt_z})")
+        
+        # ---- habilita  EDITAR  e carrega meta na interface ----------
+        self.inspect_widget.btn_edit.setEnabled(True)
+        self.inspect_widget.btn_remove.setEnabled(True)
+        self._load_meta_to_widgets(pos.meta or {})
+
+    # ---------------------------------------------------------------
+    #  Remover posição selecionada
+    # ---------------------------------------------------------------
+    def _on_remove_clicked(self):
+        item = self.inspect_widget.list_widget.currentItem()
+        if item is None:
+            return
+        row = self.inspect_widget.list_widget.row(item)
+        try:
+            pos = self.inspect_widget.positions()[row]
+        except IndexError:
+            return
+
+        ret = QMessageBox.question(
+            self, "Remover posição",
+            f"Deseja remover a posição {pos.name} ?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.Cancel,
+            QMessageBox.StandardButton.Cancel)
+        if ret != QMessageBox.StandardButton.Yes:
+            return
+
+        removed = self.inspect_widget.remove_selected()
+        if removed:
+            # renumeração e refresh já são feitos pelo widget
+            self.seq_widget.set_positions(self._to_model())
+            self.ctrl.log(f"■ Posição {removed.name} removida.")
+        # desabilita botões até novo duplo-clique
+        self.inspect_widget.btn_edit.setEnabled(False)
+        self.inspect_widget.btn_remove.setEnabled(False)
+
+    # ------------------------------------------------------------------
+    def _load_meta_to_widgets(self, meta: dict):
+        """Preenche action_selector & widgets com o meta selecionado."""
+        act = meta.get("action", "dot")
+        self.action_selector.select_action(act)
+        if act == "fiducial":
+            self.fiducial_cfg.load_from_meta(meta)
+        elif act == "barcode":
+            self.barcode_cfg.load_from_meta(meta)
+        elif act == "inspect":
+            self.inspect_cfg.load_from_meta(meta)
+        elif act == "dot":
+            self.dots_view.select_pattern_by_id(meta.get("dot_id"))
 
     # ------------------------------------------------------------------
     #  NOVO  –  cria estrutura e salva imagens no ato da adição

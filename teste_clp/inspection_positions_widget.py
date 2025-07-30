@@ -58,6 +58,19 @@ class InspectionPositionListModel:
 
     def __getitem__(self, idx):
         return self._positions[idx]
+    
+    def insert(self, idx: int, pos: InspectionPosition) -> None:
+        """Insere pos antes de idx (como list.insert)."""
+        if idx < 0:
+            idx = 0
+        elif idx > len(self._positions):
+            idx = len(self._positions)
+        self._positions.insert(idx, pos)
+
+    def replace(self, idx: int, pos: InspectionPosition) -> None:
+        """Substitui posição existente – usado pelo botão Editar."""
+        if 0 <= idx < len(self._positions):
+            self._positions[idx] = pos
 
 
 # ----------------------------------------------------------------------
@@ -81,6 +94,8 @@ class InspectionPositionsWidget(QWidget):
 
     positionAdded = pyqtSignal(object)     # InspectionPosition
     positionRemoved = pyqtSignal(object)   # InspectionPosition
+    positionInserted = pyqtSignal(object)  # InspectionPosition
+    positionEdited   = pyqtSignal(object)
 
     def __init__(self,
                  get_current_position: Callable[[], Dict[str, float]] | None = None,
@@ -112,6 +127,7 @@ class InspectionPositionsWidget(QWidget):
         removed = self._model.remove(row)
         if removed:
             self.list_widget.takeItem(row)
+            self._renumber_items()
             self.positionRemoved.emit(removed)
         return removed
 
@@ -139,14 +155,21 @@ class InspectionPositionsWidget(QWidget):
 
         # botões
         h = QHBoxLayout()
-        self.btn_add = QPushButton("Adicionar posição atual")
-        self.btn_remove = QPushButton("Remover posição")
+        self.btn_add   = QPushButton("Adicionar posição atual")
+        self.btn_insert= QPushButton("Inserir nova posição")
+        self.btn_edit  = QPushButton("Editar posição atual")
+        self.btn_edit.setEnabled(False)          # só libera após duplo-click
+        self.btn_remove= QPushButton("Remover posição")
+        self.btn_remove.setEnabled(False)
         h.addWidget(self.btn_add)
+        h.addWidget(self.btn_insert)
+        h.addWidget(self.btn_edit)
         h.addWidget(self.btn_remove)
         v.addLayout(h)
 
         # conexões
         self.btn_add.clicked.connect(self._on_add_clicked)
+        self.btn_insert.clicked.connect(self._on_insert_clicked)
         self.btn_remove.clicked.connect(self.remove_selected)
 
     # ------------------------------------------------------------------
@@ -206,6 +229,57 @@ class InspectionPositionsWidget(QWidget):
             txt += f"  [dot {pos.meta.get('dot_qty',1)}]"
         item = QListWidgetItem(txt)
         self.list_widget.addItem(item)
+
+    # ----------------------------------------------------------------
+    #  Inserir posição EM CIMA do item selecionado
+    # ----------------------------------------------------------------
+    def _on_insert_clicked(self):
+        if not callable(self._get_current_position):
+            QMessageBox.warning(self, "Indisponível",
+                                "Função get_current_position não foi fornecida.")
+            return
+        cur_item = self.list_widget.currentItem()
+        if cur_item is None:
+            QMessageBox.warning(self, "Selecione",
+                                "Selecione a linha onde a nova posição será inserida.")
+            return
+        row = self.list_widget.row(cur_item)
+
+        # reaproveita a mesma lógica de _on_add_clicked
+        # → obtém posição e meta atuais
+        if callable(self._get_action_context):
+            meta = self._get_action_context()
+            if meta is None:
+                QMessageBox.warning(self, "Ação não definida",
+                                    "Selecione uma ação antes de inserir.")
+                return
+        else:
+            meta = None
+        pos_dict = self._get_current_position() or {}
+        new_pos = InspectionPosition(str(row+1),
+                                     float(pos_dict.get("x", 0)),
+                                     float(pos_dict.get("y2", 0)),
+                                     float(pos_dict.get("y1", 0)),
+                                     float(pos_dict.get("z", 0)),
+                                     meta=meta)
+        # insere no modelo e list widget
+        self._model.insert(row, new_pos)
+        self.list_widget.insertItem(row, QListWidgetItem())
+        self._renumber_items()
+        self.positionInserted.emit(new_pos)
+
+    # ----------------------------------------------------------------
+    def _renumber_items(self):
+        """Ajusta o campo name e o texto exibido após inserção/remoção."""
+        for idx, pos in enumerate(self._model):
+            pos.name = str(idx + 1)
+            lw_item = self.list_widget.item(idx)
+            lw_item.setText(
+                f"{pos.name}.  X={pos.x:.2f}  Y2={pos.y2:.2f}  "
+                f"Y1={pos.y1:.2f}  Z={pos.z:.2f}" +
+                (f"  [dot {pos.meta.get('dot_qty')}]"
+                 if pos.meta and pos.meta.get('action') == 'dot' else "")
+            )
 
 
 # ----------------------------------------------------------------------
