@@ -11,7 +11,8 @@ import base64, cv2
 import numpy as np
 from PIL import Image
 import time
-
+from helpers import read_fiducials
+from sequence_control import SequenceRunnerThread
 from inspection_config_widget import InspectionConfigWidget
 from movement_controls_widget import MovementControlsWidget
 from position_status_widget   import PositionStatusWidget
@@ -55,6 +56,9 @@ class TableProgramTab(QWidget):
         # sua câmera está “invertida”, portanto usamos +1
         self._PIXEL_TO_Y_SIGN = +1
         self._build_ui()
+
+        # -------- estado da PRÉ-VISUALIZAÇÃO -------------
+        self._preview_runner = None
         self._jog_active_axis: str | None = None
         QTimer.singleShot(0, self._fix_video_size)
         self.ctrl.camera_manager.frameReady.connect(self._update_frame)
@@ -448,7 +452,10 @@ class TableProgramTab(QWidget):
 
     # ------------------------------------------------------------------
     def _on_edit_clicked(self):
-        """Substitui meta do ponto selecionado pelo que estiver nos widgets."""
+        """
+        Salva edição garantindo que o deslocamento seja
+        SUBTRAÍDO antes de gravar as coordenadas base.
+        """
         cur_item = self.inspect_widget.list_widget.currentItem()
         if cur_item is None:
             return
@@ -469,6 +476,19 @@ class TableProgramTab(QWidget):
         y1 = float(cur_dict.get("y1", 0))
         y2 = float(cur_dict.get("y2", 0))
         z  = float(cur_dict.get("z", 0))
+
+         # --------- remove OFFSET dinâmico aplicado pelo runner -------
+        dx_dyn = self.ctrl._plc_motion_backend._dx_dyn
+        dy_dyn = self.ctrl._plc_motion_backend._dy_dyn
+        if dx_dyn or dy_dyn:
+            x -= dx_dyn
+            if self.y_axis == 'Y1':
+                y1 -= dy_dyn
+            else:
+                y2 -= dy_dyn
+
+        # zera offset dinâmico no backend imediatamente
+        self.ctrl._plc_motion_backend.apply_dynamic_offset(0, 0)
 
         # valida dentro da área da mesa
         if callable(self._validate_position):
@@ -492,6 +512,13 @@ class TableProgramTab(QWidget):
         self.ctrl.log(f"■ Posição {pos.name} atualizada: "
                       f"X={x:.0f}  Y={'Y1' if self.y_axis=='Y1' else 'Y2'}="
                       f"{y1 if self.y_axis=='Y1' else y2:.0f}  Z={z:.0f}")
+        
+    # ---------------------------------------------------------------
+    #  Sai do modo edição sem alterar nada
+    # ---------------------------------------------------------------
+    def leave_edit_mode(self):
+        # zera offset dinâmico
+        self.ctrl._plc_motion_backend.apply_dynamic_offset(0, 0)
     
     # -------- barcode recebido DURANTE A EXECUÇÃO --------------------
     def _on_bc_runtime(self, ok: bool, x:int, y:int, w:int, h:int, text:str):
@@ -506,40 +533,160 @@ class TableProgramTab(QWidget):
     # ==================================================================
     def _on_position_double_clicked(self, item):
         """
-        Move a cabeça para as coordenadas salvas no ponto
-        que o usuário clicou duas vezes na Tree/List.
+        Pré-visualiza ponto para EDIÇÃO reutilizando o mesmo runner de
+        execução:
+            • mini-sequência = [todos fiducials] + [ponto clicado]
+            • runner aplica apply_dynamic_offset() internamente;
+            • câmera chega EXACTAMENTE ao ponto corrigido;
+            • botão “Editar” é habilitado se a leitura dos fiduciais
+              tiver sucesso.
         """
         row = self.inspect_widget.list_widget.row(item)
         try:
-            pos = self.inspect_widget.positions()[row]
+            clicked_pos = self.inspect_widget.positions()[row]
         except IndexError:
             return
 
-        # extrai destino absoluto
-        tgt_x = int(pos.x)
-        tgt_y = int(pos.y1 if self.y_axis == "Y1" else pos.y2)
-        tgt_z = int(pos.z)
-        y_axis = self.y_axis
+        # ‑-- monta micro-lista: todos fiducials (na ordem) + ponto alvo
+        fid_points = [p for p in self.inspect_widget.positions()
+                      if (p.meta or {}).get('action') == 'fiducial']
 
-        # escreve spinBoxes “fantasma” para que o backend PLC use
-        self.ctrl.pulsos_spin_X.setValue(tgt_x)
-        getattr(self.ctrl, f"pulsos_spin_{y_axis}").setValue(tgt_y)
-        self.ctrl.pulsos_spin_Z.setValue(tgt_z)
+        # se não houver fiducial basta mover diretamente (fluxo antigo)
+        if not fid_points:
+            self._apply_offset_and_move(item, (0, 0))
+            return
 
-        # desloca cada eixo (X e Y juntos; Z por último ou primeiro,
-        # conforme preferir – aqui fazemos X/Y depois Z para segurança)
-        self.ctrl.move_axis_absolute("X")
-        self.ctrl.move_axis_absolute(y_axis)
-        self.ctrl.move_axis_absolute("Z")
+        # ------------------------------------------------------------------
+        # O ponto clicado NÃO deve executar nenhuma ação real (dot / barcode…)
+        # na pré-visualização – apenas movimentar a cabeça.
+        # Criamos uma *cópia* sem campo "action".
+        # ------------------------------------------------------------------
+        import copy
+        clicked_copy         = copy.deepcopy(clicked_pos)
+        if isinstance(clicked_copy.meta, dict):
+            clicked_copy.meta = clicked_copy.meta.copy()
+            clicked_copy.meta.pop("action", None)   # neutraliza
 
-        self.ctrl.log(
-            f"■ Duplo-clique: movendo para {pos.name}  "
-            f"(X={tgt_x}, {y_axis}={tgt_y}, Z={tgt_z})")
-        
-        # ---- habilita  EDITAR  e carrega meta na interface ----------
+        mini_list = fid_points + [clicked_copy]
+
+        # converte para modelo SequenceRunnerThread (InspectionPosition)
+        # --------------------------------------------------------------
+        #  CONVERSOR → InspectionPosition
+        #     • Usa SOMENTE o eixo físico da mesa (Y1  OU  Y2);
+        #       o outro fica = None   →   backend NÃO envia comando.
+        # --------------------------------------------------------------
+        def _to_ip(p):
+            cam = p.meta.copy() if isinstance(p.meta, dict) else None
+            if self.y_axis == 'Y1':
+                return InspectionPosition(
+                    name=p.name,
+                    x=p.x,
+                    y1=p.y1,
+                    y2=None,          # evita “Y2 = 0” que disparava eixo errado
+                    z=p.z,
+                    camera_params=cam)
+            else:                    # Mesa 2
+                return InspectionPosition(
+                    name=p.name,
+                    x=p.x,
+                    y2=p.y2,
+                    y1=None,
+                    z=p.z,
+                    camera_params=cam)
+
+        positions_model = [_to_ip(p) for p in mini_list]
+
+        # bloqueia botões enquanto corre
+        self.inspect_widget.btn_edit.setEnabled(False)
+        self.inspect_widget.btn_remove.setEnabled(False)
+
+        # --------------------------------------------------------------
+        #  garante que CameraManager possua método .capture(params)
+        #  (SequenceRunnerThread passa um dict ou None)
+        # --------------------------------------------------------------
+        if not hasattr(self.ctrl.camera_manager, "capture"):
+            def _cam_capture(_params=None, cm=self.ctrl.camera_manager):
+                """
+                Substituto mínimo para CameraManager.capture expected by
+                SequenceRunnerThread.  Ignora quaisquer parâmetros e devolve
+                o frame BGR ou None.
+                """
+                ok, frame = (cm._cap.read() if getattr(cm, "_cap", None)
+                             else (False, None))
+                return frame if ok else None
+
+            setattr(self.ctrl.camera_manager, "capture", _cam_capture)
+
+        # --------------------------------------------------------------
+        #  1) Desliga aplicação do offset câmera↔nozzle
+        #     (somente CAMERA deve chegar ao ponto, não o nozzle)
+        #  2) Runner em modo VIEW  (apply_mode=False)
+        # --------------------------------------------------------------
+        if hasattr(self.ctrl._plc_motion_backend, "set_offset_mode"):
+            self.ctrl._plc_motion_backend.set_offset_mode(False)
+
+        # 3) dispara runner em thread próprio  (apply_mode=False garante
+        #    que offset fixo câmera↔nozzle NÃO seja somado)
+        # --------------------------------------------------------------
+        self._preview_runner = SequenceRunnerThread(
+            motion=self.ctrl._plc_motion_backend,
+            camera=self.ctrl.camera_manager,
+            positions=positions_model,
+            apply_mode=False)
+        # SequenceRunnerThread.finished  NÃO envia argumentos
+        # → callback simplificado
+        self._preview_runner.finished.connect(
+            lambda it=item: self._preview_finished(it))
+        # Se ocorrer erro → aborta edição
+        self._preview_runner.error.connect(
+            lambda msg, it=item: self._preview_failed(msg, it))
+        # -------- FEEDBACK VISUAL (mesma UX do runner principal) ------
+        self._preview_runner.fidMatch.connect(self._on_fid_match)
+        self._preview_runner.fidClear.connect(
+            lambda: setattr(self, "_match_info", None))
+        # opcional: barcode (não afeta ponto editado)
+        self._preview_runner.bcMatch.connect(self._on_bc_runtime)
+        self._preview_runner.bcClear.connect(
+            lambda: setattr(self, "_bc_match", None))
+        self._preview_runner.start()
+
+    # -------------------------------------------
+    def _preview_finished(self, item):
+        """
+        Callback quando micro-runner concluiu.
+        Se OK:
+            – habilita Editar/Remover;
+            – carrega meta nos widgets;
+            – mantém offset dinâmico ativo para o usuário.
+        Caso erro (fiducial não encontrado, etc.), aborta edição.
+        """
+        # offset dinâmico obtido ANTES do runner resetar (ver backend)
+        dx, dy = self.ctrl._plc_motion_backend._last_offset
+        self.ctrl.log(f"■ Pré-visualização concluída – ΔX={dx}  ΔY={dy}")
+
+        # habilita botões e carrega meta
         self.inspect_widget.btn_edit.setEnabled(True)
         self.inspect_widget.btn_remove.setEnabled(True)
+        row = self.inspect_widget.list_widget.row(item)
+        pos = self.inspect_widget.positions()[row]
         self._load_meta_to_widgets(pos.meta or {})
+
+        # garante seleção visual (pode ter sido alterada durante runner)
+        self.inspect_widget.list_widget.setCurrentItem(item)
+
+    # ---------------------------------------------------------------
+    #  Falha na leitura dos fiduciais  →  aborta edição
+    # ---------------------------------------------------------------
+    def _preview_failed(self, msg: str, item):
+        QMessageBox.warning(self, "Fiducial",
+                            f"Falha na leitura dos fiduciais:\n{msg}")
+        # limpa offset dinâmico
+        self.ctrl._plc_motion_backend.apply_dynamic_offset(0, 0)
+        # garante que botões permaneçam desativados
+        self.inspect_widget.btn_edit.setEnabled(False)
+        self.inspect_widget.btn_remove.setEnabled(False)
+        # devolve seleção visual ao item (sem edição)
+        self.inspect_widget.list_widget.setCurrentItem(item)
 
     # ---------------------------------------------------------------
     #  Remover posição selecionada

@@ -2598,6 +2598,8 @@ class PLCMotionBackend(MotionBackend):
         # ---------- deslocamento dinâmico calculado por fiducial -----
         self._dx_dyn = 0          # em pulsos
         self._dy_dyn = 0
+        # guarda último ΔX/ΔY ≠ 0 para leitura pós-runner
+        self._last_offset: tuple[int,int] = (0, 0)
         self._targets: dict[str,int] = {}   # destino mais recente por eixo
         # registrador de QUANTIDADE de dots
         self._addr_qty = ctrl.addresses.get('D24100_QTY')
@@ -2643,6 +2645,8 @@ class PLCMotionBackend(MotionBackend):
     def apply_dynamic_offset(self, dx_pulses: int, dy_pulses: int):
         self._dx_dyn = dx_pulses
         self._dy_dyn = dy_pulses
+        if dx_pulses or dy_pulses:
+            self._last_offset = (dx_pulses, dy_pulses)
         self._c.log(f"■ Offset dinâmico aplicado: ΔX={dx_pulses}  ΔY={dy_pulses}")
 
     def _move_axis(self, axis: str, pulses: int):
@@ -2674,7 +2678,8 @@ class PLCMotionBackend(MotionBackend):
 
         while time.time() - t0 < timeout:
             all_reached = True
-            for axis, target in self._targets.items():
+            # copia para evitar “dictionary changed size”
+            for axis, target in list(self._targets.items()):
                 if axis in ok_axes:
                     continue
 
