@@ -19,6 +19,26 @@ class MesaPlotWidget(QGraphicsView):
                  parent=None):
         super().__init__(parent)
         self._lim = limits_xy             # {'x':(min,max),'y':(min,max)}
+        # -----------------------------------------------------------------
+        #  Guardamos limites “brutos” em pulsos e calculamos  1:1  na tela
+        #  • x_range : pulses_x_max – pulses_x_min
+        #  • y_range : pulses_y_max – pulses_y_min
+        #    Se forem diferentes o gráfico ficava “esticado”.
+        #  • Aplicamos factor  _scale_y  para traçar
+        #        y_plot = y_raw * _scale_y
+        #    tornando 1 pulsos→1 px  equivalente em X e Y.
+        # -----------------------------------------------------------------
+        self._lim_raw = limits_xy        # {'x':(..),(..), 'y':(..),(..)}
+        x0, x1 = limits_xy['x']
+        y0, y1 = limits_xy['y']
+        x_range = x1 - x0
+        y_range = y1 - y0 if (y1 - y0) != 0 else 1
+        self._scale_y = x_range / y_range
+        # lim com Y já escalonado
+        self._lim = {
+            'x': (x0, x1),
+            'y': (y0 * self._scale_y, y1 * self._scale_y)
+        }
         self._scene  = QGraphicsScene(self)
         self.setScene(self._scene)
         # Qt 6 ⇒ enum está em QPainter.RenderHint
@@ -42,6 +62,7 @@ class MesaPlotWidget(QGraphicsView):
     # -----------------------------------------------------------------
     def _build_static(self, title:str):
         self._scene.clear()
+        # Atenção: usamos limites COM y já escalonado
         x0,x1 = self._lim['x']; y0,y1 = self._lim['y']
         w  = x1-x0;   h  = y1-y0
         # retângulo origem (0,0).  Deixamos margem 5 %
@@ -55,10 +76,10 @@ class MesaPlotWidget(QGraphicsView):
         # título
         tit = QGraphicsSimpleTextItem(title)
         tit.setPos(x0, y0-h*0.07)
-        self._scene.addItem(tit)
+        self._scene.addItem(tit)        
+
         # invert-Y para ficar origem em baixo-esquerda
         self.scale(1, -1)
-
         # força ajuste inicial
         self._fit()
 
@@ -72,8 +93,8 @@ class MesaPlotWidget(QGraphicsView):
             self._scene.removeItem(it)
         self._point_items.clear()
         # ----------------------------------------------------------
-        #  CORREÇÃO DE ESPELHAMENTO HORIZONTAL
-        #     x_plot = x_min + x_max – x_original
+        #  1) Corrige ESPELHAMENTO X  (imagem tipo “página virada”)
+        #  2) Aplica factor _scale_y  para manter proporção 1:1
         # ----------------------------------------------------------
         x_min, x_max = self._lim['x']
         # adiciona
@@ -82,6 +103,7 @@ class MesaPlotWidget(QGraphicsView):
         r_pix = 6   # diâmetro em pixels (fixo)
         for (x, y) in points:
             x = x_min + x_max - x
+            y = y * self._scale_y
             e = self._scene.addEllipse(
                 x, y, 0, 0, pen, brush)  # placeholder
             # tamanho fixo  – ignora transformações (pixels na tela)
@@ -96,6 +118,7 @@ class MesaPlotWidget(QGraphicsView):
         # aplica correção de espelhamento X
         x_min, x_max = self._lim['x']
         x = x_min + x_max - x
+        y = y * self._scale_y
         if self._head_item is None:
             pen = QPen(Qt.GlobalColor.red); pen.setWidth(0)
             brush = QBrush(Qt.GlobalColor.red)
