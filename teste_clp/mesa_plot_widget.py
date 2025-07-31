@@ -137,6 +137,15 @@ class MesaPlotWidget(QGraphicsView):
         x_min, x_max = self._lim['x']
         x_plot = x_min + x_max - x_mm
         y_plot = y_mm
+
+        # ------------- visibilidade só dentro da área útil -------------
+        in_x = self._lim['x'][0] <= x_mm <= self._lim['x'][1]
+        in_y = self._lim['y'][0] <= y_mm <= self._lim['y'][1]
+        if not (in_x and in_y):
+            if self._head_item is not None:
+                self._head_item.setVisible(False)
+            return                     # ignora pontos fora da área
+
         if self._head_item is None:
             pen = QPen(Qt.GlobalColor.red); pen.setWidth(0)
             brush = QBrush(Qt.GlobalColor.red)
@@ -144,10 +153,11 @@ class MesaPlotWidget(QGraphicsView):
                 -r_pix/2, -r_pix/2, r_pix, r_pix, pen, brush)
             self._head_item.setFlag(
                 QGraphicsEllipseItem.GraphicsItemFlag.ItemIgnoresTransformations)
-        else:
-            pass
         self._head_item.setPos(x_plot, y_plot)
-    
+        # caso estivesse oculto e volte para a área útil
+        self._head_item.setVisible(True)
+        self._head_item.setPos(x_plot, y_plot)
+
     # -----------------------------------------------------------------
     #  Ajusta automaticamente o zoom
     # -----------------------------------------------------------------
