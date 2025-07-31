@@ -73,11 +73,16 @@ class AxesControlTab(QWidget):
         self.mov_widget = MovementControlsWidget()
         right_col.addWidget(self.mov_widget)
 
-        # Posições de inspeção
+        # --------------------------------------------------------------
+        #  REMOVIDO O GROUPBOX “Posições de Inspeção” APENAS NESTA ABA
+        #  – o widget continua existindo (para não quebrar callbacks
+        #    internos do SequenceControl), mas fica oculto da UI.
+        # --------------------------------------------------------------
         self.inspect_widget = InspectionPositionsWidget(
             get_current_position=self.ctrl._get_current_position_dict)
-        self.inspect_widget.setMaximumHeight(260)
-        right_col.addWidget(self.inspect_widget)
+        self.inspect_widget.hide()          # invisível na aba
+
+        # (não é adicionado ao layout right_col)
 
         # Aba de controle global → utiliza extensão genérica .json
         backend = InspectionPositionsBackend(self.inspect_widget)
@@ -161,13 +166,24 @@ class AxesControlTab(QWidget):
         self.mirror_m1_label = QLabel("Posições de Inspeção – Mesa 1")
         self.mirror_m1_label.setStyleSheet(
             "QLabel { color:#ECEFF1; font-weight:bold; }")
+
+        # --- lista + espaço vazio (60 % | 40 %) --------------------
         self.mirror_m1_list = QListWidget()
         self.mirror_m1_list.setStyleSheet(
             "QListWidget { background:#424242; color:#ECEFF1; }")
         self.mirror_m1_list.setMinimumHeight(140)
 
+        m1_row = QHBoxLayout()
+        m1_row.setContentsMargins(0, 0, 0, 0)
+        m1_row.addWidget(self.mirror_m1_list)
+        self._m1_blank = QFrame()                  # área vazia 40 %
+        self._m1_blank.setStyleSheet("QFrame { background:#303030; }")
+        m1_row.addWidget(self._m1_blank)
+        m1_row.setStretchFactor(self.mirror_m1_list, 3)   # ≈60 %
+        m1_row.setStretchFactor(self._m1_blank,      2)   # ≈40 %
+
         left_half_lay.addWidget(self.mirror_m1_label)
-        left_half_lay.addWidget(self.mirror_m1_list, 1)
+        left_half_lay.addLayout(m1_row, 1)
 
         # ----------------------------------------------------------
         #  ESPELHO DAS POSIÇÕES  –  MESA 2   (lado direito)
@@ -178,13 +194,23 @@ class AxesControlTab(QWidget):
         self.mirror_m2_label = QLabel("Posições de Inspeção – Mesa 2")
         self.mirror_m2_label.setStyleSheet(
             "QLabel { color:#ECEFF1; font-weight:bold; }")
+
         self.mirror_m2_list = QListWidget()
         self.mirror_m2_list.setStyleSheet(
             "QListWidget { background:#424242; color:#ECEFF1; }")
         self.mirror_m2_list.setMinimumHeight(140)
 
+        m2_row = QHBoxLayout()
+        m2_row.setContentsMargins(0, 0, 0, 0)
+        m2_row.addWidget(self.mirror_m2_list)
+        self._m2_blank = QFrame()
+        self._m2_blank.setStyleSheet("QFrame { background:#303030; }")
+        m2_row.addWidget(self._m2_blank)
+        m2_row.setStretchFactor(self.mirror_m2_list, 3)
+        m2_row.setStretchFactor(self._m2_blank,      2)
+
         right_half_lay.addWidget(self.mirror_m2_label)
-        right_half_lay.addWidget(self.mirror_m2_list, 1)
+        right_half_lay.addLayout(m2_row, 1)
 
         # As conexões dependem de controller.mesa_tabs,
         # que só estará disponível APÓS o controlador criar
@@ -221,6 +247,8 @@ class AxesControlTab(QWidget):
         self.mov_widget.emergencyStopToggled.connect(
             lambda e: self.ctrl.emergency_stop() if e else None)        
 
+        # Como o widget está oculto, as conexões abaixo só são
+        # necessárias caso outro código o utilize programaticamente.
         self.inspect_widget.positionAdded.connect(
             lambda _: self.seq_widget.set_positions(self._to_model()))
         self.inspect_widget.positionRemoved.connect(

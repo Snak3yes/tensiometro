@@ -71,11 +71,17 @@ class MesaPlotWidget(QGraphicsView):
         for it in self._point_items:
             self._scene.removeItem(it)
         self._point_items.clear()
+        # ----------------------------------------------------------
+        #  CORREÇÃO DE ESPELHAMENTO HORIZONTAL
+        #     x_plot = x_min + x_max – x_original
+        # ----------------------------------------------------------
+        x_min, x_max = self._lim['x']
         # adiciona
         pen = QPen(Qt.GlobalColor.darkBlue); pen.setWidth(0)
         brush = QBrush(Qt.GlobalColor.blue)
         r_pix = 6   # diâmetro em pixels (fixo)
-        for (x,y) in points:
+        for (x, y) in points:
+            x = x_min + x_max - x
             e = self._scene.addEllipse(
                 x, y, 0, 0, pen, brush)  # placeholder
             # tamanho fixo  – ignora transformações (pixels na tela)
@@ -87,6 +93,9 @@ class MesaPlotWidget(QGraphicsView):
     def update_head_position(self, x: int, y: int):
         """Atualiza / cria círculo vermelho da cabeça."""
         r_pix = 10
+        # aplica correção de espelhamento X
+        x_min, x_max = self._lim['x']
+        x = x_min + x_max - x
         if self._head_item is None:
             pen = QPen(Qt.GlobalColor.red); pen.setWidth(0)
             brush = QBrush(Qt.GlobalColor.red)

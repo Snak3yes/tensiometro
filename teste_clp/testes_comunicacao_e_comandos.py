@@ -211,8 +211,8 @@ class MultiAxisMotorController(QMainWindow):
         self.current_positions = {
             'Y2': 0,
             'Y1': 0,
-            'Z': 0, 
-            'X': 0
+            'Z' : 0, 
+            'X' : 0
         }
 
         # ---------------- CONTEXTO DO PROJETO -----------------
