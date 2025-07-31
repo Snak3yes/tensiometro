@@ -3,6 +3,7 @@ import time
 import json
 import cv2
 from pathlib import Path
+from plate_flow import PlateFlowManager
 from virtual_home_dialog import ConfigHomeDialog
 from axis_calibration_dialog import AxisCalibrationDialog
 from settings_manager import SettingsManager
@@ -96,6 +97,12 @@ class MultiAxisMotorController(QMainWindow):
             'M1510_Z': 1510,  # INTERROMPE JOG LIMITE POSITIVO Z
             'M1511_Z': 1511,  # INTERROMPE JOG LIMITE NEGATIVO Z
 
+            # botões / sinal de conclusão do fluxo de placa
+            'M20': 20,   # botão Mesa 1
+            'M21': 21,   # done Mesa 1
+            'M30': 30,   # botão Mesa 2
+            'M31': 31,   # done Mesa 2
+
             # MEMÓRIAS AUXILIARES HOMING (conforme ladder real)
             # Y2
             'M311': 311, 'M312': 312, 'M313': 313, 'M314': 314, 'M315': 315,
@@ -180,20 +187,20 @@ class MultiAxisMotorController(QMainWindow):
             # (mudaram de D4000 / D4100 → D24000 / D24100 no ladder)
             'D24000_FREQ': 24000,   # Frequência (Hz) dos dots
             'D24100_QTY':  24100,   # Quantidade de dots
-            
+
             # Registradores de status (leitura)
             'D3100_Y2': 3100,   # POSIÇÃO ATUAL MOTOR Y2 (cópia do SR460)
             'D3400_Y1': 3400,   # POSIÇÃO ATUAL MOTOR Y1 (cópia do SR500)
             'D3200_Z': 3200,    # POSIÇÃO ATUAL MOTOR Z (cópia do SR480)
             'D3000_X': 3000,    # POSIÇÃO ATUAL MOTOR X (cópia do SR520)
-            
+
             # Saídas Y (coils) – endereços Modbus oficiais (AS-Series Manual, Tabela 7-3)
             'Y00': 40960, 'Y01': 40961,     # Y0.0 / Y0.1  eixo-Y2
             'Y02': 40962, 'Y03': 40963,     # Y0.2 / Y0.3  eixo-Z
             'Y04': 40964, 'Y05': 40965,     # Y0.4 / Y0.5  eixo-Y1
             'Y06': 40966, 'Y07': 40967,     # Y0.6 / Y0.7  eixo-X
             'Y010': 40970,                 # Y0.10 (0xA00A) aplicadora de adesivo  <<< FIX
-            
+
             # Entradas X (sensores)
             'X04_Y2': 8196,     # X0.4 sensor homing Y2  
             'X06_Y1': 8198,     # X0.6 sensor homing Y1
@@ -486,6 +493,13 @@ class MultiAxisMotorController(QMainWindow):
         self.tab_widget.addTab(mesa2_tab, "Mesa 2")
         
         layout.addWidget(self.tab_widget)
+
+        # --- gerentes de fluxo de placa --------------------------------
+        
+        self.flow_mesa1 = PlateFlowManager(self, 1, self.mesa_tabs[1])
+        self.flow_mesa2 = PlateFlowManager(self, 2, self.mesa_tabs[2])
+        # flag de execução geral
+        self._global_cycle_active = False
 
         # ------- rastreia arquivo atual do projeto -------------------
         self._current_project_file = None
@@ -2290,6 +2304,86 @@ class MultiAxisMotorController(QMainWindow):
     def _on_go_to_zero(self):
         # usa homing (já implementado) para Z primeiro e depois Y2,Y1,X
         self.home_all_axes()
+
+    # ================================================================
+    #  S T A R T   G E R A L
+    # ================================================================
+    def start_global_cycle(self):
+        """
+        1. Verifica se existe pelo menos UM programa carregado
+           (Mesa 1 e/ou Mesa 2).
+        2. Para cada mesa com programa:
+              – move o berço (eixo Y físico da mesa) até o limite
+                POSITIVO configurado em settings.table_limits;
+              – aguarda o eixo ficar idle.
+        3. Exibe erro se nenhuma mesa possui programa.
+        4. Deixa _global_cycle_active = True para indicar que a
+           máquina está pronta e o fluxo PlateFlow pode iniciar
+           quando o operador pressionar M20 / M30.
+        """
+        from PyQt6.QtWidgets import QMessageBox
+
+        if self._global_cycle_active:
+            self.log("■ Start Geral já está ativo – comando ignorado")
+            return
+
+        # ---------------------- 1. detecção de programas -----------------
+        mesas_com_prog = []
+        for mesa_id, tab in self.mesa_tabs.items():
+            if self._mesa_has_program(mesa_id):
+                mesas_com_prog.append(mesa_id)
+
+        if not mesas_com_prog:
+            QMessageBox.warning(
+                self, "Start Geral",
+                "Nenhum programa está carregado em Mesa 1 ou Mesa 2.")
+            self.log("■ Start Geral cancelado – nenhuma mesa tem programa")
+            return
+
+        # ---------------------- 2. prepara mesas -------------------------
+        for mesa_id in mesas_com_prog:
+            try:
+                self._prepare_table_for_cycle(mesa_id)
+            except Exception as exc:
+                self.log(f"■ Erro preparando Mesa {mesa_id}: {exc}")
+
+        self._global_cycle_active = True
+        self.log(f"■■ START GERAL – pronto. Mesas ativas: {mesas_com_prog}")
+
+        # Aciona polling inicial dos PlateFlowManagers das mesas ativas
+        for mid, mgr in ((1, getattr(self, "flow_mesa1", None)),
+                         (2, getattr(self, "flow_mesa2", None))):
+            if mgr and mid in mesas_com_prog:
+                mgr.poll_now()
+
+    # -----------------------------------------------------------------
+    #  H E L P E R S
+    # -----------------------------------------------------------------
+    def _mesa_has_program(self, mesa_id: int) -> bool:
+        """
+        Retorna True se a aba da mesa possui pelo menos um ponto
+        carregado (positions != []) OU se o ProgramIOWidget já tem
+        um arquivo carregado (_last_file).
+        """
+        tab = self.mesa_tabs.get(mesa_id)
+        if tab is None:
+            return False
+        if tab.inspect_widget.positions():
+            return True
+        return bool(getattr(tab.prog_widget, "_last_file", None))
+
+    def _prepare_table_for_cycle(self, mesa_id: int):
+        """
+        Move o eixo Y físico da mesa até o limite POSITIVO configurado
+        e aguarda a conclusão do movimento.
+        """
+        axis = 'Y1' if mesa_id == 1 else 'Y2'
+        lim  = int(self.table_limits[mesa_id]['y'][1])
+        self.log(f"■ Mesa {mesa_id}: levando berço ao limite +Y ({lim})")
+        getattr(self, f'pulsos_spin_{axis}').setValue(lim)
+        self.move_axis_absolute(axis)
+        if not self._plc_motion_backend.wait_for_idle():
+            raise RuntimeError("timeout aguardando eixo chegar ao limite")
 
     # ================================================================
     # zerar posição individual (M0/M500/…)

@@ -1,7 +1,7 @@
 (.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> & C:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py
-[13:23:18] Conectando ao CLP...
-[13:23:18] ✅ Conectado com sucesso!
-[13:23:18] 🔧 Endereços corrigidos conforme ladder real
+[16:55:22] Conectando ao CLP...
+[16:55:22] ✅ Conectado com sucesso!
+[16:55:22] 🔧 Endereços corrigidos conforme ladder real
 ============================================================
 CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 ============================================================
@@ -20,7 +20,6 @@ CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)
 • Leitura em tempo real das posições dos motores corrigida
 • Status inicial e atualização automática dos LEDs de homing
 ============================================================
-[13:23:19] ‚úÖ Configuração – leitura concluída
 QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
@@ -61,77 +60,1319 @@ QPainter::begin: Paint device returned engine == 0, type: 3
 QPainter::setCompositionMode: Painter not active
 QPainter::fillRect: Painter not active
 QPainter::end: Painter not active, aborted
-[13:23:20] 📖 Lendo velocidades JOG atuais...
-[13:23:21] 📖 Lendo limites da ROM...
-[13:23:21] 📊 Limites Y2: 0 a 18000
-[13:23:21] 📊 Limites Y1: 0 a 18000
-[13:23:21] 📊 Limites X: 0 a 50000
-[13:23:21] 📊 Limites Z: 0 a 2000
-[13:23:22] 📖 Lendo status inicial das memórias de homing...
-[13:23:22] 🏠 Status inicial Homing Y2: REALIZADO
-[13:23:22] 🏠 Status inicial Homing Y1: REALIZADO
-[13:23:22] 🏠 Status inicial Homing X: REALIZADO
-[13:23:22] 🏠 Status inicial Homing Z: REALIZADO
-[13:23:22] 📖 Leitura inicial de homing concluída
-[13:23:24] [Mesa 1] Programa carregado: C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/Projetos/0906.m1
-[13:23:24] ■ Projeto “0906” carregado: 0906.m1
-[13:23:26] 📝 Escrevendo parâmetros Eixo X: Posição=45230
-[13:23:26] ■ Eixo X: pos=45230  vel=30000
-[13:23:26] ✓ D1100_X verificado: 45230
-[13:23:26] 🚀 Movendo eixo X para posição 45230
-[13:23:26]  Pulso M1050_X enviado
-[13:23:26] 🚀 Pulso M1050_X enviado – alvo 45230
-[13:23:26] 📝 Escrevendo parâmetros Eixo Y1: Posição=363
-[13:23:26] ■ Eixo Y1: pos=363  vel=15000
-[13:23:26] ✓ D600_Y1 verificado: 363
-[13:23:26] 🚀 Movendo eixo Y1 para posição 363
-[13:23:26]  Pulso M550_Y1 enviado
-[13:23:26] 🚀 Pulso M550_Y1 enviado – alvo 363
-[13:23:26] 📝 Escrevendo parâmetros Eixo Z: Posição=700
-[13:23:26] ■ Eixo Z: pos=700  vel=1500
-[13:23:26] ✓ D1600_Z verificado: 700
-[13:23:26] 🚀 Movendo eixo Z para posição 700
-[13:23:26]  Pulso M1550_Z enviado
-[13:23:26] 🚀 Pulso M1550_Z enviado – alvo 700
-[13:23:27] ■ Offset dinâmico aplicado: ΔX=-92  ΔY=-187
-[13:23:27] ★ Fiducial OK  ΔX=-92  ΔY=-187 pulsos  (offset acumulado X=-92  Y=-187)
-[13:23:27] 📝 Escrevendo parâmetros Eixo X: Posição=32170
-[13:23:27] ■ Eixo X: pos=32170  vel=30000
-[13:23:27] ✓ D1100_X verificado: 32170
-[13:23:27] 🚀 Movendo eixo X para posição 32170
-[13:23:27]  Pulso M1050_X enviado
-[13:23:27] 🚀 Pulso M1050_X enviado – alvo 32170
-[13:23:27] 📝 Escrevendo parâmetros Eixo Y1: Posição=14750
-[13:23:27] ■ Eixo Y1: pos=14750  vel=15000
-[13:23:27] ✓ D600_Y1 verificado: 14750
-[13:23:27] 🚀 Movendo eixo Y1 para posição 14750
-[13:23:27]  Pulso M550_Y1 enviado
-[13:23:27] 🚀 Pulso M550_Y1 enviado – alvo 14750
-[13:23:27] 📝 Escrevendo parâmetros Eixo Z: Posição=700
-[13:23:27] ■ Eixo Z: pos=700  vel=1500
-[13:23:27] ✓ D1600_Z verificado: 700
-[13:23:27] 🚀 Movendo eixo Z para posição 700
-[13:23:27]  Pulso M1550_Z enviado
-[13:23:27] 🚀 Pulso M1550_Z enviado – alvo 700
-[13:23:28] ■ Offset dinâmico aplicado: ΔX=-92  ΔY=-190
-[13:23:28] ★ Fiducial OK  ΔX=0  ΔY=-3 pulsos  (offset acumulado X=-92  Y=-190)
-[13:23:28] 📝 Escrevendo parâmetros Eixo X: Posição=42086
-[13:23:28] ■ Eixo X: pos=42086  vel=30000
-[13:23:28] ✓ D1100_X verificado: 42086
-[13:23:28] 🚀 Movendo eixo X para posição 42086
-[13:23:28]  Pulso M1050_X enviado
-[13:23:28] 🚀 Pulso M1050_X enviado – alvo 42086
-[13:23:28] 📝 Escrevendo parâmetros Eixo Y1: Posição=8294
-[13:23:28] ■ Eixo Y1: pos=8294  vel=15000
-[13:23:28] ✓ D600_Y1 verificado: 8294
-[13:23:28] 🚀 Movendo eixo Y1 para posição 8294
-[13:23:28]  Pulso M550_Y1 enviado
-[13:23:28] 🚀 Pulso M550_Y1 enviado – alvo 8294
-[13:23:28] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
-[13:23:28] ■ Eixo Z: pos=1000  vel=1500
-[13:23:28] ✓ D1600_Z verificado: 1000
-[13:23:28] 🚀 Movendo eixo Z para posição 1000
-[13:23:28]  Pulso M1550_Z enviado
-[13:23:28] 🚀 Pulso M1550_Z enviado – alvo 1000
-TypeError: TableProgramTab._on_position_double_clicked.<locals>.<lambda>() missing 1 required positional argument: 'ok'
-(.venv) PS C:\Users\sense\PycharmProjects\cnc_aoi> 
+[16:55:22] ‚úÖ Configuração – leitura concluída
+[16:55:24] 📖 Lendo velocidades JOG atuais...
+[16:55:25] 📖 Lendo limites da ROM...
+[16:55:25] 📊 Limites Y2: 0 a 18000
+[16:55:25] 📊 Limites Y1: 0 a 18000
+[16:55:25] 📊 Limites X: 0 a 50000
+[16:55:25] 📊 Limites Z: 0 a 2000
+[16:55:26] 📖 Lendo status inicial das memórias de homing...
+[16:55:26] 🏠 Status inicial Homing Y2: REALIZADO
+[16:55:26] 🏠 Status inicial Homing Y1: REALIZADO
+[16:55:26] 🏠 Status inicial Homing X: REALIZADO
+[16:55:26] 🏠 Status inicial Homing Z: REALIZADO
+[16:55:26] 📖 Leitura inicial de homing concluída
+[16:56:18] [Mesa 1] Programa carregado: C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/Projetos/0906.m1
+[16:56:18] ■ Projeto “0906” carregado: 0906.m1
+[16:56:28] ■ Mesa 1: levando berço ao limite +Y (18000)
+[16:56:28] 📝 Escrevendo parâmetros Eixo Y1: Posição=18000
+[16:56:28] ■ Eixo Y1: pos=18000  vel=15000
+[16:56:28] ✓ D600_Y1 verificado: 18000
+[16:56:28] 🚀 Movendo eixo Y1 para posição 18000
+[16:56:28]  Pulso M550_Y1 enviado
+[16:56:28] 🚀 Pulso M550_Y1 enviado – alvo 18000
+[16:56:28] ■■ START GERAL – pronto. Mesas ativas: [1]
+[16:56:32] ■ Mesa 1: enviando placa (destino Y=363.0)
+[16:56:32] 📝 Escrevendo parâmetros Eixo Y1: Posição=363
+[16:56:32] ■ Eixo Y1: pos=363  vel=15000
+[16:56:32] ✓ D600_Y1 verificado: 363
+[16:56:32] 🚀 Movendo eixo Y1 para posição 363
+[16:56:32]  Pulso M550_Y1 enviado
+[16:56:32] 🚀 Pulso M550_Y1 enviado – alvo 363
+[16:56:32] 📝 Escrevendo parâmetros Eixo X: Posição=45230
+[16:56:32] ■ Eixo X: pos=45230  vel=30000
+[16:56:32] ✓ D1100_X verificado: 45230
+[16:56:32] 🚀 Movendo eixo X para posição 45230
+[16:56:32]  Pulso M1050_X enviado
+[16:56:32] 🚀 Pulso M1050_X enviado – alvo 45230
+[16:56:32] 📝 Escrevendo parâmetros Eixo Y1: Posição=363
+[16:56:32] ■ Eixo Y1: pos=363  vel=15000
+[16:56:32] ✓ D600_Y1 verificado: 363
+[16:56:32] 🚀 Movendo eixo Y1 para posição 363
+[16:56:32]  Pulso M550_Y1 enviado
+[16:56:32] 🚀 Pulso M550_Y1 enviado – alvo 363
+[16:56:32] 📝 Escrevendo parâmetros Eixo Z: Posição=700
+[16:56:32] ■ Eixo Z: pos=700  vel=1500
+[16:56:32] ✓ D1600_Z verificado: 700
+[16:56:32] 🚀 Movendo eixo Z para posição 700
+[16:56:32]  Pulso M1550_Z enviado
+[16:56:32] 🚀 Pulso M1550_Z enviado – alvo 700
+[16:56:33] ■ Offset dinâmico aplicado: ΔX=-98  ΔY=-181
+[16:56:33] ★ Fiducial OK  ΔX=-98  ΔY=-181 pulsos  (offset acumulado X=-98  Y=-181)
+[16:56:33] 📝 Escrevendo parâmetros Eixo X: Posição=32164
+[16:56:33] ■ Eixo X: pos=32164  vel=30000
+[16:56:33] ✓ D1100_X verificado: 32164
+[16:56:33] 🚀 Movendo eixo X para posição 32164
+[16:56:33]  Pulso M1050_X enviado
+[16:56:33] 🚀 Pulso M1050_X enviado – alvo 32164
+[16:56:33] 📝 Escrevendo parâmetros Eixo Y1: Posição=14756
+[16:56:33] ■ Eixo Y1: pos=14756  vel=15000
+[16:56:33] ✓ D600_Y1 verificado: 14756
+[16:56:33] 🚀 Movendo eixo Y1 para posição 14756
+[16:56:33]  Pulso M550_Y1 enviado
+[16:56:33] 🚀 Pulso M550_Y1 enviado – alvo 14756
+[16:56:33] 📝 Escrevendo parâmetros Eixo Z: Posição=700
+[16:56:33] ■ Eixo Z: pos=700  vel=1500
+[16:56:33] ✓ D1600_Z verificado: 700
+[16:56:33] 🚀 Movendo eixo Z para posição 700
+[16:56:33]  Pulso M1550_Z enviado
+[16:56:33] 🚀 Pulso M1550_Z enviado – alvo 700
+[16:56:35] ■ Offset dinâmico aplicado: ΔX=-98  ΔY=-184
+[16:56:35] ★ Fiducial OK  ΔX=0  ΔY=-3 pulsos  (offset acumulado X=-98  Y=-184)
+[16:56:35] 📝 Escrevendo parâmetros Eixo X: Posição=41274
+[16:56:35] ■ Eixo X: pos=41274  vel=30000
+[16:56:35] ✓ D1100_X verificado: 41274
+[16:56:35] 🚀 Movendo eixo X para posição 41274
+[16:56:35]  Pulso M1050_X enviado
+[16:56:35] 🚀 Pulso M1050_X enviado – alvo 41274
+[16:56:35] 📝 Escrevendo parâmetros Eixo Y1: Posição=13212
+[16:56:35] ■ Eixo Y1: pos=13212  vel=15000
+[16:56:35] ✓ D600_Y1 verificado: 13212
+[16:56:35] 🚀 Movendo eixo Y1 para posição 13212
+[16:56:35]  Pulso M550_Y1 enviado
+[16:56:35] 🚀 Pulso M550_Y1 enviado – alvo 13212
+[16:56:35] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:35] ■ Eixo Z: pos=1000  vel=1500
+[16:56:35] ✓ D1600_Z verificado: 1000
+[16:56:35] 🚀 Movendo eixo Z para posição 1000
+[16:56:35]  Pulso M1550_Z enviado
+[16:56:35] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:35] ■ DOT qty → D24100=100
+[16:56:35] ■ Pulso M5000 enviado
+[16:56:36] ■ Dot concluído (M5001=OFF)
+[16:56:36] 📝 Escrevendo parâmetros Eixo X: Posição=42056
+[16:56:36] ■ Eixo X: pos=42056  vel=30000
+[16:56:36] ✓ D1100_X verificado: 42056
+[16:56:36] 🚀 Movendo eixo X para posição 42056
+[16:56:36]  Pulso M1050_X enviado
+[16:56:36] 🚀 Pulso M1050_X enviado – alvo 42056
+[16:56:36] 📝 Escrevendo parâmetros Eixo Y1: Posição=12886
+[16:56:36] ■ Eixo Y1: pos=12886  vel=15000
+[16:56:36] ✓ D600_Y1 verificado: 12886
+[16:56:36] 🚀 Movendo eixo Y1 para posição 12886
+[16:56:36]  Pulso M550_Y1 enviado
+[16:56:36] 🚀 Pulso M550_Y1 enviado – alvo 12886
+[16:56:36] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:36] ■ Eixo Z: pos=1000  vel=1500
+[16:56:36] ✓ D1600_Z verificado: 1000
+[16:56:36] 🚀 Movendo eixo Z para posição 1000
+[16:56:36]  Pulso M1550_Z enviado
+[16:56:36] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:36] ■ DOT qty → D24100=100
+[16:56:36] ■ Pulso M5000 enviado
+[16:56:36] ■ Dot concluído (M5001=OFF)
+[16:56:36] 📝 Escrevendo parâmetros Eixo X: Posição=43158
+[16:56:36] ■ Eixo X: pos=43158  vel=30000
+[16:56:36] ✓ D1100_X verificado: 43158
+[16:56:36] 🚀 Movendo eixo X para posição 43158
+[16:56:36]  Pulso M1050_X enviado
+[16:56:36] 🚀 Pulso M1050_X enviado – alvo 43158
+[16:56:36] 📝 Escrevendo parâmetros Eixo Y1: Posição=12880
+[16:56:36] ■ Eixo Y1: pos=12880  vel=15000
+[16:56:36] ✓ D600_Y1 verificado: 12880
+[16:56:36] 🚀 Movendo eixo Y1 para posição 12880
+[16:56:36]  Pulso M550_Y1 enviado
+[16:56:36] 🚀 Pulso M550_Y1 enviado – alvo 12880
+[16:56:36] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:36] ■ Eixo Z: pos=1000  vel=1500
+[16:56:36] ✓ D1600_Z verificado: 1000
+[16:56:36] 🚀 Movendo eixo Z para posição 1000
+[16:56:36]  Pulso M1550_Z enviado
+[16:56:36] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:37] ■ DOT qty → D24100=100
+[16:56:37] ■ Pulso M5000 enviado
+[16:56:37] ■ Dot concluído (M5001=OFF)
+[16:56:37] 📝 Escrevendo parâmetros Eixo X: Posição=43967
+[16:56:37] ■ Eixo X: pos=43967  vel=30000
+[16:56:37] ✓ D1100_X verificado: 43967
+[16:56:37] 🚀 Movendo eixo X para posição 43967
+[16:56:37]  Pulso M1050_X enviado
+[16:56:37] 🚀 Pulso M1050_X enviado – alvo 43967
+[16:56:37] 📝 Escrevendo parâmetros Eixo Y1: Posição=13245
+[16:56:37] ■ Eixo Y1: pos=13245  vel=15000
+[16:56:37] ✓ D600_Y1 verificado: 13245
+[16:56:37] 🚀 Movendo eixo Y1 para posição 13245
+[16:56:37]  Pulso M550_Y1 enviado
+[16:56:37] 🚀 Pulso M550_Y1 enviado – alvo 13245
+[16:56:37] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:37] ■ Eixo Z: pos=1000  vel=1500
+[16:56:37] ✓ D1600_Z verificado: 1000
+[16:56:37] 🚀 Movendo eixo Z para posição 1000
+[16:56:37]  Pulso M1550_Z enviado
+[16:56:37] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:37] ■ DOT qty → D24100=100
+[16:56:38] ■ Pulso M5000 enviado
+[16:56:38] ■ Dot concluído (M5001=OFF)
+[16:56:38] 📝 Escrevendo parâmetros Eixo X: Posição=43986
+[16:56:38] ■ Eixo X: pos=43986  vel=30000
+[16:56:38] ✓ D1100_X verificado: 43986
+[16:56:38] 🚀 Movendo eixo X para posição 43986
+[16:56:38]  Pulso M1050_X enviado
+[16:56:38] 🚀 Pulso M1050_X enviado – alvo 43986
+[16:56:38] 📝 Escrevendo parâmetros Eixo Y1: Posição=14004
+[16:56:38] ■ Eixo Y1: pos=14004  vel=15000
+[16:56:38] ✓ D600_Y1 verificado: 14004
+[16:56:38] 🚀 Movendo eixo Y1 para posição 14004
+[16:56:38]  Pulso M550_Y1 enviado
+[16:56:38] 🚀 Pulso M550_Y1 enviado – alvo 14004
+[16:56:38] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:38] ■ Eixo Z: pos=1000  vel=1500
+[16:56:38] ✓ D1600_Z verificado: 1000
+[16:56:38] 🚀 Movendo eixo Z para posição 1000
+[16:56:38]  Pulso M1550_Z enviado
+[16:56:38] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:38] ■ DOT qty → D24100=100
+[16:56:38] ■ Pulso M5000 enviado
+[16:56:39] ■ Dot concluído (M5001=OFF)
+[16:56:39] 📝 Escrevendo parâmetros Eixo X: Posição=43138
+[16:56:39] ■ Eixo X: pos=43138  vel=30000
+[16:56:39] ✓ D1100_X verificado: 43138
+[16:56:39] 🚀 Movendo eixo X para posição 43138
+[16:56:39]  Pulso M1050_X enviado
+[16:56:39] 🚀 Pulso M1050_X enviado – alvo 43138
+[16:56:39] 📝 Escrevendo parâmetros Eixo Y1: Posição=14389
+[16:56:39] ■ Eixo Y1: pos=14389  vel=15000
+[16:56:39] ✓ D600_Y1 verificado: 14389
+[16:56:39] 🚀 Movendo eixo Y1 para posição 14389
+[16:56:39]  Pulso M550_Y1 enviado
+[16:56:39] 🚀 Pulso M550_Y1 enviado – alvo 14389
+[16:56:39] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:39] ■ Eixo Z: pos=1000  vel=1500
+[16:56:39] ✓ D1600_Z verificado: 1000
+[16:56:39] 🚀 Movendo eixo Z para posição 1000
+[16:56:39]  Pulso M1550_Z enviado
+[16:56:39] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:39] ■ DOT qty → D24100=100
+[16:56:39] ■ Pulso M5000 enviado
+[16:56:39] ■ Dot concluído (M5001=OFF)
+[16:56:39] 📝 Escrevendo parâmetros Eixo X: Posição=42128
+[16:56:39] ■ Eixo X: pos=42128  vel=30000
+[16:56:39] ✓ D1100_X verificado: 42128
+[16:56:39] 🚀 Movendo eixo X para posição 42128
+[16:56:39]  Pulso M1050_X enviado
+[16:56:39] 🚀 Pulso M1050_X enviado – alvo 42128
+[16:56:39] 📝 Escrevendo parâmetros Eixo Y1: Posição=14381
+[16:56:39] ■ Eixo Y1: pos=14381  vel=15000
+[16:56:39] ✓ D600_Y1 verificado: 14381
+[16:56:39] 🚀 Movendo eixo Y1 para posição 14381
+[16:56:39]  Pulso M550_Y1 enviado
+[16:56:39] 🚀 Pulso M550_Y1 enviado – alvo 14381
+[16:56:39] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:39] ■ Eixo Z: pos=1000  vel=1500
+[16:56:39] ✓ D1600_Z verificado: 1000
+[16:56:39] 🚀 Movendo eixo Z para posição 1000
+[16:56:39]  Pulso M1550_Z enviado
+[16:56:39] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:40] ■ DOT qty → D24100=100
+[16:56:40] ■ Pulso M5000 enviado
+[16:56:40] ■ Dot concluído (M5001=OFF)
+[16:56:40] 📝 Escrevendo parâmetros Eixo X: Posição=41284
+[16:56:40] ■ Eixo X: pos=41284  vel=30000
+[16:56:40] ✓ D1100_X verificado: 41284
+[16:56:40] 🚀 Movendo eixo X para posição 41284
+[16:56:40]  Pulso M1050_X enviado
+[16:56:40] 🚀 Pulso M1050_X enviado – alvo 41284
+[16:56:40] 📝 Escrevendo parâmetros Eixo Y1: Posição=14008
+[16:56:40] ■ Eixo Y1: pos=14008  vel=15000
+[16:56:40] ✓ D600_Y1 verificado: 14008
+[16:56:40] 🚀 Movendo eixo Y1 para posição 14008
+[16:56:40]  Pulso M550_Y1 enviado
+[16:56:40] 🚀 Pulso M550_Y1 enviado – alvo 14008
+[16:56:40] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:40] ■ Eixo Z: pos=1000  vel=1500
+[16:56:40] ✓ D1600_Z verificado: 1000
+[16:56:40] 🚀 Movendo eixo Z para posição 1000
+[16:56:40]  Pulso M1550_Z enviado
+[16:56:40] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:41] ■ DOT qty → D24100=100
+[16:56:41] ■ Pulso M5000 enviado
+[16:56:41] ■ Dot concluído (M5001=OFF)
+[16:56:41] 📝 Escrevendo parâmetros Eixo X: Posição=42672
+[16:56:41] ■ Eixo X: pos=42672  vel=30000
+[16:56:41] ✓ D1100_X verificado: 42672
+[16:56:41] 🚀 Movendo eixo X para posição 42672
+[16:56:41]  Pulso M1050_X enviado
+[16:56:41] 🚀 Pulso M1050_X enviado – alvo 42672
+[16:56:41] 📝 Escrevendo parâmetros Eixo Y1: Posição=9051
+[16:56:41] ■ Eixo Y1: pos=9051  vel=15000
+[16:56:41] ✓ D600_Y1 verificado: 9051
+[16:56:41] 🚀 Movendo eixo Y1 para posição 9051
+[16:56:41]  Pulso M550_Y1 enviado
+[16:56:41] 🚀 Pulso M550_Y1 enviado – alvo 9051
+[16:56:41] 📝 Escrevendo parâmetros Eixo Z: Posição=0
+[16:56:41] ■ Eixo Z: pos=0  vel=1500
+[16:56:41] ✓ D1600_Z verificado: 0
+[16:56:41] 🚀 Movendo eixo Z para posição 0
+[16:56:41]  Pulso M1550_Z enviado
+[16:56:41] 🚀 Pulso M1550_Z enviado – alvo 0
+[16:56:42] 📝 Escrevendo parâmetros Eixo X: Posição=31618
+[16:56:42] ■ Eixo X: pos=31618  vel=30000
+[16:56:42] ✓ D1100_X verificado: 31618
+[16:56:42] 🚀 Movendo eixo X para posição 31618
+[16:56:42]  Pulso M1050_X enviado
+[16:56:42] 🚀 Pulso M1050_X enviado – alvo 31618
+[16:56:42] 📝 Escrevendo parâmetros Eixo Y1: Posição=12299
+[16:56:42] ■ Eixo Y1: pos=12299  vel=15000
+[16:56:42] ✓ D600_Y1 verificado: 12299
+[16:56:42] 🚀 Movendo eixo Y1 para posição 12299
+[16:56:42]  Pulso M550_Y1 enviado
+[16:56:42] 🚀 Pulso M550_Y1 enviado – alvo 12299
+[16:56:42] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:42] ■ Eixo Z: pos=1000  vel=1500
+[16:56:42] ✓ D1600_Z verificado: 1000
+[16:56:42] 🚀 Movendo eixo Z para posição 1000
+[16:56:42]  Pulso M1550_Z enviado
+[16:56:42] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:43] ■ DOT qty → D24100=50
+[16:56:43] ■ Pulso M5000 enviado
+[16:56:43] ■ Dot concluído (M5001=OFF)
+[16:56:43] 📝 Escrevendo parâmetros Eixo X: Posição=31932
+[16:56:43] ■ Eixo X: pos=31932  vel=30000
+[16:56:43] ✓ D1100_X verificado: 31932
+[16:56:43] 🚀 Movendo eixo X para posição 31932
+[16:56:43]  Pulso M1050_X enviado
+[16:56:43] 🚀 Pulso M1050_X enviado – alvo 31932
+[16:56:43] 📝 Escrevendo parâmetros Eixo Y1: Posição=12153
+[16:56:43] ■ Eixo Y1: pos=12153  vel=15000
+[16:56:43] ✓ D600_Y1 verificado: 12153
+[16:56:43] 🚀 Movendo eixo Y1 para posição 12153
+[16:56:43]  Pulso M550_Y1 enviado
+[16:56:43] 🚀 Pulso M550_Y1 enviado – alvo 12153
+[16:56:43] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:43] ■ Eixo Z: pos=1000  vel=1500
+[16:56:43] ✓ D1600_Z verificado: 1000
+[16:56:43] 🚀 Movendo eixo Z para posição 1000
+[16:56:43]  Pulso M1550_Z enviado
+[16:56:43] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:43] ■ DOT qty → D24100=50
+[16:56:43] ■ Pulso M5000 enviado
+[16:56:43] ■ Dot concluído (M5001=OFF)
+[16:56:43] 📝 Escrevendo parâmetros Eixo X: Posição=32874
+[16:56:43] ■ Eixo X: pos=32874  vel=30000
+[16:56:43] ✓ D1100_X verificado: 32874
+[16:56:43] 🚀 Movendo eixo X para posição 32874
+[16:56:43]  Pulso M1050_X enviado
+[16:56:43] 🚀 Pulso M1050_X enviado – alvo 32874
+[16:56:43] 📝 Escrevendo parâmetros Eixo Y1: Posição=12142
+[16:56:43] ■ Eixo Y1: pos=12142  vel=15000
+[16:56:43] ✓ D600_Y1 verificado: 12142
+[16:56:43] 🚀 Movendo eixo Y1 para posição 12142
+[16:56:43]  Pulso M550_Y1 enviado
+[16:56:43] 🚀 Pulso M550_Y1 enviado – alvo 12142
+[16:56:43] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:43] ■ Eixo Z: pos=1000  vel=1500
+[16:56:43] ✓ D1600_Z verificado: 1000
+[16:56:43] 🚀 Movendo eixo Z para posição 1000
+[16:56:43]  Pulso M1550_Z enviado
+[16:56:43] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:44] ■ DOT qty → D24100=50
+[16:56:44] ■ Pulso M5000 enviado
+[16:56:44] ■ Dot concluído (M5001=OFF)
+[16:56:44] 📝 Escrevendo parâmetros Eixo X: Posição=33195
+[16:56:44] ■ Eixo X: pos=33195  vel=30000
+[16:56:44] ✓ D1100_X verificado: 33195
+[16:56:44] 🚀 Movendo eixo X para posição 33195
+[16:56:44]  Pulso M1050_X enviado
+[16:56:44] 🚀 Pulso M1050_X enviado – alvo 33195
+[16:56:44] 📝 Escrevendo parâmetros Eixo Y1: Posição=12306
+[16:56:44] ■ Eixo Y1: pos=12306  vel=15000
+[16:56:44] ✓ D600_Y1 verificado: 12306
+[16:56:44] 🚀 Movendo eixo Y1 para posição 12306
+[16:56:44]  Pulso M550_Y1 enviado
+[16:56:44] 🚀 Pulso M550_Y1 enviado – alvo 12306
+[16:56:44] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:44] ■ Eixo Z: pos=1000  vel=1500
+[16:56:44] ✓ D1600_Z verificado: 1000
+[16:56:44] 🚀 Movendo eixo Z para posição 1000
+[16:56:44]  Pulso M1550_Z enviado
+[16:56:44] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:44] ■ DOT qty → D24100=50
+[16:56:44] ■ Pulso M5000 enviado
+[16:56:44] ■ Dot concluído (M5001=OFF)
+[16:56:44] 📝 Escrevendo parâmetros Eixo X: Posição=33224
+[16:56:44] ■ Eixo X: pos=33224  vel=30000
+[16:56:44] ✓ D1100_X verificado: 33224
+[16:56:44] 🚀 Movendo eixo X para posição 33224
+[16:56:44]  Pulso M1050_X enviado
+[16:56:44] 🚀 Pulso M1050_X enviado – alvo 33224
+[16:56:44] 📝 Escrevendo parâmetros Eixo Y1: Posição=12667
+[16:56:44] ■ Eixo Y1: pos=12667  vel=15000
+[16:56:44] ✓ D600_Y1 verificado: 12667
+[16:56:44] 🚀 Movendo eixo Y1 para posição 12667
+[16:56:44]  Pulso M550_Y1 enviado
+[16:56:44] 🚀 Pulso M550_Y1 enviado – alvo 12667
+[16:56:44] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:44] ■ Eixo Z: pos=1000  vel=1500
+[16:56:44] ✓ D1600_Z verificado: 1000
+[16:56:44] 🚀 Movendo eixo Z para posição 1000
+[16:56:44]  Pulso M1550_Z enviado
+[16:56:44] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:45] ■ DOT qty → D24100=50
+[16:56:45] ■ Pulso M5000 enviado
+[16:56:45] ■ Dot concluído (M5001=OFF)
+[16:56:45] 📝 Escrevendo parâmetros Eixo X: Posição=32782
+[16:56:45] ■ Eixo X: pos=32782  vel=30000
+[16:56:45] ✓ D1100_X verificado: 32782
+[16:56:45] 🚀 Movendo eixo X para posição 32782
+[16:56:45]  Pulso M1050_X enviado
+[16:56:45] 🚀 Pulso M1050_X enviado – alvo 32782
+[16:56:45] 📝 Escrevendo parâmetros Eixo Y1: Posição=12838
+[16:56:45] ■ Eixo Y1: pos=12838  vel=15000
+[16:56:45] ✓ D600_Y1 verificado: 12838
+[16:56:45] 🚀 Movendo eixo Y1 para posição 12838
+[16:56:45]  Pulso M550_Y1 enviado
+[16:56:45] 🚀 Pulso M550_Y1 enviado – alvo 12838
+[16:56:45] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:45] ■ Eixo Z: pos=1000  vel=1500
+[16:56:45] ✓ D1600_Z verificado: 1000
+[16:56:45] 🚀 Movendo eixo Z para posição 1000
+[16:56:45]  Pulso M1550_Z enviado
+[16:56:45] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:45] ■ DOT qty → D24100=50
+[16:56:45] ■ Pulso M5000 enviado
+[16:56:45] ■ Dot concluído (M5001=OFF)
+[16:56:45] 📝 Escrevendo parâmetros Eixo X: Posição=31976
+[16:56:45] ■ Eixo X: pos=31976  vel=30000
+[16:56:45] ✓ D1100_X verificado: 31976
+[16:56:45] 🚀 Movendo eixo X para posição 31976
+[16:56:45]  Pulso M1050_X enviado
+[16:56:45] 🚀 Pulso M1050_X enviado – alvo 31976
+[16:56:45] 📝 Escrevendo parâmetros Eixo Y1: Posição=12845
+[16:56:45] ■ Eixo Y1: pos=12845  vel=15000
+[16:56:45] ✓ D600_Y1 verificado: 12845
+[16:56:45] 🚀 Movendo eixo Y1 para posição 12845
+[16:56:45]  Pulso M550_Y1 enviado
+[16:56:45] 🚀 Pulso M550_Y1 enviado – alvo 12845
+[16:56:45] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:45] ■ Eixo Z: pos=1000  vel=1500
+[16:56:45] ✓ D1600_Z verificado: 1000
+[16:56:45] 🚀 Movendo eixo Z para posição 1000
+[16:56:45]  Pulso M1550_Z enviado
+[16:56:45] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:46] ■ DOT qty → D24100=50
+[16:56:46] ■ Pulso M5000 enviado
+[16:56:46] ■ Dot concluído (M5001=OFF)
+[16:56:46] 📝 Escrevendo parâmetros Eixo X: Posição=31626
+[16:56:46] ■ Eixo X: pos=31626  vel=30000
+[16:56:46] ✓ D1100_X verificado: 31626
+[16:56:46] 🚀 Movendo eixo X para posição 31626
+[16:56:46]  Pulso M1050_X enviado
+[16:56:46] 🚀 Pulso M1050_X enviado – alvo 31626
+[16:56:46] 📝 Escrevendo parâmetros Eixo Y1: Posição=12681
+[16:56:46] ■ Eixo Y1: pos=12681  vel=15000
+[16:56:46] ✓ D600_Y1 verificado: 12681
+[16:56:46] 🚀 Movendo eixo Y1 para posição 12681
+[16:56:46]  Pulso M550_Y1 enviado
+[16:56:46] 🚀 Pulso M550_Y1 enviado – alvo 12681
+[16:56:46] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:46] ■ Eixo Z: pos=1000  vel=1500
+[16:56:46] ✓ D1600_Z verificado: 1000
+[16:56:46] 🚀 Movendo eixo Z para posição 1000
+[16:56:46]  Pulso M1550_Z enviado
+[16:56:46] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:46] ■ DOT qty → D24100=50
+[16:56:46] ■ Pulso M5000 enviado
+[16:56:46] ■ Dot concluído (M5001=OFF)
+[16:56:46] 📝 Escrevendo parâmetros Eixo X: Posição=31633
+[16:56:46] ■ Eixo X: pos=31633  vel=30000
+[16:56:46] ✓ D1100_X verificado: 31633
+[16:56:46] 🚀 Movendo eixo X para posição 31633
+[16:56:46]  Pulso M1050_X enviado
+[16:56:46] 🚀 Pulso M1050_X enviado – alvo 31633
+[16:56:46] 📝 Escrevendo parâmetros Eixo Y1: Posição=13133
+[16:56:46] ■ Eixo Y1: pos=13133  vel=15000
+[16:56:46] ✓ D600_Y1 verificado: 13133
+[16:56:46] 🚀 Movendo eixo Y1 para posição 13133
+[16:56:46]  Pulso M550_Y1 enviado
+[16:56:46] 🚀 Pulso M550_Y1 enviado – alvo 13133
+[16:56:46] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:46] ■ Eixo Z: pos=1000  vel=1500
+[16:56:46] ✓ D1600_Z verificado: 1000
+[16:56:46] 🚀 Movendo eixo Z para posição 1000
+[16:56:46]  Pulso M1550_Z enviado
+[16:56:46] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:47] ■ DOT qty → D24100=50
+[16:56:47] ■ Pulso M5000 enviado
+[16:56:47] ■ Dot concluído (M5001=OFF)
+[16:56:47] 📝 Escrevendo parâmetros Eixo X: Posição=31954
+[16:56:47] ■ Eixo X: pos=31954  vel=30000
+[16:56:47] ✓ D1100_X verificado: 31954
+[16:56:47] 🚀 Movendo eixo X para posição 31954
+[16:56:47]  Pulso M1050_X enviado
+[16:56:47] 🚀 Pulso M1050_X enviado – alvo 31954
+[16:56:47] 📝 Escrevendo parâmetros Eixo Y1: Posição=12976
+[16:56:47] ■ Eixo Y1: pos=12976  vel=15000
+[16:56:47] ✓ D600_Y1 verificado: 12976
+[16:56:47] 🚀 Movendo eixo Y1 para posição 12976
+[16:56:47]  Pulso M550_Y1 enviado
+[16:56:47] 🚀 Pulso M550_Y1 enviado – alvo 12976
+[16:56:47] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:47] ■ Eixo Z: pos=1000  vel=1500
+[16:56:47] ✓ D1600_Z verificado: 1000
+[16:56:47] 🚀 Movendo eixo Z para posição 1000
+[16:56:47]  Pulso M1550_Z enviado
+[16:56:47] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:47] ■ DOT qty → D24100=50
+[16:56:47] ■ Pulso M5000 enviado
+[16:56:47] ■ Dot concluído (M5001=OFF)
+[16:56:47] 📝 Escrevendo parâmetros Eixo X: Posição=32760
+[16:56:47] ■ Eixo X: pos=32760  vel=30000
+[16:56:47] ✓ D1100_X verificado: 32760
+[16:56:47] 🚀 Movendo eixo X para posição 32760
+[16:56:47]  Pulso M1050_X enviado
+[16:56:47] 🚀 Pulso M1050_X enviado – alvo 32760
+[16:56:47] 📝 Escrevendo parâmetros Eixo Y1: Posição=12972
+[16:56:47] ■ Eixo Y1: pos=12972  vel=15000
+[16:56:47] ✓ D600_Y1 verificado: 12972
+[16:56:47] 🚀 Movendo eixo Y1 para posição 12972
+[16:56:47]  Pulso M550_Y1 enviado
+[16:56:47] 🚀 Pulso M550_Y1 enviado – alvo 12972
+[16:56:47] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:47] ■ Eixo Z: pos=1000  vel=1500
+[16:56:47] ✓ D1600_Z verificado: 1000
+[16:56:47] 🚀 Movendo eixo Z para posição 1000
+[16:56:47]  Pulso M1550_Z enviado
+[16:56:47] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:48] ■ DOT qty → D24100=50
+[16:56:48] ■ Pulso M5000 enviado
+[16:56:48] ■ Dot concluído (M5001=OFF)
+[16:56:48] 📝 Escrevendo parâmetros Eixo X: Posição=33210
+[16:56:48] ■ Eixo X: pos=33210  vel=30000
+[16:56:48] ✓ D1100_X verificado: 33210
+[16:56:48] 🚀 Movendo eixo X para posição 33210
+[16:56:48]  Pulso M1050_X enviado
+[16:56:48] 🚀 Pulso M1050_X enviado – alvo 33210
+[16:56:48] 📝 Escrevendo parâmetros Eixo Y1: Posição=13100
+[16:56:48] ■ Eixo Y1: pos=13100  vel=15000
+[16:56:48] ✓ D600_Y1 verificado: 13100
+[16:56:48] 🚀 Movendo eixo Y1 para posição 13100
+[16:56:48]  Pulso M550_Y1 enviado
+[16:56:48] 🚀 Pulso M550_Y1 enviado – alvo 13100
+[16:56:48] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:48] ■ Eixo Z: pos=1000  vel=1500
+[16:56:48] ✓ D1600_Z verificado: 1000
+[16:56:48] 🚀 Movendo eixo Z para posição 1000
+[16:56:48]  Pulso M1550_Z enviado
+[16:56:48] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:48] ■ DOT qty → D24100=50
+[16:56:48] ■ Pulso M5000 enviado
+[16:56:48] ■ Dot concluído (M5001=OFF)
+[16:56:48] 📝 Escrevendo parâmetros Eixo X: Posição=33246
+[16:56:48] ■ Eixo X: pos=33246  vel=30000
+[16:56:48] ✓ D1100_X verificado: 33246
+[16:56:48] 🚀 Movendo eixo X para posição 33246
+[16:56:48]  Pulso M1050_X enviado
+[16:56:48] 🚀 Pulso M1050_X enviado – alvo 33246
+[16:56:48] 📝 Escrevendo parâmetros Eixo Y1: Posição=13461
+[16:56:48] ■ Eixo Y1: pos=13461  vel=15000
+[16:56:48] ✓ D600_Y1 verificado: 13461
+[16:56:48] 🚀 Movendo eixo Y1 para posição 13461
+[16:56:48]  Pulso M550_Y1 enviado
+[16:56:48] 🚀 Pulso M550_Y1 enviado – alvo 13461
+[16:56:48] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:48] ■ Eixo Z: pos=1000  vel=1500
+[16:56:48] ✓ D1600_Z verificado: 1000
+[16:56:48] 🚀 Movendo eixo Z para posição 1000
+[16:56:48]  Pulso M1550_Z enviado
+[16:56:48] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:49] ■ DOT qty → D24100=50
+[16:56:49] ■ Pulso M5000 enviado
+[16:56:49] ■ Dot concluído (M5001=OFF)
+[16:56:49] 📝 Escrevendo parâmetros Eixo X: Posição=32796
+[16:56:49] ■ Eixo X: pos=32796  vel=30000
+[16:56:49] ✓ D1100_X verificado: 32796
+[16:56:49] 🚀 Movendo eixo X para posição 32796
+[16:56:49]  Pulso M1050_X enviado
+[16:56:49] 🚀 Pulso M1050_X enviado – alvo 32796
+[16:56:49] 📝 Escrevendo parâmetros Eixo Y1: Posição=13654
+[16:56:49] ■ Eixo Y1: pos=13654  vel=15000
+[16:56:49] ✓ D600_Y1 verificado: 13654
+[16:56:49] 🚀 Movendo eixo Y1 para posição 13654
+[16:56:49]  Pulso M550_Y1 enviado
+[16:56:49] 🚀 Pulso M550_Y1 enviado – alvo 13654
+[16:56:49] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:49] ■ Eixo Z: pos=1000  vel=1500
+[16:56:49] ✓ D1600_Z verificado: 1000
+[16:56:49] 🚀 Movendo eixo Z para posição 1000
+[16:56:49]  Pulso M1550_Z enviado
+[16:56:49] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:49] ■ DOT qty → D24100=50
+[16:56:49] ■ Pulso M5000 enviado
+[16:56:49] ■ Dot concluído (M5001=OFF)
+[16:56:49] 📝 Escrevendo parâmetros Eixo X: Posição=32018
+[16:56:49] ■ Eixo X: pos=32018  vel=30000
+[16:56:49] ✓ D1100_X verificado: 32018
+[16:56:49] 🚀 Movendo eixo X para posição 32018
+[16:56:49]  Pulso M1050_X enviado
+[16:56:49] 🚀 Pulso M1050_X enviado – alvo 32018
+[16:56:49] 📝 Escrevendo parâmetros Eixo Y1: Posição=13661
+[16:56:49] ■ Eixo Y1: pos=13661  vel=15000
+[16:56:49] ✓ D600_Y1 verificado: 13661
+[16:56:49] 🚀 Movendo eixo Y1 para posição 13661
+[16:56:49]  Pulso M550_Y1 enviado
+[16:56:49] 🚀 Pulso M550_Y1 enviado – alvo 13661
+[16:56:49] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:49] ■ Eixo Z: pos=1000  vel=1500
+[16:56:49] ✓ D1600_Z verificado: 1000
+[16:56:49] 🚀 Movendo eixo Z para posição 1000
+[16:56:49]  Pulso M1550_Z enviado
+[16:56:49] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:50] ■ DOT qty → D24100=50
+[16:56:50] ■ Pulso M5000 enviado
+[16:56:50] ■ Dot concluído (M5001=OFF)
+[16:56:50] 📝 Escrevendo parâmetros Eixo X: Posição=31626
+[16:56:50] ■ Eixo X: pos=31626  vel=30000
+[16:56:50] ✓ D1100_X verificado: 31626
+[16:56:50] 🚀 Movendo eixo X para posição 31626
+[16:56:50]  Pulso M1050_X enviado
+[16:56:50] 🚀 Pulso M1050_X enviado – alvo 31626
+[16:56:50] 📝 Escrevendo parâmetros Eixo Y1: Posição=13475
+[16:56:50] ■ Eixo Y1: pos=13475  vel=15000
+[16:56:50] ✓ D600_Y1 verificado: 13475
+[16:56:50] 🚀 Movendo eixo Y1 para posição 13475
+[16:56:50]  Pulso M550_Y1 enviado
+[16:56:50] 🚀 Pulso M550_Y1 enviado – alvo 13475
+[16:56:50] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:50] ■ Eixo Z: pos=1000  vel=1500
+[16:56:50] ✓ D1600_Z verificado: 1000
+[16:56:50] 🚀 Movendo eixo Z para posição 1000
+[16:56:50]  Pulso M1550_Z enviado
+[16:56:50] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:50] ■ DOT qty → D24100=50
+[16:56:50] ■ Pulso M5000 enviado
+[16:56:50] ■ Dot concluído (M5001=OFF)
+[16:56:50] 📝 Escrevendo parâmetros Eixo X: Posição=33417
+[16:56:50] ■ Eixo X: pos=33417  vel=30000
+[16:56:50] ✓ D1100_X verificado: 33417
+[16:56:50] 🚀 Movendo eixo X para posição 33417
+[16:56:50]  Pulso M1050_X enviado
+[16:56:50] 🚀 Pulso M1050_X enviado – alvo 33417
+[16:56:50] 📝 Escrevendo parâmetros Eixo Y1: Posição=13895
+[16:56:50] ■ Eixo Y1: pos=13895  vel=15000
+[16:56:50] ✓ D600_Y1 verificado: 13895
+[16:56:50] 🚀 Movendo eixo Y1 para posição 13895
+[16:56:50]  Pulso M550_Y1 enviado
+[16:56:50] 🚀 Pulso M550_Y1 enviado – alvo 13895
+[16:56:50] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:50] ■ Eixo Z: pos=1000  vel=1500
+[16:56:50] ✓ D1600_Z verificado: 1000
+[16:56:50] 🚀 Movendo eixo Z para posição 1000
+[16:56:50]  Pulso M1550_Z enviado
+[16:56:50] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:51] ■ DOT qty → D24100=50
+[16:56:51] ■ Pulso M5000 enviado
+[16:56:51] ■ Dot concluído (M5001=OFF)
+[16:56:51] 📝 Escrevendo parâmetros Eixo X: Posição=33731
+[16:56:51] ■ Eixo X: pos=33731  vel=30000
+[16:56:51] ✓ D1100_X verificado: 33731
+[16:56:51] 🚀 Movendo eixo X para posição 33731
+[16:56:51]  Pulso M1050_X enviado
+[16:56:51] 🚀 Pulso M1050_X enviado – alvo 33731
+[16:56:51] 📝 Escrevendo parâmetros Eixo Y1: Posição=13749
+[16:56:51] ■ Eixo Y1: pos=13749  vel=15000
+[16:56:51] ✓ D600_Y1 verificado: 13749
+[16:56:51] 🚀 Movendo eixo Y1 para posição 13749
+[16:56:51]  Pulso M550_Y1 enviado
+[16:56:51] 🚀 Pulso M550_Y1 enviado – alvo 13749
+[16:56:51] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:51] ■ Eixo Z: pos=1000  vel=1500
+[16:56:51] ✓ D1600_Z verificado: 1000
+[16:56:51] 🚀 Movendo eixo Z para posição 1000
+[16:56:51]  Pulso M1550_Z enviado
+[16:56:51] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:51] ■ DOT qty → D24100=50
+[16:56:51] ■ Pulso M5000 enviado
+[16:56:51] ■ Dot concluído (M5001=OFF)
+[16:56:51] 📝 Escrevendo parâmetros Eixo X: Posição=34402
+[16:56:51] ■ Eixo X: pos=34402  vel=30000
+[16:56:51] ✓ D1100_X verificado: 34402
+[16:56:51] 🚀 Movendo eixo X para posição 34402
+[16:56:51]  Pulso M1050_X enviado
+[16:56:51] 🚀 Pulso M1050_X enviado – alvo 34402
+[16:56:51] 📝 Escrevendo parâmetros Eixo Y1: Posição=13745
+[16:56:51] ■ Eixo Y1: pos=13745  vel=15000
+[16:56:51] ✓ D600_Y1 verificado: 13745
+[16:56:51] 🚀 Movendo eixo Y1 para posição 13745
+[16:56:51]  Pulso M550_Y1 enviado
+[16:56:51] 🚀 Pulso M550_Y1 enviado – alvo 13745
+[16:56:51] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:51] ■ Eixo Z: pos=1000  vel=1500
+[16:56:51] ✓ D1600_Z verificado: 1000
+[16:56:51] 🚀 Movendo eixo Z para posição 1000
+[16:56:51]  Pulso M1550_Z enviado
+[16:56:51] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:52] ■ DOT qty → D24100=50
+[16:56:52] ■ Pulso M5000 enviado
+[16:56:52] ■ Dot concluído (M5001=OFF)
+[16:56:52] 📝 Escrevendo parâmetros Eixo X: Posição=34773
+[16:56:52] ■ Eixo X: pos=34773  vel=30000
+[16:56:52] ✓ D1100_X verificado: 34773
+[16:56:52] 🚀 Movendo eixo X para posição 34773
+[16:56:52]  Pulso M1050_X enviado
+[16:56:52] 🚀 Pulso M1050_X enviado – alvo 34773
+[16:56:52] 📝 Escrevendo parâmetros Eixo Y1: Posição=13891
+[16:56:52] ■ Eixo Y1: pos=13891  vel=15000
+[16:56:52] ✓ D600_Y1 verificado: 13891
+[16:56:52] 🚀 Movendo eixo Y1 para posição 13891
+[16:56:52]  Pulso M550_Y1 enviado
+[16:56:52] 🚀 Pulso M550_Y1 enviado – alvo 13891
+[16:56:52] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:52] ■ Eixo Z: pos=1000  vel=1500
+[16:56:52] ✓ D1600_Z verificado: 1000
+[16:56:52] 🚀 Movendo eixo Z para posição 1000
+[16:56:52]  Pulso M1550_Z enviado
+[16:56:52] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:52] ■ DOT qty → D24100=50
+[16:56:52] ■ Pulso M5000 enviado
+[16:56:52] ■ Dot concluído (M5001=OFF)
+[16:56:52] 📝 Escrevendo parâmetros Eixo X: Posição=34802
+[16:56:52] ■ Eixo X: pos=34802  vel=30000
+[16:56:52] ✓ D1100_X verificado: 34802
+[16:56:52] 🚀 Movendo eixo X para posição 34802
+[16:56:52]  Pulso M1050_X enviado
+[16:56:52] 🚀 Pulso M1050_X enviado – alvo 34802
+[16:56:52] 📝 Escrevendo parâmetros Eixo Y1: Posição=14339
+[16:56:52] ■ Eixo Y1: pos=14339  vel=15000
+[16:56:52] ✓ D600_Y1 verificado: 14339
+[16:56:52] 🚀 Movendo eixo Y1 para posição 14339
+[16:56:52]  Pulso M550_Y1 enviado
+[16:56:52] 🚀 Pulso M550_Y1 enviado – alvo 14339
+[16:56:52] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:52] ■ Eixo Z: pos=1000  vel=1500
+[16:56:52] ✓ D1600_Z verificado: 1000
+[16:56:52] 🚀 Movendo eixo Z para posição 1000
+[16:56:52]  Pulso M1550_Z enviado
+[16:56:52] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:53] ■ DOT qty → D24100=50
+[16:56:53] ■ Pulso M5000 enviado
+[16:56:53] ■ Dot concluído (M5001=OFF)
+[16:56:53] 📝 Escrevendo parâmetros Eixo X: Posição=34402
+[16:56:53] ■ Eixo X: pos=34402  vel=30000
+[16:56:53] ✓ D1100_X verificado: 34402
+[16:56:53] 🚀 Movendo eixo X para posição 34402
+[16:56:53]  Pulso M1050_X enviado
+[16:56:53] 🚀 Pulso M1050_X enviado – alvo 34402
+[16:56:53] 📝 Escrevendo parâmetros Eixo Y1: Posição=14496
+[16:56:53] ■ Eixo Y1: pos=14496  vel=15000
+[16:56:53] ✓ D600_Y1 verificado: 14496
+[16:56:53] 🚀 Movendo eixo Y1 para posição 14496
+[16:56:53]  Pulso M550_Y1 enviado
+[16:56:53] 🚀 Pulso M550_Y1 enviado – alvo 14496
+[16:56:53] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:53] ■ Eixo Z: pos=1000  vel=1500
+[16:56:53] ✓ D1600_Z verificado: 1000
+[16:56:53] 🚀 Movendo eixo Z para posição 1000
+[16:56:53]  Pulso M1550_Z enviado
+[16:56:53] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:53] ■ DOT qty → D24100=50
+[16:56:53] ■ Pulso M5000 enviado
+[16:56:53] ■ Dot concluído (M5001=OFF)
+[16:56:53] 📝 Escrevendo parâmetros Eixo X: Posição=33767
+[16:56:53] ■ Eixo X: pos=33767  vel=30000
+[16:56:53] ✓ D1100_X verificado: 33767
+[16:56:53] 🚀 Movendo eixo X para posição 33767
+[16:56:53]  Pulso M1050_X enviado
+[16:56:53] 🚀 Pulso M1050_X enviado – alvo 33767
+[16:56:53] 📝 Escrevendo parâmetros Eixo Y1: Posição=14492
+[16:56:53] ■ Eixo Y1: pos=14492  vel=15000
+[16:56:53] ✓ D600_Y1 verificado: 14492
+[16:56:53] 🚀 Movendo eixo Y1 para posição 14492
+[16:56:53]  Pulso M550_Y1 enviado
+[16:56:53] 🚀 Pulso M550_Y1 enviado – alvo 14492
+[16:56:53] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:53] ■ Eixo Z: pos=1000  vel=1500
+[16:56:53] ✓ D1600_Z verificado: 1000
+[16:56:53] 🚀 Movendo eixo Z para posição 1000
+[16:56:53]  Pulso M1550_Z enviado
+[16:56:53] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:54] ■ DOT qty → D24100=50
+[16:56:54] ■ Pulso M5000 enviado
+[16:56:54] ■ Dot concluído (M5001=OFF)
+[16:56:54] 📝 Escrevendo parâmetros Eixo X: Posição=33396
+[16:56:54] ■ Eixo X: pos=33396  vel=30000
+[16:56:54] ✓ D1100_X verificado: 33396
+[16:56:54] 🚀 Movendo eixo X para posição 33396
+[16:56:54]  Pulso M1050_X enviado
+[16:56:54] 🚀 Pulso M1050_X enviado – alvo 33396
+[16:56:54] 📝 Escrevendo parâmetros Eixo Y1: Posição=14361
+[16:56:54] ■ Eixo Y1: pos=14361  vel=15000
+[16:56:54] ✓ D600_Y1 verificado: 14361
+[16:56:54] 🚀 Movendo eixo Y1 para posição 14361
+[16:56:54]  Pulso M550_Y1 enviado
+[16:56:54] 🚀 Pulso M550_Y1 enviado – alvo 14361
+[16:56:54] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:54] ■ Eixo Z: pos=1000  vel=1500
+[16:56:54] ✓ D1600_Z verificado: 1000
+[16:56:54] 🚀 Movendo eixo Z para posição 1000
+[16:56:54]  Pulso M1550_Z enviado
+[16:56:54] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:54] ■ DOT qty → D24100=50
+[16:56:54] ■ Pulso M5000 enviado
+[16:56:54] ■ Dot concluído (M5001=OFF)
+[16:56:54] 📝 Escrevendo parâmetros Eixo X: Posição=34973
+[16:56:54] ■ Eixo X: pos=34973  vel=30000
+[16:56:54] ✓ D1100_X verificado: 34973
+[16:56:54] 🚀 Movendo eixo X para posição 34973
+[16:56:54]  Pulso M1050_X enviado
+[16:56:54] 🚀 Pulso M1050_X enviado – alvo 34973
+[16:56:54] 📝 Escrevendo parâmetros Eixo Y1: Posição=13883
+[16:56:54] ■ Eixo Y1: pos=13883  vel=15000
+[16:56:54] ✓ D600_Y1 verificado: 13883
+[16:56:54] 🚀 Movendo eixo Y1 para posição 13883
+[16:56:54]  Pulso M550_Y1 enviado
+[16:56:54] 🚀 Pulso M550_Y1 enviado – alvo 13883
+[16:56:54] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:54] ■ Eixo Z: pos=1000  vel=1500
+[16:56:54] ✓ D1600_Z verificado: 1000
+[16:56:54] 🚀 Movendo eixo Z para posição 1000
+[16:56:54]  Pulso M1550_Z enviado
+[16:56:54] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:55] ■ DOT qty → D24100=50
+[16:56:55] ■ Pulso M5000 enviado
+[16:56:55] ■ Dot concluído (M5001=OFF)
+[16:56:55] 📝 Escrevendo parâmetros Eixo X: Posição=35373
+[16:56:55] ■ Eixo X: pos=35373  vel=30000
+[16:56:55] ✓ D1100_X verificado: 35373
+[16:56:55] 🚀 Movendo eixo X para posição 35373
+[16:56:55]  Pulso M1050_X enviado
+[16:56:55] 🚀 Pulso M1050_X enviado – alvo 35373
+[16:56:55] 📝 Escrevendo parâmetros Eixo Y1: Posição=13734
+[16:56:55] ■ Eixo Y1: pos=13734  vel=15000
+[16:56:55] ✓ D600_Y1 verificado: 13734
+[16:56:55] 🚀 Movendo eixo Y1 para posição 13734
+[16:56:55]  Pulso M550_Y1 enviado
+[16:56:55] 🚀 Pulso M550_Y1 enviado – alvo 13734
+[16:56:55] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:55] ■ Eixo Z: pos=1000  vel=1500
+[16:56:55] ✓ D1600_Z verificado: 1000
+[16:56:55] 🚀 Movendo eixo Z para posição 1000
+[16:56:55]  Pulso M1550_Z enviado
+[16:56:55] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:55] ■ DOT qty → D24100=50
+[16:56:55] ■ Pulso M5000 enviado
+[16:56:55] ■ Dot concluído (M5001=OFF)
+[16:56:55] 📝 Escrevendo parâmetros Eixo X: Posição=36001
+[16:56:55] ■ Eixo X: pos=36001  vel=30000
+[16:56:55] ✓ D1100_X verificado: 36001
+[16:56:55] 🚀 Movendo eixo X para posição 36001
+[16:56:55]  Pulso M1050_X enviado
+[16:56:55] 🚀 Pulso M1050_X enviado – alvo 36001
+[16:56:55] 📝 Escrevendo parâmetros Eixo Y1: Posição=13723
+[16:56:55] ■ Eixo Y1: pos=13723  vel=15000
+[16:56:55] ✓ D600_Y1 verificado: 13723
+[16:56:55] 🚀 Movendo eixo Y1 para posição 13723
+[16:56:55]  Pulso M550_Y1 enviado
+[16:56:55] 🚀 Pulso M550_Y1 enviado – alvo 13723
+[16:56:55] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:55] ■ Eixo Z: pos=1000  vel=1500
+[16:56:55] ✓ D1600_Z verificado: 1000
+[16:56:55] 🚀 Movendo eixo Z para posição 1000
+[16:56:55]  Pulso M1550_Z enviado
+[16:56:55] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:56] ■ DOT qty → D24100=50
+[16:56:56] ■ Pulso M5000 enviado
+[16:56:56] ■ Dot concluído (M5001=OFF)
+[16:56:56] 📝 Escrevendo parâmetros Eixo X: Posição=36401
+[16:56:56] ■ Eixo X: pos=36401  vel=30000
+[16:56:56] ✓ D1100_X verificado: 36401
+[16:56:56] 🚀 Movendo eixo X para posição 36401
+[16:56:56]  Pulso M1050_X enviado
+[16:56:56] 🚀 Pulso M1050_X enviado – alvo 36401
+[16:56:56] 📝 Escrevendo parâmetros Eixo Y1: Posição=13883
+[16:56:56] ■ Eixo Y1: pos=13883  vel=15000
+[16:56:56] ✓ D600_Y1 verificado: 13883
+[16:56:56] 🚀 Movendo eixo Y1 para posição 13883
+[16:56:56]  Pulso M550_Y1 enviado
+[16:56:56] 🚀 Pulso M550_Y1 enviado – alvo 13883
+[16:56:56] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:56] ■ Eixo Z: pos=1000  vel=1500
+[16:56:56] ✓ D1600_Z verificado: 1000
+[16:56:56] 🚀 Movendo eixo Z para posição 1000
+[16:56:56]  Pulso M1550_Z enviado
+[16:56:56] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:56] ■ DOT qty → D24100=50
+[16:56:56] ■ Pulso M5000 enviado
+[16:56:56] ■ Dot concluído (M5001=OFF)
+[16:56:56] 📝 Escrevendo parâmetros Eixo X: Posição=36451
+[16:56:56] ■ Eixo X: pos=36451  vel=30000
+[16:56:56] ✓ D1100_X verificado: 36451
+[16:56:56] 🚀 Movendo eixo X para posição 36451
+[16:56:56]  Pulso M1050_X enviado
+[16:56:56] 🚀 Pulso M1050_X enviado – alvo 36451
+[16:56:56] 📝 Escrevendo parâmetros Eixo Y1: Posição=14321
+[16:56:56] ■ Eixo Y1: pos=14321  vel=15000
+[16:56:56] ✓ D600_Y1 verificado: 14321
+[16:56:56] 🚀 Movendo eixo Y1 para posição 14321
+[16:56:56]  Pulso M550_Y1 enviado
+[16:56:56] 🚀 Pulso M550_Y1 enviado – alvo 14321
+[16:56:56] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:56] ■ Eixo Z: pos=1000  vel=1500
+[16:56:56] ✓ D1600_Z verificado: 1000
+[16:56:56] 🚀 Movendo eixo Z para posição 1000
+[16:56:56]  Pulso M1550_Z enviado
+[16:56:56] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:57] ■ DOT qty → D24100=50
+[16:56:57] ■ Pulso M5000 enviado
+[16:56:57] ■ Dot concluído (M5001=OFF)
+[16:56:57] 📝 Escrevendo parâmetros Eixo X: Posição=36066
+[16:56:57] ■ Eixo X: pos=36066  vel=30000
+[16:56:57] ✓ D1100_X verificado: 36066
+[16:56:57] 🚀 Movendo eixo X para posição 36066
+[16:56:57]  Pulso M1050_X enviado
+[16:56:57] 🚀 Pulso M1050_X enviado – alvo 36066
+[16:56:57] 📝 Escrevendo parâmetros Eixo Y1: Posição=14496
+[16:56:57] ■ Eixo Y1: pos=14496  vel=15000
+[16:56:57] ✓ D600_Y1 verificado: 14496
+[16:56:57] 🚀 Movendo eixo Y1 para posição 14496
+[16:56:57]  Pulso M550_Y1 enviado
+[16:56:57] 🚀 Pulso M550_Y1 enviado – alvo 14496
+[16:56:57] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:57] ■ Eixo Z: pos=1000  vel=1500
+[16:56:57] ✓ D1600_Z verificado: 1000
+[16:56:57] 🚀 Movendo eixo Z para posição 1000
+[16:56:57]  Pulso M1550_Z enviado
+[16:56:57] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:57] ■ DOT qty → D24100=50
+[16:56:57] ■ Pulso M5000 enviado
+[16:56:57] ■ Dot concluído (M5001=OFF)
+[16:56:57] 📝 Escrevendo parâmetros Eixo X: Posição=35431
+[16:56:57] ■ Eixo X: pos=35431  vel=30000
+[16:56:57] ✓ D1100_X verificado: 35431
+[16:56:57] 🚀 Movendo eixo X para posição 35431
+[16:56:57]  Pulso M1050_X enviado
+[16:56:57] 🚀 Pulso M1050_X enviado – alvo 35431
+[16:56:57] 📝 Escrevendo parâmetros Eixo Y1: Posição=14496
+[16:56:57] ■ Eixo Y1: pos=14496  vel=15000
+[16:56:57] ✓ D600_Y1 verificado: 14496
+[16:56:57] 🚀 Movendo eixo Y1 para posição 14496
+[16:56:57]  Pulso M550_Y1 enviado
+[16:56:57] 🚀 Pulso M550_Y1 enviado – alvo 14496
+[16:56:57] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:57] ■ Eixo Z: pos=1000  vel=1500
+[16:56:57] ✓ D1600_Z verificado: 1000
+[16:56:57] 🚀 Movendo eixo Z para posição 1000
+[16:56:57]  Pulso M1550_Z enviado
+[16:56:57] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:58] ■ DOT qty → D24100=50
+[16:56:58] ■ Pulso M5000 enviado
+[16:56:58] ■ Dot concluído (M5001=OFF)
+[16:56:58] 📝 Escrevendo parâmetros Eixo X: Posição=35039
+[16:56:58] ■ Eixo X: pos=35039  vel=30000
+[16:56:58] ✓ D1100_X verificado: 35039
+[16:56:58] 🚀 Movendo eixo X para posição 35039
+[16:56:58]  Pulso M1050_X enviado
+[16:56:58] 🚀 Pulso M1050_X enviado – alvo 35039
+[16:56:58] 📝 Escrevendo parâmetros Eixo Y1: Posição=14361
+[16:56:58] ■ Eixo Y1: pos=14361  vel=15000
+[16:56:58] ✓ D600_Y1 verificado: 14361
+[16:56:58] 🚀 Movendo eixo Y1 para posição 14361
+[16:56:58]  Pulso M550_Y1 enviado
+[16:56:58] 🚀 Pulso M550_Y1 enviado – alvo 14361
+[16:56:58] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:58] ■ Eixo Z: pos=1000  vel=1500
+[16:56:58] ✓ D1600_Z verificado: 1000
+[16:56:58] 🚀 Movendo eixo Z para posição 1000
+[16:56:58]  Pulso M1550_Z enviado
+[16:56:58] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:58] ■ DOT qty → D24100=50
+[16:56:58] ■ Pulso M5000 enviado
+[16:56:58] ■ Dot concluído (M5001=OFF)
+[16:56:58] 📝 Escrevendo parâmetros Eixo X: Posição=35753
+[16:56:58] ■ Eixo X: pos=35753  vel=30000
+[16:56:58] ✓ D1100_X verificado: 35753
+[16:56:58] 🚀 Movendo eixo X para posição 35753
+[16:56:58]  Pulso M1050_X enviado
+[16:56:58] 🚀 Pulso M1050_X enviado – alvo 35753
+[16:56:58] 📝 Escrevendo parâmetros Eixo Y1: Posição=13676
+[16:56:58] ■ Eixo Y1: pos=13676  vel=15000
+[16:56:58] ✓ D600_Y1 verificado: 13676
+[16:56:58] 🚀 Movendo eixo Y1 para posição 13676
+[16:56:58]  Pulso M550_Y1 enviado
+[16:56:58] 🚀 Pulso M550_Y1 enviado – alvo 13676
+[16:56:58] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:58] ■ Eixo Z: pos=1000  vel=1500
+[16:56:58] ✓ D1600_Z verificado: 1000
+[16:56:58] 🚀 Movendo eixo Z para posição 1000
+[16:56:58]  Pulso M1550_Z enviado
+[16:56:58] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:59] ■ DOT qty → D24100=50
+[16:56:59] ■ Pulso M5000 enviado
+[16:56:59] ■ Dot concluído (M5001=OFF)
+[16:56:59] 📝 Escrevendo parâmetros Eixo X: Posição=36409
+[16:56:59] ■ Eixo X: pos=36409  vel=30000
+[16:56:59] ✓ D1100_X verificado: 36409
+[16:56:59] 🚀 Movendo eixo X para posição 36409
+[16:56:59]  Pulso M1050_X enviado
+[16:56:59] 🚀 Pulso M1050_X enviado – alvo 36409
+[16:56:59] 📝 Escrevendo parâmetros Eixo Y1: Posição=13282
+[16:56:59] ■ Eixo Y1: pos=13282  vel=15000
+[16:56:59] ✓ D600_Y1 verificado: 13282
+[16:56:59] 🚀 Movendo eixo Y1 para posição 13282
+[16:56:59]  Pulso M550_Y1 enviado
+[16:56:59] 🚀 Pulso M550_Y1 enviado – alvo 13282
+[16:56:59] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:59] ■ Eixo Z: pos=1000  vel=1500
+[16:56:59] ✓ D1600_Z verificado: 1000
+[16:56:59] 🚀 Movendo eixo Z para posição 1000
+[16:56:59]  Pulso M1550_Z enviado
+[16:56:59] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:56:59] ■ DOT qty → D24100=50
+[16:56:59] ■ Pulso M5000 enviado
+[16:56:59] ■ Dot concluído (M5001=OFF)
+[16:56:59] 📝 Escrevendo parâmetros Eixo X: Posição=36416
+[16:56:59] ■ Eixo X: pos=36416  vel=30000
+[16:56:59] ✓ D1100_X verificado: 36416
+[16:56:59] 🚀 Movendo eixo X para posição 36416
+[16:56:59]  Pulso M1050_X enviado
+[16:56:59] 🚀 Pulso M1050_X enviado – alvo 36416
+[16:56:59] 📝 Escrevendo parâmetros Eixo Y1: Posição=12520
+[16:56:59] ■ Eixo Y1: pos=12520  vel=15000
+[16:56:59] ✓ D600_Y1 verificado: 12520
+[16:56:59] 🚀 Movendo eixo Y1 para posição 12520
+[16:56:59]  Pulso M550_Y1 enviado
+[16:56:59] 🚀 Pulso M550_Y1 enviado – alvo 12520
+[16:56:59] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:56:59] ■ Eixo Z: pos=1000  vel=1500
+[16:56:59] ✓ D1600_Z verificado: 1000
+[16:56:59] 🚀 Movendo eixo Z para posição 1000
+[16:56:59]  Pulso M1550_Z enviado
+[16:56:59] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:00] ■ DOT qty → D24100=50
+[16:57:00] ■ Pulso M5000 enviado
+[16:57:00] ■ Dot concluído (M5001=OFF)
+[16:57:00] 📝 Escrevendo parâmetros Eixo X: Posição=35688
+[16:57:00] ■ Eixo X: pos=35688  vel=30000
+[16:57:00] ✓ D1100_X verificado: 35688
+[16:57:00] 🚀 Movendo eixo X para posição 35688
+[16:57:00]  Pulso M1050_X enviado
+[16:57:00] 🚀 Pulso M1050_X enviado – alvo 35688
+[16:57:00] 📝 Escrevendo parâmetros Eixo Y1: Posição=12104
+[16:57:00] ■ Eixo Y1: pos=12104  vel=15000
+[16:57:00] ✓ D600_Y1 verificado: 12104
+[16:57:00] 🚀 Movendo eixo Y1 para posição 12104
+[16:57:00]  Pulso M550_Y1 enviado
+[16:57:00] 🚀 Pulso M550_Y1 enviado – alvo 12104
+[16:57:00] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:00] ■ Eixo Z: pos=1000  vel=1500
+[16:57:00] ✓ D1600_Z verificado: 1000
+[16:57:00] 🚀 Movendo eixo Z para posição 1000
+[16:57:00]  Pulso M1550_Z enviado
+[16:57:00] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:00] ■ DOT qty → D24100=50
+[16:57:00] ■ Pulso M5000 enviado
+[16:57:01] ■ Dot concluído (M5001=OFF)
+[16:57:01] 📝 Escrevendo parâmetros Eixo X: Posição=34125
+[16:57:01] ■ Eixo X: pos=34125  vel=30000
+[16:57:01] ✓ D1100_X verificado: 34125
+[16:57:01] 🚀 Movendo eixo X para posição 34125
+[16:57:01]  Pulso M1050_X enviado
+[16:57:01] 🚀 Pulso M1050_X enviado – alvo 34125
+[16:57:01] 📝 Escrevendo parâmetros Eixo Y1: Posição=12100
+[16:57:01] ■ Eixo Y1: pos=12100  vel=15000
+[16:57:01] ✓ D600_Y1 verificado: 12100
+[16:57:01] 🚀 Movendo eixo Y1 para posição 12100
+[16:57:01]  Pulso M550_Y1 enviado
+[16:57:01] 🚀 Pulso M550_Y1 enviado – alvo 12100
+[16:57:01] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:01] ■ Eixo Z: pos=1000  vel=1500
+[16:57:01] ✓ D1600_Z verificado: 1000
+[16:57:01] 🚀 Movendo eixo Z para posição 1000
+[16:57:01]  Pulso M1550_Z enviado
+[16:57:01] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:01] ■ DOT qty → D24100=50
+[16:57:01] ■ Pulso M5000 enviado
+[16:57:01] ■ Dot concluído (M5001=OFF)
+[16:57:01] 📝 Escrevendo parâmetros Eixo X: Posição=33312
+[16:57:01] ■ Eixo X: pos=33312  vel=30000
+[16:57:01] ✓ D1100_X verificado: 33312
+[16:57:01] 🚀 Movendo eixo X para posição 33312
+[16:57:01]  Pulso M1050_X enviado
+[16:57:01] 🚀 Pulso M1050_X enviado – alvo 33312
+[16:57:01] 📝 Escrevendo parâmetros Eixo Y1: Posição=12497
+[16:57:01] ■ Eixo Y1: pos=12497  vel=15000
+[16:57:01] ✓ D600_Y1 verificado: 12497
+[16:57:01] 🚀 Movendo eixo Y1 para posição 12497
+[16:57:01]  Pulso M550_Y1 enviado
+[16:57:01] 🚀 Pulso M550_Y1 enviado – alvo 12497
+[16:57:01] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:01] ■ Eixo Z: pos=1000  vel=1500
+[16:57:01] ✓ D1600_Z verificado: 1000
+[16:57:01] 🚀 Movendo eixo Z para posição 1000
+[16:57:01]  Pulso M1550_Z enviado
+[16:57:01] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:01] ■ DOT qty → D24100=50
+[16:57:02] ■ Pulso M5000 enviado
+[16:57:02] ■ Dot concluído (M5001=OFF)
+[16:57:02] 📝 Escrevendo parâmetros Eixo X: Posição=33326
+[16:57:02] ■ Eixo X: pos=33326  vel=30000
+[16:57:02] ✓ D1100_X verificado: 33326
+[16:57:02] 🚀 Movendo eixo X para posição 33326
+[16:57:02]  Pulso M1050_X enviado
+[16:57:02] 🚀 Pulso M1050_X enviado – alvo 33326
+[16:57:02] 📝 Escrevendo parâmetros Eixo Y1: Posição=13288
+[16:57:02] ■ Eixo Y1: pos=13288  vel=15000
+[16:57:02] ✓ D600_Y1 verificado: 13288
+[16:57:02] 🚀 Movendo eixo Y1 para posição 13288
+[16:57:02]  Pulso M550_Y1 enviado
+[16:57:02] 🚀 Pulso M550_Y1 enviado – alvo 13288
+[16:57:02] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:02] ■ Eixo Z: pos=1000  vel=1500
+[16:57:02] ✓ D1600_Z verificado: 1000
+[16:57:02] 🚀 Movendo eixo Z para posição 1000
+[16:57:02]  Pulso M1550_Z enviado
+[16:57:02] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:02] ■ DOT qty → D24100=50
+[16:57:02] ■ Pulso M5000 enviado
+[16:57:02] ■ Dot concluído (M5001=OFF)
+[16:57:02] 📝 Escrevendo parâmetros Eixo X: Posição=34168
+[16:57:02] ■ Eixo X: pos=34168  vel=30000
+[16:57:02] ✓ D1100_X verificado: 34168
+[16:57:02] 🚀 Movendo eixo X para posição 34168
+[16:57:02]  Pulso M1050_X enviado
+[16:57:02] 🚀 Pulso M1050_X enviado – alvo 34168
+[16:57:02] 📝 Escrevendo parâmetros Eixo Y1: Posição=13678
+[16:57:02] ■ Eixo Y1: pos=13678  vel=15000
+[16:57:02] ✓ D600_Y1 verificado: 13678
+[16:57:02] 🚀 Movendo eixo Y1 para posição 13678
+[16:57:02]  Pulso M550_Y1 enviado
+[16:57:02] 🚀 Pulso M550_Y1 enviado – alvo 13678
+[16:57:02] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:02] ■ Eixo Z: pos=1000  vel=1500
+[16:57:02] ✓ D1600_Z verificado: 1000
+[16:57:02] 🚀 Movendo eixo Z para posição 1000
+[16:57:02]  Pulso M1550_Z enviado
+[16:57:02] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:03] ■ DOT qty → D24100=50
+[16:57:03] ■ Pulso M5000 enviado
+[16:57:03] ■ Dot concluído (M5001=OFF)
+[16:57:03] 📝 Escrevendo parâmetros Eixo X: Posição=33992
+[16:57:03] ■ Eixo X: pos=33992  vel=30000
+[16:57:03] ✓ D1100_X verificado: 33992
+[16:57:03] 🚀 Movendo eixo X para posição 33992
+[16:57:03]  Pulso M1050_X enviado
+[16:57:03] 🚀 Pulso M1050_X enviado – alvo 33992
+[16:57:03] 📝 Escrevendo parâmetros Eixo Y1: Posição=8745
+[16:57:03] ■ Eixo Y1: pos=8745  vel=15000
+[16:57:03] ✓ D600_Y1 verificado: 8745
+[16:57:03] 🚀 Movendo eixo Y1 para posição 8745
+[16:57:03]  Pulso M550_Y1 enviado
+[16:57:03] 🚀 Pulso M550_Y1 enviado – alvo 8745
+[16:57:03] 📝 Escrevendo parâmetros Eixo Z: Posição=0
+[16:57:03] ■ Eixo Z: pos=0  vel=1500
+[16:57:03] ✓ D1600_Z verificado: 0
+[16:57:03] 🚀 Movendo eixo Z para posição 0
+[16:57:03]  Pulso M1550_Z enviado
+[16:57:03] 🚀 Pulso M1550_Z enviado – alvo 0
+[16:57:04] 📝 Escrevendo parâmetros Eixo X: Posição=35282
+[16:57:04] ■ Eixo X: pos=35282  vel=30000
+[16:57:04] ✓ D1100_X verificado: 35282
+[16:57:04] 🚀 Movendo eixo X para posição 35282
+[16:57:04]  Pulso M1050_X enviado
+[16:57:04] 🚀 Pulso M1050_X enviado – alvo 35282
+[16:57:04] 📝 Escrevendo parâmetros Eixo Y1: Posição=10702
+[16:57:04] ■ Eixo Y1: pos=10702  vel=15000
+[16:57:04] ✓ D600_Y1 verificado: 10702
+[16:57:04] 🚀 Movendo eixo Y1 para posição 10702
+[16:57:04]  Pulso M550_Y1 enviado
+[16:57:04] 🚀 Pulso M550_Y1 enviado – alvo 10702
+[16:57:04] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:04] ■ Eixo Z: pos=1000  vel=1500
+[16:57:04] ✓ D1600_Z verificado: 1000
+[16:57:04] 🚀 Movendo eixo Z para posição 1000
+[16:57:04]  Pulso M1550_Z enviado
+[16:57:04] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:04] ■ DOT qty → D24100=100
+[16:57:05] ■ Pulso M5000 enviado
+[16:57:05] ■ Dot concluído (M5001=OFF)
+[16:57:05] 📝 Escrevendo parâmetros Eixo X: Posição=34307
+[16:57:05] ■ Eixo X: pos=34307  vel=30000
+[16:57:05] ✓ D1100_X verificado: 34307
+[16:57:05] 🚀 Movendo eixo X para posição 34307
+[16:57:05]  Pulso M1050_X enviado
+[16:57:05] 🚀 Pulso M1050_X enviado – alvo 34307
+[16:57:05] 📝 Escrevendo parâmetros Eixo Y1: Posição=10289
+[16:57:05] ■ Eixo Y1: pos=10289  vel=15000
+[16:57:05] ✓ D600_Y1 verificado: 10289
+[16:57:05] 🚀 Movendo eixo Y1 para posição 10289
+[16:57:05]  Pulso M550_Y1 enviado
+[16:57:05] 🚀 Pulso M550_Y1 enviado – alvo 10289
+[16:57:05] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:05] ■ Eixo Z: pos=1000  vel=1500
+[16:57:05] ✓ D1600_Z verificado: 1000
+[16:57:05] 🚀 Movendo eixo Z para posição 1000
+[16:57:05]  Pulso M1550_Z enviado
+[16:57:05] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:05] ■ DOT qty → D24100=100
+[16:57:05] ■ Pulso M5000 enviado
+[16:57:06] ■ Dot concluído (M5001=OFF)
+[16:57:06] 📝 Escrevendo parâmetros Eixo X: Posição=34268
+[16:57:06] ■ Eixo X: pos=34268  vel=30000
+[16:57:06] ✓ D1100_X verificado: 34268
+[16:57:06] 🚀 Movendo eixo X para posição 34268
+[16:57:06]  Pulso M1050_X enviado
+[16:57:06] 🚀 Pulso M1050_X enviado – alvo 34268
+[16:57:06] 📝 Escrevendo parâmetros Eixo Y1: Posição=8772
+[16:57:06] ■ Eixo Y1: pos=8772  vel=15000
+[16:57:06] ✓ D600_Y1 verificado: 8772
+[16:57:06] 🚀 Movendo eixo Y1 para posição 8772
+[16:57:06]  Pulso M550_Y1 enviado
+[16:57:06] 🚀 Pulso M550_Y1 enviado – alvo 8772
+[16:57:06] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:06] ■ Eixo Z: pos=1000  vel=1500
+[16:57:06] ✓ D1600_Z verificado: 1000
+[16:57:06] 🚀 Movendo eixo Z para posição 1000
+[16:57:06]  Pulso M1550_Z enviado
+[16:57:06] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:06] ■ DOT qty → D24100=100
+[16:57:06] ■ Pulso M5000 enviado
+[16:57:07] ■ Dot concluído (M5001=OFF)
+[16:57:07] 📝 Escrevendo parâmetros Eixo X: Posição=35139
+[16:57:07] ■ Eixo X: pos=35139  vel=30000
+[16:57:07] ✓ D1100_X verificado: 35139
+[16:57:07] 🚀 Movendo eixo X para posição 35139
+[16:57:07]  Pulso M1050_X enviado
+[16:57:07] 🚀 Pulso M1050_X enviado – alvo 35139
+[16:57:07] 📝 Escrevendo parâmetros Eixo Y1: Posição=8347
+[16:57:07] ■ Eixo Y1: pos=8347  vel=15000
+[16:57:07] ✓ D600_Y1 verificado: 8347
+[16:57:07] 🚀 Movendo eixo Y1 para posição 8347
+[16:57:07]  Pulso M550_Y1 enviado
+[16:57:07] 🚀 Pulso M550_Y1 enviado – alvo 8347
+[16:57:07] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:07] ■ Eixo Z: pos=1000  vel=1500
+[16:57:07] ✓ D1600_Z verificado: 1000
+[16:57:07] 🚀 Movendo eixo Z para posição 1000
+[16:57:07]  Pulso M1550_Z enviado
+[16:57:07] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:07] ■ DOT qty → D24100=100
+[16:57:07] ■ Pulso M5000 enviado
+[16:57:07] ■ Dot concluído (M5001=OFF)
+[16:57:07] 📝 Escrevendo parâmetros Eixo X: Posição=37140
+[16:57:07] ■ Eixo X: pos=37140  vel=30000
+[16:57:07] ✓ D1100_X verificado: 37140
+[16:57:07] 🚀 Movendo eixo X para posição 37140
+[16:57:07]  Pulso M1050_X enviado
+[16:57:07] 🚀 Pulso M1050_X enviado – alvo 37140
+[16:57:07] 📝 Escrevendo parâmetros Eixo Y1: Posição=8329
+[16:57:07] ■ Eixo Y1: pos=8329  vel=15000
+[16:57:07] ✓ D600_Y1 verificado: 8329
+[16:57:07] 🚀 Movendo eixo Y1 para posição 8329
+[16:57:07]  Pulso M550_Y1 enviado
+[16:57:07] 🚀 Pulso M550_Y1 enviado – alvo 8329
+[16:57:07] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:07] ■ Eixo Z: pos=1000  vel=1500
+[16:57:07] ✓ D1600_Z verificado: 1000
+[16:57:07] 🚀 Movendo eixo Z para posição 1000
+[16:57:07]  Pulso M1550_Z enviado
+[16:57:07] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:08] ■ DOT qty → D24100=100
+[16:57:08] ■ Pulso M5000 enviado
+[16:57:08] ■ Dot concluído (M5001=OFF)
+[16:57:08] 📝 Escrevendo parâmetros Eixo X: Posição=38215
+[16:57:08] ■ Eixo X: pos=38215  vel=30000
+[16:57:08] ✓ D1100_X verificado: 38215
+[16:57:08] 🚀 Movendo eixo X para posição 38215
+[16:57:08]  Pulso M1050_X enviado
+[16:57:08] 🚀 Pulso M1050_X enviado – alvo 38215
+[16:57:08] 📝 Escrevendo parâmetros Eixo Y1: Posição=8776
+[16:57:08] ■ Eixo Y1: pos=8776  vel=15000
+[16:57:08] ✓ D600_Y1 verificado: 8776
+[16:57:08] 🚀 Movendo eixo Y1 para posição 8776
+[16:57:08]  Pulso M550_Y1 enviado
+[16:57:08] 🚀 Pulso M550_Y1 enviado – alvo 8776
+[16:57:08] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:08] ■ Eixo Z: pos=1000  vel=1500
+[16:57:08] ✓ D1600_Z verificado: 1000
+[16:57:08] 🚀 Movendo eixo Z para posição 1000
+[16:57:08]  Pulso M1550_Z enviado
+[16:57:08] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:08] ■ DOT qty → D24100=100
+[16:57:08] ■ Pulso M5000 enviado
+[16:57:09] ■ Dot concluído (M5001=OFF)
+[16:57:09] 📝 Escrevendo parâmetros Eixo X: Posição=38227
+[16:57:09] ■ Eixo X: pos=38227  vel=30000
+[16:57:09] ✓ D1100_X verificado: 38227
+[16:57:09] 🚀 Movendo eixo X para posição 38227
+[16:57:09]  Pulso M1050_X enviado
+[16:57:09] 🚀 Pulso M1050_X enviado – alvo 38227
+[16:57:09] 📝 Escrevendo parâmetros Eixo Y1: Posição=10144
+[16:57:09] ■ Eixo Y1: pos=10144  vel=15000
+[16:57:09] ✓ D600_Y1 verificado: 10144
+[16:57:09] 🚀 Movendo eixo Y1 para posição 10144
+[16:57:09]  Pulso M550_Y1 enviado
+[16:57:09] 🚀 Pulso M550_Y1 enviado – alvo 10144
+[16:57:09] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:09] ■ Eixo Z: pos=1000  vel=1500
+[16:57:09] ✓ D1600_Z verificado: 1000
+[16:57:09] 🚀 Movendo eixo Z para posição 1000
+[16:57:09]  Pulso M1550_Z enviado
+[16:57:09] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:09] ■ DOT qty → D24100=100
+[16:57:09] ■ Pulso M5000 enviado
+[16:57:10] ■ Dot concluído (M5001=OFF)
+[16:57:10] 📝 Escrevendo parâmetros Eixo X: Posição=37271
+[16:57:10] ■ Eixo X: pos=37271  vel=30000
+[16:57:10] ✓ D1100_X verificado: 37271
+[16:57:10] 🚀 Movendo eixo X para posição 37271
+[16:57:10]  Pulso M1050_X enviado
+[16:57:10] 🚀 Pulso M1050_X enviado – alvo 37271
+[16:57:10] 📝 Escrevendo parâmetros Eixo Y1: Posição=10684
+[16:57:10] ■ Eixo Y1: pos=10684  vel=15000
+[16:57:10] ✓ D600_Y1 verificado: 10684
+[16:57:10] 🚀 Movendo eixo Y1 para posição 10684
+[16:57:10]  Pulso M550_Y1 enviado
+[16:57:10] 🚀 Pulso M550_Y1 enviado – alvo 10684
+[16:57:10] 📝 Escrevendo parâmetros Eixo Z: Posição=1000
+[16:57:10] ■ Eixo Z: pos=1000  vel=1500
+[16:57:10] ✓ D1600_Z verificado: 1000
+[16:57:10] 🚀 Movendo eixo Z para posição 1000
+[16:57:10]  Pulso M1550_Z enviado
+[16:57:10] 🚀 Pulso M1550_Z enviado – alvo 1000
+[16:57:10] ■ DOT qty → D24100=100
+[16:57:10] ■ Pulso M5000 enviado
+[16:57:10] ■ Dot concluído (M5001=OFF)
+[16:57:10] 📝 Escrevendo parâmetros Eixo X: Posição=36163
+[16:57:10] ■ Eixo X: pos=36163  vel=30000
+[16:57:10] ✓ D1100_X verificado: 36163
+[16:57:10] 🚀 Movendo eixo X para posição 36163
+[16:57:10]  Pulso M1050_X enviado
+[16:57:10] 🚀 Pulso M1050_X enviado – alvo 36163
+[16:57:10] 📝 Escrevendo parâmetros Eixo Y1: Posição=4948
+[16:57:10] ■ Eixo Y1: pos=4948  vel=15000
+[16:57:10] ✓ D600_Y1 verificado: 4948
+[16:57:10] 🚀 Movendo eixo Y1 para posição 4948
+[16:57:10]  Pulso M550_Y1 enviado
+[16:57:10] 🚀 Pulso M550_Y1 enviado – alvo 4948
+[16:57:10] 📝 Escrevendo parâmetros Eixo Z: Posição=0
+[16:57:10] ■ Eixo Z: pos=0  vel=1500
+[16:57:10] ✓ D1600_Z verificado: 0
+[16:57:10] 🚀 Movendo eixo Z para posição 0
+[16:57:10]  Pulso M1550_Z enviado
+[16:57:10] 🚀 Pulso M1550_Z enviado – alvo 0
+[16:57:11] ■ Mesa 1: devolvendo placa (Y→18000)
+[16:57:11] 📝 Escrevendo parâmetros Eixo Y1: Posição=18000
+[16:57:11] ■ Eixo Y1: pos=18000  vel=15000
+[16:57:11] ✓ D600_Y1 verificado: 18000
+[16:57:11] 🚀 Movendo eixo Y1 para posição 18000
+[16:57:11]  Pulso M550_Y1 enviado
+[16:57:11] 🚀 Pulso M550_Y1 enviado – alvo 18000
+[16:57:11] ■ Offset dinâmico aplicado: ΔX=0  ΔY=0
+[16:57:11] ■ Mesa 1: ciclo concluído ✓
+[16:57:15] ■ Mesa 1: enviando placa (destino Y=363.0)
+[16:57:15] 📝 Escrevendo parâmetros Eixo Y1: Posição=363
+[16:57:15] ■ Eixo Y1: pos=363  vel=15000
+[16:57:15] ✓ D600_Y1 verificado: 363
+[16:57:15] 🚀 Movendo eixo Y1 para posição 363
+[16:57:15]  Pulso M550_Y1 enviado
+[16:57:15] 🚀 Pulso M550_Y1 enviado – alvo 363

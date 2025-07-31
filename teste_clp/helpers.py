@@ -38,9 +38,17 @@ def read_fiducials(ctrl,
     ox_prev, oy_prev = current_offset
     matched_cnt = 0
     for p in fid_pos:
+        # --------------------------------------------------------------
+        #  Determina qual eixo Y físico está ativo nesta execução.
+        #  PlateFlowManager define   ctrl._active_plate_y   antes de
+        #  disparar SequenceRunnerThread, evitando a dependência
+        #  da aba visível (que causava AttributeError quando
+        #  currentWidget() era AxesControlTab).
+        # --------------------------------------------------------------
+        axis_y = getattr(ctrl, "_active_plate_y", "Y1")
         # ---------- MOVE X,Y,Z  (usa Z do próprio fiducial) ----------
         ctrl.pulsos_spin_X.setValue(int(p.x + ox_prev))
-        axis_y = 'Y1' if ctrl.tab_widget.currentWidget().y_axis == 'Y1' else 'Y2'
+        
         getattr(ctrl, f'pulsos_spin_{axis_y}').setValue(
             int((p.y1 if axis_y == 'Y1' else p.y2) + oy_prev))
         ctrl.pulsos_spin_Z.setValue(int(p.z))

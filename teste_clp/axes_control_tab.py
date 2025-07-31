@@ -5,7 +5,8 @@ salvar / carregar + sequência).  Reaproveita toda a lógica já existente
 no MultiAxisMotorController; somente a parte visual fica aqui.
 """
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFrame, QSizePolicy
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFrame, QSizePolicy,
+    QListWidget, QLabel
 )
 from mesa_plot_widget import MesaPlotWidget
 from PyQt6.QtCore import Qt, QTimer
@@ -45,9 +46,12 @@ class AxesControlTab(QWidget):
 
         # --------------------- COLUNA ESQUERDA (15 %) ------------------
         left_col = QVBoxLayout()
-
-        aux_group = self.ctrl.create_auxiliary_controls()
-        left_col.addWidget(aux_group)
+        # ------------------------------------------------------------
+        # 01-Ago-2025
+        # Removido o GroupBox “CONTROLES AUXILIARES” SOMENTE desta aba
+        # (“Controle de Eixos”).  As mesas 1 e 2 continuam exibindo-o.
+        # ------------------------------------------------------------
+        #  left_col.addWidget(self.ctrl.create_auxiliary_controls())
         left_col.addStretch()
 
         left_wrap = QWidget(); left_wrap.setLayout(left_col)
@@ -92,6 +96,19 @@ class AxesControlTab(QWidget):
             motion=self.ctrl._plc_motion_backend,  # criado no controlador
             camera=None
         )
+        # ------------------------------------------------------------------
+        #  AJUSTE “START GERAL”
+        #  – renomeia o botão principal e liga ao controlador
+        # ------------------------------------------------------------------
+        try:                                            # remove conexão antiga
+            self.seq_widget._btn_execute.clicked.disconnect()
+        except Exception:
+            pass
+        self.seq_widget._btn_execute.setText("Start Geral")
+        self.seq_widget._btn_execute.clicked.connect(self.ctrl.start_global_cycle)
+        # botão “Parar” deixa de ser usado
+        self.seq_widget._btn_stop.hide()
+
         right_col.addWidget(self.seq_widget)
 
         right_col.addStretch()
@@ -106,11 +123,83 @@ class AxesControlTab(QWidget):
                             QSizePolicy.Policy.Preferred)
 
         
+        # --------------------------------------------------------------
+        #  REGIÃO INFERIOR CENTRAL
+        #  – agora dividida em duas metades com fundo cinza
+        # --------------------------------------------------------------
         bottom_placeholder = QFrame(objectName="centerBottom")
+        # ----------------------------------------------------------
+        #  Fundo igual ao painel de cima (cinza-escuro)
+        # ----------------------------------------------------------
         bottom_placeholder.setStyleSheet(
-            "QFrame { background-color:#ECEFF1; border: 1px dashed #B0BEC5; }")
+            "QFrame#centerBottom { background-color:#303030; }")
         bottom_placeholder.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding)
+
+        bottom_lay = QHBoxLayout(bottom_placeholder)
+        bottom_lay.setContentsMargins(0, 0, 0, 0)
+        bottom_lay.setSpacing(0)
+
+        def _make_half() -> QFrame:
+            half = QFrame()
+            # mesma cor do canvas onde são plotados os pontos
+            half.setStyleSheet("QFrame { background-color:#303030; }")
+            half.setSizePolicy(QSizePolicy.Policy.Expanding,
+                               QSizePolicy.Policy.Expanding)
+            return half
+
+        left_half  = _make_half()
+        right_half = _make_half()
+
+        # ----------------------------------------------------------
+        #  ESPELHO DAS POSIÇÕES  –  MESA 1
+        # ----------------------------------------------------------
+        left_half_lay = QVBoxLayout(left_half)
+        left_half_lay.setContentsMargins(4, 4, 4, 4)
+
+        self.mirror_m1_label = QLabel("Posições de Inspeção – Mesa 1")
+        self.mirror_m1_label.setStyleSheet(
+            "QLabel { color:#ECEFF1; font-weight:bold; }")
+        self.mirror_m1_list = QListWidget()
+        self.mirror_m1_list.setStyleSheet(
+            "QListWidget { background:#424242; color:#ECEFF1; }")
+        self.mirror_m1_list.setMinimumHeight(140)
+
+        left_half_lay.addWidget(self.mirror_m1_label)
+        left_half_lay.addWidget(self.mirror_m1_list, 1)
+
+        # ----------------------------------------------------------
+        #  ESPELHO DAS POSIÇÕES  –  MESA 2   (lado direito)
+        # ----------------------------------------------------------
+        right_half_lay = QVBoxLayout(right_half)
+        right_half_lay.setContentsMargins(4, 4, 4, 4)
+
+        self.mirror_m2_label = QLabel("Posições de Inspeção – Mesa 2")
+        self.mirror_m2_label.setStyleSheet(
+            "QLabel { color:#ECEFF1; font-weight:bold; }")
+        self.mirror_m2_list = QListWidget()
+        self.mirror_m2_list.setStyleSheet(
+            "QListWidget { background:#424242; color:#ECEFF1; }")
+        self.mirror_m2_list.setMinimumHeight(140)
+
+        right_half_lay.addWidget(self.mirror_m2_label)
+        right_half_lay.addWidget(self.mirror_m2_list, 1)
+
+        # As conexões dependem de controller.mesa_tabs,
+        # que só estará disponível APÓS o controlador criar
+        # as abas Mesa-1 / Mesa-2.  Programamos para o próximo
+        # ciclo do event-loop.
+        QTimer.singleShot(0, self._setup_mirror_connections)
+
+        # divisor visual (1 px) para evidenciar as duas colunas
+        divider = QFrame()
+        divider.setFixedWidth(1)
+        divider.setStyleSheet("QFrame { background-color:#505050; }")
+
+        bottom_lay.addWidget(left_half,  1)
+        bottom_lay.addWidget(divider)
+        bottom_lay.addWidget(right_half, 1)
 
         grid.addWidget(left_spacer,        1, 0)
         grid.addWidget(bottom_placeholder, 1, 1)
@@ -168,5 +257,109 @@ class AxesControlTab(QWidget):
                 )
             )
         return lst
+    
+    # -----------------------------------------------------------------
+    #            S I N C  ■  M e s a   1   →   E s p e l h o
+    # -----------------------------------------------------------------
+    def _sync_mesa1_positions(self):
+        """
+        Copia as posições da aba “Mesa 1” para a lista espelhada
+        exibida na parte inferior da aba “Controle de Eixos”.
+        """
+        try:
+            pts = self.ctrl.mesa_tabs[1].inspect_widget.positions()
+        except Exception:
+            pts = []
+        self.mirror_m1_list.blockSignals(True)
+        self.mirror_m1_list.clear()
+        for p in pts:
+            self.mirror_m1_list.addItem(
+                f"{p.name}.  X={p.x:.0f}  Y={p.y1:.0f}  Z={p.z:.0f}"
+            )
+        # mantém seleção actual
+        row_sel = self.ctrl.mesa_tabs[1].inspect_widget.list_widget.currentRow()
+        if row_sel >= 0 and row_sel < self.mirror_m1_list.count():
+            self.mirror_m1_list.setCurrentRow(row_sel)
+        self.mirror_m1_list.blockSignals(False)
+
+    # -----------------------------------------------------------------
+    #  Conecta-se aos sinais da aba Mesa-1 depois que ela existir
+    # -----------------------------------------------------------------
+    def _setup_mirror_connections(self):
+        mesa1_tab = getattr(self.ctrl, "mesa_tabs", {}).get(1)
+        if mesa1_tab is None:          # ainda não criado
+            return
+        m1w = mesa1_tab.inspect_widget
+        for sig in (m1w.positionAdded,
+                    m1w.positionRemoved,
+                    m1w.positionInserted):
+            sig.connect(lambda _=None: self._sync_mesa1_positions())
+        mesa1_tab.prog_widget.fileLoaded.connect(
+            lambda _=None: self._sync_mesa1_positions())
+        # -------------------------------------------------------------
+        #  SINCRONIZAÇÃO DO INDICADOR DE SELEÇÃO
+        #  – sempre que o usuário (ou o SequenceRunner) mudar a linha
+        #    selecionada na QListWidget da Mesa 1, o espelho na aba
+        #    “Controle de Eixos” realça a mesma linha.
+        # -------------------------------------------------------------
+        mesa1_tab.inspect_widget.list_widget.currentRowChanged.connect(
+            self._mirror_select_row)
+        # -------- Mesa 2 ----------
+        mesa2_tab = getattr(self.ctrl, "mesa_tabs", {}).get(2)
+        if mesa2_tab:
+            m2w = mesa2_tab.inspect_widget
+            for sig in (m2w.positionAdded,
+                        m2w.positionRemoved,
+                        m2w.positionInserted):
+                sig.connect(lambda _=None: self._sync_mesa2_positions())
+            mesa2_tab.prog_widget.fileLoaded.connect(
+                lambda _=None: self._sync_mesa2_positions())
+            mesa2_tab.inspect_widget.list_widget.currentRowChanged.connect(
+                self._mirror_select_row_m2)
+        # primeira sincronização
+        self._sync_mesa1_positions()
+        self._sync_mesa2_positions()
+
+    def _sync_mesa2_positions(self):
+        """Reflete Mesa 2 na lista da direita."""
+        try:
+            pts = self.ctrl.mesa_tabs[2].inspect_widget.positions()
+        except Exception:
+            pts = []
+        self.mirror_m2_list.blockSignals(True)
+        self.mirror_m2_list.clear()
+        for p in pts:
+            self.mirror_m2_list.addItem(
+                f"{p.name}.  X={p.x:.0f}  Y={p.y2:.0f}  Z={p.z:.0f}"
+            )
+        # mantém seleção
+        row_sel = self.ctrl.mesa_tabs[2].inspect_widget.list_widget.currentRow()
+        if 0 <= row_sel < self.mirror_m2_list.count():
+            self.mirror_m2_list.setCurrentRow(row_sel)
+        self.mirror_m2_list.blockSignals(False)
+
+    # -----------------------------------------------------------------
+    #  Seleção vinda da Mesa 1 → aplica no espelho
+    # -----------------------------------------------------------------
+    def _mirror_select_row(self, row: int):
+        """
+        Recebe índice da linha seleccionada na QListWidget original
+        (Mesa 1) e replica a selecção no QListWidget espelhado.
+        """
+        if row < 0 or row >= self.mirror_m1_list.count():
+            self.mirror_m1_list.clearSelection()
+            return
+        self.mirror_m1_list.blockSignals(True)
+        self.mirror_m1_list.setCurrentRow(row)
+        self.mirror_m1_list.blockSignals(False)
+
+    # ---------------- Mesa 2 -----------------------------------------
+    def _mirror_select_row_m2(self, row: int):
+        if row < 0 or row >= self.mirror_m2_list.count():
+            self.mirror_m2_list.clearSelection()
+            return
+        self.mirror_m2_list.blockSignals(True)
+        self.mirror_m2_list.setCurrentRow(row)
+        self.mirror_m2_list.blockSignals(False)
     
     

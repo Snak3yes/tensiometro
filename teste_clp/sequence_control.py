@@ -252,7 +252,8 @@ class SequenceRunnerThread(QThread):
         w_roi = int(meta.get("width", 400))
         h_roi = int(meta.get("height", 150))
 
-        cam = getattr(self._motion, "_c").camera_manager
+        ctrl = getattr(self._motion, "_c")
+        cam  = ctrl.camera_manager
 
         # ------------------ calcula ROI central ----------------------
         # (basta fazer 1×; w_img/h_img só são precisos para cx/cy)
@@ -365,9 +366,9 @@ class SequenceRunnerThread(QThread):
 
         # ----- converte para pulsos -----------------------------------
         ctrl  = getattr(self._motion, "_c")
-        y_axis = 'Y1' if ctrl.tab_widget.currentWidget().y_axis == 'Y1' else 'Y2'
+        
         z_cur = ctrl.current_positions['Z']
-        dx_p, dy_p = ctrl.pulses_from_pixels(dx_pix, dy_pix, z_cur, y_axis)
+        dx_p, dy_p = ctrl.pulses_from_pixels(dx_pix, dy_pix, z_cur)
 
         # ------------------------------------------------------------------
         # NÃO movemos a cabeça agora; usamos apenas offset dinâmico.
