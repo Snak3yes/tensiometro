@@ -15,29 +15,29 @@ class MesaPlotWidget(QGraphicsView):
     def __init__(self,
                  limits_xy: dict[str, Tuple[int, int]],
                  *,
+                 steps_per_mm: dict[str, float],
+                 y_axis: str,
                  title: str = "",
                  parent=None):
         super().__init__(parent)
-        self._lim = limits_xy             # {'x':(min,max),'y':(min,max)}
-        # -----------------------------------------------------------------
-        #  Guardamos limites “brutos” em pulsos e calculamos  1:1  na tela
-        #  • x_range : pulses_x_max – pulses_x_min
-        #  • y_range : pulses_y_max – pulses_y_min
-        #    Se forem diferentes o gráfico ficava “esticado”.
-        #  • Aplicamos factor  _scale_y  para traçar
-        #        y_plot = y_raw * _scale_y
-        #    tornando 1 pulsos→1 px  equivalente em X e Y.
-        # -----------------------------------------------------------------
-        self._lim_raw = limits_xy        # {'x':(..),(..), 'y':(..),(..)}
-        x0, x1 = limits_xy['x']
-        y0, y1 = limits_xy['y']
-        x_range = x1 - x0
-        y_range = y1 - y0 if (y1 - y0) != 0 else 1
-        self._scale_y = x_range / y_range
-        # lim com Y já escalonado
+        # -------------------- NOVO: unidades em milímetros --------------------
+        self._steps = steps_per_mm           # {'X':…, 'Y1':…, 'Y2':…, 'Z':…}
+        self._y_axis = y_axis                # 'Y1'  ou  'Y2'
+
+        # Converte limites de pulsos → milímetros
+        x0_mm = limits_xy['x'][0] / self._steps['X']
+        x1_mm = limits_xy['x'][1] / self._steps['X']
+        y0_mm = limits_xy['y'][0] / self._steps[self._y_axis]
+        y1_mm = limits_xy['y'][1] / self._steps[self._y_axis]
+
+        # ------------------------------------------------------------
+        # Mantemos a proporção REAL da área de trabalho
+        # (sem forçar o retângulo a virar um quadrado).
+        # ------------------------------------------------------------
+        self._scale_y = 1.0          # compatibilidade interna
         self._lim = {
-            'x': (x0, x1),
-            'y': (y0 * self._scale_y, y1 * self._scale_y)
+            'x': (x0_mm, x1_mm),
+            'y': (y0_mm, y1_mm)
         }
         self._scene  = QGraphicsScene(self)
         self.setScene(self._scene)
@@ -74,8 +74,13 @@ class MesaPlotWidget(QGraphicsView):
         brush = QBrush(Qt.BrushStyle.NoBrush)
         self._scene.addRect(QRectF(x0, y0, w, h), pen, brush)
         # título
+        # ----------------  T Í T U L O  -----------------------------
         tit = QGraphicsSimpleTextItem(title)
-        tit.setPos(x0, y0-h*0.07)
+        # Não sofre espelhamento / zoom
+        tit.setFlag(
+            QGraphicsSimpleTextItem.GraphicsItemFlag.ItemIgnoresTransformations)
+        # 20 mm (aprox.) abaixo da borda inferior
+        tit.setPos(x0, y0 - 20)
         self._scene.addItem(tit)        
 
         # invert-Y para ficar origem em baixo-esquerda
@@ -86,6 +91,10 @@ class MesaPlotWidget(QGraphicsView):
     # -----------------------------------------------------------------
     #  Interface pública
     # -----------------------------------------------------------------
+    # ---------------- helper pulsos → mm -------------------------------
+    def _p2mm(self, axis: str, pulses: float) -> float:
+        return pulses / self._steps.get(axis, 1.0)
+
     def update_points(self, points: List[Tuple[float,float]]):
         """Lista [(x,y), …] em pulsos."""
         # remove antigos
@@ -101,24 +110,33 @@ class MesaPlotWidget(QGraphicsView):
         pen = QPen(Qt.GlobalColor.darkBlue); pen.setWidth(0)
         brush = QBrush(Qt.GlobalColor.blue)
         r_pix = 6   # diâmetro em pixels (fixo)
-        for (x, y) in points:
-            x = x_min + x_max - x
-            y = y * self._scale_y
+        for (x_raw, y_raw) in points:
+            # ---------- conversão pulsos → mm  + ajustes ---------------
+            x_mm = self._p2mm('X', x_raw)
+            y_mm = self._p2mm(self._y_axis, y_raw)
+
+            # espelhamento X
+            x_plot = x_min + x_max - x_mm
+            y_plot = y_mm
             e = self._scene.addEllipse(
-                x, y, 0, 0, pen, brush)  # placeholder
+                x_plot, y_plot, 0, 0, pen, brush)  # placeholder
             # tamanho fixo  – ignora transformações (pixels na tela)
             e.setRect(-r_pix/2, -r_pix/2, r_pix, r_pix)
-            e.setPos(x, y)
+            e.setPos(x_plot, y_plot)
             e.setFlag(QGraphicsEllipseItem.GraphicsItemFlag.ItemIgnoresTransformations)
             self._point_items.append(e)
 
     def update_head_position(self, x: int, y: int):
         """Atualiza / cria círculo vermelho da cabeça."""
         r_pix = 10
-        # aplica correção de espelhamento X
+        # conversões para mm
+        x_mm = self._p2mm('X', x)
+        y_mm = self._p2mm(self._y_axis, y)
+
+        # espelhamento X
         x_min, x_max = self._lim['x']
-        x = x_min + x_max - x
-        y = y * self._scale_y
+        x_plot = x_min + x_max - x_mm
+        y_plot = y_mm
         if self._head_item is None:
             pen = QPen(Qt.GlobalColor.red); pen.setWidth(0)
             brush = QBrush(Qt.GlobalColor.red)
@@ -128,7 +146,7 @@ class MesaPlotWidget(QGraphicsView):
                 QGraphicsEllipseItem.GraphicsItemFlag.ItemIgnoresTransformations)
         else:
             pass
-        self._head_item.setPos(x, y)
+        self._head_item.setPos(x_plot, y_plot)
     
     # -----------------------------------------------------------------
     #  Ajusta automaticamente o zoom

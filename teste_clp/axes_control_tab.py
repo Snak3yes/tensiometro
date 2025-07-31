@@ -63,8 +63,19 @@ class AxesControlTab(QWidget):
         grid.addWidget(center_top, 0, 1)
         hplot = QHBoxLayout(center_top); hplot.setContentsMargins(2,2,2,2)
         # cria widgets gráficos para cada mesa
-        self.plot_m1 = MesaPlotWidget(self.ctrl.table_limits[1], title="Mesa 1")
-        self.plot_m2 = MesaPlotWidget(self.ctrl.table_limits[2], title="Mesa 2")
+        # Passa calibração steps/mm  → evita “esticamento” no eixo X
+        self.plot_m1 = MesaPlotWidget(
+            self.ctrl.table_limits[1],
+            steps_per_mm=self.ctrl.steps_per_mm,
+            y_axis='Y1',
+            title="Mesa 1"
+        )
+        self.plot_m2 = MesaPlotWidget(
+            self.ctrl.table_limits[2],
+            steps_per_mm=self.ctrl.steps_per_mm,
+            y_axis='Y2',
+            title="Mesa 2"
+        )
         hplot.addWidget(self.plot_m1); hplot.addWidget(self.plot_m2)
 
         # --------------------- COLUNA DIREITA (15 %) -------------------

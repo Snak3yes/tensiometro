@@ -2,3 +2,10 @@ teste/
 .conda/
 .venv/
 teste_clp/Projetos/modelos/
+teste_clp/__pycache__/axes_control_tab.cpython-310.pyc
+teste_clp/__pycache__/mesa_plot_widget.cpython-310.pyc
+teste_clp/__pycache__/settings_manager.cpython-310.pyc
+teste_clp/__pycache__/table_positions_backend.cpython-310.pyc
+teste_clp/__pycache__/table_program_tab.cpython-310.pyc
+*.pyc
+teste_clp/aplicacao_adesivadora.pdf
