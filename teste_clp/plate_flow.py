@@ -34,6 +34,8 @@ class PlateFlowManager(QObject):
         self._tab     = mesa_tab
         self._mesa    = mesa_id
         self._state   = FlowState.IDLE
+        # True  → berço já está sobre o 1.º fiducial e aguarda a cabeça
+        self._queued_ready = False
         
 
         if mesa_id == 1:
@@ -72,12 +74,16 @@ class PlateFlowManager(QObject):
     # -----------------------------------------------------------------
     def _poll(self):
         # --------------------------------------------------------------
-        #  1) Se a mesa está “na fila” (QUEUED) volte a tentar sempre
-        #     que a cabeça fique livre (_head_busy==False).
+        #  1) Mesa “na fila” e já posicionada  → inicia sequência assim
+        #     que a cabeça ficar livre.
         # --------------------------------------------------------------
-        if self._state is FlowState.QUEUED and not self._c._head_busy:
-            # tenta iniciar novamente
-            self._start_send_cycle()
+        if (self._state is FlowState.QUEUED
+                and self._queued_ready
+                and not self._c._head_busy):
+            # ocupa mutex e dispara sequência
+            self._c._head_busy = True
+            self._queued_ready = False
+            self._start_sequence()
 
         # --------------------------------------------------------------
         #  2) Condições normais de polling
@@ -100,18 +106,6 @@ class PlateFlowManager(QObject):
     # ---------------------  S T A T E   M A C H I N E  ----------------
     def _start_send_cycle(self):
         """Etapa 1 – leva a placa para dentro."""
-        # ----------------------------------------------------------
-        #  M U T E X   D A   C A B E Ç A
-        #  – se outra mesa já estiver usando os eixos X/Z,
-        #    entramos em estado QUEUED e esperamos no polling.
-        # ----------------------------------------------------------
-        if self._c._head_busy:
-            self._state = FlowState.QUEUED
-            self._c.log(f"■ Mesa {self._mesa}: aguardando cabeça ficar livre…")
-            return
-
-        # Marca cabeça ocupada
-        self._c._head_busy = True
 
         # ----------------------------------------------------------
         #  LIMPA _targets de ciclos anteriores para que o próximo
@@ -128,10 +122,23 @@ class PlateFlowManager(QObject):
         getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(int(fid_y))
         self._c.move_axis_absolute(self._y_axis)
         # espera aqui mesmo pois é simples
-        if self._c._plc_motion_backend.wait_for_idle():
-            self._start_sequence()
-        else:
+        if not self._c._plc_motion_backend.wait_for_idle():
             self._error("Timeout movendo placa para dentro")
+            return
+
+        # ----------------------------------------------------------
+        #  Cabeça ocupada?  → entra na fila já sobre o fiducial.
+        # ----------------------------------------------------------
+        if self._c._head_busy:
+            self._state = FlowState.QUEUED
+            self._queued_ready = True
+            self._c.log(f"■ Mesa {self._mesa}: aguardando cabeça ficar livre…")
+            return
+
+        # cabeça livre – ocupa mutex e começa a sequência
+        self._queued_ready = False
+        self._c._head_busy = True
+        self._start_sequence()
 
     def _start_sequence(self):
         """Etapa 2 – roda SequenceControlWidget em modo APPLY."""
@@ -189,6 +196,7 @@ class PlateFlowManager(QObject):
     def _finish_cycle(self):
         """Etapa 4 – emite pulso DONE e regressa ao estado IDLE."""
         self._state = FlowState.IDLE
+        self._queued_ready = False
         # libera a cabeça para outra mesa
         self._c._head_busy = False
         try:
@@ -235,7 +243,7 @@ class PlateFlowManager(QObject):
         # limpa metas anteriores
         self._c._plc_motion_backend._targets.clear()
         self._state = FlowState.IDLE
-        # libera mutex mesmo em erro
+        self._queued_ready = False
         self._c._head_busy = False
 
     # -----------------------------------------------------------------
@@ -258,4 +266,5 @@ class PlateFlowManager(QObject):
     def _error(self, msg):
         self._c.log(f"■ Mesa {self._mesa}: {msg}")
         self._state = FlowState.IDLE
+        self._queued_ready = False
         self._c._head_busy = False
