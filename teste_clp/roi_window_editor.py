@@ -17,7 +17,7 @@
 from __future__ import annotations
 import json, os, itertools
 from typing import Callable, Dict, Optional, List, Any, Union
-from PyQt6.QtCore import Qt, QRectF, QPointF, QObject, QEvent, pyqtSignal
+from PyQt6.QtCore import Qt, QRectF, QPointF, QPoint, QObject, QEvent, pyqtSignal
 from PyQt6.QtGui import QPen, QBrush
 from PyQt6.QtWidgets import (
     QGraphicsRectItem, QGraphicsItem, QGraphicsView, QGraphicsScene,
@@ -257,6 +257,15 @@ class ROIWindowEditor(QObject):
         view.viewport().installEventFilter(self)
         self.view.scene().installEventFilter(self)
 
+        # ------------------------------------------------------------------
+        #  PREVENÇÃO DE ACESSO APÓS DESTRUIÇÃO DO QGraphicsView
+        # ------------------------------------------------------------------
+        # Quando a janela é encerrada o QGraphicsView é destruído antes
+        # do ROIWindowEditor.  Mantemos uma flag para ignorar eventos
+        # subsequentes e evitar  “wrapped C/C++ object … has been deleted”.
+        self._view_deleted = False
+        self.view.destroyed.connect(self._on_view_destroyed)
+
     # --------------- API PÚBLICA ------------------------------
     #  ----- modo desenho --------------------------------------
     def start_drawing(self, *,
@@ -385,13 +394,25 @@ class ROIWindowEditor(QObject):
     # --------------- EVENT FILTER -----------------------------
     def eventFilter(self, obj, ev):
         # ---- tecla Delete (escopo da cena) --------------------
+        # ----------------------------------------------------------
+        # Evita acessar self.view depois que o objeto C++ foi
+        # destruído (fase de shutdown da aplicação).
+        # ----------------------------------------------------------
+        if self._view_deleted:
+            return False
+
+        # viewport pode não existir mais nestas alturas; tenta acessar
+        # com proteção.
+        try:
+            viewport = self.view.viewport()
+        except RuntimeError:
+            return False
         if ev.type() == QEvent.Type.KeyPress and ev.key() == Qt.Key.Key_Delete:
             self._delete_selected()
             return True
 
         # ---- desenho (viewport) ------------------------------
-        if obj is self.view.viewport() and self._drawing:
-            from PyQt6.QtCore import QPoint
+        if obj is viewport and self._drawing:
             if ev.type() == QEvent.Type.MouseButtonPress and ev.button() == Qt.MouseButton.LeftButton:
                 self._start_pos = self.view.mapToScene(QPoint(int(ev.position().x()),
                                                               int(ev.position().y())))
@@ -455,6 +476,16 @@ class ROIWindowEditor(QObject):
                     self.view.setCursor(Qt.CursorShape.ArrowCursor)
                 return True
         return False
+    
+    # ------------------------------------------------------------------
+    #  Callback disparado quando o QGraphicsView for destruído
+    # ------------------------------------------------------------------
+    def _on_view_destroyed(self, *_):
+        """
+        Marca flag para que o eventFilter ignore qualquer evento
+        pendente após a destruição do QGraphicsView.
+        """
+        self._view_deleted = True
 
     # --------------- SERIALIZAÇÃO -----------------------------
     def to_dict_list(self) -> List[Dict[str, Any]]:
