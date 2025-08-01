@@ -6,7 +6,7 @@ no MultiAxisMotorController; somente a parte visual fica aqui.
 """
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFrame, QSizePolicy,
-    QListWidget, QLabel
+    QListWidget, QLabel, QGroupBox, QProgressBar
 )
 from mesa_plot_widget import MesaPlotWidget
 from PyQt6.QtCore import Qt, QTimer
@@ -112,6 +112,18 @@ class AxesControlTab(QWidget):
             motion=self.ctrl._plc_motion_backend,  # criado no controlador
             camera=None
         )
+        # -----------------------------------------------------------------
+        #  A B A  “ C O N T R O L E  D E  E I X O S ”
+        #  Oculta os elementos VISUAIS que já existem no espelho inferior:
+        #      – barra de progresso _progress
+        #      – label de status     _status
+        #      – label do código     _lbl_bc
+        #  Eles continuam existindo (sinais/valores) e as demais abas
+        #  permanecem inalteradas – apenas não aparecem aqui.
+        # -----------------------------------------------------------------
+        self.seq_widget._progress.setVisible(False)
+        self.seq_widget._status.setVisible(False)
+        self.seq_widget._lbl_bc.setVisible(False)
         # ------------------------------------------------------------------
         #  AJUSTE “START GERAL”
         #  – renomeia o botão principal e liga ao controlador
@@ -192,7 +204,19 @@ class AxesControlTab(QWidget):
         m1_row.addWidget(self._m1_blank)
         m1_row.setStretchFactor(self.mirror_m1_list, 3)   # ≈60 %
         m1_row.setStretchFactor(self._m1_blank,      2)   # ≈40 %
-
+        # ===============  B L O C O  –  CONTROLE DE SEQUÊNCIA (M1) ===============
+        self._seq_m1_box = QGroupBox("Controle de Sequência")
+        vseq1 = QVBoxLayout(self._seq_m1_box)
+        self.lbl_m1_fid   = QLabel("Fiducial: —")
+        self.pb_m1        = QProgressBar(); self.pb_m1.setValue(0)
+        self.lbl_m1_stat  = QLabel("Status: —")
+        self.lbl_m1_code  = QLabel("Código: —")
+        for w in (self.lbl_m1_fid, self.pb_m1, self.lbl_m1_stat, self.lbl_m1_code):
+            vseq1.addWidget(w)
+        vseq1.addStretch()
+        self._m1_blank_layout = QVBoxLayout(self._m1_blank); 
+        self._m1_blank_layout.setContentsMargins(0,0,0,0)
+        self._m1_blank_layout.addWidget(self._seq_m1_box)
         left_half_lay.addWidget(self.mirror_m1_label)
         left_half_lay.addLayout(m1_row, 1)
 
@@ -219,6 +243,19 @@ class AxesControlTab(QWidget):
         m2_row.addWidget(self._m2_blank)
         m2_row.setStretchFactor(self.mirror_m2_list, 3)
         m2_row.setStretchFactor(self._m2_blank,      2)
+        # ===============  B L O C O  –  CONTROLE DE SEQUÊNCIA (M2) ===============
+        self._seq_m2_box = QGroupBox("Controle de Sequência")
+        vseq2 = QVBoxLayout(self._seq_m2_box)
+        self.lbl_m2_fid   = QLabel("Fiducial: —")
+        self.pb_m2        = QProgressBar(); self.pb_m2.setValue(0)
+        self.lbl_m2_stat  = QLabel("Status: —")
+        self.lbl_m2_code  = QLabel("Código: —")
+        for w in (self.lbl_m2_fid, self.pb_m2, self.lbl_m2_stat, self.lbl_m2_code):
+            vseq2.addWidget(w)
+        vseq2.addStretch()
+        self._m2_blank_layout = QVBoxLayout(self._m2_blank); 
+        self._m2_blank_layout.setContentsMargins(0,0,0,0)
+        self._m2_blank_layout.addWidget(self._seq_m2_box)
 
         right_half_lay.addWidget(self.mirror_m2_label)
         right_half_lay.addLayout(m2_row, 1)
@@ -343,6 +380,34 @@ class AxesControlTab(QWidget):
         # -------------------------------------------------------------
         mesa1_tab.inspect_widget.list_widget.currentRowChanged.connect(
             self._mirror_select_row)
+        # -------- conexões de feedback (Mesa 1) ------------------------
+        m1_seq = mesa1_tab.seq_widget
+        m1_seq.fidMatch.connect(lambda sim,ok,x,y,w,h: self.lbl_m1_fid.setText(
+            f"Fiducial: {'OK' if ok else 'Fail'} ({sim:.1f}%)"))
+        m1_seq.fidClear.connect(lambda: self.lbl_m1_fid.setText("Fiducial: —"))
+        # ────── SINCRONIZAÇÃO DA BARRA DE PROGRESSO (Mesa-1) ──────
+        # Usa EXACTAMENTE o mesmo QProgressBar interno do SequenceControlWidget
+        # – qualquer alteração de faixa ou valor será espelhada.
+        # ────── SINCRONIZAÇÃO DA BARRA DE PROGRESSO (Mesa-1) ──────
+        # QProgressBar não possui ‘rangeChanged’ → copiamos o intervalo
+        # imediatamente antes de cada execução e sempre que as posições
+        # forem alteradas.
+        m1_seq._progress.valueChanged.connect(self.pb_m1.setValue)
+        # antes de iniciar
+        m1_seq._btn_execute.clicked.connect(
+            lambda _=False, s=m1_seq: self._sync_progress_range(self.pb_m1, s))
+        # quando a lista de pontos muda
+        mesa1_tab.inspect_widget.positionAdded.connect(
+            lambda _=None, s=m1_seq: self._sync_progress_range(self.pb_m1, s))
+        mesa1_tab.inspect_widget.positionRemoved.connect(
+            lambda _=None, s=m1_seq: self._sync_progress_range(self.pb_m1, s))
+        # seq encerrada → garante barra completa
+        m1_seq.sequenceFinished.connect(lambda: self.pb_m1.setValue(self.pb_m1.maximum()))
+        m1_seq.sequenceError.connect(  lambda _msg: self.pb_m1.setValue(self.pb_m1.maximum()))
+        m1_seq.sequenceFinished.connect(lambda: self.lbl_m1_stat.setText("Status: Concluído"))
+        m1_seq.sequenceError.connect(lambda msg: self.lbl_m1_stat.setText(f"Status: Erro - {msg}"))
+        m1_seq.bcMatch.connect(lambda ok,x,y,w,h,txt:
+                               self.lbl_m1_code.setText(f"Código: {txt if ok else '—'}"))
         # -------- Mesa 2 ----------
         mesa2_tab = getattr(self.ctrl, "mesa_tabs", {}).get(2)
         if mesa2_tab:
@@ -355,9 +420,40 @@ class AxesControlTab(QWidget):
                 lambda _=None: self._sync_mesa2_positions())
             mesa2_tab.inspect_widget.list_widget.currentRowChanged.connect(
                 self._mirror_select_row_m2)
+            # -------- conexões de feedback (Mesa 2) -------------------
+            m2_seq = mesa2_tab.seq_widget
+            m2_seq.fidMatch.connect(lambda sim,ok,x,y,w,h: self.lbl_m2_fid.setText(
+                f"Fiducial: {'OK' if ok else 'Fail'} ({sim:.1f}%)"))
+            m2_seq.fidClear.connect(lambda: self.lbl_m2_fid.setText("Fiducial: —"))
+            # ────── SINCRONIZAÇÃO DA BARRA DE PROGRESSO (Mesa-2) ──────
+            # ────── SINCRONIZAÇÃO DA BARRA DE PROGRESSO (Mesa-2) ──────
+            m2_seq._progress.valueChanged.connect(self.pb_m2.setValue)
+            m2_seq._btn_execute.clicked.connect(
+                lambda _=False, s=m2_seq: self._sync_progress_range(self.pb_m2, s))
+            mesa2_tab.inspect_widget.positionAdded.connect(
+                lambda _=None, s=m2_seq: self._sync_progress_range(self.pb_m2, s))
+            mesa2_tab.inspect_widget.positionRemoved.connect(
+                lambda _=None, s=m2_seq: self._sync_progress_range(self.pb_m2, s))
+            m2_seq.sequenceFinished.connect(lambda: self.pb_m2.setValue(self.pb_m2.maximum()))
+            m2_seq.sequenceError.connect(  lambda _msg: self.pb_m2.setValue(self.pb_m2.maximum()))
+            m2_seq.sequenceFinished.connect(lambda: self.lbl_m2_stat.setText("Status: Concluído"))
+            m2_seq.sequenceError.connect(lambda msg: self.lbl_m2_stat.setText(f"Status: Erro - {msg}"))
+            m2_seq.bcMatch.connect(lambda ok,x,y,w,h,txt:
+                                   self.lbl_m2_code.setText(f"Código: {txt if ok else '—'}"))
         # primeira sincronização
         self._sync_mesa1_positions()
         self._sync_mesa2_positions()
+
+    # ---------- helper interno ------------------------------------
+    @staticmethod
+    def _sync_progress_range(ext_bar, seq_widget):
+        """
+        Copia min/max do QProgressBar interno (_progress) para a barra
+        externa `ext_bar`.
+        """
+        ext_bar.setRange(seq_widget._progress.minimum(),
+                         seq_widget._progress.maximum())
+        ext_bar.setValue(seq_widget._progress.value())
 
     def _sync_mesa2_positions(self):
         """Reflete Mesa 2 na lista da direita."""
