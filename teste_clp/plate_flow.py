@@ -6,6 +6,7 @@ from PyQt6.QtCore import QObject, QTimer
 
 class FlowState(Enum):
     IDLE        = auto()
+    QUEUED      = auto()
     MOVING_IN   = auto()
     PROCESSING  = auto()
     MOVING_OUT  = auto()
@@ -33,6 +34,7 @@ class PlateFlowManager(QObject):
         self._tab     = mesa_tab
         self._mesa    = mesa_id
         self._state   = FlowState.IDLE
+        
 
         if mesa_id == 1:
             self._mem_btn  = 'M20'
@@ -69,8 +71,19 @@ class PlateFlowManager(QObject):
     #  I N T E R N O S
     # -----------------------------------------------------------------
     def _poll(self):
+        # --------------------------------------------------------------
+        #  1) Se a mesa está “na fila” (QUEUED) volte a tentar sempre
+        #     que a cabeça fique livre (_head_busy==False).
+        # --------------------------------------------------------------
+        if self._state is FlowState.QUEUED and not self._c._head_busy:
+            # tenta iniciar novamente
+            self._start_send_cycle()
+
+        # --------------------------------------------------------------
+        #  2) Condições normais de polling
+        # --------------------------------------------------------------
         if (not self._c.connected or
-                self._state is not FlowState.IDLE or
+                self._state not in (FlowState.IDLE, FlowState.QUEUED) or
                 not self._c._global_cycle_active):     # só depois do Start Geral
             return
         try:
@@ -87,6 +100,19 @@ class PlateFlowManager(QObject):
     # ---------------------  S T A T E   M A C H I N E  ----------------
     def _start_send_cycle(self):
         """Etapa 1 – leva a placa para dentro."""
+        # ----------------------------------------------------------
+        #  M U T E X   D A   C A B E Ç A
+        #  – se outra mesa já estiver usando os eixos X/Z,
+        #    entramos em estado QUEUED e esperamos no polling.
+        # ----------------------------------------------------------
+        if self._c._head_busy:
+            self._state = FlowState.QUEUED
+            self._c.log(f"■ Mesa {self._mesa}: aguardando cabeça ficar livre…")
+            return
+
+        # Marca cabeça ocupada
+        self._c._head_busy = True
+
         # ----------------------------------------------------------
         #  LIMPA _targets de ciclos anteriores para que o próximo
         #  wait_for_idle() considere apenas o movimento atual.
@@ -110,8 +136,27 @@ class PlateFlowManager(QObject):
     def _start_sequence(self):
         """Etapa 2 – roda SequenceControlWidget em modo APPLY."""
         self._state = FlowState.PROCESSING
-        # garante modo APPLY
-        self._tab.seq_widget.radio_apply.setChecked(True)
+        # -----------------------------------------------------------------
+        #  01-Ago-2025
+        #  Se o ciclo foi disparado pelo botão “Start Geral” (aba Controle
+        #  de Eixos) usamos a opção VIEW/APPLY escolhida naquela aba e
+        #  IGNORAMOS o que estiver marcado nas abas individuais.
+        #
+        #      – execução global (PlateFlow)  → herda da aba principal
+        #      – execução local  (botão “Executar Sequência” dentro da
+        #        Mesa 1/Mesa 2) continua usando o próprio selector da mesa
+        # -----------------------------------------------------------------
+        global_selector = getattr(self._c.control_tab, "seq_widget", None)
+        if global_selector:                       # garante existência
+            apply_global = global_selector.radio_apply.isChecked()
+            #  ⤷ força o mesmo estado no SequenceControl da mesa
+            if apply_global:
+                self._tab.seq_widget.radio_apply.setChecked(True)
+            else:
+                self._tab.seq_widget.radio_view.setChecked(True)
+        # Caso a execução tenha sido iniciada pela própria aba da mesa,
+        # o bloco acima não altera nada (o selector global não é usado).
+
         # --------------------------------------------------------------
         #  FIX   – informa ao controlador qual eixo Y físico
         #          está vinculado à sequência que será iniciada.
@@ -144,6 +189,8 @@ class PlateFlowManager(QObject):
     def _finish_cycle(self):
         """Etapa 4 – emite pulso DONE e regressa ao estado IDLE."""
         self._state = FlowState.IDLE
+        # libera a cabeça para outra mesa
+        self._c._head_busy = False
         try:
             # pulso de 100 ms em M21 / M31
             self._c.client.write_coil(self._addr_done, True)
@@ -188,6 +235,8 @@ class PlateFlowManager(QObject):
         # limpa metas anteriores
         self._c._plc_motion_backend._targets.clear()
         self._state = FlowState.IDLE
+        # libera mutex mesmo em erro
+        self._c._head_busy = False
 
     # -----------------------------------------------------------------
     def _first_fiducial_y(self):
@@ -209,3 +258,4 @@ class PlateFlowManager(QObject):
     def _error(self, msg):
         self._c.log(f"■ Mesa {self._mesa}: {msg}")
         self._state = FlowState.IDLE
+        self._c._head_busy = False

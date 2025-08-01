@@ -297,8 +297,14 @@ class MultiAxisMotorController(QMainWindow):
 
         # ---- homing virtual ---------------------------------
         self.virtual_home: dict[int,dict[str,int]] = self.settings.virtual_home
-
         self.init_ui()
+
+        # -----------------------------------------------------------------
+        #  M U T E X   D A   C A B E Ç A
+        #  False = cabeça livre   |   True = ocupada por alguma mesa
+        # -----------------------------------------------------------------
+        self._head_busy: bool = False
+
         # Ao iniciar, criação/edição de programa fica BLOQUEADA
         QTimer.singleShot(0, lambda: self._set_creation_controls_enabled(False))
         self.connect_plc()
@@ -457,7 +463,7 @@ class MultiAxisMotorController(QMainWindow):
         status_layout.addWidget(registers_group)
         
         self.tab_widget.addTab(status_tab, "Status do Sistema")
-        
+
         # === ABA 3: CONFIGURAÇÃO DE REGISTRADORES (NOVA) ===
         config_tab = self.create_config_tab()
         self.tab_widget.addTab(config_tab, "Config. Registradores")
