@@ -51,8 +51,12 @@ class AxesControlTab(QWidget):
         # ---------- VISUALIZAÇÃO DAS MESAS ----------------------------
         center_top = QFrame(objectName="centerTop")
         grid.addWidget(center_top, 0, 0)
-        hplot = QHBoxLayout(center_top); hplot.setContentsMargins(2,2,2,2)
-        # cria widgets gráficos para cada mesa
+        hplot = QHBoxLayout(center_top)
+        hplot.setContentsMargins(2,2,2,2)
+        hplot.setSpacing(4)
+        # Para cada “mesa” teremos agora um container com 2 colunas:
+        #   • Coluna 0 (stretch=3): plotagem de pontos
+        #   • Coluna 1 (stretch=2): área livre para novas funcionalidades
         # Passa calibração steps/mm  → evita “esticamento” no eixo X
         self.plot_m1 = MesaPlotWidget(
             self.ctrl.table_limits[1],
@@ -66,7 +70,41 @@ class AxesControlTab(QWidget):
             y_axis='Y2',
             title="Mesa 2"
         )
-        hplot.addWidget(self.plot_m1); hplot.addWidget(self.plot_m2)
+        # — Mesa 1
+        m1_container = QWidget()
+        m1_layout = QHBoxLayout(m1_container)
+        m1_layout.setContentsMargins(0,0,0,0)
+        m1_layout.setSpacing(2)
+        # coluna de plotagem
+        m1_layout.addWidget(self.plot_m1)
+        # coluna livre
+        m1_blank = QFrame()
+        m1_blank.setStyleSheet("QFrame { background-color:#303030; }")
+        m1_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                QSizePolicy.Policy.Expanding)
+        m1_layout.addWidget(m1_blank)
+        # proporções internas (3:2)
+        m1_layout.setStretch(0, 3)
+        m1_layout.setStretch(1, 2)
+        hplot.addWidget(m1_container)
+
+        # — Mesa 2
+        m2_container = QWidget()
+        m2_layout = QHBoxLayout(m2_container)
+        m2_layout.setContentsMargins(0,0,0,0)
+        m2_layout.setSpacing(2)
+        # coluna de plotagem
+        m2_layout.addWidget(self.plot_m2)
+        # coluna livre
+        m2_blank = QFrame()
+        m2_blank.setStyleSheet("QFrame { background-color:#303030; }")
+        m2_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
+                                QSizePolicy.Policy.Expanding)
+        m2_layout.addWidget(m2_blank)
+        # proporções internas (3:2)
+        m2_layout.setStretch(0, 3)
+        m2_layout.setStretch(1, 2)
+        hplot.addWidget(m2_container)
 
         # --------------------- COLUNA DIREITA (15 %) -------------------
         right_col = QVBoxLayout()
