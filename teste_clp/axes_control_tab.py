@@ -44,23 +44,13 @@ class AxesControlTab(QWidget):
         grid.setHorizontalSpacing(0)
         grid.setVerticalSpacing(0)
 
-        # --------------------- COLUNA ESQUERDA (15 %) ------------------
-        left_col = QVBoxLayout()
-        # ------------------------------------------------------------
-        # 01-Ago-2025
-        # Removido o GroupBox “CONTROLES AUXILIARES” SOMENTE desta aba
-        # (“Controle de Eixos”).  As mesas 1 e 2 continuam exibindo-o.
-        # ------------------------------------------------------------
-        #  left_col.addWidget(self.ctrl.create_auxiliary_controls())
-        left_col.addStretch()
+        # --------------------- (COLUNA ESQUERDA REMOVIDA) -------------
+        # Os controles auxiliares ficam apenas nas abas de Mesa 1/2.
 
-        left_wrap = QWidget(); left_wrap.setLayout(left_col)
-        grid.addWidget(left_wrap, 0, 0)
-
-        # ------------------------- COLUNA CENTRAL (70 %) ---------------
+        # ------------------------- COLUNA CENTRAL (85 %) ---------------
         # ---------- VISUALIZAÇÃO DAS MESAS ----------------------------
         center_top = QFrame(objectName="centerTop")
-        grid.addWidget(center_top, 0, 1)
+        grid.addWidget(center_top, 0, 0)
         hplot = QHBoxLayout(center_top); hplot.setContentsMargins(2,2,2,2)
         # cria widgets gráficos para cada mesa
         # Passa calibração steps/mm  → evita “esticamento” no eixo X
@@ -174,7 +164,7 @@ class AxesControlTab(QWidget):
 
         right_col.addStretch()
         right_wrap = QWidget(); right_wrap.setLayout(right_col)
-        grid.addWidget(right_wrap, 0, 2)
+        grid.addWidget(right_wrap, 0, 1)
 
         # ------------------------------ LINHA INFERIOR -----------------
         left_spacer  = QWidget()
@@ -308,14 +298,14 @@ class AxesControlTab(QWidget):
         bottom_lay.addWidget(divider)
         bottom_lay.addWidget(right_half, 1)
 
-        grid.addWidget(left_spacer,        1, 0)
-        grid.addWidget(bottom_placeholder, 1, 1)
-        grid.addWidget(right_spacer,       1, 2)
-
-        # --------- proporções (colunas 15|70|15, linhas 70|30) ---------
-        grid.setColumnStretch(0, 15)
-        grid.setColumnStretch(1, 70)
-        grid.setColumnStretch(2, 15)
+        # ---------------- LINHA INFERIOR ------------------
+        # agora a cena inferior central ocupa 100% da coluna 0;
+        # o spacer da direita permanece na coluna 1.
+        grid.addWidget(bottom_placeholder, 1, 0)
+        grid.addWidget(right_spacer,       1, 1)
+        # --------- proporções (colunas 85|15, linhas 70|30) ---------
+        grid.setColumnStretch(0, 85)
+        grid.setColumnStretch(1, 15)
         grid.setRowStretch(0, 7)
         grid.setRowStretch(1, 3)
 
