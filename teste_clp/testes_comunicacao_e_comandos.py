@@ -27,8 +27,10 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QFrame, QSizePolicy, QCheckBox, QScrollArea,
                             QMessageBox)
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread
+from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
+from PyQt6.QtCore import QCoreApplication
 
 class MultiAxisMotorController(QMainWindow):
     # -----------------------------------------------------------------
@@ -2685,12 +2687,17 @@ class MultiAxisMotorController(QMainWindow):
 #  BACK-END DE MOVIMENTO para o SequenceControlWidget
 # ------------------------------------------------------------------
 
-class PLCMotionBackend(MotionBackend):
+class PLCMotionBackend(QObject):
     """
     Adaptador simples que converte as chamadas do SequenceControlWidget
     para os métodos já existentes do MultiAxisMotorController.
     """
+    # sinal para agendar movimento de eixo no GUI thread
+    axis_move = pyqtSignal(str, int)
+
     def __init__(self, ctrl: MultiAxisMotorController):
+        # inicializa QObject antes de qualquer uso de signals
+        QObject.__init__(self)
         self._c = ctrl
         self._off_x = ctrl.camera_nozzle_offset.get("x", 0)
         self._off_y = ctrl.camera_nozzle_offset.get("y", 0)
@@ -2707,6 +2714,8 @@ class PLCMotionBackend(MotionBackend):
         # coils para dot
         self._addr_trig = ctrl.addresses.get('M5000')
         self._addr_stat = ctrl.addresses.get('M5001')
+        # conecta axis_move para despachar setValue/move no GUI thread
+        self.axis_move.connect(self._on_axis_move, Qt.ConnectionType.QueuedConnection)
 
     # --------------------------------------------------------------
     def move_to_absolute_position(self,
@@ -2766,10 +2775,9 @@ class PLCMotionBackend(MotionBackend):
             pulses += self._dy_dyn
             
 
-        spin = getattr(self._c, f"pulsos_spin_{axis}")
-        spin.setValue(int(pulses))
-        self._c.move_axis_absolute(axis)
+        # registra o alvo e dispara sinal para execução no GUI thread
         self._targets[axis] = pulses
+        self.axis_move.emit(axis, pulses)
         # DEBUG ── queued target for wait_for_idle
         self._c.log(f"[PLCBackend] _move_axis: queued {axis} → target={pulses}")
         # Não bloqueia aqui – wait_for_idle fará polling
@@ -2778,7 +2786,7 @@ class PLCMotionBackend(MotionBackend):
     def wait_for_idle(self) -> bool:
         """Bloqueia até que cada eixo alcance o pulso alvo ±1."""
         t0 = time.time()
-        timeout = 120          # s – eixo pode percorrer longas distâncias
+        timeout = 10          # s – eixo pode percorrer longas distâncias
         ok_axes = set()
 
         pos_regs = {           # registradores D que espelham SR
@@ -2791,7 +2799,8 @@ class PLCMotionBackend(MotionBackend):
         while time.time() - t0 < timeout:
             elapsed = time.time() - t0
             # DEBUG ── iteration status
-            self._c.log(f"[PLCBackend] wait_for_idle: elapsed={elapsed:.1f}s, targets={self._targets}, ok_axes={ok_axes}")
+            self._c.log(f"[PLCBackend] wait_for_idle: elapsed={elapsed:.1f}s, "
+                        f"targets={self._targets}, ok_axes={ok_axes}")
             all_reached = True
             # copia para evitar “dictionary changed size”
             for axis, target in list(self._targets.items()):
@@ -2811,6 +2820,10 @@ class PLCMotionBackend(MotionBackend):
 
             if all_reached:
                 return True
+            # deixa o Qt processar o slot _on_axis_move agendado,
+            # que dispara de fato move_axis_absolute():
+            QCoreApplication.processEvents()
+            # depois aguarda um tiquinho para não poluir demais o CLP
             time.sleep(0.05)
         # DEBUG ── timeout reached, log which axes never met target
         remaining = [ax for ax in self._targets if ax not in ok_axes]
@@ -2819,9 +2832,20 @@ class PLCMotionBackend(MotionBackend):
         self._c.log("wait_for_idle: timeout atingido")
         
         return False
+    
+    @pyqtSlot(str, int)
+    def _on_axis_move(self, axis: str, pulses: int):
+        """
+        Slot executado no GUI thread:
+          • atualiza o spin-box
+          • dispara o comando de movimento ao CLP
+        """
+        spin = getattr(self._c, f"pulsos_spin_{axis}")
+        spin.setValue(int(pulses))
+        self._c.move_axis_absolute(axis)
 
-        self._c.log("wait_for_idle: timeout atingido")
-        return False
+        # DEBUG (opcional): confirmar que o move foi disparado
+        self._c.log(f"[PLCBackend] _on_axis_move: executed move {axis} → {pulses}")
 
     # --------------------------------------------------------------
     def set_feed_rate(self, fr: float):

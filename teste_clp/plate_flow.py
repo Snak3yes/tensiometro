@@ -120,10 +120,22 @@ class PlateFlowManager(QObject):
             self._c.log(f"■ Mesa {self._mesa}: sem fiducial; usando Y={fid_y}")
         self._state = FlowState.MOVING_IN
         self._c.log(f"■ Mesa {self._mesa}: enviando placa (destino Y={fid_y})")
-        getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(int(fid_y))
-        self._c.move_axis_absolute(self._y_axis)
-        # espera aqui mesmo pois é simples
-        if not self._c._plc_motion_backend.wait_for_idle():
+        # dispara o movimento via PLCMotionBackend para manter o _targets correto
+        plc = self._c._plc_motion_backend
+        plc.set_offset_mode(False)          # sem offset extra
+        plc._targets.clear()                # limpa alvos antigos
+        # move apenas o eixo Y1 ou Y2 (passa None nos outros eixos)
+        ok = plc.move_to_absolute_position(
+            x=None,
+            y2=(fid_y if self._y_axis == "Y2" else None),
+            y1=(fid_y if self._y_axis == "Y1" else None),
+            z=None,
+            feed_rate=None
+        )
+        if not ok:
+            self._error("Falha ao enviar movimento para placa")
+            return
+        if not plc.wait_for_idle():
             self._error("Timeout movendo placa para dentro")
             return
 
