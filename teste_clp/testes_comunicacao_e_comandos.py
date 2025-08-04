@@ -301,9 +301,10 @@ class MultiAxisMotorController(QMainWindow):
 
         # -----------------------------------------------------------------
         #  M U T E X   D A   C A B E Ç A
-        #  False = cabeça livre   |   True = ocupada por alguma mesa
+        #  None  = cabeça livre
+        #  1/2   = número da mesa que detém a cabeça
         # -----------------------------------------------------------------
-        self._head_busy: bool = False
+        self._head_busy: int | None = None
 
         # Ao iniciar, criação/edição de programa fica BLOQUEADA
         QTimer.singleShot(0, lambda: self._set_creation_controls_enabled(False))
@@ -2719,6 +2720,10 @@ class PLCMotionBackend(MotionBackend):
         # LIMPA destinos da execução anterior  ← BUG FIX travamento 2ª run
         # ----------------------------------------------------------------
         self._targets.clear()
+        # DEBUG ── cleared any previous targets before sending new moves
+        self._c.log(f"[PLCBackend] move_to_abs: cleared targets, apply_offset={self._apply_offset}")
+        # DEBUG ── log requested move parameters
+        self._c.log(f"[PLCBackend] move_to_abs: x={x}, y2={y2}, y1={y1}, z={z}, feed_rate={feed_rate}")
         try:
             # Escreve apenas eixos cujo valor não é None
             dx = self._off_x if self._apply_offset else 0
@@ -2729,6 +2734,8 @@ class PLCMotionBackend(MotionBackend):
             if z  is not None:  self._move_axis('Z',  int(z))
             return True
         except Exception as exc:
+            # DEBUG ── failure in move_to_abs
+            self._c.log(f"[PLCBackend] move_to_abs ERROR: {exc}")
             print(f"Erro move_to_absolute_position: {exc}")
             self._c.log(f"Erro move_to_abs: {exc}")
             return False
@@ -2751,15 +2758,20 @@ class PLCMotionBackend(MotionBackend):
 
     def _move_axis(self, axis: str, pulses: int):
         # acrescenta deslocamento dinâmico a X/Y apenas
+        # DEBUG ── about to queue axis move
+        self._c.log(f"[PLCBackend] _move_axis -> axis={axis}, raw_target={pulses}, dx_dyn={self._dx_dyn}, dy_dyn={self._dy_dyn}")
         if axis == "X":
             pulses += self._dx_dyn
         elif axis in ("Y1", "Y2"):
             pulses += self._dy_dyn
+            
 
         spin = getattr(self._c, f"pulsos_spin_{axis}")
         spin.setValue(int(pulses))
         self._c.move_axis_absolute(axis)
         self._targets[axis] = pulses
+        # DEBUG ── queued target for wait_for_idle
+        self._c.log(f"[PLCBackend] _move_axis: queued {axis} → target={pulses}")
         # Não bloqueia aqui – wait_for_idle fará polling
 
     # --------------------------------------------------------------
@@ -2777,6 +2789,9 @@ class PLCMotionBackend(MotionBackend):
         }
 
         while time.time() - t0 < timeout:
+            elapsed = time.time() - t0
+            # DEBUG ── iteration status
+            self._c.log(f"[PLCBackend] wait_for_idle: elapsed={elapsed:.1f}s, targets={self._targets}, ok_axes={ok_axes}")
             all_reached = True
             # copia para evitar “dictionary changed size”
             for axis, target in list(self._targets.items()):
@@ -2797,6 +2812,13 @@ class PLCMotionBackend(MotionBackend):
             if all_reached:
                 return True
             time.sleep(0.05)
+        # DEBUG ── timeout reached, log which axes never met target
+        remaining = [ax for ax in self._targets if ax not in ok_axes]
+        self._c.log(f"[PLCBackend] wait_for_idle: TIMEOUT after {timeout}s, remaining_axes={remaining}")
+        # existing generic timeout log
+        self._c.log("wait_for_idle: timeout atingido")
+        
+        return False
 
         self._c.log("wait_for_idle: timeout atingido")
         return False

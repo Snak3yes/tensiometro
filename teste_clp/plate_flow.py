@@ -79,9 +79,9 @@ class PlateFlowManager(QObject):
         # --------------------------------------------------------------
         if (self._state is FlowState.QUEUED
                 and self._queued_ready
-                and not self._c._head_busy):
-            # ocupa mutex e dispara sequência
-            self._c._head_busy = True
+                and self._c._head_busy is None):
+            # ocupa mutex com o NÚMERO da mesa que assume a cabeça
+            self._c._head_busy = self._mesa
             self._queued_ready = False
             self._start_sequence()
 
@@ -111,7 +111,8 @@ class PlateFlowManager(QObject):
         #  LIMPA _targets de ciclos anteriores para que o próximo
         #  wait_for_idle() considere apenas o movimento atual.
         # ----------------------------------------------------------
-        self._c._plc_motion_backend._targets.clear()
+        # Removed manual clear of _targets here; move_to_absolute_position() now handles it
+        # self._c._plc_motion_backend._targets.clear()
         fid_y = self._first_fiducial_y()
         if fid_y is None:
             # sem fiducial → usa primeiro ponto ou mantém posição actual
@@ -129,7 +130,7 @@ class PlateFlowManager(QObject):
         # ----------------------------------------------------------
         #  Cabeça ocupada?  → entra na fila já sobre o fiducial.
         # ----------------------------------------------------------
-        if self._c._head_busy:
+        if self._c._head_busy is not None:
             self._state = FlowState.QUEUED
             self._queued_ready = True
             self._c.log(f"■ Mesa {self._mesa}: aguardando cabeça ficar livre…")
@@ -137,7 +138,7 @@ class PlateFlowManager(QObject):
 
         # cabeça livre – ocupa mutex e começa a sequência
         self._queued_ready = False
-        self._c._head_busy = True
+        self._c._head_busy = self._mesa
         self._start_sequence()
 
     def _start_sequence(self):
@@ -177,6 +178,15 @@ class PlateFlowManager(QObject):
         if self._state != FlowState.PROCESSING:
             return
         # Etapa 3 – devolve a placa
+        # ------------------------------------------------------------------
+        #  ZERA O OFFSET DINÂMICO ANTES de mover a mesa para fora.
+        #  Sem isto o destino (limite +Y) recebe ΔY somado e o eixo não
+        #  chega nunca ao alvo, deixando wait_for_idle bloqueado.
+        # ------------------------------------------------------------------
+        self._c._plc_motion_backend.apply_dynamic_offset(0, 0)
+        self._c._plc_motion_backend._targets.clear()
+
+        # Etapa 3 – devolve a placa
         self._state = FlowState.MOVING_OUT
         limit = int(self._y_limit)
         self._c.log(f"■ Mesa {self._mesa}: devolvendo placa (Y→{limit})")
@@ -198,7 +208,9 @@ class PlateFlowManager(QObject):
         self._state = FlowState.IDLE
         self._queued_ready = False
         # libera a cabeça para outra mesa
-        self._c._head_busy = False
+        # libera a cabeça somente se ainda estivermos na posse dela
+        if self._c._head_busy == self._mesa:
+            self._c._head_busy = None
         try:
             # pulso de 100 ms em M21 / M31
             self._c.client.write_coil(self._addr_done, True)
@@ -223,6 +235,11 @@ class PlateFlowManager(QObject):
         Falhou durante PROCESSING: devolve a placa e emite DONE
         para que o ladder reset M20 / M30.
         """
+        # Mesmo raciocínio – garante que o deslocamento aplicado pelos
+        # fiduciais não contamine o movimento de saída.
+        self._c._plc_motion_backend.apply_dynamic_offset(0, 0)
+        self._c._plc_motion_backend._targets.clear()
+
         limit = int(self._y_limit)
         getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(limit)
         self._c.move_axis_absolute(self._y_axis)
@@ -244,7 +261,8 @@ class PlateFlowManager(QObject):
         self._c._plc_motion_backend._targets.clear()
         self._state = FlowState.IDLE
         self._queued_ready = False
-        self._c._head_busy = False
+        if self._c._head_busy == self._mesa:
+            self._c._head_busy = None
 
     # -----------------------------------------------------------------
     def _first_fiducial_y(self):
@@ -267,4 +285,6 @@ class PlateFlowManager(QObject):
         self._c.log(f"■ Mesa {self._mesa}: {msg}")
         self._state = FlowState.IDLE
         self._queued_ready = False
-        self._c._head_busy = False
+        # libera somente se continuamos “donos” da cabeça
+        if self._c._head_busy == self._mesa:
+            self._c._head_busy = None

@@ -94,6 +94,8 @@ class SequenceRunnerThread(QThread):
         self._feed_rate  = feed_rate
         self._apply_mode = apply_mode      # guarda selecção do usuário
         self._stop_flag  = False
+        self._pause_flag = False
+        self.is_paused   = False
         # deslocamento acumulado por fiducial (pulsos)
         self._dx_acc = 0
         self._dy_acc = 0
@@ -106,7 +108,33 @@ class SequenceRunnerThread(QThread):
     def request_stop(self):
         self._stop_flag = True
 
+    # ----------- NOVO: pausa/continua -------------------------------
+    def toggle_pause(self):
+        self._pause_flag = not self._pause_flag
+        self.is_paused   = self._pause_flag
+
     def run(self):
+        # ------------------------------------------------------------------
+        #  A partir daqui qualquer saída (normal ou por exceção) deverá
+        #  restaurar o offset dinâmico para zero, evitando que ΔX/ΔY
+        #  “vaze” para a execução seguinte.
+        # ------------------------------------------------------------------
+        # PATCH 01-Ago-2025: clear dynamic offset and leftover targets before starting
+        try:
+            # clear any applied dynamic offset
+            if hasattr(self._motion, "apply_dynamic_offset"):
+                self._motion.apply_dynamic_offset(0, 0)
+            # reset internal dynamic accumulators if present
+            if hasattr(self._motion, "_dx_dyn"):
+                self._motion._dx_dyn = 0
+            if hasattr(self._motion, "_dy_dyn"):
+                self._motion._dy_dyn = 0
+            # clear any leftover movement targets
+            if hasattr(self._motion, "_targets"):
+                self._motion._targets.clear()
+        except Exception:
+            print("[seq] Falha ao limpar alvos de movimento")
+            pass
         try:
             total = len(self._positions)
             if total == 0:
@@ -117,6 +145,9 @@ class SequenceRunnerThread(QThread):
                 self._motion.set_feed_rate(self._feed_rate)
 
             for idx, pos in enumerate(self._positions, 1):
+                # --------------- PAUSA ------------------------------
+                while self._pause_flag and not self._stop_flag:
+                    self.msleep(100)
                 if self._stop_flag:
                     self.error.emit("Execução interrompida pelo usuário")
                     return
@@ -243,6 +274,20 @@ class SequenceRunnerThread(QThread):
         except Exception as exc:
             print(f"[seq] Erro na execução da sequência: {exc}")
             self.error.emit(str(exc))
+        finally:
+            # ----------------------------------------------------------------
+            #  PATCH 01-Ago-2025
+            #  Independentemente do desfecho, zera o offset dinâmico gerado
+            #  pelos fiduciais antes de retornar ao chamador. Isso evita que
+            #  o próximo programa (na mesma ou noutra mesa) receba destinos
+            #  contaminados e fique preso no wait_for_idle().
+            # ----------------------------------------------------------------
+            if hasattr(self._motion, "apply_dynamic_offset"):
+                try:
+                    self._motion.apply_dynamic_offset(0, 0)
+                except Exception:
+                    # não podemos disparar erro daqui; apenas registra no log
+                    print("[seq] Falha ao zerar offset dinâmico no finally")
 
     # ------------------------------------------------------------------
     #  Processamento do ponto “barcode”
@@ -368,7 +413,25 @@ class SequenceRunnerThread(QThread):
         ctrl  = getattr(self._motion, "_c")
         
         z_cur = ctrl.current_positions['Z']
-        dx_p, dy_p = ctrl.pulses_from_pixels(dx_pix, dy_pix, z_cur)
+        # ------------------------------------------------------------------
+        # Determina qual eixo Y físico está vinculado a ESTA execução.
+        #  – PlateFlowManager define ctrl._active_plate_y antes de iniciar
+        #    o SequenceRunnerThread (valor 'Y1' ou 'Y2').
+        #  – Execuções manuais (botão “Executar Sequência” na aba Mesa-1/2
+        #    ou na aba Controle de Eixos) não passam por PlateFlowManager.
+        #      • Se vier da Mesa-1 → y_axis = 'Y1'
+        #      • Mesa-2           → y_axis = 'Y2'
+        #      • Qualquer outra   → fallback 'Y1'
+        # ------------------------------------------------------------------
+        active_y = getattr(ctrl, "_active_plate_y", None)
+        if active_y not in ("Y1", "Y2"):
+            # chamada directa (edição / preview) – deduz da própria posição
+            active_y = "Y1" if pos.y1 is not None else "Y2"
+
+        dx_p, dy_p = ctrl.pulses_from_pixels(
+            dx_pix, dy_pix, z_cur,
+            y_axis=active_y
+        )
 
         # ------------------------------------------------------------------
         # NÃO movemos a cabeça agora; usamos apenas offset dinâmico.
@@ -446,6 +509,13 @@ class SequenceControlWidget(QWidget):
         self._btn_stop    = QPushButton("Parar")
         self._btn_stop.setEnabled(False)
 
+        # ----------------- NOVO BOTÃO PAUSE --------------------------
+        # Mantém oculto por padrão – apenas a aba “Controle de Eixos”
+        # o tornará visível posteriormente.
+        self._btn_pause = QPushButton("Pause")
+        self._btn_pause.setEnabled(False)
+        self._btn_pause.hide()
+
         self._progress = QProgressBar()
         self._progress.setValue(0)
         self._progress.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -457,6 +527,7 @@ class SequenceControlWidget(QWidget):
         self._lbl_bc.setStyleSheet("QLabel { background:gray; padding:3px; }")
 
         v.addWidget(self._btn_execute)
+        v.addWidget(self._btn_pause)
         v.addWidget(self._btn_stop)
 
         # ------------------- NOVO SELETOR VIEW / APPLY ------------------
@@ -483,6 +554,7 @@ class SequenceControlWidget(QWidget):
         # ligações
         self._btn_execute.clicked.connect(self._start)
         self._btn_stop.clicked.connect(self._stop)
+        self._btn_pause.clicked.connect(self._pause_toggle)
 
         # troca de modo view/apply
         self.radio_view.toggled.connect(
@@ -534,6 +606,7 @@ class SequenceControlWidget(QWidget):
         self._lbl_bc.setText("Código: —")
         self._btn_execute.setEnabled(False)
         self._btn_stop.setEnabled(True)
+        self._btn_pause.setEnabled(True)
 
         self._runner = SequenceRunnerThread(
             self._motion,
@@ -568,12 +641,34 @@ class SequenceControlWidget(QWidget):
         self._status.setText("Concluída")
         self._btn_execute.setEnabled(True)
         self._btn_stop.setEnabled(False)
+        self._btn_pause.setEnabled(False)
         self.sequenceFinished.emit()
         # ---------- encerra thread e limpa ponteiro -----------
         if self._runner:
             self._runner.wait(1000)
             self._runner.deleteLater()
             self._runner = None
+
+    # -----------------------------------------------------------------
+    #  P A U S E  /  R E S U M E   (implementação simples)
+    # -----------------------------------------------------------------
+    def _pause_toggle(self):
+        """
+        Primeira pressão → pede pausa.  
+        Segunda pressão → retoma sequencia.
+        Implementação minimalista: enquanto pausado o thread
+        permanece num loop dormindo.
+        """
+        if self._runner is None or not self._runner.isRunning():
+            return
+        # sinaliza flag no runner
+        self._runner.toggle_pause()
+        if self._runner.is_paused:
+            self._status.setText("Pausado")
+            self._btn_pause.setText("Continuar")
+        else:
+            self._status.setText("Executando…")
+            self._btn_pause.setText("Pause")
 
     # ---------------------------------------------------------------
     #  B A R C O D E   s l o t

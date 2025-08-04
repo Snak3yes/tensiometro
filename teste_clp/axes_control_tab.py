@@ -112,6 +112,11 @@ class AxesControlTab(QWidget):
             motion=self.ctrl._plc_motion_backend,  # criado no controlador
             camera=None
         )
+        # ------------------------------------------------------------
+        #  Libera e exibe os botões Pause / Stop SOMENTE nesta aba
+        # ------------------------------------------------------------
+        self.seq_widget._btn_stop.show()
+        self.seq_widget._btn_pause.show()
         # -----------------------------------------------------------------
         #  A B A  “ C O N T R O L E  D E  E I X O S ”
         #  Oculta os elementos VISUAIS que já existem no espelho inferior:
@@ -125,17 +130,45 @@ class AxesControlTab(QWidget):
         self.seq_widget._status.setVisible(False)
         self.seq_widget._lbl_bc.setVisible(False)
         # ------------------------------------------------------------------
-        #  AJUSTE “START GERAL”
-        #  – renomeia o botão principal e liga ao controlador
+        #  AJUSTE “START”
+        #  – renomeia o botão e mantém o _toggle_ interno com Stop/Pause.
+        #    Após a lógica interna (_start) ser executada, também
+        #    chamamos start_global_cycle() para preparar as mesas.
         # ------------------------------------------------------------------
-        try:                                            # remove conexão antiga
-            self.seq_widget._btn_execute.clicked.disconnect()
-        except Exception:
-            pass
-        self.seq_widget._btn_execute.setText("Start Geral")
-        self.seq_widget._btn_execute.clicked.connect(self.ctrl.start_global_cycle)
-        # botão “Parar” deixa de ser usado
-        self.seq_widget._btn_stop.hide()
+        # ------------------------------------------------------------------
+        #  BOTÕES  Start / Pause / Stop  (ciclo GERAL)
+        #  • Start   → ativa ciclo global  +  faz toggle dos botões
+        #  • Pause   → envia pause/resume  +  ajusta texto
+        #  • Stop    → encerra ciclo       +  refaz toggle
+        # ------------------------------------------------------------------
+        self.seq_widget._btn_execute.setText("Start")
+
+        # ------------------------------------------------------------
+        # 1) Remove TODAS as conexões anteriores dos botões
+        #    (PyQt6: disconnect() sem args → remove tudo)
+        # ------------------------------------------------------------
+        for sig in (self.seq_widget._btn_execute.clicked,
+                    self.seq_widget._btn_stop.clicked,
+                    self.seq_widget._btn_pause.clicked):
+            try:
+                sig.disconnect()          # limpa ligações antigas
+            except TypeError:
+                print("AxesControlTab: _build_ui() - "
+                      "erro ao desconectar sinal. ")
+                # nenhum slot ligado → ignora
+                pass
+
+        # 2) Conecta aos novos controladores locais
+        self.seq_widget._btn_execute.clicked.connect(self._on_global_start)
+        self.seq_widget._btn_stop.clicked.connect(self._on_global_stop)
+        self.seq_widget._btn_pause.clicked.connect(self._on_global_pause)
+
+        # 3) Estado inicial
+        self.seq_widget._btn_stop.setEnabled(False)
+        self.seq_widget._btn_pause.setEnabled(False)
+
+        # Mantém o botão Stop VISÍVEL para permitir o toggle.
+        self.seq_widget._btn_stop.show()
 
         right_col.addWidget(self.seq_widget)
 
@@ -318,10 +351,47 @@ class AxesControlTab(QWidget):
             self.ctrl.inspect_widget = self.inspect_widget
             self.ctrl.prog_io_widget = self.prog_widget
             self.ctrl.seq_widget = self.seq_widget
+            # feedback ciclo global → garante reset dos botões
+            if hasattr(self.ctrl, "globalCycleFinished"):
+                self.ctrl.globalCycleFinished.connect(
+                    lambda: self._toggle_buttons(start_enabled=True))
             # expõe gráficos
             self.ctrl.mesa_plot_widgets = {1: self.plot_m1,
                                            2: self.plot_m2}
+    # ------------------------------------------------------------------
+    #  S L O T S   p/  c i c l o   g e r a l
+    # ------------------------------------------------------------------
+    def _toggle_buttons(self, *, start_enabled: bool):
+        """Liga/desliga Start  x  Pause/Stop."""
+        self.seq_widget._btn_execute.setEnabled(start_enabled)
+        self.seq_widget._btn_stop.setEnabled(not start_enabled)
+        self.seq_widget._btn_pause.setEnabled(not start_enabled)
+        if start_enabled:
+            self.seq_widget._btn_pause.setText("Pause")
 
+    def _on_global_start(self):
+        """Aciona ciclo geral + desabilita botão Start."""
+        self._toggle_buttons(start_enabled=False)
+        if hasattr(self.ctrl, "start_global_cycle"):
+            self.ctrl.start_global_cycle()
+
+    def _on_global_stop(self):
+        """Pede parada do ciclo geral e restabelece botão Start."""
+        if hasattr(self.ctrl, "stop_global_cycle"):
+            self.ctrl.stop_global_cycle()
+        self._toggle_buttons(start_enabled=True)
+
+    def _on_global_pause(self):
+        """Alterna pausa/continuação do ciclo geral."""
+        if hasattr(self.ctrl, "pause_global_cycle"):
+            self.ctrl.pause_global_cycle()
+        # toggling do próprio texto/estado
+        if self.seq_widget._btn_pause.text() == "Pause":
+            self.seq_widget._btn_pause.setText("Continuar")
+            self.seq_widget._status.setText("Pausado")
+        else:
+            self.seq_widget._btn_pause.setText("Pause")
+            self.seq_widget._status.setText("Executando…")
     # --------- helper: converte lista p/ SequenceControl --------------
     def _to_model(self):
         lst = []
