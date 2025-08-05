@@ -6,7 +6,8 @@ no MultiAxisMotorController; somente a parte visual fica aqui.
 """
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFrame, QSizePolicy,
-    QListWidget, QLabel, QGroupBox, QProgressBar
+    QListWidget, QLabel, QGroupBox, QProgressBar,
+    QPushButton
 )
 from mesa_plot_widget import MesaPlotWidget
 from PyQt6.QtCore import Qt, QTimer
@@ -73,6 +74,7 @@ class AxesControlTab(QWidget):
         # — Mesa 1
         m1_container = QWidget()
         m1_layout = QHBoxLayout(m1_container)
+        # coluna de plotagem
         m1_layout.setContentsMargins(0,0,0,0)
         m1_layout.setSpacing(2)
         # coluna de plotagem
@@ -83,6 +85,15 @@ class AxesControlTab(QWidget):
         m1_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m1_layout.addWidget(m1_blank)
+        # ── botões no espaço vazio de Mesa 1 ────────────────────────
+        m1_btn_layout = QVBoxLayout(m1_blank)
+        btn_enviar_m1      = QPushButton("Enviar")
+        btn_retornar_m1    = QPushButton("Retornar")
+        btn_abrirproj_m1   = QPushButton("Abrir Projeto")
+        m1_btn_layout.addWidget(btn_enviar_m1)
+        m1_btn_layout.addWidget(btn_retornar_m1)
+        m1_btn_layout.addWidget(btn_abrirproj_m1)
+        m1_btn_layout.addStretch()
         # proporções internas (3:2)
         m1_layout.setStretch(0, 3)
         m1_layout.setStretch(1, 2)
@@ -90,6 +101,7 @@ class AxesControlTab(QWidget):
 
         # — Mesa 2
         m2_container = QWidget()
+        # coluna de plotagem
         m2_layout = QHBoxLayout(m2_container)
         m2_layout.setContentsMargins(0,0,0,0)
         m2_layout.setSpacing(2)
@@ -101,6 +113,15 @@ class AxesControlTab(QWidget):
         m2_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m2_layout.addWidget(m2_blank)
+        # ── botões no espaço vazio de Mesa 2 ────────────────────────
+        m2_btn_layout = QVBoxLayout(m2_blank)
+        btn_enviar_m2      = QPushButton("Enviar")
+        btn_retornar_m2    = QPushButton("Retornar")
+        btn_abrirproj_m2   = QPushButton("Abrir Projeto")
+        m2_btn_layout.addWidget(btn_enviar_m2)
+        m2_btn_layout.addWidget(btn_retornar_m2)
+        m2_btn_layout.addWidget(btn_abrirproj_m2)
+        m2_btn_layout.addStretch()
         # proporções internas (3:2)
         m2_layout.setStretch(0, 3)
         m2_layout.setStretch(1, 2)
