@@ -205,6 +205,14 @@ class PlateFlowManager(QObject):
         getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(limit)
         self._c.move_axis_absolute(self._y_axis)
         if self._c._plc_motion_backend.wait_for_idle():
+            # ── envia pulso DONE (M21/M31) ao atingir o limite positivo ──
+            try:
+                self._c.client.write_coil(self._addr_done, True)
+                QTimer.singleShot(100,
+                    lambda a=self._addr_done: self._c.client.write_coil(a, False))
+            except Exception as exc:
+                self._c.log(f"■ Erro ao pulsar {self._mem_done}: {exc}")
+            # então conclui o ciclo
             self._finish_cycle()
         else:
             self._error("Timeout devolvendo placa")
@@ -224,21 +232,11 @@ class PlateFlowManager(QObject):
         if self._c._head_busy == self._mesa:
             self._c._head_busy = None
         try:
-            # pulso de 100 ms em M21 / M31
-            self._c.client.write_coil(self._addr_done, True)
-            QTimer.singleShot(100, lambda a=self._addr_done:
-                              self._c.client.write_coil(a, False))
-            # ------------------------------------------------------------------
-            #  ZERA O OFFSET DINÂMICO APLICADO PELOS FIDUCIAIS
-            #  Evita que ΔX/ΔY acumulado no ciclo anterior seja reutilizado
-            #  e somado novamente aos destinos do próximo ciclo,
-            #  o que causava travamento em wait_for_idle().
-            # ------------------------------------------------------------------
+            # Zera offset dinâmico e targets (sem emitir pulso aqui)
             self._c._plc_motion_backend.apply_dynamic_offset(0, 0)
-            # zera lista de metas atingidas
             self._c._plc_motion_backend._targets.clear()
         except Exception as exc:
-            self._c.log(f"■ Erro pulso {self._mem_done}: {exc}")
+            self._c.log(f"■ Erro ao limpar offset/targets: {exc}")
         self._c.log(f"■ Mesa {self._mesa}: ciclo concluído ✓")
 
     # -----------------------------------------------------------------
@@ -256,14 +254,13 @@ class PlateFlowManager(QObject):
         getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(limit)
         self._c.move_axis_absolute(self._y_axis)
         self._c._plc_motion_backend.wait_for_idle()
-        # pulso de conclusão mesmo em erro
+        # pulso de conclusão mesmo em erro, no momento em que a mesa chega ao limite
         try:
             self._c.client.write_coil(self._addr_done, True)
             QTimer.singleShot(100,
-                              lambda a=self._addr_done: self._c.client.write_coil(a, False))
-        except Exception:
-            print("■ Erro pulso DONE após erro na sequência")
-            pass
+                lambda a=self._addr_done: self._c.client.write_coil(a, False))
+        except Exception as exc:
+            self._c.log(f"■ Erro ao pulsar {self._mem_done} após erro: {exc}")
         # ------------------------------------------------------------------
         #  Mesmo em caso de erro devolvemos a placa e RESETAMOS o offset
         #  dinâmico para garantir que o próximo ciclo comece “limpo”.
