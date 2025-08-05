@@ -432,14 +432,22 @@ class AxesControlTab(QWidget):
 
     def _on_global_start(self):
         """Aciona ciclo geral + desabilita botão Start."""
+        # Desabilita Start e ativa Stop/Pause
         self._toggle_buttons(start_enabled=False)
+        # Pulso momentâneo em M40 para sinalizar Start global
+        if hasattr(self.ctrl, "_pulse_coil"):
+            self.ctrl._pulse_coil("M40")
         if hasattr(self.ctrl, "start_global_cycle"):
             self.ctrl.start_global_cycle()
 
     def _on_global_stop(self):
         """Pede parada do ciclo geral e restabelece botão Start."""
+        # Pulso momentâneo em M41 para sinalizar Stop global
+        if hasattr(self.ctrl, "_pulse_coil"):
+            self.ctrl._pulse_coil("M41")
         if hasattr(self.ctrl, "stop_global_cycle"):
             self.ctrl.stop_global_cycle()
+        # Reativa Start e desabilita Stop/Pause
         self._toggle_buttons(start_enabled=True)
 
     def _on_global_pause(self):

@@ -105,6 +105,10 @@ class MultiAxisMotorController(QMainWindow):
             'M30': 30,   # botão Mesa 2
             'M31': 31,   # done Mesa 2
 
+            # Pulso para Start / Stop global via aba Controle de Eixos
+            'M40': 40,   # Start global cycle
+            'M41': 41,   # Stop global cycle
+
             # MEMÓRIAS AUXILIARES HOMING (conforme ladder real)
             # Y2
             'M311': 311, 'M312': 312, 'M313': 313, 'M314': 314, 'M315': 315,
