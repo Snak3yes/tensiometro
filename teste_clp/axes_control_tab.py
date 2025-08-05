@@ -450,7 +450,26 @@ class AxesControlTab(QWidget):
         if hasattr(self.ctrl, "_pulse_coil"):
             self.ctrl._pulse_coil("M41")
         if hasattr(self.ctrl, "stop_global_cycle"):
+            # desliga flag de ciclo geral
             self.ctrl.stop_global_cycle()
+        # ── solicita parada dos runners em execução nas mesas ────────
+        # quem já estiver no meio de uma sequência terminará o ponto atual
+        # e abortará o restante da sequência.
+        for tab in getattr(self.ctrl, "mesa_tabs", {}).values():
+            seqw = getattr(tab, "seq_widget", None)
+            if seqw and getattr(seqw, "_runner", None) and seqw._runner.isRunning():
+                seqw._stop()
+        # ── estrela: retorna todas as mesas ao operador ───────────
+        # Depois de parar o ciclo global, força cada PlateFlowManager
+        # a devolver a placa (movendo Y→limite+ e limpando estado).
+        for mgr in (getattr(self.ctrl, 'flow_mesa1', None),
+                    getattr(self.ctrl, 'flow_mesa2', None)):
+            if mgr:
+                try:
+                    mgr._return_after_error()
+                except Exception as exc:
+                    # registra falha sem interromper a UI
+                    self.ctrl.log(f"■ Falha ao devolver Mesa {getattr(mgr, '_mesa', '?')}: {exc}")
         # Reativa Start e desabilita Stop/Pause
         self._toggle_buttons(start_enabled=True)
 
