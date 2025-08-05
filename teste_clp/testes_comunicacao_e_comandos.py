@@ -326,7 +326,7 @@ class MultiAxisMotorController(QMainWindow):
             'Z': False
         }  # Flags para controlar se JOG está ativo via teclado para cada eixo
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)  # Permite capturar teclas
-        
+
         # Timer para atualização
         # ---------------------- logger seguro -------------------------
         self.logRequested.connect(self._append_log)    # slot GUI
@@ -334,7 +334,7 @@ class MultiAxisMotorController(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_status)
         self.timer.start(500)
-        
+
     # ===============  LOG thread-safe  =================================
     def log(self, msg: str):
         """

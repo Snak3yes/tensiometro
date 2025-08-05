@@ -85,14 +85,20 @@ class AxesControlTab(QWidget):
         m1_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m1_layout.addWidget(m1_blank)
-        # ── botões no espaço vazio de Mesa 1 ────────────────────────
+        # ■■ agrupa botões de Mesa 1 dentro de um QGroupBox ■■■■■■■■■■■■■
         m1_btn_layout = QVBoxLayout(m1_blank)
-        btn_enviar_m1      = QPushButton("Enviar")
-        btn_retornar_m1    = QPushButton("Retornar")
-        btn_abrirproj_m1   = QPushButton("Abrir Projeto")
-        m1_btn_layout.addWidget(btn_enviar_m1)
-        m1_btn_layout.addWidget(btn_retornar_m1)
-        m1_btn_layout.addWidget(btn_abrirproj_m1)
+        group_m1_actions = QGroupBox("Ações")
+        group_m1_layout  = QVBoxLayout(group_m1_actions)
+        btn_enviar_m1    = QPushButton("Enviar")
+        btn_retornar_m1  = QPushButton("Retornar")
+        btn_abrirproj_m1 = QPushButton("Abrir Projeto")
+        group_m1_layout.addWidget(btn_enviar_m1)
+        group_m1_layout.addWidget(btn_retornar_m1)
+        group_m1_layout.addWidget(btn_abrirproj_m1)
+        group_m1_layout.addStretch()
+        m1_btn_layout.addWidget(group_m1_actions)
+        # conecta botão "Abrir Projeto" de Mesa 1
+        btn_abrirproj_m1.clicked.connect(lambda: self._open_project_for_mesa(1))
         m1_btn_layout.addStretch()
         # proporções internas (3:2)
         m1_layout.setStretch(0, 3)
@@ -113,14 +119,20 @@ class AxesControlTab(QWidget):
         m2_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m2_layout.addWidget(m2_blank)
-        # ── botões no espaço vazio de Mesa 2 ────────────────────────
+        # ■■ agrupa botões de Mesa 2 dentro de um QGroupBox ■■■■■■■■■■■■■
         m2_btn_layout = QVBoxLayout(m2_blank)
-        btn_enviar_m2      = QPushButton("Enviar")
-        btn_retornar_m2    = QPushButton("Retornar")
-        btn_abrirproj_m2   = QPushButton("Abrir Projeto")
-        m2_btn_layout.addWidget(btn_enviar_m2)
-        m2_btn_layout.addWidget(btn_retornar_m2)
-        m2_btn_layout.addWidget(btn_abrirproj_m2)
+        group_m2_actions = QGroupBox("Ações")
+        group_m2_layout  = QVBoxLayout(group_m2_actions)
+        btn_enviar_m2    = QPushButton("Enviar")
+        btn_retornar_m2  = QPushButton("Retornar")
+        btn_abrirproj_m2 = QPushButton("Abrir Projeto")
+        group_m2_layout.addWidget(btn_enviar_m2)
+        group_m2_layout.addWidget(btn_retornar_m2)
+        group_m2_layout.addWidget(btn_abrirproj_m2)
+        group_m2_layout.addStretch()
+        m2_btn_layout.addWidget(group_m2_actions)
+        # conecta botão "Abrir Projeto" de Mesa 2
+        btn_abrirproj_m2.clicked.connect(lambda: self._open_project_for_mesa(2))
         m2_btn_layout.addStretch()
         # proporções internas (3:2)
         m2_layout.setStretch(0, 3)
@@ -435,12 +447,26 @@ class AxesControlTab(QWidget):
         if hasattr(self.ctrl, "pause_global_cycle"):
             self.ctrl.pause_global_cycle()
         # toggling do próprio texto/estado
+
         if self.seq_widget._btn_pause.text() == "Pause":
             self.seq_widget._btn_pause.setText("Continuar")
             self.seq_widget._status.setText("Pausado")
         else:
             self.seq_widget._btn_pause.setText("Pause")
             self.seq_widget._status.setText("Executando…")
+
+    def _open_project_for_mesa(self, mesa_id: int):
+        """
+        Abre o diálogo ‘Abrir Projeto…’ para a mesa especificada,
+        exatamente como se você fosse na aba Mesa <n> e clicasse
+        em Arquivo → Abrir Projeto….
+        """
+        tab = getattr(self.ctrl, "mesa_tabs", {}).get(mesa_id)
+        if not tab or not hasattr(tab, "prog_widget"):
+            return
+        # abre o diálogo de Abrir Projeto na própria aba, sem trocar de aba
+        tab.prog_widget._on_load_clicked()
+
     # --------- helper: converte lista p/ SequenceControl --------------
     def _to_model(self):
         lst = []
