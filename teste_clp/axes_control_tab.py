@@ -90,6 +90,8 @@ class AxesControlTab(QWidget):
         group_m1_actions = QGroupBox("Ações")
         group_m1_layout  = QVBoxLayout(group_m1_actions)
         btn_enviar_m1    = QPushButton("Enviar")
+        # conecta “Enviar Mesa 1” → pulso M42
+        btn_enviar_m1.clicked.connect(lambda: self.ctrl._pulse_coil("M42"))
         btn_retornar_m1  = QPushButton("Retornar")
         btn_abrirproj_m1 = QPushButton("Abrir Projeto")
         group_m1_layout.addWidget(btn_enviar_m1)
@@ -124,6 +126,8 @@ class AxesControlTab(QWidget):
         group_m2_actions = QGroupBox("Ações")
         group_m2_layout  = QVBoxLayout(group_m2_actions)
         btn_enviar_m2    = QPushButton("Enviar")
+        # conecta “Enviar Mesa 2” → pulso M43
+        btn_enviar_m2.clicked.connect(lambda: self.ctrl._pulse_coil("M43"))
         btn_retornar_m2  = QPushButton("Retornar")
         btn_abrirproj_m2 = QPushButton("Abrir Projeto")
         group_m2_layout.addWidget(btn_enviar_m2)

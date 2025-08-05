@@ -108,6 +108,9 @@ class MultiAxisMotorController(QMainWindow):
             # Pulso para Start / Stop global via aba Controle de Eixos
             'M40': 40,   # Start global cycle
             'M41': 41,   # Stop global cycle
+            # Pulsos para botões “Enviar” nas mesas
+            'M42': 42,   # Enviar – Mesa 1
+            'M43': 43,   # Enviar – Mesa 2
 
             # MEMÓRIAS AUXILIARES HOMING (conforme ladder real)
             # Y2
