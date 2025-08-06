@@ -15,6 +15,7 @@ from PyQt6.QtGui import QPixmap
 
 from inspection_config_widget import AspectRatioLabel
 from movement_controls_widget import MovementControlsWidget
+from plate_flow import FlowState
 from position_status_widget  import PositionStatusWidget
 from inspection_positions_widget import InspectionPositionsWidget
 from program_io_widget      import ProgramIOWidget
@@ -98,9 +99,12 @@ class AxesControlTab(QWidget):
         # conecta “Enviar Mesa 1” → pulso M42
         btn_enviar_m1.clicked.connect(lambda: self.ctrl._pulse_coil("M42"))
         btn_retornar_m1  = QPushButton("Retornar")
+        # guarda para controlar estado
+        self.btn_retornar_m1 = btn_retornar_m1
         btn_abrirproj_m1 = QPushButton("Abrir Projeto")
         group_m1_layout.addWidget(btn_enviar_m1)
         group_m1_layout.addWidget(btn_retornar_m1)
+        btn_retornar_m1.clicked.connect(lambda: self.ctrl.flow_mesa1._return_after_error())
         group_m1_layout.addWidget(btn_abrirproj_m1)
         group_m1_layout.addStretch()
         m1_btn_layout.addWidget(group_m1_actions)
@@ -147,9 +151,12 @@ class AxesControlTab(QWidget):
         # conecta “Enviar Mesa 2” → pulso M43
         btn_enviar_m2.clicked.connect(lambda: self.ctrl._pulse_coil("M43"))
         btn_retornar_m2  = QPushButton("Retornar")
+        # guarda para controlar estado
+        self.btn_retornar_m2 = btn_retornar_m2
         btn_abrirproj_m2 = QPushButton("Abrir Projeto")
         group_m2_layout.addWidget(btn_enviar_m2)
         group_m2_layout.addWidget(btn_retornar_m2)
+        btn_retornar_m2.clicked.connect(lambda: self.ctrl.flow_mesa2._return_after_error())
         group_m2_layout.addWidget(btn_abrirproj_m2)
         group_m2_layout.addStretch()
         m2_btn_layout.addWidget(group_m2_actions)
@@ -290,6 +297,12 @@ class AxesControlTab(QWidget):
         self.seq_widget._btn_stop.show()
 
         right_col.addWidget(self.seq_widget)
+        right_col.addStretch()
+
+        # ── timer para habilitar/desabilitar os botões “Retornar” ──
+        self._return_timer = QTimer(self)
+        self._return_timer.timeout.connect(self._update_return_buttons)
+        self._return_timer.start(200)
 
         right_col.addStretch()
         # direita – faz o right_wrap ocupar TODA a altura (duas linhas)
@@ -563,6 +576,25 @@ class AxesControlTab(QWidget):
             Qt.TransformationMode.SmoothTransformation
         )
         self.camera_label.setPixmap(pix)
+
+    def _update_return_buttons(self):
+        """
+        Ativa ou desativa os botões “Retornar”:
+        – habilita enquanto o fluxo da mesa não estiver em IDLE,
+        – desabilita em IDLE (mesa no limite positivo).
+        """
+        # Mesa 1 – habilita “Retornar” apenas enquanto estiver em fila
+        mgr1 = getattr(self.ctrl, 'flow_mesa1', None)
+        if mgr1 and mgr1._state is FlowState.QUEUED:
+            self.btn_retornar_m1.setEnabled(True)
+        else:
+            self.btn_retornar_m1.setEnabled(False)
+        # Mesa 2 – habilita “Retornar” apenas enquanto estiver em fila
+        mgr2 = getattr(self.ctrl, 'flow_mesa2', None)
+        if mgr2 and mgr2._state is FlowState.QUEUED:
+            self.btn_retornar_m2.setEnabled(True)
+        else:
+            self.btn_retornar_m2.setEnabled(False)
     
     # -----------------------------------------------------------------
     #            S I N C  ■  M e s a   1   →   E s p e l h o
