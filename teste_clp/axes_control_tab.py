@@ -101,8 +101,21 @@ class AxesControlTab(QWidget):
         group_m1_layout.addWidget(btn_abrirproj_m1)
         group_m1_layout.addStretch()
         m1_btn_layout.addWidget(group_m1_actions)
+        # ── limita altura do groupbox 'Ações' para caber só os botões ──
+        group_m1_actions.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Maximum
+        )
+        group_m1_actions.setMaximumHeight(group_m1_actions.sizeHint().height())
         # conecta botão "Abrir Projeto" de Mesa 1
         btn_abrirproj_m1.clicked.connect(lambda: self._open_project_for_mesa(1))
+        # ■■ GroupBox para exibir contagem de placas produzidas (Mesa 1) ■■
+        group_m1_count = QGroupBox("Contagem de Placas")
+        group_m1_count_layout = QVBoxLayout(group_m1_count)
+        self.lbl_count_m1 = QLabel("0")
+        self.lbl_count_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        group_m1_count_layout.addWidget(self.lbl_count_m1)
+        m1_btn_layout.addWidget(group_m1_count)
         m1_btn_layout.addStretch()
         # proporções internas (3:2)
         m1_layout.setStretch(0, 3)
@@ -137,8 +150,21 @@ class AxesControlTab(QWidget):
         group_m2_layout.addWidget(btn_abrirproj_m2)
         group_m2_layout.addStretch()
         m2_btn_layout.addWidget(group_m2_actions)
+        # ── limita altura do groupbox 'Ações' para caber só os botões ──
+        group_m2_actions.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Maximum
+        )
+        group_m2_actions.setMaximumHeight(group_m2_actions.sizeHint().height())
         # conecta botão "Abrir Projeto" de Mesa 2
         btn_abrirproj_m2.clicked.connect(lambda: self._open_project_for_mesa(2))
+        # ■■ GroupBox para exibir contagem de placas produzidas (Mesa 2) ■■
+        group_m2_count = QGroupBox("Contagem de Placas")
+        group_m2_count_layout = QVBoxLayout(group_m2_count)
+        self.lbl_count_m2 = QLabel("0")
+        self.lbl_count_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        group_m2_count_layout.addWidget(self.lbl_count_m2)
+        m2_btn_layout.addWidget(group_m2_count)
         m2_btn_layout.addStretch()
         # proporções internas (3:2)
         m2_layout.setStretch(0, 3)
