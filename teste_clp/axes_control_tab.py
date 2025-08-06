@@ -148,18 +148,23 @@ class AxesControlTab(QWidget):
         # --------------------- COLUNA DIREITA (15 %) -------------------
         right_col = QVBoxLayout()
 
-        # ── Camera preview above Movement Controls ──────────────────
+        # ■■ Preview de vídeo da câmera – dentro de um GroupBox ■■■■■■
         # Uses our AspectRatioLabel (4:3 by default) to respect camera ratio
         self.camera_label = AspectRatioLabel(aspect_ratio=4/3)
         self.camera_label.setStyleSheet(
             "QLabel { background-color: black; }"
         )
-        # allow it to expand to the full column width
+        # permite expandir até a largura da coluna
         self.camera_label.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Preferred
         )
-        right_col.addWidget(self.camera_label)
+        # ── encapsula o label de vídeo dentro de um QGroupBox ───────
+        camera_group = QGroupBox("Câmera")
+        camera_layout = QVBoxLayout(camera_group)
+        camera_layout.setContentsMargins(0, 0, 0, 0)
+        camera_layout.addWidget(self.camera_label)
+        right_col.addWidget(camera_group)
         # hook up live frames
         if hasattr(self.ctrl, "camera_manager"):
             self.ctrl.camera_manager.frameReady.connect(
