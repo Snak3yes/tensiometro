@@ -11,14 +11,16 @@ from PyQt6.QtWidgets import (
 )
 from mesa_plot_widget import MesaPlotWidget
 from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QPixmap
 
+from inspection_config_widget import AspectRatioLabel
 from movement_controls_widget import MovementControlsWidget
 from position_status_widget  import PositionStatusWidget
 from inspection_positions_widget import InspectionPositionsWidget
 from program_io_widget      import ProgramIOWidget
 from positions_backend      import InspectionPositionsBackend
 from sequence_control       import SequenceControlWidget
-from sequence_control       import InspectionPosition                # typing
+from sequence_control       import InspectionPosition                
 
 
 class AxesControlTab(QWidget):
@@ -146,6 +148,24 @@ class AxesControlTab(QWidget):
         # --------------------- COLUNA DIREITA (15 %) -------------------
         right_col = QVBoxLayout()
 
+        # ── Camera preview above Movement Controls ──────────────────
+        # Uses our AspectRatioLabel (4:3 by default) to respect camera ratio
+        self.camera_label = AspectRatioLabel(aspect_ratio=4/3)
+        self.camera_label.setStyleSheet(
+            "QLabel { background-color: black; }"
+        )
+        # allow it to expand to the full column width
+        self.camera_label.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Preferred
+        )
+        right_col.addWidget(self.camera_label)
+        # hook up live frames
+        if hasattr(self.ctrl, "camera_manager"):
+            self.ctrl.camera_manager.frameReady.connect(
+                self._update_camera_frame
+            )
+        # ── then the existing movement controls ─────────────────────
         self.mov_widget = MovementControlsWidget()
         right_col.addWidget(self.mov_widget)
 
@@ -509,6 +529,15 @@ class AxesControlTab(QWidget):
                 )
             )
         return lst
+    
+    def _update_camera_frame(self, img):
+        """Receive QImage frames and display scaled in camera_label."""
+        pix = QPixmap.fromImage(img).scaled(
+            self.camera_label.size(),
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation
+        )
+        self.camera_label.setPixmap(pix)
     
     # -----------------------------------------------------------------
     #            S I N C  ■  M e s a   1   →   E s p e l h o
