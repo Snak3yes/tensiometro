@@ -34,6 +34,9 @@ class AxesControlTab(QWidget):
     def __init__(self, controller, *, primary: bool = False):
         super().__init__()
         self.ctrl = controller
+        # initialize per-mesa production counters
+        self._count_m1 = 0
+        self._count_m2 = 0
         self.primary = primary
         self._build_ui()
 
@@ -632,6 +635,8 @@ class AxesControlTab(QWidget):
         m1_seq.sequenceFinished.connect(lambda: self.pb_m1.setValue(self.pb_m1.maximum()))
         m1_seq.sequenceError.connect(  lambda _msg: self.pb_m1.setValue(self.pb_m1.maximum()))
         m1_seq.sequenceFinished.connect(lambda: self.lbl_m1_stat.setText("Status: Concluído"))
+        # increment Mesa 1 count only on successful finish
+        m1_seq.sequenceFinished.connect(self._on_plate_done_m1)
         m1_seq.sequenceError.connect(lambda msg: self.lbl_m1_stat.setText(f"Status: Erro - {msg}"))
         m1_seq.bcMatch.connect(lambda ok,x,y,w,h,txt:
                                self.lbl_m1_code.setText(f"Código: {txt if ok else '—'}"))
@@ -664,6 +669,8 @@ class AxesControlTab(QWidget):
             m2_seq.sequenceFinished.connect(lambda: self.pb_m2.setValue(self.pb_m2.maximum()))
             m2_seq.sequenceError.connect(  lambda _msg: self.pb_m2.setValue(self.pb_m2.maximum()))
             m2_seq.sequenceFinished.connect(lambda: self.lbl_m2_stat.setText("Status: Concluído"))
+            # increment Mesa 2 count only on successful finish
+            m2_seq.sequenceFinished.connect(self._on_plate_done_m2)
             m2_seq.sequenceError.connect(lambda msg: self.lbl_m2_stat.setText(f"Status: Erro - {msg}"))
             m2_seq.bcMatch.connect(lambda ok,x,y,w,h,txt:
                                    self.lbl_m2_code.setText(f"Código: {txt if ok else '—'}"))
@@ -723,5 +730,18 @@ class AxesControlTab(QWidget):
         self.mirror_m2_list.blockSignals(True)
         self.mirror_m2_list.setCurrentRow(row)
         self.mirror_m2_list.blockSignals(False)
+
+    # ------------------------------------------------------------------
+    # Slots to count completed plates (only on successful sequence end)
+    # ------------------------------------------------------------------
+    def _on_plate_done_m1(self):
+        """Increment and display Mesa 1 production count."""
+        self._count_m1 += 1
+        self.lbl_count_m1.setText(str(self._count_m1))
+
+    def _on_plate_done_m2(self):
+        """Increment and display Mesa 2 production count."""
+        self._count_m2 += 1
+        self.lbl_count_m2.setText(str(self._count_m2))
     
     
