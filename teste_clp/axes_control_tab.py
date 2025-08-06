@@ -258,21 +258,13 @@ class AxesControlTab(QWidget):
         right_col.addWidget(self.seq_widget)
 
         right_col.addStretch()
+        # direita – faz o right_wrap ocupar TODA a altura (duas linhas)
         right_wrap = QWidget(); right_wrap.setLayout(right_col)
-        grid.addWidget(right_wrap, 0, 1)
+        grid.addWidget(right_wrap, 0, 1, 2, 1)
 
         # ------------------------------ LINHA INFERIOR -----------------
-        left_spacer  = QWidget()
-        right_spacer = QWidget()
-        for s in (left_spacer, right_spacer):
-            s.setSizePolicy(QSizePolicy.Policy.Expanding,
-                            QSizePolicy.Policy.Preferred)
-
-        
-        # --------------------------------------------------------------
-        #  REGIÃO INFERIOR CENTRAL
-        #  – agora dividida em duas metades com fundo cinza
-        # --------------------------------------------------------------
+        # só o bottom_placeholder na coluna 0
+        bottom_placeholder = QFrame(objectName="centerBottom")
         bottom_placeholder = QFrame(objectName="centerBottom")
         # ----------------------------------------------------------
         #  Fundo igual ao painel de cima (cinza-escuro)
@@ -397,7 +389,6 @@ class AxesControlTab(QWidget):
         # agora a cena inferior central ocupa 100% da coluna 0;
         # o spacer da direita permanece na coluna 1.
         grid.addWidget(bottom_placeholder, 1, 0)
-        grid.addWidget(right_spacer,       1, 1)
         # --------- proporções (colunas 85|15, linhas 70|30) ---------
         grid.setColumnStretch(0, 85)
         grid.setColumnStretch(1, 15)
