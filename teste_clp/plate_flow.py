@@ -31,6 +31,8 @@ class PlateFlowManager(QObject):
         super().__init__(mesa_tab)
         assert mesa_id in (1, 2)
         self._c       = ctrl
+        # para medir duração do ciclo desta mesa
+        self._start_time: float | None = None
         self._tab     = mesa_tab
         self._mesa    = mesa_id
         self._state   = FlowState.IDLE
@@ -156,6 +158,9 @@ class PlateFlowManager(QObject):
     def _start_sequence(self):
         """Etapa 2 – roda SequenceControlWidget em modo APPLY."""
         self._state = FlowState.PROCESSING
+        # marca início do ciclo
+
+        self._start_time = time.time()
         # -----------------------------------------------------------------
         #  01-Ago-2025
         #  Se o ciclo foi disparado pelo botão “Start Geral” (aba Controle
@@ -237,6 +242,16 @@ class PlateFlowManager(QObject):
             self._c._plc_motion_backend._targets.clear()
         except Exception as exc:
             self._c.log(f"■ Erro ao limpar offset/targets: {exc}")
+        # notifica a aba de controle o tempo decorrido
+        try:
+            import time
+            if self._start_time is not None:
+                elapsed = time.time() - self._start_time
+                ctrl_tab = getattr(self._c, "control_tab", None)
+                if ctrl_tab and hasattr(ctrl_tab, "_on_plate_time"):
+                    ctrl_tab._on_plate_time(self._mesa, elapsed)
+        except Exception:
+            self._c.log("■ Erro ao calcular tempo de ciclo da mesa")
         self._c.log(f"■ Mesa {self._mesa}: ciclo concluído ✓")
 
     # -----------------------------------------------------------------

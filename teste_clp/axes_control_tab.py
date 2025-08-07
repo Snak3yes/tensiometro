@@ -35,9 +35,11 @@ class AxesControlTab(QWidget):
     def __init__(self, controller, *, primary: bool = False):
         super().__init__()
         self.ctrl = controller
-        # initialize per-mesa production counters
+        # initialize per-mesa production counters and timers
         self._count_m1 = 0
         self._count_m2 = 0
+        self._times_m1: list[float] = []
+        self._times_m2: list[float] = []
         self.primary = primary
         self._build_ui()
 
@@ -116,13 +118,31 @@ class AxesControlTab(QWidget):
         group_m1_actions.setMaximumHeight(group_m1_actions.sizeHint().height())
         # conecta botão "Abrir Projeto" de Mesa 1
         btn_abrirproj_m1.clicked.connect(lambda: self._open_project_for_mesa(1))
-        # ■■ GroupBox para exibir contagem de placas produzidas (Mesa 1) ■■
-        group_m1_count = QGroupBox("Contagem de Placas")
-        group_m1_count_layout = QVBoxLayout(group_m1_count)
+        # ■■ GroupBox para exibir contagem e tempos (Mesa 1) ■■
+        group_m1_stats = QGroupBox("Estatísticas de Produção")
+        stats_m1_layout = QHBoxLayout(group_m1_stats)
+        # – coluna esquerda: contador de placas
+        vcount_m1 = QVBoxLayout()
+        vcount_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vcount_m1.addWidget(QLabel("Placas Concluídas:"), alignment=Qt.AlignmentFlag.AlignCenter)
         self.lbl_count_m1 = QLabel("0")
         self.lbl_count_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        group_m1_count_layout.addWidget(self.lbl_count_m1)
-        m1_btn_layout.addWidget(group_m1_count)
+        vcount_m1.addWidget(self.lbl_count_m1)
+        # – coluna direita: tempos
+        vtime_m1 = QVBoxLayout()
+        vtime_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m1.addWidget(QLabel("Tempo Total (s):"), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.lbl_time_elapsed_m1 = QLabel("0 s")
+        self.lbl_time_elapsed_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m1.addWidget(self.lbl_time_elapsed_m1)
+        vtime_m1.addWidget(QLabel("Tempo Médio (s):"), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.lbl_time_avg_m1 = QLabel("0 s")
+        self.lbl_time_avg_m1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m1.addWidget(self.lbl_time_avg_m1)
+        # adiciona as duas colunas ao layout principal
+        stats_m1_layout.addLayout(vcount_m1)
+        stats_m1_layout.addLayout(vtime_m1)
+        m1_btn_layout.addWidget(group_m1_stats)
         m1_btn_layout.addStretch()
         # proporções internas (3:2)
         m1_layout.setStretch(0, 3)
@@ -168,13 +188,31 @@ class AxesControlTab(QWidget):
         group_m2_actions.setMaximumHeight(group_m2_actions.sizeHint().height())
         # conecta botão "Abrir Projeto" de Mesa 2
         btn_abrirproj_m2.clicked.connect(lambda: self._open_project_for_mesa(2))
-        # ■■ GroupBox para exibir contagem de placas produzidas (Mesa 2) ■■
-        group_m2_count = QGroupBox("Contagem de Placas")
-        group_m2_count_layout = QVBoxLayout(group_m2_count)
+        # ■■ GroupBox para exibir contagem e tempos (Mesa 2) ■■
+        group_m2_stats = QGroupBox("Estatísticas de Produção")
+        stats_m2_layout = QHBoxLayout(group_m2_stats)
+        # – coluna esquerda: contador de placas
+        vcount_m2 = QVBoxLayout()
+        vcount_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vcount_m2.addWidget(QLabel("Placas Concluídas:"), alignment=Qt.AlignmentFlag.AlignCenter)
         self.lbl_count_m2 = QLabel("0")
         self.lbl_count_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        group_m2_count_layout.addWidget(self.lbl_count_m2)
-        m2_btn_layout.addWidget(group_m2_count)
+        vcount_m2.addWidget(self.lbl_count_m2)
+        # – coluna direita: tempos
+        vtime_m2 = QVBoxLayout()
+        vtime_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m2.addWidget(QLabel("Tempo Total (s):"), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.lbl_time_elapsed_m2 = QLabel("0 s")
+        self.lbl_time_elapsed_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m2.addWidget(self.lbl_time_elapsed_m2)
+        vtime_m2.addWidget(QLabel("Tempo Médio (s):"), alignment=Qt.AlignmentFlag.AlignCenter)
+        self.lbl_time_avg_m2 = QLabel("0 s")
+        self.lbl_time_avg_m2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        vtime_m2.addWidget(self.lbl_time_avg_m2)
+        # adiciona as duas colunas ao layout principal
+        stats_m2_layout.addLayout(vcount_m2)
+        stats_m2_layout.addLayout(vtime_m2)
+        m2_btn_layout.addWidget(group_m2_stats)
         m2_btn_layout.addStretch()
         # proporções internas (3:2)
         m2_layout.setStretch(0, 3)
@@ -767,13 +805,43 @@ class AxesControlTab(QWidget):
     # Slots to count completed plates (only on successful sequence end)
     # ------------------------------------------------------------------
     def _on_plate_done_m1(self):
-        """Increment and display Mesa 1 production count."""
+        """Increment and display Mesa 1 production count (only in APPLY mode)."""
+        # only count if Mesa 1's sequence widget is in APPLY
+        tab1 = getattr(self.ctrl, "mesa_tabs", {}).get(1)
+        seq1 = getattr(tab1, "seq_widget", None)
+        if not (seq1 and seq1.radio_apply.isChecked()):
+            return
         self._count_m1 += 1
         self.lbl_count_m1.setText(str(self._count_m1))
 
     def _on_plate_done_m2(self):
-        """Increment and display Mesa 2 production count."""
+        """Increment and display Mesa 2 production count (only in APPLY mode)."""
+        # only count if Mesa 2's sequence widget is in APPLY
+        tab2 = getattr(self.ctrl, "mesa_tabs", {}).get(2)
+        seq2 = getattr(tab2, "seq_widget", None)
+        if not (seq2 and seq2.radio_apply.isChecked()):
+            return
         self._count_m2 += 1
         self.lbl_count_m2.setText(str(self._count_m2))
+
+    # ------------------------------------------------------------------
+    # Slot chamado por PlateFlowManager quando termina cada ciclo
+    # ------------------------------------------------------------------
+    def _on_plate_time(self, mesa_id: int, elapsed: float):
+        """
+        Atualiza:
+          – lbl_time_elapsed_m<n>: tempo (s) do último ciclo com 2 decimais;
+          – lbl_time_avg_m<n>: média de todos os tempos registrados.
+        """
+        if mesa_id == 1:
+            self._times_m1.append(elapsed)
+            self.lbl_time_elapsed_m1.setText(f"{elapsed:.2f} s")
+            avg = sum(self._times_m1) / len(self._times_m1)
+            self.lbl_time_avg_m1.setText(f"{avg:.2f} s")
+        elif mesa_id == 2:
+            self._times_m2.append(elapsed)
+            self.lbl_time_elapsed_m2.setText(f"{elapsed:.2f} s")
+            avg = sum(self._times_m2) / len(self._times_m2)
+            self.lbl_time_avg_m2.setText(f"{avg:.2f} s")
     
     
