@@ -98,6 +98,8 @@ class AxesControlTab(QWidget):
         group_m1_actions = QGroupBox("Ações")
         group_m1_layout  = QVBoxLayout(group_m1_actions)
         btn_enviar_m1    = QPushButton("Enviar")
+        # guarda para controle de habilitação
+        self.btn_enviar_m1 = btn_enviar_m1
         # conecta “Enviar Mesa 1” → pulso M42
         btn_enviar_m1.clicked.connect(lambda: self.ctrl._pulse_coil("M42"))
         btn_retornar_m1  = QPushButton("Retornar")
@@ -168,6 +170,8 @@ class AxesControlTab(QWidget):
         group_m2_actions = QGroupBox("Ações")
         group_m2_layout  = QVBoxLayout(group_m2_actions)
         btn_enviar_m2    = QPushButton("Enviar")
+        # guarda para controle de habilitação
+        self.btn_enviar_m2 = btn_enviar_m2
         # conecta “Enviar Mesa 2” → pulso M43
         btn_enviar_m2.clicked.connect(lambda: self.ctrl._pulse_coil("M43"))
         btn_retornar_m2  = QPushButton("Retornar")
@@ -637,6 +641,18 @@ class AxesControlTab(QWidget):
             self.btn_retornar_m2.setEnabled(True)
         else:
             self.btn_retornar_m2.setEnabled(False)
+
+        # ■■ Enviar só se: programa carregado + Start ativo + mesa em IDLE ■■
+        # Mesa 1
+        en1 = (getattr(self.ctrl, "_global_cycle_active", False)
+               and self.ctrl._mesa_has_program(1)
+               and mgr1 and mgr1._state is FlowState.IDLE)
+        self.btn_enviar_m1.setEnabled(bool(en1))
+        # Mesa 2
+        en2 = (getattr(self.ctrl, "_global_cycle_active", False)
+               and self.ctrl._mesa_has_program(2)
+               and mgr2 and mgr2._state is FlowState.IDLE)
+        self.btn_enviar_m2.setEnabled(bool(en2))
     
     # -----------------------------------------------------------------
     #            S I N C  ■  M e s a   1   →   E s p e l h o
