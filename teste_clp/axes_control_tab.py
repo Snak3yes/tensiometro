@@ -106,6 +106,8 @@ class AxesControlTab(QWidget):
         # guarda para controlar estado
         self.btn_retornar_m1 = btn_retornar_m1
         btn_abrirproj_m1 = QPushButton("Abrir Projeto")
+        # guarda referência para habilitar/desabilitar conforme Start global
+        self.btn_abrirproj_m1 = btn_abrirproj_m1
         group_m1_layout.addWidget(btn_enviar_m1)
         group_m1_layout.addWidget(btn_retornar_m1)
         btn_retornar_m1.clicked.connect(lambda: self.ctrl.flow_mesa1._return_after_error())
@@ -178,6 +180,8 @@ class AxesControlTab(QWidget):
         # guarda para controlar estado
         self.btn_retornar_m2 = btn_retornar_m2
         btn_abrirproj_m2 = QPushButton("Abrir Projeto")
+        # guarda referência para habilitar/desabilitar conforme Start global
+        self.btn_abrirproj_m2 = btn_abrirproj_m2
         group_m2_layout.addWidget(btn_enviar_m2)
         group_m2_layout.addWidget(btn_retornar_m2)
         btn_retornar_m2.clicked.connect(lambda: self.ctrl.flow_mesa2._return_after_error())
@@ -547,14 +551,19 @@ class AxesControlTab(QWidget):
             # Pulso momentâneo em M40 para sinalizar Start global
             if hasattr(self.ctrl, "_pulse_coil"):
                 self.ctrl._pulse_coil("M40")
+            # Durante o ciclo global, desabilita "Abrir Projeto"
+            self.btn_abrirproj_m1.setEnabled(False)
+            self.btn_abrirproj_m2.setEnabled(False)
 
     def _on_global_stop(self):
         """Pede parada do ciclo geral e restabelece botão Start."""
         # Pulso momentâneo em M41 para sinalizar Stop global
         if hasattr(self.ctrl, "_pulse_coil"):
             self.ctrl._pulse_coil("M41")
+        # 1) Garante que o ciclo geral seja desativado
+        self.ctrl._global_cycle_active = False
+        # 2) Se existir um método stop_global_cycle(), também o chama
         if hasattr(self.ctrl, "stop_global_cycle"):
-            # desliga flag de ciclo geral
             self.ctrl.stop_global_cycle()
         # ── solicita parada dos runners em execução nas mesas ────────
         # quem já estiver no meio de uma sequência terminará o ponto atual
@@ -574,8 +583,13 @@ class AxesControlTab(QWidget):
                 except Exception as exc:
                     # registra falha sem interromper a UI
                     self.ctrl.log(f"■ Falha ao devolver Mesa {getattr(mgr, '_mesa', '?')}: {exc}")
-        # Reativa Start e desabilita Stop/Pause
+        # 3) Reativa Start e desabilita Stop/Pause
         self._toggle_buttons(start_enabled=True)
+        # 4) E desabilita imediatamente os botões “Enviar”
+        self.btn_enviar_m1.setEnabled(False)
+        # 5) Após parar, reabilita os botões "Abrir Projeto"
+        self.btn_abrirproj_m1.setEnabled(True)
+        self.btn_abrirproj_m2.setEnabled(True)
 
     def _on_global_pause(self):
         """Alterna pausa/continuação do ciclo geral."""
