@@ -554,6 +554,8 @@ class AxesControlTab(QWidget):
             # Durante o ciclo global, desabilita "Abrir Projeto"
             self.btn_abrirproj_m1.setEnabled(False)
             self.btn_abrirproj_m2.setEnabled(False)
+            # ■■ Desabilita todo o grupo de Movement Controls ■■
+            self.mov_widget.setEnabled(False)
 
     def _on_global_stop(self):
         """Pede parada do ciclo geral e restabelece botão Start."""
@@ -586,8 +588,10 @@ class AxesControlTab(QWidget):
         # 3) Reativa Start e desabilita Stop/Pause
         self._toggle_buttons(start_enabled=True)
         # 4) E desabilita imediatamente os botões “Enviar”
+        # 5) Reativa o grupo de Movement Controls
+        self.mov_widget.setEnabled(True)
         self.btn_enviar_m1.setEnabled(False)
-        # 5) Após parar, reabilita os botões "Abrir Projeto"
+        # 6) Após parar, reabilita os botões "Abrir Projeto"
         self.btn_abrirproj_m1.setEnabled(True)
         self.btn_abrirproj_m2.setEnabled(True)
 
