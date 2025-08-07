@@ -587,6 +587,15 @@ class AxesControlTab(QWidget):
                 for idx in range(tabs.count()):
                     tabs.setTabEnabled(idx, idx == me_idx)
 
+            # ■■ Desabilita toda a barra de menus enquanto o Start estiver ativo ■■
+            try:
+                menubar = self.ctrl.menuBar()
+                menubar.setEnabled(False)
+            except Exception:
+                print("AxesControlTab: _on_global_start() - "
+                      "erro ao desabilitar menuBar().")
+            
+
     def _on_global_stop(self):
         """Pede parada do ciclo geral e restabelece botão Start."""
         # Pulso momentâneo em M41 para sinalizar Stop global
@@ -629,6 +638,13 @@ class AxesControlTab(QWidget):
         if tabs:
             for idx in range(tabs.count()):
                 tabs.setTabEnabled(idx, True)
+        # ■■ Reabilita toda a barra de menus após o Stop ■■
+        try:
+            menubar = self.ctrl.menuBar()
+            menubar.setEnabled(True)
+        except Exception:
+            print("AxesControlTab: _on_global_stop() - "
+                  "erro ao reabilitar menuBar().")
 
     def _on_global_pause(self):
         """Alterna pausa/continuação do ciclo geral."""
@@ -688,12 +704,26 @@ class AxesControlTab(QWidget):
             self.btn_retornar_m1.setEnabled(True)
         else:
             self.btn_retornar_m1.setEnabled(False)
+        # estilo: Retornar em laranja quando habilitado
+        if self.btn_retornar_m1.isEnabled():
+            self.btn_retornar_m1.setStyleSheet(
+                "QPushButton { background-color: #FF9800; color: white; }"
+            )
+        else:
+            self.btn_retornar_m1.setStyleSheet("")
         # Mesa 2 – habilita “Retornar” apenas enquanto estiver em fila
         mgr2 = getattr(self.ctrl, 'flow_mesa2', None)
         if mgr2 and mgr2._state is FlowState.QUEUED:
             self.btn_retornar_m2.setEnabled(True)
         else:
             self.btn_retornar_m2.setEnabled(False)
+        # estilo: Retornar em laranja quando habilitado (Mesa 2)
+        if self.btn_retornar_m2.isEnabled():
+            self.btn_retornar_m2.setStyleSheet(
+                "QPushButton { background-color: #FF9800; color: white; }"
+            )
+        else:
+            self.btn_retornar_m2.setStyleSheet("")
 
         # ■■ Enviar só se: programa carregado + Start ativo + mesa em IDLE ■■
         # Mesa 1
@@ -701,11 +731,25 @@ class AxesControlTab(QWidget):
                and self.ctrl._mesa_has_program(1)
                and mgr1 and mgr1._state is FlowState.IDLE)
         self.btn_enviar_m1.setEnabled(bool(en1))
+        # estilo: Enviar em verde quando habilitado
+        if self.btn_enviar_m1.isEnabled():
+            self.btn_enviar_m1.setStyleSheet(
+                "QPushButton { background-color: #4CAF50; color: white; }"
+            )
+        else:
+            self.btn_enviar_m1.setStyleSheet("")
         # Mesa 2
         en2 = (getattr(self.ctrl, "_global_cycle_active", False)
                and self.ctrl._mesa_has_program(2)
                and mgr2 and mgr2._state is FlowState.IDLE)
         self.btn_enviar_m2.setEnabled(bool(en2))
+        # estilo: Enviar em verde quando habilitado (Mesa 2)
+        if self.btn_enviar_m2.isEnabled():
+            self.btn_enviar_m2.setStyleSheet(
+                "QPushButton { background-color: #4CAF50; color: white; }"
+            )
+        else:
+            self.btn_enviar_m2.setStyleSheet("")
     
     # -----------------------------------------------------------------
     #            S I N C  ■  M e s a   1   →   E s p e l h o
