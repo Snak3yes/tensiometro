@@ -556,6 +556,12 @@ class AxesControlTab(QWidget):
             self.btn_abrirproj_m2.setEnabled(False)
             # ■■ Desabilita todo o grupo de Movement Controls ■■
             self.mov_widget.setEnabled(False)
+            # ■■ Desabilita mudança de abas (exceto esta) ■■
+            tabs = getattr(self.ctrl, "tab_widget", None)
+            if tabs:
+                me_idx = tabs.indexOf(self)
+                for idx in range(tabs.count()):
+                    tabs.setTabEnabled(idx, idx == me_idx)
 
     def _on_global_stop(self):
         """Pede parada do ciclo geral e restabelece botão Start."""
@@ -594,6 +600,11 @@ class AxesControlTab(QWidget):
         # 6) Após parar, reabilita os botões "Abrir Projeto"
         self.btn_abrirproj_m1.setEnabled(True)
         self.btn_abrirproj_m2.setEnabled(True)
+        # 7) Reabilita mudança de abas
+        tabs = getattr(self.ctrl, "tab_widget", None)
+        if tabs:
+            for idx in range(tabs.count()):
+                tabs.setTabEnabled(idx, True)
 
     def _on_global_pause(self):
         """Alterna pausa/continuação do ciclo geral."""
