@@ -336,14 +336,16 @@ class AxesControlTab(QWidget):
         self.seq_widget._btn_pause.clicked.connect(self._on_global_pause)
 
         # 3) Estado inicial
+        # – Stop e Pause começam desabilitados
         self.seq_widget._btn_stop.setEnabled(False)
         self.seq_widget._btn_pause.setEnabled(False)
-
         # Mantém o botão Stop VISÍVEL para permitir o toggle.
         self.seq_widget._btn_stop.show()
-
         right_col.addWidget(self.seq_widget)
         right_col.addStretch()
+        # Aplica estilo inicial: Start habilitado (default),
+        # Stop desabilitado e pintado de vermelho
+        self._toggle_buttons(start_enabled=True)
 
         # ── timer para habilitar/desabilitar os botões “Retornar” ──
         self._return_timer = QTimer(self)
@@ -532,11 +534,33 @@ class AxesControlTab(QWidget):
     # ------------------------------------------------------------------
     def _toggle_buttons(self, *, start_enabled: bool):
         """Liga/desliga Start  x  Pause/Stop."""
-        self.seq_widget._btn_execute.setEnabled(start_enabled)
-        self.seq_widget._btn_stop.setEnabled(not start_enabled)
-        self.seq_widget._btn_pause.setEnabled(not start_enabled)
+        # referências locais
+        btn_start = self.seq_widget._btn_execute
+        btn_stop  = self.seq_widget._btn_stop
+        btn_pause = self.seq_widget._btn_pause
+
+        # ► Start: se estiver "pressionado" (disabled), pinta de verde
+        btn_start.setEnabled(start_enabled)
+        if not start_enabled:
+            btn_start.setStyleSheet(
+                "QPushButton { background-color: #4CAF50; color: white; }"
+            )
+        else:
+            btn_start.setStyleSheet("")
+
+        # ► Parar: se estiver disabled (ou seja, start_enabled=True), pinta de vermelho
+        btn_stop.setEnabled(not start_enabled)
+        if not btn_stop.isEnabled():
+            btn_stop.setStyleSheet(
+                "QPushButton { background-color: #F44336; color: white; }"
+            )
+        else:
+            btn_stop.setStyleSheet("")
+
+        # ► Pause: só toggla texto/estado, mantém cor padrão
+        btn_pause.setEnabled(not start_enabled)
         if start_enabled:
-            self.seq_widget._btn_pause.setText("Pause")
+            btn_pause.setText("Pause")
 
     def _on_global_start(self):
         """Aciona ciclo geral + desabilita botão Start."""
