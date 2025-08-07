@@ -833,6 +833,9 @@ class AxesControlTab(QWidget):
           – lbl_time_elapsed_m<n>: tempo (s) do último ciclo com 2 decimais;
           – lbl_time_avg_m<n>: média de todos os tempos registrados.
         """
+        # Só processa tempos quando estamos no modo APPLY
+        if not self.seq_widget.radio_apply.isChecked():
+            return
         if mesa_id == 1:
             self._times_m1.append(elapsed)
             self.lbl_time_elapsed_m1.setText(f"{elapsed:.2f} s")
