@@ -575,6 +575,13 @@ class AxesControlTab(QWidget):
             # Pulso momentâneo em M40 para sinalizar Start global
             if hasattr(self.ctrl, "_pulse_coil"):
                 self.ctrl._pulse_coil("M40")
+            # Sincroniza RANGE das barras de progresso externas com widgets internos
+            m1_tab = getattr(self.ctrl, "mesa_tabs", {}).get(1)
+            if m1_tab:
+                self._sync_progress_range(self.pb_m1, m1_tab.seq_widget)
+            m2_tab = getattr(self.ctrl, "mesa_tabs", {}).get(2)
+            if m2_tab:
+                self._sync_progress_range(self.pb_m2, m2_tab.seq_widget)
             # Durante o ciclo global, desabilita "Abrir Projeto"
             self.btn_abrirproj_m1.setEnabled(False)
             self.btn_abrirproj_m2.setEnabled(False)
@@ -869,11 +876,21 @@ class AxesControlTab(QWidget):
     @staticmethod
     def _sync_progress_range(ext_bar, seq_widget):
         """
-        Copia min/max do QProgressBar interno (_progress) para a barra
-        externa `ext_bar`.
+        Ajusta o range da barra externa `ext_bar` para [0, N] onde N é o
+        número de posições definidas em seq_widget, garantindo que
+        cada passo corresponda a 1/N·100%.
         """
-        ext_bar.setRange(seq_widget._progress.minimum(),
-                         seq_widget._progress.maximum())
+        # tenta usar o tamanho da lista de posições (mais confiável)
+        total = None
+        if hasattr(seq_widget, '_positions'):
+            total = len(seq_widget._positions)
+        if total is None:
+            # fallback: range do progress interno (0…100 por padrão)
+            lo = seq_widget._progress.minimum()
+            hi = seq_widget._progress.maximum()
+            ext_bar.setRange(lo, hi)
+        else:
+            ext_bar.setRange(0, total)
         ext_bar.setValue(seq_widget._progress.value())
 
     def _sync_mesa2_positions(self):
