@@ -194,30 +194,31 @@ class PlateFlowManager(QObject):
     def _on_sequence_finished(self):
         if self._state != FlowState.PROCESSING:
             return
-        # Etapa 3 – devolve a placa
-        # ------------------------------------------------------------------
-        #  ZERA O OFFSET DINÂMICO ANTES de mover a mesa para fora.
-        #  Sem isto o destino (limite +Y) recebe ΔY somado e o eixo não
-        #  chega nunca ao alvo, deixando wait_for_idle bloqueado.
-        # ------------------------------------------------------------------
-        self._c._plc_motion_backend.apply_dynamic_offset(0, 0)
-        self._c._plc_motion_backend._targets.clear()
-
-        # Etapa 3 – devolve a placa
+        # Etapa 3 – devolve a placa usando o PLCMotionBackend (para que wait_for_idle
+        # só retorne True após a mesa realmente atingir o limite)
         self._state = FlowState.MOVING_OUT
         limit = int(self._y_limit)
-        self._c.log(f"■ Mesa {self._mesa}: devolvendo placa (Y→{limit})")
-        getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(limit)
-        self._c.move_axis_absolute(self._y_axis)
-        if self._c._plc_motion_backend.wait_for_idle():
-            # ── envia pulso DONE (M21/M31) ao atingir o limite positivo ──
+        self._c.log(f"■ Mesa {self._mesa}: devolvendo placa (Y→{limit}) via PLC backend")
+        plc = self._c._plc_motion_backend
+        # zera qualquer offset e alvos pendentes
+        plc.apply_dynamic_offset(0, 0)
+        plc._targets.clear()
+        plc.set_offset_mode(False)
+        # envia movimento de retorno apenas no eixo Y físico
+        plc.move_to_absolute_position(
+            x=None,
+            y2=(limit if self._y_axis == "Y2" else None),
+            y1=(limit if self._y_axis == "Y1" else None),
+            z=None
+        )
+        if plc.wait_for_idle():
+            # ■■ envia pulso DONE (M21 ou M31) somente após retorno completo ■■
             try:
                 self._c.client.write_coil(self._addr_done, True)
                 QTimer.singleShot(100,
                     lambda a=self._addr_done: self._c.client.write_coil(a, False))
             except Exception as exc:
                 self._c.log(f"■ Erro ao pulsar {self._mem_done}: {exc}")
-            # então conclui o ciclo
             self._finish_cycle()
         else:
             self._error("Timeout devolvendo placa")
