@@ -256,6 +256,19 @@ class AxesControlTab(QWidget):
         self.mov_widget = MovementControlsWidget()
         right_col.addWidget(self.mov_widget)
 
+        # ■■ Novo GroupBox para exibir temperaturas ■■
+        self.temp_group = QGroupBox("Temperaturas")
+        temp_layout = QHBoxLayout(self.temp_group)
+        # Label para temperatura atual
+        self.lbl_temp_current = QLabel("Atual: --°C")
+        # Label para temperatura configurada
+        self.lbl_temp_config  = QLabel("Config: --°C")
+        temp_layout.addWidget(self.lbl_temp_current)
+        temp_layout.addWidget(QLabel("/"))
+        temp_layout.addWidget(self.lbl_temp_config)
+        temp_layout.addStretch()
+        right_col.addWidget(self.temp_group)
+
         # --------------------------------------------------------------
         #  REMOVIDO O GROUPBOX “Posições de Inspeção” APENAS NESTA ABA
         #  – o widget continua existindo (para não quebrar callbacks
