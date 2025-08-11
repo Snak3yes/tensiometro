@@ -1,0 +1,229 @@
+{
+ "version": "auto-py-to-exe-configuration_v1",
+ "pyinstallerOptions": [
+  {
+   "optionDest": "noconfirm",
+   "value": true
+  },
+  {
+   "optionDest": "filenames",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/testes_comunicacao_e_comandos.py"
+  },
+  {
+   "optionDest": "onefile",
+   "value": false
+  },
+  {
+   "optionDest": "console",
+   "value": false
+  },
+  {
+   "optionDest": "clean_build",
+   "value": false
+  },
+  {
+   "optionDest": "strip",
+   "value": false
+  },
+  {
+   "optionDest": "noupx",
+   "value": false
+  },
+  {
+   "optionDest": "disable_windowed_traceback",
+   "value": false
+  },
+  {
+   "optionDest": "uac_admin",
+   "value": false
+  },
+  {
+   "optionDest": "uac_uiaccess",
+   "value": false
+  },
+  {
+   "optionDest": "argv_emulation",
+   "value": false
+  },
+  {
+   "optionDest": "bootloader_ignore_signals",
+   "value": false
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/axes_control_tab.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/camera_manager.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/sequence_control.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/table_program_tab.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/settings.json;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/plate_flow.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/aplicadora_tab.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/inspection_logger.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/settings_manager.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/roi_window_editor.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/inspection_config_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/mesa_plot_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/table_positions_backend.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/helpers.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/inspection_positions_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/dot_patterns_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/dot_action_selector_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/fiducial_config_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/barcode_config_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/program_converter_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/alignment_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/program_io_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/adhesive_program_manager.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/selectable_rect_item.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/action_config_placeholders.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/inspection_engine.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/fov_calibration_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/barcode_scanner.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/dot_patterns.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/dot_patterns.json;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/dot_patterns_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/virtual_home_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/axis_calibration_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/cnc_calibration_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/movement_controls_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/focus_calibration_dialog.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/position_status_widget.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/config_dialogs.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/positions_backend.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/libiconv.dll;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/hook-pyzbar.py;."
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/libzbar-64.dll;."
+  },
+  {
+   "optionDest": "collect_binaries",
+   "value": "pyzbar"
+  }
+ ],
+ "nonPyinstallerOptions": {
+  "increaseRecursionLimit": true,
+  "manualArguments": ""
+ }
+}
