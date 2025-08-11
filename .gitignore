@@ -9,6 +9,7 @@ teste_clp/__pycache__/table_positions_backend.cpython-310.pyc
 teste_clp/__pycache__/table_program_tab.cpython-310.pyc
 *.pyc
 teste_clp/aplicacao_adesivadora.pdf
+output/testes_comunicacao_e_comandos/
 output/testes_comunicacao_e_comandos/testes_comunicacao_e_comandos.exe
 output/testes_comunicacao_e_comandos/_internal/_asyncio.pyd
 output/testes_comunicacao_e_comandos/_internal/_bz2.pyd
