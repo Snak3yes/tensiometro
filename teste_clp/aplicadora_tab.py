@@ -238,7 +238,8 @@ class AdhesiveApplicatorTab(QWidget):
             data = bytes.fromhex(hexstr.replace(" ", ""))
             self.serial_connection.reset_input_buffer()
             self.serial_connection.reset_output_buffer()
-            self.log(f"TX {desc}: {hexstr}")
+            # Suprime log de transmissão para reduzir poluição de terminal
+            # self.log(f"TX {desc}: {hexstr}")
             self.serial_connection.write(data)
             resp = b""
             start = time.time()
@@ -251,8 +252,9 @@ class AdhesiveApplicatorTab(QWidget):
                     time.sleep(0.01)
                 if len(resp)>=5: break
             if resp:
-                self.log(f"RX ({len(resp)}): " +
-                         ' '.join(f"{b:02X}" for b in resp))
+                # reduzir logs
+                # self.log(f"RX ({len(resp)}): " +
+                #          ' '.join(f"{b:02X}" for b in resp))
                 return resp
             self.log("sem resposta")
             return None

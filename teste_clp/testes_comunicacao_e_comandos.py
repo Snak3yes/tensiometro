@@ -4,6 +4,7 @@ import json
 import cv2
 from pathlib import Path
 from plate_flow import PlateFlowManager
+from inspection_logger import InspectionLogger
 from virtual_home_dialog import ConfigHomeDialog
 from axis_calibration_dialog import AxisCalibrationDialog
 from settings_manager import SettingsManager
@@ -32,6 +33,128 @@ from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
 from PyQt6.QtCore import QCoreApplication
 
+###############################################################################
+# QDialog para configurar URL / Posto / Usuário da API do InspectionLogger
+###############################################################################
+from PyQt6.QtWidgets import (
+    QDialog, QFormLayout, QLineEdit, QPushButton, QMessageBox,
+    QRadioButton
+)
+from PyQt6.QtCore import Qt
+
+class ProcessConfigDialog(QDialog):
+    """
+    Diálogo não-modal e always-on-top para ligar/desligar módulos:
+      - Fiducial
+      - Leitura de Código
+      - Inspeção
+      - Temperatura
+      - Comunicação SFCS
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent, flags=Qt.WindowType.Window)
+        self.setWindowTitle("Configuração de Processo")
+        self.setWindowModality(Qt.WindowModality.NonModal)
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        self._ctrl = parent
+        self._build_ui()
+
+    def _build_ui(self):
+        layout = QVBoxLayout(self)
+        # Definição dos cinco processos
+        itens = [
+            ("Fiducial", "fiducial"),
+            ("Leitura de Código", "barcode"),
+            ("Inspeção", "inspect"),
+            ("Temperatura", "temperature"),
+            ("Comunicação SFCS", "sfcs")
+        ]
+        self._groups = {}
+        for título, chave in itens:
+            box = QGroupBox(título)
+            row = QHBoxLayout(box)
+            rb_on  = QRadioButton("Ligado")
+            rb_off = QRadioButton("Desligado")
+            rb_off.setChecked(True)
+            row.addWidget(rb_on)
+            row.addWidget(rb_off)
+            layout.addWidget(box)
+            self._groups[chave] = (rb_on, rb_off)
+
+        # Botões Salvar/Cancelar
+        btns = QHBoxLayout()
+        btn_save = QPushButton("Salvar")
+        btn_cancel = QPushButton("Cancelar")
+        btns.addStretch()
+        btns.addWidget(btn_save)
+        btns.addWidget(btn_cancel)
+        layout.addLayout(btns)
+
+        btn_save.clicked.connect(self._on_save)
+        btn_cancel.clicked.connect(self.close)
+
+    def _on_save(self):
+        # Lê estados e persiste
+        cfg = self._ctrl.settings.get_config("process_config", {})
+        for chave, (rb_on, rb_off) in self._groups.items():
+            cfg[chave] = rb_on.isChecked()
+        self._ctrl.settings.set_config("process_config", cfg)
+        self._ctrl.log("■ Config. de Processo salva")
+        self.close()
+
+    # Override exec_ para não bloquear
+    def exec_(self):
+        self.show()
+        self.raise_()
+        self.activateWindow()
+
+class ApiConfigDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent, flags=Qt.WindowType.Window)
+        self.setWindowModality(Qt.WindowModality.NonModal)
+        self.setWindowTitle("Configuração da API")
+        self.setWindowFlag(Qt.WindowType.WindowStaysOnTopHint, True)
+        self._ctrl = parent
+        self._build_ui()
+
+    def _build_ui(self):
+        form = QFormLayout(self)
+        # URL
+        url = self._ctrl.settings.data.get('api_url', '')
+        self.edit_url = QLineEdit(url)
+        form.addRow("URL da API:", self.edit_url)
+        # Posto
+        posto = self._ctrl.settings.data.get('json_posto', '')
+        self.edit_posto = QLineEdit(posto)
+        form.addRow("Posto SFCS:", self.edit_posto)
+        # Usuário
+        usuario = self._ctrl.settings.data.get('json_usuario', '')
+        self.edit_usuario = QLineEdit(usuario)
+        form.addRow("Usuário SFCS:", self.edit_usuario)
+        # Botão Salvar
+        btn_save = QPushButton("Salvar")
+        btn_save.clicked.connect(self._on_save)
+        form.addRow(btn_save)
+
+    def _on_save(self):
+        url     = self.edit_url.text().strip()
+        posto   = self.edit_posto.text().strip()
+        usuario = self.edit_usuario.text().strip()
+        # persiste no SettingsManager
+        s = self._ctrl.settings
+        s.data['api_url']      = url
+        s.data['json_posto']   = posto
+        s.data['json_usuario'] = usuario
+        s.save()
+        # atualiza InspectionLogger em tempo real
+        log = self._ctrl.inspection_logger
+        log.api_url      = url
+        log.json_posto   = posto
+        log.json_usuario = usuario
+        QMessageBox.information(self, "Configuração API",
+                                "Configurações salvas com sucesso.")
+        self.close()
+
 class MultiAxisMotorController(QMainWindow):
     # -----------------------------------------------------------------
     #  S I G N A L   (garante acesso aos widgets só no thread GUI)
@@ -41,6 +164,13 @@ class MultiAxisMotorController(QMainWindow):
         super().__init__()
         self.client = None
         self.connected = False
+        # configurações persistentes
+        self.settings = SettingsManager()
+        # logger de inspeção, injeta config manager para api_url, posto, usuário
+        self.inspection_logger = InspectionLogger(
+            parent=self,
+            config_manager=self.settings
+        )
 
         # Endereços Modbus CORRIGIDOS
         self.addresses = {
@@ -429,6 +559,13 @@ class MultiAxisMotorController(QMainWindow):
         # ação para abrir controladora de aplicação ---
         act_applicator = menu_cfg.addAction("Controladora de aplicação")
         act_applicator.triggered.connect(self._open_applicator_controller)
+        # >>> NOVO: ação de configuração da API de inspeção
+        act_api = menu_cfg.addAction("config. API")
+        act_api.triggered.connect(self._open_api_config)
+
+        # >>> NOVO: ação de configuração de processo
+        act_proc_cfg = menu_cfg.addAction("Config. de Processo")
+        act_proc_cfg.triggered.connect(self._open_process_config)
 
         # ------------------ DOT PATTERNS ---------------------------
         act_dots = menu_prog.addAction("Padrões de Dots…")
@@ -1273,6 +1410,31 @@ class MultiAxisMotorController(QMainWindow):
         
         group.setLayout(layout)
         return group
+    
+    def _open_api_config(self):
+        """
+        Abre (ou traz à frente) a janela de configuração da API:
+          - URL
+          - Posto SFCS
+          - Usuário SFCS
+        """
+        if not hasattr(self, '_api_config_dialog'):
+            self._api_config_dialog = ApiConfigDialog(self)
+        dlg = self._api_config_dialog
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
+
+    def _open_process_config(self):
+        """
+        Abre (ou traz à frente) a janela de Config. de Processo.
+        """
+        if not hasattr(self, '_process_config_dialog'):
+            self._process_config_dialog = ProcessConfigDialog(self)
+        dlg = self._process_config_dialog
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
 
     # ===================================================================
     #               SEQUÊNCIA DE HOMING GERAL  (Z → (Y2,Y1,X))

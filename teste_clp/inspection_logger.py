@@ -69,7 +69,12 @@ class InspectionLogger:
             self.json_usuario = ''
             self.json_linha = ''
             
-        logging.basicConfig(level=logging.DEBUG)
+        # nível mínimo para o root logger (padrão INFO)
+        logging.basicConfig(level=logging.INFO)
+        # suprime logs verbosos do pymodbus (ex.: "Frame advanced")
+        logging.getLogger('pymodbus.logging').setLevel(logging.WARNING)
+        # opcional: também silencia todos os logs do pymodbus
+        logging.getLogger('pymodbus').setLevel(logging.WARNING)
         
     def set_log_directory(self, log_dir):
         """Define o diretório para armazenar logs"""

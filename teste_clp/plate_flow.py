@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 from enum import Enum, auto
 from PyQt6.QtCore import QObject, QTimer
+import datetime
 
 class FlowState(Enum):
     IDLE        = auto()
@@ -31,6 +32,8 @@ class PlateFlowManager(QObject):
         super().__init__(mesa_tab)
         assert mesa_id in (1, 2)
         self._c       = ctrl
+        # para registrar o último código de barras lido
+        self._last_barcode: str = ""
         # para medir duração do ciclo desta mesa
         self._start_time: float | None = None
         self._tab     = mesa_tab
@@ -64,6 +67,16 @@ class PlateFlowManager(QObject):
         # callback quando a sequência acaba
         self._tab.seq_widget.sequenceFinished.connect(self._on_sequence_finished)
         self._tab.seq_widget.sequenceError.connect(self._on_sequence_error)
+        # captura o último código de barras válido
+        self._tab.seq_widget.bcMatch.connect(self._record_last_barcode)
+    
+    def _record_last_barcode(self, ok: bool, x:int, y:int, w:int, h:int, code:str):
+        """
+        Slot para armazenar o último código de barras lido
+        durante a execução da sequência.
+        """
+        if ok and code:
+            self._last_barcode = code
 
     # -----------------------------------------------------------------
     #  P U B L I C
@@ -254,6 +267,29 @@ class PlateFlowManager(QObject):
         except Exception:
             self._c.log("■ Erro ao calcular tempo de ciclo da mesa")
         self._c.log(f"■ Mesa {self._mesa}: ciclo concluído ✓")
+        # ——— Envia JSON simplificado ao SFCS se estivermos em modo APPLY ———
+        try:
+            logger = self._c.inspection_logger
+            # detecta modo APPLY na aba “Controle de Eixos”
+            apply_mode = False
+            ctrl_tab = getattr(self._c, 'control_tab', None)
+            if ctrl_tab and ctrl_tab.seq_widget.radio_apply.isChecked():
+                apply_mode = True
+            if apply_mode:
+                ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                payload = {
+                    "posto":               logger.json_posto,
+                    "usuario":             logger.json_usuario,
+                    "data_hora":           ts,
+                    "quantidade_componentes": 1,
+                    "codigo_barras":       getattr(self, "_last_barcode", ""),
+                    "componentes":         {"aplicacao": 1}
+                }
+                # envio direto sem arquivo intermediário
+                logger.send_sfcs_data_from_dict(payload)
+                self._c.log(f"■ SFCS data enviado: {payload}")
+        except Exception as e:
+            self._c.log(f"■ Falha no envio de dados SFCS: {e}")
 
     # -----------------------------------------------------------------
     def _return_after_error(self):

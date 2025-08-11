@@ -209,11 +209,21 @@ class SequenceRunnerThread(QThread):
                 #          F  I  D  U  C  I  A  L
                 # ==================================================
                 if action == "fiducial":
+                    # checa “Config. de Processo” → desabilitar fiducial pula a etapa
+                    proc_cfg = getattr(self._motion._c.settings, "get_config", None)
+                    fid_ok = True
+                    if proc_cfg:
+                        fid_ok = proc_cfg("process_config", {}).get("fiducial", True)
+                    if not fid_ok:
+                        # leitura de fiducial desativada: apenas avança o progresso
+                        self._prev_was_fid = False
+                        self.progress.emit(idx, total)
+                        continue
+                    # caso esteja habilitado, processa normalmente
                     err = self._process_fiducial(pos)
                     if err:
                         self.error.emit(err)
                         return
-                    # marca que ESTE ponto é fiducial
                     self._prev_was_fid = True
                     self.progress.emit(idx, total)
                     continue

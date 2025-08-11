@@ -56,5 +56,15 @@
     "y": -4586
   },
   "projects_dir": "C:\\Users\\sense\\PycharmProjects\\cnc_aoi\\teste_clp\\Projetos",
-  "applicator_last_port": "COM23"
+  "applicator_last_port": "COM23",
+  "api_url": "http://147.1.0.85:3075/sfcs-print/rastreabilidade/inspecaovisual",
+  "json_posto": "",
+  "json_usuario": "",
+  "process_config": {
+    "fiducial": true,
+    "barcode": true,
+    "inspect": true,
+    "temperature": true,
+    "sfcs": true
+  }
 }

@@ -51,13 +51,28 @@ class SettingsManager:
             try:
                 self.data.update(json.loads(self._FILE.read_text("utf-8")))
             except Exception:
-                pass                       # mantém defaults
+                print(f"Error loading settings file: {Exception}")
+                self.data = {}  # mantém defaults
+
+    def get_config(self, key: str, default=None):
+        """
+        Retorna o valor de configuração associado a `key`,
+        ou `default` se a chave não existir.
+        """
+        return self.data.get(key, default)
+
+    def set_config(self, key: str, value):
+        """
+        Define o valor de configuração para `key` e persiste imediatamente.
+        """
+        self.data[key] = value
+        self.save()
 
     def save(self):
         try:
             self._FILE.write_text(json.dumps(self.data, indent=2), encoding="utf-8")
         except Exception:
-            pass
+            print(f"Error saving settings file: {Exception}")
 
     # conveniência
     @property
