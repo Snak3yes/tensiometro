@@ -152,6 +152,16 @@ class SequenceRunnerThread(QThread):
                     self.error.emit("Execução interrompida pelo usuário")
                     return
                 
+                # --- IGNORA QUALQUER AÇÃO DESLIGADA EM Config. de Processo ---
+                action   = (pos.camera_params or {}).get("action")
+                proc_cfg = self._motion._c.settings.get_config("process_config", {})
+                if action and not proc_cfg.get(action, True):
+                    # loga e avança o progresso sem mover nem processar
+                    self._motion._c.log(f"■ Ação '{action}' ignorada pela Config. de Processo")
+                    self.progress.emit(idx, total)
+                    continue
+            # -----------------------------------------------------------
+                
                 # ---------------------------------------------------
                 #  DECIDE SE OFFSET É APLICADO NESTE PONTO
                 #  • VIEW  → nunca aplica
@@ -205,21 +215,10 @@ class SequenceRunnerThread(QThread):
                 # --------------------------------------------------
                 action = (pos.camera_params or {}).get("action")
 
-                # ==================================================
-                #          F  I  D  U  C  I  A  L
-                # ==================================================
+                # ============================================================
+                #          FIDUCIAL
+                # ============================================================
                 if action == "fiducial":
-                    # checa “Config. de Processo” → desabilitar fiducial pula a etapa
-                    proc_cfg = getattr(self._motion._c.settings, "get_config", None)
-                    fid_ok = True
-                    if proc_cfg:
-                        fid_ok = proc_cfg("process_config", {}).get("fiducial", True)
-                    if not fid_ok:
-                        # leitura de fiducial desativada: apenas avança o progresso
-                        self._prev_was_fid = False
-                        self.progress.emit(idx, total)
-                        continue
-                    # caso esteja habilitado, processa normalmente
                     err = self._process_fiducial(pos)
                     if err:
                         self.error.emit(err)
@@ -229,14 +228,15 @@ class SequenceRunnerThread(QThread):
                     continue
                 else:
                     self._prev_was_fid = False
-                
-                # =================================================
-                #          B  A  R  C  O  D  E
-                # =================================================
+
+                # ============================================================
+                #          BARCODE
+                # ============================================================ 
                 if action == "barcode":
                     err = self._process_barcode(pos)
                     if err:
-                        self.error.emit(err); return
+                        self.error.emit(err)
+                        return
                     self._prev_was_bc = True
                     self.progress.emit(idx, total)
                     continue

@@ -65,6 +65,6 @@
     "barcode": true,
     "inspect": true,
     "temperature": true,
-    "sfcs": true
+    "sfcs": false
   }
 }

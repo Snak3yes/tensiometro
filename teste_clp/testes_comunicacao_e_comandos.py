@@ -61,6 +61,8 @@ class ProcessConfigDialog(QDialog):
 
     def _build_ui(self):
         layout = QVBoxLayout(self)
+        # Carrega configurações persistidas em settings.json
+        proc_cfg = self._ctrl.settings.get_config("process_config", {})
         # Definição dos cinco processos
         itens = [
             ("Fiducial", "fiducial"),
@@ -75,7 +77,11 @@ class ProcessConfigDialog(QDialog):
             row = QHBoxLayout(box)
             rb_on  = QRadioButton("Ligado")
             rb_off = QRadioButton("Desligado")
-            rb_off.setChecked(True)
+            # Estado inicial conforme valor salvo (default = ligado)
+            if proc_cfg.get(chave, True):
+                rb_on.setChecked(True)
+            else:
+                rb_off.setChecked(True)
             row.addWidget(rb_on)
             row.addWidget(rb_off)
             layout.addWidget(box)

@@ -267,29 +267,30 @@ class PlateFlowManager(QObject):
         except Exception:
             self._c.log("■ Erro ao calcular tempo de ciclo da mesa")
         self._c.log(f"■ Mesa {self._mesa}: ciclo concluído ✓")
-        # ——— Envia JSON simplificado ao SFCS se estivermos em modo APPLY ———
+        # ——— Envia JSON simplificado ao SFCS (APPLY) respeitando Config. de Processo ———
         try:
-            logger = self._c.inspection_logger
-            # detecta modo APPLY na aba “Controle de Eixos”
-            apply_mode = False
-            ctrl_tab = getattr(self._c, 'control_tab', None)
-            if ctrl_tab and ctrl_tab.seq_widget.radio_apply.isChecked():
-                apply_mode = True
-            if apply_mode:
-                ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                payload = {
-                    "posto":               logger.json_posto,
-                    "usuario":             logger.json_usuario,
-                    "data_hora":           ts,
-                    "quantidade_componentes": 1,
-                    "codigo_barras":       getattr(self, "_last_barcode", ""),
-                    "componentes":         {"aplicacao": 1}
-                }
-                # envio direto sem arquivo intermediário
-                logger.send_sfcs_data_from_dict(payload)
-                self._c.log(f"■ SFCS data enviado: {payload}")
+            cfg = self._c.settings.get_config("process_config", {})
+            # se Comunicação SFCS estiver desligada, pula o envio
+            if not cfg.get("sfcs", True):
+                self._c.log("■ Envio SFCS desativado pela Config. de Processo")
+            else:
+                ctrl_tab = getattr(self._c, 'control_tab', None)
+                if ctrl_tab and ctrl_tab.seq_widget.radio_apply.isChecked():
+                    ts = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    payload = {
+                        "posto":                  self._c.inspection_logger.json_posto,
+                        "usuario":               self._c.inspection_logger.json_usuario,
+                        "data_hora":             ts,
+                        "quantidade_componentes": 1,
+                        "codigo_barras":         getattr(self, "_last_barcode", ""),
+                        "componentes":           {"aplicacao": 1}
+                    }
+                    if self._c.inspection_logger.send_sfcs_data_from_dict(payload):
+                        self._c.log(f"■ SFCS data enviado: {payload}")
+                    else:
+                        self._c.log("■ Falha ao enviar SFCS data (retorno False)")
         except Exception as e:
-            self._c.log(f"■ Falha no envio de dados SFCS: {e}")
+            self._c.log(f"■ Exceção no envio de dados SFCS: {e}")
 
     # -----------------------------------------------------------------
     def _return_after_error(self):
