@@ -3,6 +3,7 @@ import serial
 import serial.tools.list_ports
 import struct
 import time
+from typing import Callable
 from PyQt6.QtWidgets import *
 from PyQt6.QtCore import *
 from PyQt6.QtGui import *
@@ -21,6 +22,12 @@ COM_SETTINGS = dict(
 # Temporizações (ms)
 MONITOR_INTERVAL_MS = 3000
 AUTO_TEST_DELAY_MS  = 500
+
+# Novas constantes Modbus
+DEVICE_ID         = 0x01
+FUNC_READ         = 0x03
+FUNC_WRITE_SINGLE = 0x06
+FUNC_WRITE_MULTI  = 0x10
 
 class AdhesiveApplicatorController(QMainWindow):
     def __init__(self):
@@ -187,6 +194,16 @@ class AdhesiveApplicatorController(QMainWindow):
         hi, lo = (val >> 8) & 0xFF, val & 0xFF
         base = f"01 {func:02X} {reg:04X} 00 01 02 {hi:02X} {lo:02X}"
         return self.send_command(self.build_modbus_command(base), desc)
+    
+    def write_single_register(self, reg: int, val: int, desc: str):
+        """Escreve 1 registrador via função 0x06."""
+        base = f"{DEVICE_ID:02X} {FUNC_WRITE_SINGLE:02X} {reg:04X} 00 {val:02X}"
+        return self.send_command(self.build_modbus_command(base), desc)
+
+    def read_register(self, reg: int, parser: Callable, desc: str):
+        """Lê 1 registrador via função 0x03 e dispara o parser."""
+        base = f"{DEVICE_ID:02X} {FUNC_READ:02X} {reg:04X} 00 01"
+        return self.send_and_parse(base, parser, desc)
         
     def refresh_ports(self):
         """Atualiza portas COM"""
@@ -380,13 +397,13 @@ class AdhesiveApplicatorController(QMainWindow):
             
     def monitor_device(self):
         """Monitoramento em loop apenas de temperatura e pressões."""
-        # Monitoramento periódico de Temperatura e Pressões
-        for base, parser, desc in [
-            ("01 03 00 48 00 01", self.parse_temperature_response, "Monitor Temperatura"),
-            ("01 03 00 49 00 01", self.parse_supply_pressure,     "Monitor Supply-Pressure"),
-            ("01 03 00 4A 00 01", self.parse_open_pressure,        "Monitor Open-Pressure"),
+        # leitura periódica parametrizada
+        for reg, parser, desc in [
+            (0x0048, self.parse_temperature_response, "Monitor Temperatura"),
+            (0x0049, self.parse_supply_pressure,     "Monitor Supply-Pressure"),
+            (0x004A, self.parse_open_pressure,        "Monitor Open-Pressure"),
         ]:
-            self.send_and_parse(base, parser, desc)
+            self.read_register(reg, parser, desc)
               
     def calculate_crc(self, data):
         """Calcula CRC16 Modbus"""
@@ -412,12 +429,7 @@ class AdhesiveApplicatorController(QMainWindow):
         """Define modo de disparo (Finite ou Infinite)"""
         # indice corresponde ao código de modo 0=Defined,1=Infinite,2=Group,3=Purge
         idx = self.mode_combo.currentIndex()
-        base_cmd = f"01 06 00 40 00 {idx:02X}"
-        full_cmd = self.build_modbus_command(base_cmd)
-        
-        response = self.send_command(full_cmd, f"Configurar Modo")
-        sent = bytes.fromhex(full_cmd.replace(" ", ""))
-        if response and response[:len(sent)] == sent:
+        if self.write_single_register(0x0040, idx, "Configurar Modo"):
             text = self.mode_combo.currentText()
             QMessageBox.information(self, "Sucesso", f"Modo definido: {text}")
         else:
@@ -425,17 +437,17 @@ class AdhesiveApplicatorController(QMainWindow):
     # --- Setters para extensão ---
     def set_unit(self):
         # currentIndex já retorna 0 para PSI, 1 para KPA
-        v = self.unit_combo.currentIndex()
-        cmd = self.build_modbus_command(f"01 06 00 41 00 {v:02X}")
-        r = self.send_command(cmd,"Definir Unidade")
-        if r: QMessageBox.information(self,"OK","Unidade definida")
+        if self.write_single_register(0x0041,
+                                      self.unit_combo.currentIndex(),
+                                      "Definir Unidade"):
+            QMessageBox.information(self, "OK", "Unidade definida")
 
     def set_heat1(self):
         # currentIndex: 0=ON, 1=OFF
-        v = self.heat1_combo.currentIndex()
-        cmd = self.build_modbus_command(f"01 06 00 42 00 {v:02X}")
-        r = self.send_command(cmd,"Definir Heat1")
-        if r: QMessageBox.information(self,"OK","Canal1 definido")
+        if self.write_single_register(0x0042,
+                                      self.heat1_combo.currentIndex(),
+                                      "Definir Canal1"):
+            QMessageBox.information(self, "OK", "Canal1 definido")
 
     def set_open_time(self):
         valor = self.open_time_spin.value()
@@ -514,19 +526,18 @@ class AdhesiveApplicatorController(QMainWindow):
         Lê registradores após a conexão e preenche os campos da UI:
         modo, unidade de pressão, canal1, tempos e temperaturas set.
         """
-        batch = [
-            ("01 03 00 40 00 01", self.parse_mode_response),
-            ("01 03 00 41 00 01", self.parse_unit_response),
-            ("01 03 00 42 00 01", self.parse_heat1_response),
-            ("01 03 00 43 00 01", lambda r: self.parse_time_response(r, 'open')),
-            ("01 03 00 44 00 01", lambda r: self.parse_time_response(r, 'close')),
-            ("01 03 00 47 00 01", lambda r: self.parse_tempset_response(r, 1)),
-            ("01 03 00 49 00 01", self.parse_supply_pressure),
-            ("01 03 00 4A 00 01", self.parse_open_pressure),
-        ]
-        for base_cmd, parser in batch:
-            # reaproveita send_and_parse com descrição genérica
-            self.send_and_parse(base_cmd, parser, "Leitura Inicial")
+        # inicialização em lote dos parâmetros
+        for reg, parser in [
+            (0x0040, self.parse_mode_response),
+            (0x0041, self.parse_unit_response),
+            (0x0042, self.parse_heat1_response),
+            (0x0043, lambda r: self.parse_time_response(r, 'open')),
+            (0x0044, lambda r: self.parse_time_response(r, 'close')),
+            (0x0047, lambda r: self.parse_tempset_response(r, 1)),
+            (0x0049, self.parse_supply_pressure),
+            (0x004A, self.parse_open_pressure),
+        ]:
+            self.read_register(reg, parser, "Leitura Inicial")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

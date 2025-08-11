@@ -422,9 +422,13 @@ class MultiAxisMotorController(QMainWindow):
         act_homecfg = menu_cfg.addAction("Homing Virtual…")
         act_homecfg.triggered.connect(self._open_virtual_home_dialog)
 
-        # ------------- NOVO  –  ALINHAMENTO NOZZLE/CÂMERA ---------
+        # --------- ALINHAMENTO NOZZLE/CÂMERA ---------
         act_align = menu_cfg.addAction("Alinhamento Nozzle↔Câmera…")
         act_align.triggered.connect(self._open_alignment_dialog)
+
+        # ação para abrir controladora de aplicação ---
+        act_applicator = menu_cfg.addAction("Controladora de aplicação")
+        act_applicator.triggered.connect(self._open_applicator_controller)
 
         # ------------------ DOT PATTERNS ---------------------------
         act_dots = menu_prog.addAction("Padrões de Dots…")
@@ -604,6 +608,50 @@ class MultiAxisMotorController(QMainWindow):
         dlg = AlignmentDialog(self, self)          # não modal
         dlg.offsetSaved.connect(self._save_nozzle_offset)
         dlg.show()
+
+    def _open_applicator_controller(self):
+        """Abre janela flutuante da controladora de aplicação de adesivo."""
+        try:
+            from aplicadora_tab import AdhesiveApplicatorTab
+            # instancia apenas uma vez
+            if not hasattr(self, 'applicator_window'):
+                self.applicator_window = AdhesiveApplicatorTab(self)
+                # conecta sinais de temperatura à aba Controle de Eixos
+                try:
+                    self.applicator_window.temperatureUpdated.connect(
+                        self.control_tab.update_applicator_current_temp)
+                    self.applicator_window.configTempUpdated.connect(
+                        self.control_tab.update_applicator_config_temp)
+                except Exception:
+                    pass
+                self.applicator_window.setWindowTitle("Controladora de aplicação")
+                # faz com que a janela fique sempre acima da principal
+                self.applicator_window.setWindowFlags(
+                    self.applicator_window.windowFlags()
+                    | Qt.WindowType.Window
+                    | Qt.WindowType.WindowStaysOnTopHint
+                )
+            # mostra sem bloquear (não modal), traz para frente
+            self.applicator_window.show()
+            self.applicator_window.raise_()
+            self.applicator_window.activateWindow()
+            # auto‐seleciona a última porta e conecta sem precisar clicar
+            last = self.settings.data.get('applicator_last_port')
+            if last:
+                # recarrega portas e tenta posicionar no último valor
+                self.applicator_window.refresh_ports()
+                idx = self.applicator_window.port_combo.findData(last)
+                if idx >= 0:
+                    self.applicator_window.port_combo.setCurrentIndex(idx)
+                # reconecta só se ainda não estiver conectado
+                if not self.applicator_window.serial_connection:
+                    self.applicator_window.connect_serial()
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Não foi possível abrir a controladora de aplicação:\n{e}"
+            )
 
     def _save_nozzle_offset(self, off: dict[str, int]):
         """Salvo em memória e disco."""

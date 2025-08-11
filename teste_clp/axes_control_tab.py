@@ -884,6 +884,16 @@ class AxesControlTab(QWidget):
         # primeira sincronização
         self._sync_mesa1_positions()
         self._sync_mesa2_positions()
+    # ------------------------------------------------------------------
+    # Slots para exibir temperatura da aplicadora nesta aba
+    # ------------------------------------------------------------------
+    def update_applicator_current_temp(self, temp: float):
+        """Atualiza o label de temperatura real."""
+        self.lbl_temp_current.setText(f"Atual: {temp:.1f}°C")
+
+    def update_applicator_config_temp(self, temp: float):
+        """Atualiza o label de temperatura configurada."""
+        self.lbl_temp_config.setText(f"Config: {temp:.1f}°C")
 
     # ---------- helper interno ------------------------------------
     @staticmethod
