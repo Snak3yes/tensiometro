@@ -8,7 +8,7 @@ Usa apenas Qt (sem dependências externas).
 from typing import List, Tuple, Optional
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsEllipseItem, \
                            QGraphicsRectItem, QGraphicsSimpleTextItem
-from PyQt6.QtGui import QPen, QBrush, QColor, QPainter
+from PyQt6.QtGui import QPen, QBrush, QColor, QPainter, QPalette
 from PyQt6.QtCore import QRectF, Qt, QSizeF
 
 class MesaPlotWidget(QGraphicsView):
@@ -70,7 +70,9 @@ class MesaPlotWidget(QGraphicsView):
         rect = QRectF(x0-margin, y0-margin, w+2*margin, h+2*margin)
         self._work_rect = rect
         self.setSceneRect(rect)
-        pen = QPen(QColor("#455A64")); pen.setWidth(2)
+        # adapt grid frame to system theme
+        # use ColorRole.Dark instead of deprecated QPalette.Dark
+        pen = QPen(self.palette().color(QPalette.ColorRole.Dark)); pen.setWidth(2)
         brush = QBrush(Qt.BrushStyle.NoBrush)
         self._scene.addRect(QRectF(x0, y0, w, h), pen, brush)
         # título
@@ -107,8 +109,10 @@ class MesaPlotWidget(QGraphicsView):
         # ----------------------------------------------------------
         x_min, x_max = self._lim['x']
         # adiciona
-        pen = QPen(Qt.GlobalColor.darkBlue); pen.setWidth(0)
-        brush = QBrush(Qt.GlobalColor.blue)
+        # adapt point color to system highlight
+        # adapt point color to system highlight role
+        pen   = QPen(self.palette().color(QPalette.ColorRole.Highlight)); pen.setWidth(0)
+        brush = QBrush(self.palette().color(QPalette.ColorRole.Highlight))
         r_pix = 6   # diâmetro em pixels (fixo)
         for (x_raw, y_raw) in points:
             # ---------- conversão pulsos → mm  + ajustes ---------------
@@ -147,8 +151,9 @@ class MesaPlotWidget(QGraphicsView):
             return                     # ignora pontos fora da área
 
         if self._head_item is None:
-            pen = QPen(Qt.GlobalColor.red); pen.setWidth(0)
-            brush = QBrush(Qt.GlobalColor.red)
+            # adapt head color to system highlighted-text role
+            pen   = QPen(self.palette().color(QPalette.ColorRole.HighlightedText)); pen.setWidth(0)
+            brush = QBrush(self.palette().color(QPalette.ColorRole.HighlightedText))
             self._head_item = self._scene.addEllipse(
                 -r_pix/2, -r_pix/2, r_pix, r_pix, pen, brush)
             self._head_item.setFlag(

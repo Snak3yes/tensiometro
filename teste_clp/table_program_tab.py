@@ -298,8 +298,14 @@ class TableProgramTab(QWidget):
         
         self.lbl_video = ClickableLabel("Sem vídeo")
         self.lbl_video.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_video.setStyleSheet(
-            "QLabel { background:#000; color:#FFF; border:1px dashed #607D8B; }")
+        # Use system palette instead of fixed dark colors, and a native frame
+        self.lbl_video.setAutoFillBackground(True)
+        self.lbl_video.setPalette(self.palette())
+        self.lbl_video.setFrameShape(QFrame.Shape.Box)
+        self.lbl_video.setFrameShadow(QFrame.Shadow.Sunken)
+        self.lbl_video.setLineWidth(1)
+        self.lbl_video.setMidLineWidth(0)
+        self.lbl_video.setStyleSheet("")  # clear any custom CSS
         # não deixa o label pedir altura maior que a célula
         self.lbl_video.setSizePolicy(
             QSizePolicy.Policy.Expanding,      # horizontal livre
@@ -388,8 +394,13 @@ class TableProgramTab(QWidget):
                             QSizePolicy.Policy.Preferred)
         
         bottom = QFrame()
-        bottom.setStyleSheet(
-            "QFrame { background:#ECEFF1; border:1px dashed #B0BEC5;}")
+        # Use system palette instead of fixed light background and custom border
+        bottom.setAutoFillBackground(True)
+        bottom.setPalette(self.palette())
+        bottom.setFrameShape(QFrame.Shape.StyledPanel)
+        bottom.setFrameShadow(QFrame.Shadow.Raised)
+        bottom.setLineWidth(1)
+        bottom.setMidLineWidth(0)
         # garante que a linha 1 tenha “peso” para competir com o vídeo
         bottom.setSizePolicy(QSizePolicy.Policy.Expanding,
                              QSizePolicy.Policy.Expanding)

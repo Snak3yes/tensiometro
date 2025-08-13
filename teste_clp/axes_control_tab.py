@@ -87,9 +87,10 @@ class AxesControlTab(QWidget):
         m1_layout.setSpacing(2)
         # coluna de plotagem
         m1_layout.addWidget(self.plot_m1)
-        # coluna livre
+        # coluna de plotagem – use palette em vez de cor fixa
         m1_blank = QFrame()
-        m1_blank.setStyleSheet("QFrame { background-color:#303030; }")
+        m1_blank.setAutoFillBackground(True)
+        m1_blank.setPalette(self.palette())
         m1_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m1_layout.addWidget(m1_blank)
@@ -161,9 +162,10 @@ class AxesControlTab(QWidget):
         m2_layout.setSpacing(2)
         # coluna de plotagem
         m2_layout.addWidget(self.plot_m2)
-        # coluna livre
+        # coluna livre – use palette em vez de cor fixa
         m2_blank = QFrame()
-        m2_blank.setStyleSheet("QFrame { background-color:#303030; }")
+        m2_blank.setAutoFillBackground(True)
+        m2_blank.setPalette(self.palette())
         m2_blank.setSizePolicy(QSizePolicy.Policy.Expanding,
                                 QSizePolicy.Policy.Expanding)
         m2_layout.addWidget(m2_blank)
@@ -230,12 +232,10 @@ class AxesControlTab(QWidget):
         # --------------------- COLUNA DIREITA (15 %) -------------------
         right_col = QVBoxLayout()
 
-        # ■■ Preview de vídeo da câmera – dentro de um GroupBox ■■■■■■
-        # Uses our AspectRatioLabel (4:3 by default) to respect camera ratio
+        # Preview de vídeo da câmera – use palette para adaptar a tema claro/escuro
         self.camera_label = AspectRatioLabel(aspect_ratio=4/3)
-        self.camera_label.setStyleSheet(
-            "QLabel { background-color: black; }"
-        )
+        self.camera_label.setAutoFillBackground(True)
+        self.camera_label.setPalette(self.palette())
         # permite expandir até a largura da coluna
         self.camera_label.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -373,12 +373,9 @@ class AxesControlTab(QWidget):
         # ------------------------------ LINHA INFERIOR -----------------
         # só o bottom_placeholder na coluna 0
         bottom_placeholder = QFrame(objectName="centerBottom")
-        bottom_placeholder = QFrame(objectName="centerBottom")
-        # ----------------------------------------------------------
-        #  Fundo igual ao painel de cima (cinza-escuro)
-        # ----------------------------------------------------------
-        bottom_placeholder.setStyleSheet(
-            "QFrame#centerBottom { background-color:#303030; }")
+        # use palette em vez de cor fixa
+        bottom_placeholder.setAutoFillBackground(True)
+        bottom_placeholder.setPalette(self.palette())
         bottom_placeholder.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding)
@@ -387,10 +384,14 @@ class AxesControlTab(QWidget):
         bottom_lay.setContentsMargins(0, 0, 0, 0)
         bottom_lay.setSpacing(0)
 
+        # ----------------------------------------------------------
+        #  ESPELHO DAS POSIÇÕES  –  MESA 1
+        # ----------------------------------------------------------
         def _make_half() -> QFrame:
             half = QFrame()
-            # mesma cor do canvas onde são plotados os pontos
-            half.setStyleSheet("QFrame { background-color:#303030; }")
+            # adapta o background ao tema do sistema em vez de cor fixa
+            half.setAutoFillBackground(True)
+            half.setPalette(self.palette())
             half.setSizePolicy(QSizePolicy.Policy.Expanding,
                                QSizePolicy.Policy.Expanding)
             return half
@@ -405,20 +406,25 @@ class AxesControlTab(QWidget):
         left_half_lay.setContentsMargins(4, 4, 4, 4)
 
         self.mirror_m1_label = QLabel("Posições de Inspeção – Mesa 1")
-        self.mirror_m1_label.setStyleSheet(
-            "QLabel { color:#ECEFF1; font-weight:bold; }")
+        # apenas negrito; deixa cor de texto do sistema
+        font = self.mirror_m1_label.font()
+        font.setBold(True)
+        self.mirror_m1_label.setFont(font)
 
         # --- lista + espaço vazio (60 % | 40 %) --------------------
         self.mirror_m1_list = QListWidget()
-        self.mirror_m1_list.setStyleSheet(
-            "QListWidget { background:#424242; color:#ECEFF1; }")
+        # use palette para fundo e texto
+        self.mirror_m1_list.setAutoFillBackground(True)
+        self.mirror_m1_list.setPalette(self.palette())
         self.mirror_m1_list.setMinimumHeight(140)
 
         m1_row = QHBoxLayout()
         m1_row.setContentsMargins(0, 0, 0, 0)
         m1_row.addWidget(self.mirror_m1_list)
         self._m1_blank = QFrame()                  # área vazia 40 %
-        self._m1_blank.setStyleSheet("QFrame { background:#303030; }")
+        # adapta o background ao tema do sistema
+        self._m1_blank.setAutoFillBackground(True)
+        self._m1_blank.setPalette(self.palette())
         m1_row.addWidget(self._m1_blank)
         m1_row.setStretchFactor(self.mirror_m1_list, 3)   # ≈60 %
         m1_row.setStretchFactor(self._m1_blank,      2)   # ≈40 %
@@ -445,19 +451,24 @@ class AxesControlTab(QWidget):
         right_half_lay.setContentsMargins(4, 4, 4, 4)
 
         self.mirror_m2_label = QLabel("Posições de Inspeção – Mesa 2")
-        self.mirror_m2_label.setStyleSheet(
-            "QLabel { color:#ECEFF1; font-weight:bold; }")
+        # apenas negrito; deixa cor de texto do sistema
+        font = self.mirror_m2_label.font()
+        font.setBold(True)
+        self.mirror_m2_label.setFont(font)
 
         self.mirror_m2_list = QListWidget()
-        self.mirror_m2_list.setStyleSheet(
-            "QListWidget { background:#424242; color:#ECEFF1; }")
+        # use palette para fundo e texto
+        self.mirror_m2_list.setAutoFillBackground(True)
+        self.mirror_m2_list.setPalette(self.palette())
         self.mirror_m2_list.setMinimumHeight(140)
 
         m2_row = QHBoxLayout()
         m2_row.setContentsMargins(0, 0, 0, 0)
         m2_row.addWidget(self.mirror_m2_list)
         self._m2_blank = QFrame()
-        self._m2_blank.setStyleSheet("QFrame { background:#303030; }")
+        # adapta o background ao tema do sistema
+        self._m2_blank.setAutoFillBackground(True)
+        self._m2_blank.setPalette(self.palette())
         m2_row.addWidget(self._m2_blank)
         m2_row.setStretchFactor(self.mirror_m2_list, 3)
         m2_row.setStretchFactor(self._m2_blank,      2)
@@ -486,8 +497,10 @@ class AxesControlTab(QWidget):
 
         # divisor visual (1 px) para evidenciar as duas colunas
         divider = QFrame()
-        divider.setFixedWidth(1)
-        divider.setStyleSheet("QFrame { background-color:#505050; }")
+        # usa forma nativa de linha em vez de cor fixa
+        divider.setFrameShape(QFrame.Shape.VLine)
+        divider.setFrameShadow(QFrame.Shadow.Sunken)
+        divider.setLineWidth(1)
 
         bottom_lay.addWidget(left_half,  1)
         bottom_lay.addWidget(divider)

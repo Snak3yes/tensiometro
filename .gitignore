@@ -292,3 +292,8 @@ output/testes_comunicacao_e_comandos/_internal/numpy.libs/libscipy_openblas64_-4
 output/testes_comunicacao_e_comandos/_internal/numpy.libs/msvcp140-263139962577ecda4cd9469ca360a746.dll
 output/testes_comunicacao_e_comandos/_internal/pyzbar/libiconv.dll
 output/testes_comunicacao_e_comandos/_internal/pyzbar/libzbar-64.dll
+teste_clp/__pycache__/axes_control_tab.cpython-310.pyc
+teste_clp/__pycache__/camera_manager.cpython-310.pyc
+teste_clp/__pycache__/sequence_control.cpython-310.pyc
+teste_clp/__pycache__/table_program_tab.cpython-310.pyc
+teste_clp/drivers/

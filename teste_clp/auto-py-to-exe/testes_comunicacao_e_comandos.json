@@ -18,6 +18,10 @@
    "value": false
   },
   {
+   "optionDest": "icon_file",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/resources/app_icon.ico"
+  },
+  {
    "optionDest": "clean_build",
    "value": false
   },
@@ -220,6 +224,10 @@
   {
    "optionDest": "collect_binaries",
    "value": "pyzbar"
+  },
+  {
+   "optionDest": "datas",
+   "value": "C:/Users/sense/PycharmProjects/cnc_aoi/teste_clp/resources;resources/"
   }
  ],
  "nonPyinstallerOptions": {

@@ -5,6 +5,8 @@ import cv2
 from pathlib import Path
 from plate_flow import PlateFlowManager
 from inspection_logger import InspectionLogger
+from PyQt6.QtWidgets import QSystemTrayIcon, QSplashScreen
+from PyQt6.QtGui     import QIcon, QPixmap
 from virtual_home_dialog import ConfigHomeDialog
 from axis_calibration_dialog import AxisCalibrationDialog
 from settings_manager import SettingsManager
@@ -27,7 +29,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                             QGroupBox, QGridLayout, QTabWidget, QTextEdit,
                             QFrame, QSizePolicy, QCheckBox, QScrollArea,
                             QMessageBox)
-from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread
+from PyQt6.QtCore import Qt, QTimer, pyqtSignal, QObject, QThread, QSize
 from PyQt6.QtCore import pyqtSlot
 from PyQt6.QtGui import QFont
 from pymodbus.client import ModbusTcpClient
@@ -584,10 +586,11 @@ class MultiAxisMotorController(QMainWindow):
         # --------------------- BANNER DE CONEXÃO (rodapé) -------------
         # Usa o status-bar nativo do QMainWindow (aparece no rodapé).
         self.status_bar = self.statusBar()          # QStatusBar
-        self.status_bar.setSizeGripEnabled(False)   # oculta “grip” de redimensionar
+        self.status_bar.setSizeGripEnabled(False)
         self.status_bar.showMessage("Desconectado")
-        self.status_bar.setStyleSheet(
-            "QStatusBar { background-color:red; color:white; font-weight:bold; }")
+        # Adapt to system theme
+        self.status_bar.setAutoFillBackground(True)
+        self.status_bar.setPalette(self.palette())
         
         # Abas para organizar
         # ----------------------------------------------------------------
@@ -1270,9 +1273,13 @@ class MultiAxisMotorController(QMainWindow):
         self.log("‚úÖ Configuração – gravação concluída")
                 
     def create_axis_control(self, title, axis_name):
-        """Cria controle para um eixo - CORRIGIDO para valores absolutos"""
+        """Cria controle para um eixo """
         group = QGroupBox(title)
-        group.setStyleSheet("QGroupBox { font-weight: bold; font-size: 12px; }")
+        # use native font instead of stylesheet
+        font = group.font()
+        font.setBold(True)
+        font.setPointSize(12)
+        group.setFont(font)
         layout = QVBoxLayout()
         
         # Parâmetros
@@ -1333,8 +1340,11 @@ class MultiAxisMotorController(QMainWindow):
         move_layout = QGridLayout(move_frame)
         
         # Movimento absoluto principal
-        move_abs_btn = QPushButton("🎯 MOVER PARA POSIÇÃO ABSOLUTA")
-        move_abs_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; padding: 10px; font-weight: bold; }")
+        move_abs_btn = QPushButton("■ MOVER PARA POSIÇÃO ABSOLUTA")
+        # adapt to system theme
+        move_abs_btn.setAutoFillBackground(True)
+        move_abs_btn.setPalette(self.palette())
+        fb = move_abs_btn.font(); fb.setBold(True); move_abs_btn.setFont(fb)
         move_abs_btn.clicked.connect(lambda: self.move_axis_absolute(axis_name))
         move_layout.addWidget(move_abs_btn, 0, 0, 1, 2)
         
@@ -1347,45 +1357,30 @@ class MultiAxisMotorController(QMainWindow):
             
             # Frame JOG
             jog_frame = QFrame()
-            jog_frame.setStyleSheet("QFrame { border: 2px solid #2196F3; border-radius: 5px; background-color: #E3F2FD; }")
+            # use native styled panel
+            jog_frame.setFrameShape(QFrame.Shape.StyledPanel)
+            jog_frame.setFrameShadow(QFrame.Shadow.Raised)
+            jog_frame.setLineWidth(2)
             jog_layout = QVBoxLayout(jog_frame)
                                 
             # Botões JOG com pressionar/soltar
             jog_buttons_layout = QHBoxLayout()
             
             # Botão JOG Negativo (à esquerda)
-            jog_minus_btn = QPushButton(f"🔽 JOG {axis_name}-")
-            jog_minus_btn.setStyleSheet("""
-                QPushButton { 
-                    background-color: #FF5722; 
-                    color: white; 
-                    font-weight: bold; 
-                    padding: 10px;
-                    border-radius: 5px;
-                }
-                QPushButton:pressed { 
-                    background-color: #e64a19;
-                }
-            """)
+            jog_minus_btn = QPushButton(f"■ JOG {axis_name}-")
+            jog_minus_btn.setAutoFillBackground(True)
+            jog_minus_btn.setPalette(self.palette())
+            fj = jog_minus_btn.font(); fj.setBold(True); jog_minus_btn.setFont(fj)
             jog_minus_btn.pressed.connect(lambda: self.jog_start(axis_name, '-'))
             jog_minus_btn.released.connect(lambda: self.jog_stop(axis_name))
             jog_buttons_layout.addWidget(jog_minus_btn)
             setattr(self, f'jog_minus_btn_{axis_name}', jog_minus_btn)
             
             # Botão JOG Positivo (à direita)
-            jog_plus_btn = QPushButton(f"🔼 JOG {axis_name}+")
-            jog_plus_btn.setStyleSheet("""
-                QPushButton { 
-                    background-color: #4CAF50; 
-                    color: white; 
-                    font-weight: bold; 
-                    padding: 10px;
-                    border-radius: 5px;
-                }
-                QPushButton:pressed { 
-                    background-color: #45a049;
-                }
-            """)
+            jog_plus_btn = QPushButton(f"■ JOG {axis_name}+")
+            jog_plus_btn.setAutoFillBackground(True)
+            jog_plus_btn.setPalette(self.palette())
+            fp = jog_plus_btn.font(); fp.setBold(True); jog_plus_btn.setFont(fp)
             jog_plus_btn.pressed.connect(lambda: self.jog_start(axis_name, '+'))
             jog_plus_btn.released.connect(lambda: self.jog_stop(axis_name))
             jog_buttons_layout.addWidget(jog_plus_btn)
@@ -1410,7 +1405,9 @@ class MultiAxisMotorController(QMainWindow):
         y010_btn = QPushButton("SHOT (M5000)")
         y010_btn.setCheckable(True)
         y010_btn.clicked.connect(self.pulse_y010)
-        y010_btn.setStyleSheet("QPushButton:checked { background-color: orange; }")
+        # adapt to system theme
+        y010_btn.setAutoFillBackground(True)
+        y010_btn.setPalette(self.palette())
         layout.addWidget(y010_btn)
         setattr(self, 'y010_btn', y010_btn)
         
@@ -1506,7 +1503,9 @@ class MultiAxisMotorController(QMainWindow):
         for i, (name, desc) in enumerate(outputs):
             layout.addWidget(QLabel(f"{name}:"), i//2, (i%2)*2)
             status_label = QLabel("OFF")
-            status_label.setStyleSheet("QLabel { background-color: gray; color: white; padding: 5px; }")
+            # adapt to system theme
+            status_label.setAutoFillBackground(True)
+            status_label.setPalette(self.palette())
             layout.addWidget(status_label, i//2, (i%2)*2 + 1)
             setattr(self, f'{name.replace(".", "_")}_status', status_label)
             
@@ -1530,7 +1529,8 @@ class MultiAxisMotorController(QMainWindow):
         for i, mem in enumerate(memories):
             layout.addWidget(QLabel(f"{mem}:"), i//4, (i%4)*2)
             status_label = QLabel("OFF")
-            status_label.setStyleSheet("QLabel { background-color: gray; color: white; padding: 5px; }")
+            status_label.setAutoFillBackground(True)
+            status_label.setPalette(self.palette())
             layout.addWidget(status_label, i//4, (i%4)*2 + 1)
             setattr(self, f'{mem}_status', status_label)
             
@@ -1557,7 +1557,8 @@ class MultiAxisMotorController(QMainWindow):
         for i, reg in enumerate(registers):
             layout.addWidget(QLabel(f"{reg}:"), i//4, (i%4)*2)
             status_label = QLabel("0")
-            status_label.setStyleSheet("QLabel { background-color: lightgray; padding: 5px; }")
+            status_label.setAutoFillBackground(True)
+            status_label.setPalette(self.palette())
             layout.addWidget(status_label, i//4, (i%4)*2 + 1)
             setattr(self, f'{reg}_status', status_label)
             
@@ -1573,15 +1574,13 @@ class MultiAxisMotorController(QMainWindow):
             if self.client.connect():
                 self.connected = True
                 self.status_bar.showMessage("■ CONECTADO: 192.168.1.5:502")
-                self.status_bar.setStyleSheet(
-                    "QStatusBar { background-color:green; color:white; font-weight:bold; }")
+                self.status_bar.setPalette(self.palette())
                 self.log("✅ Conectado com sucesso!")
                 self.log("🔧 Endereços corrigidos conforme ladder real")
             else:
                 self.connected = False
                 self.status_bar.showMessage("Desconectado")
-                self.status_bar.setStyleSheet(
-                    "QStatusBar { background-color:red; color:white; font-weight:bold; }")
+                self.status_bar.setPalette(self.palette())
                 self.log("■ Falha na conexão")
                 
         except Exception as e:
@@ -3143,9 +3142,40 @@ class PLCMotionBackend(QObject):
 def main():
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
+
+    # Exibe splash screen com o app_icon.png
+    splash_pix = QPixmap(str(Path(__file__).resolve().parent / 'resources' / 'app_icon.png'))
+    splash      = QSplashScreen(splash_pix)
+    splash.show()
+    app.processEvents()
     
+    # carrega o .ico e embute várias resoluções para rodar ok no tray do Windows
+    res_dir  = Path(__file__).resolve().parent / 'resources'
+    ico_file = res_dir / 'app_icon.ico'
+    if not ico_file.exists():
+        raise FileNotFoundError(f"resources/app_icon.ico não encontrado em {res_dir}")
+    icon = QIcon()
+    # adiciona as resoluções mais comuns
+    
+    for size in (16, 32, 48, 256):
+        icon.addFile(str(ico_file), QSize(size, size))
+    # aplica globalmente
+    app.setWindowIcon(icon)
+
+    # janela principal
     window = MultiAxisMotorController()
+    window.setWindowIcon(icon)
+
+    # cria o ícone na bandeja usando o mesmo QIcon e mantém a referência
+    tray = QSystemTrayIcon(parent=window)
+    tray.setIcon(icon)
+    tray.setToolTip("Controle Multi-Eixos - Delta AS")
+    tray.show()
+    # mantém viva a instância para evitar GC
+    window.tray_icon = tray
     window.showMaximized()   # abre já maximizado
+    # fecha o splash após a janela principal estar visível
+    splash.finish(window)
     
     print("="*60)
     print("CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)")
