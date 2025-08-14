@@ -240,6 +240,7 @@ class MultiAxisMotorController(QMainWindow):
             # botões / sinal de conclusão do fluxo de placa
             'M20': 20,   # botão Mesa 1
             'M21': 21,   # done Mesa 1
+            'M22': 22,   # reset homing realizado (desativa M300/M800/M1300/M1800)
             'M30': 30,   # botão Mesa 2
             'M31': 31,   # done Mesa 2
 
@@ -2771,7 +2772,7 @@ class MultiAxisMotorController(QMainWindow):
                 if name in ['M10_Y2', 'M11_Y2', 'M510_Y1', 'M511_Y1', 'M1010_X', 'M1011_X', 'M1510_Z', 'M1511_Z']:
                     axis_map = {
                         'M10_Y2': 'Y2', 'M11_Y2': 'Y2',
-                        'M510_Y1': 'Y1', 'M511_Y1': 'Y1', 
+                        'M510_Y1': 'Y1', 'M511_Y1': 'Y1',
                         'M1010_X': 'X', 'M1011_X': 'X',
                         'M1510_Z': 'Z', 'M1511_Z': 'Z'
                     }
@@ -2897,6 +2898,13 @@ class MultiAxisMotorController(QMainWindow):
     def closeEvent(self, event):
         """Fecha conexão ao sair"""
         if self.client:
+            # reset homing‐done flags so next start must re-home all axes
+            try:
+                self.log("■ Resetando homing statuses: acionando M22")
+                self._pulse_coil('M22')
+            except Exception as e:
+                self.log(f"■ Falha ao pulsar M22: {e}")
+            # then do emergency stop and close
             self.emergency_stop()
             self.client.close()
             self.status_bar.showMessage("Desconectado")
@@ -3165,17 +3173,55 @@ def main():
     # janela principal
     window = MultiAxisMotorController()
     window.setWindowIcon(icon)
-
-    # cria o ícone na bandeja usando o mesmo QIcon e mantém a referência
+    # system tray icon (keep reference so it's not GC’d)
     tray = QSystemTrayIcon(parent=window)
     tray.setIcon(icon)
     tray.setToolTip("Controle Multi-Eixos - Delta AS")
     tray.show()
-    # mantém viva a instância para evitar GC
     window.tray_icon = tray
-    window.showMaximized()   # abre já maximizado
-    # fecha o splash após a janela principal estar visível
-    splash.finish(window)
+
+    # 1) start homing sequence (same as “Go to Zero”)
+    window.home_all_axes()
+
+    # 2) poll every 500 ms for completion of all four homing coils:
+    #    M300 (Y2), M800 (Y1), M1300 (X), M1800 (Z)
+    homing_timer = QTimer()
+    # Timeout de 30 segundos para homing
+    homing_start = time.time()
+    homing_timer.setInterval(500)
+    def check_homing():
+        mems = ['M300','M800','M1300','M1800']
+        all_done = True
+        for mem in mems:
+            try:
+                result = window.client.read_coils(window.addresses[mem], count=1)
+                if result.isError() or not result.bits[0]:
+                    all_done = False
+                    break
+            except Exception:
+                all_done = False
+                break
+        if all_done:
+            homing_timer.stop()
+            # 1) Exibe janela no estado RESTAURADO para calcular layout corretamente
+            window.showNormal()
+            # 2) Logo após (100 ms), maximize e deixe o layout “assentar”
+            QTimer.singleShot(100, lambda: window.showMaximized())
+            # 3) Feche o splash logo depois que a janela estiver maximizada
+            QTimer.singleShot(110, lambda: splash.finish(window))
+        # Se timeout de 30s atingido sem homing completo, ignora falha e prossegue
+        elif time.time() - homing_start >= 30:
+            homing_timer.stop()
+            # Exibe janela mesmo sem homing realizado
+            window.showNormal()
+            QTimer.singleShot(100, lambda: window.showMaximized())
+            QTimer.singleShot(110, lambda: splash.finish(window))
+            # Informa o usuário sobre o timeout de homing
+            QMessageBox.warning(window, "Timeout Homing",
+                                "Homing não foi realizado. " \
+                                "Verifique as conexões e tente novamente.")
+    homing_timer.timeout.connect(check_homing)
+    homing_timer.start()
     
     print("="*60)
     print("CONTROLE MULTI-EIXOS - DELTA AS (ENDEREÇOS LADDER REAIS)")

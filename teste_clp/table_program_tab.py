@@ -56,10 +56,10 @@ class TableProgramTab(QWidget):
         # sua câmera está “invertida”, portanto usamos +1
         self._PIXEL_TO_Y_SIGN = +1
         self._build_ui()
-
         # -------- estado da PRÉ-VISUALIZAÇÃO -------------
         self._preview_runner = None
         self._jog_active_axis: str | None = None
+        # ajuste único inicial (antes da primeira exibição)
         QTimer.singleShot(0, self._fix_video_size)
         self.ctrl.camera_manager.frameReady.connect(self._update_frame)
 
@@ -83,7 +83,14 @@ class TableProgramTab(QWidget):
         self.lbl_video.setSizePolicy(QSizePolicy.Policy.Fixed,
                                      QSizePolicy.Policy.Fixed)
         self.lbl_video.setFixedSize(w, h)
-        
+
+    def resizeEvent(self, event):
+        """
+        A cada redimensionamento do widget (ex.: maximize/restore),
+        recalcula o tamanho do preview para manter a proporção.
+        """
+        super().resizeEvent(event)
+        self._fix_video_size()        
 
     # ------------------------- ATUALIZAÇÃO DO QUADRO -------------------------
     def _update_frame(self, img):
