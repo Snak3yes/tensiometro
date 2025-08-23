@@ -465,11 +465,17 @@ class MultiAxisMotorController(QMainWindow):
             # instancia o tab (já conecta serial se houver porta salva),
             # mas NÃO chama .show()
             self.applicator_window = AdhesiveApplicatorTab(self)
-            # conecta os sinais de temperatura à aba Controle de Eixos
+            # conecta os sinais de temperatura e pressões/heater à aba Controle de Eixos
             self.applicator_window.temperatureUpdated.connect(
                 self.control_tab.update_applicator_current_temp)
             self.applicator_window.configTempUpdated.connect(
                 self.control_tab.update_applicator_config_temp)
+            self.applicator_window.supplyPressureUpdated.connect(
+                self.control_tab.update_applicator_supply)
+            self.applicator_window.openPressureUpdated.connect(
+                self.control_tab.update_applicator_open)
+            self.applicator_window.heatStateChanged.connect(
+                self.control_tab.update_applicator_heater)
         except Exception as e:
             self.log(f"■ Falha ao inicializar controladora de aplicação: {e}")
         

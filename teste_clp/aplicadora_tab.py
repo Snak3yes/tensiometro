@@ -27,6 +27,10 @@ class AdhesiveApplicatorTab(QWidget):
     Aba de controle da aplicadora de adesivo em Modbus RTU via serial.
     main_ctrl: instância de MultiAxisMotorController (para log e settings).
     """
+    # novos sinais para supply, open e valor de Canal1 (heater)
+    supplyPressureUpdated = pyqtSignal(float)
+    openPressureUpdated   = pyqtSignal(float)
+    heatStateChanged      = pyqtSignal(int)
     # sinaliza quando a temperatura real é atualizada (°C)
     temperatureUpdated = pyqtSignal(float)
     # sinaliza quando a temperatura configurada (spin_t1) é atualizada (°C)
@@ -320,31 +324,46 @@ class AdhesiveApplicatorTab(QWidget):
         idx = self.cmb_mode.currentIndex()
         if self.write_single_register(0x0040, idx, "Modo"):
             QMessageBox.information(self, "OK", "Modo definido")
+            # se quiser notificar alguma aba, pode emitir sinal aqui
+            # ex: self.modeChanged.emit(idx)
 
     def set_unit(self):
         idx = self.cmb_unit.currentIndex()
         if self.write_single_register(0x0041, idx, "Unidade"):
             QMessageBox.information(self, "OK", "Unidade definida")
+            # ex: self.unitChanged.emit(idx)
 
     def set_heat1(self):
         idx = self.cmb_heat1.currentIndex()
         if self.write_single_register(0x0042, idx, "Heat1"):
             QMessageBox.information(self, "OK", "Canal1 definido")
+            # atualização imediata na aba Controle de Eixos
+            try:
+                self.heatStateChanged.emit(idx)
+            except Exception:
+                print("Erro ao emitir sinal heatStateChanged")
 
     def set_open_time(self):
         v = self.spin_open.value()
         if self.write_register(FUNC_WRITE_MULTI, 0x0043, v, "Open"):
             QMessageBox.information(self, "OK", "Open time definido")
+            # ex: self.openTimeChanged.emit(v)
 
     def set_close_time(self):
         v = self.spin_close.value()
         if self.write_register(FUNC_WRITE_MULTI, 0x0044, v, "Close"):
             QMessageBox.information(self, "OK", "Close time definido")
+            # ex: self.closeTimeChanged.emit(v)
 
     def set_temp1(self):
         v = self.spin_t1.value()
         if self.write_register(FUNC_WRITE_MULTI, 0x0047, v, "Temp1"):
             QMessageBox.information(self, "OK", "T1 definido")
+            # atualiza imediatamente o label de temperatura configurada
+            try:
+                self.configTempUpdated.emit(v/10)
+            except Exception:
+                print("Erro ao emitir sinal configTempUpdated")
 
     def parse_temperature_response(self, r: bytes):
         if len(r)>=7:
@@ -364,12 +383,16 @@ class AdhesiveApplicatorTab(QWidget):
             raw = (r[3]<<8)|r[4]
             p = raw/10
             self.lbl_press1.setText(f"Supply: {p:.1f}")
+            # emite sinal de pressão supply
+            self.supplyPressureUpdated.emit(p)
 
     def parse_open_pressure(self, r: bytes):
         if len(r)>=5:
             raw = (r[3]<<8)|r[4]
             p = raw/10
             self.lbl_press2.setText(f"Open: {p:.1f}")
+            # emite sinal de pressão open
+            self.openPressureUpdated.emit(p)
 
     def read_initial_parameters(self):
         """
@@ -419,6 +442,8 @@ class AdhesiveApplicatorTab(QWidget):
             val = (r[3] << 8) | r[4]
             if 0 <= val < self.cmb_heat1.count():
                 self.cmb_heat1.setCurrentIndex(val)
+            # emite sinal com valor inteiro de Canal1 (0 ou 1)
+            self.heatStateChanged.emit(val)
 
     def parse_time_response(self, r: bytes, which: str):
         if len(r) >= 5:

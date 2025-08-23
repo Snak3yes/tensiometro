@@ -7,7 +7,7 @@ no MultiAxisMotorController; somente a parte visual fica aqui.
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFrame, QSizePolicy,
     QListWidget, QLabel, QGroupBox, QProgressBar,
-    QPushButton
+    QPushButton, QTabWidget
 )
 from mesa_plot_widget import MesaPlotWidget
 from PyQt6.QtCore import Qt, QTimer
@@ -232,42 +232,50 @@ class AxesControlTab(QWidget):
         # --------------------- COLUNA DIREITA (15 %) -------------------
         right_col = QVBoxLayout()
 
-        # Preview de vídeo da câmera – use palette para adaptar a tema claro/escuro
+        # --- Tabs para Câmera + Informações da Aplicadora ---
+        tabs = QTabWidget()
+        # Aba 1: Câmera
+        camera_group = QGroupBox()
+        cam_layout   = QVBoxLayout(camera_group)
+        cam_layout.setContentsMargins(0, 0, 0, 0)
         self.camera_label = AspectRatioLabel(aspect_ratio=4/3)
         self.camera_label.setAutoFillBackground(True)
         self.camera_label.setPalette(self.palette())
-        # permite expandir até a largura da coluna
         self.camera_label.setSizePolicy(
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Preferred
         )
-        # ── encapsula o label de vídeo dentro de um QGroupBox ───────
-        camera_group = QGroupBox("Câmera")
-        camera_layout = QVBoxLayout(camera_group)
-        camera_layout.setContentsMargins(0, 0, 0, 0)
-        camera_layout.addWidget(self.camera_label)
-        right_col.addWidget(camera_group)
-        # hook up live frames
+        cam_layout.addWidget(self.camera_label)
         if hasattr(self.ctrl, "camera_manager"):
-            self.ctrl.camera_manager.frameReady.connect(
-                self._update_camera_frame
-            )
-        # ── then the existing movement controls ─────────────────────
+            self.ctrl.camera_manager.frameReady.connect(self._update_camera_frame)
+        tabs.addTab(camera_group, "Câmera")
+
+        # Aba 2: Leituras (antes chamada de “Temperaturas”)
+        temp_group = QGroupBox()  # remove título interno
+        tlay       = QVBoxLayout(temp_group)
+        # Temperatura real e definida
+        self.lbl_temp_current = QLabel("Temperatura Atual: --°C")
+        self.lbl_temp_config  = QLabel("Temperatura Configurada: --°C")
+        # Pressões
+        self.lbl_supply       = QLabel("Alimentação Pneumática: --")
+        self.lbl_open         = QLabel("Pressão do Fluido: --")
+        # Aquecimento
+        self.lbl_heater       = QLabel("Aquecimento: Desligado")
+        for lbl in (self.lbl_temp_current,
+                    self.lbl_temp_config,
+                    self.lbl_supply,
+                    self.lbl_open,
+                    self.lbl_heater):
+            lbl.setStyleSheet("padding:3px;")
+            tlay.addWidget(lbl)
+        tlay.addStretch()
+        tabs.addTab(temp_group, "Leituras")
+
+        right_col.addWidget(tabs)
+
+        # Controles de movimento logo abaixo das abas
         self.mov_widget = MovementControlsWidget()
         right_col.addWidget(self.mov_widget)
-
-        # ■■ Novo GroupBox para exibir temperaturas ■■
-        self.temp_group = QGroupBox("Temperaturas")
-        temp_layout = QHBoxLayout(self.temp_group)
-        # Label para temperatura atual
-        self.lbl_temp_current = QLabel("Atual: --°C")
-        # Label para temperatura configurada
-        self.lbl_temp_config  = QLabel("Config: --°C")
-        temp_layout.addWidget(self.lbl_temp_current)
-        temp_layout.addWidget(QLabel("/"))
-        temp_layout.addWidget(self.lbl_temp_config)
-        temp_layout.addStretch()
-        right_col.addWidget(self.temp_group)
 
         # --------------------------------------------------------------
         #  REMOVIDO O GROUPBOX “Posições de Inspeção” APENAS NESTA ABA
@@ -902,11 +910,53 @@ class AxesControlTab(QWidget):
     # ------------------------------------------------------------------
     def update_applicator_current_temp(self, temp: float):
         """Atualiza o label de temperatura real."""
-        self.lbl_temp_current.setText(f"Atual: {temp:.1f}°C")
+        self.lbl_temp_current.setText(f"Temperatura Atual: {temp:.1f}°C")
 
     def update_applicator_config_temp(self, temp: float):
         """Atualiza o label de temperatura configurada."""
-        self.lbl_temp_config.setText(f"Config: {temp:.1f}°C")
+        self.lbl_temp_config.setText(f"Temperatura Configurada: {temp:.1f}°C")
+
+    def update_applicator_supply(self, p: float):
+        """Atualiza o label de pressão de supply."""
+        # Escolhe a unidade atual (PSI ou KPA) da controladora de aplicação
+        unit = (self.ctrl.applicator_window.cmb_unit.currentText()
+                if hasattr(self.ctrl, "applicator_window") else "")
+        # Converte para bar: 1 psi = 0.0689476 bar, 1 kPa = 0.01 bar
+        if unit.upper() == "PSI":
+            bar = p * 0.0689476
+        elif unit.upper() == "KPA":
+            bar = p * 0.01
+        else:
+            bar = None
+        # Exibe “Supply: X.Y UNI (Z.W bar)” ou sem conversão se não souber a unidade
+        if bar is not None:
+            self.lbl_supply.setText(
+                f"Alimentação Pneumática: {p:.1f} {unit} ({bar:.2f} bar)")
+        else:
+            self.lbl_supply.setText(f"Alimentação Pneumática: {p:.1f} {unit}")
+    def update_applicator_open(self, p: float):
+        """Atualiza o label de pressão de open."""
+        unit = (self.ctrl.applicator_window.cmb_unit.currentText()
+                if hasattr(self.ctrl, "applicator_window") else "")
+        if unit.upper() == "PSI":
+            bar = p * 0.0689476
+        elif unit.upper() == "KPA":
+            bar = p * 0.01
+        else:
+            bar = None
+        if bar is not None:
+            self.lbl_open.setText(
+                f"Pressão do Fluido: {p:.1f} {unit} ({bar:.2f} bar)")
+        else:
+            self.lbl_open.setText(f"Pressão do Fluido: {p:.1f} {unit}")
+    def update_applicator_heater(self, val: int):
+        """
+        Atualiza o label do heater:
+          – Ligado (quando val==0)
+          – Desligado (quando val==1)
+        """
+        state = "Ligado" if val == 0 else "Desligado"
+        self.lbl_heater.setText(f"Aquecimento: {state}")
 
     # ---------- helper interno ------------------------------------
     @staticmethod
