@@ -23,8 +23,8 @@
   },
   "camera_index": 2,
   "focus_calibration": {
-    "a": 0.4185714285714286,
-    "b": 367.0
+    "a": 0.832,
+    "b": 500.0
   },
   "axis_calibration": {
     "X": 100.0,
@@ -45,15 +45,15 @@
   "camera_mm_per_pixel": 0.05,
   "camera_fov": {
     "z0_z_pulses": 0,
-    "z0_width_mm": 68.5,
-    "z0_height_mm": 52.5,
-    "z1_z_pulses": 700,
-    "z1_width_mm": 37.0,
-    "z1_height_mm": 29.0
+    "z0_width_mm": 47.75,
+    "z0_height_mm": 34.0,
+    "z1_z_pulses": 200,
+    "z1_width_mm": 39.0,
+    "z1_height_mm": 27.5
   },
   "camera_nozzle_offset": {
-    "x": 24,
-    "y": -4586
+    "x": -43,
+    "y": -4699
   },
   "projects_dir": "C:\\Users\\sense\\PycharmProjects\\cnc_aoi\\teste_clp\\Projetos",
   "applicator_last_port": "COM23",
@@ -61,10 +61,11 @@
   "json_posto": "IMC2-LM08-UNDERFILL",
   "json_usuario": "maquina-underfill",
   "process_config": {
-    "fiducial": false,
-    "barcode": true,
+    "fiducial": true,
+    "barcode": false,
     "inspect": true,
-    "temperature": true,
+    "temperature": false,
     "sfcs": false
-  }
+  },
+  "dot_view_height": 200
 }

@@ -11,6 +11,7 @@ class DotPattern:
     id:   int
     name: str
     qty:  int = 1
+    height: int = 0    # altura de aplicação
 
 class DotPatternManager(QObject):
     """
@@ -46,9 +47,9 @@ class DotPatternManager(QObject):
     def patterns(self) -> list[DotPattern]:
         return list(self._patterns)
 
-    def add(self, name:str, qty:int) -> DotPattern:
+    def add(self, name: str, qty: int, height: int = 0) -> DotPattern:
         next_id = (max((p.id for p in self._patterns), default=0)) + 1
-        p = DotPattern(next_id, name, qty)
+        p = DotPattern(next_id, name, qty, height)
         self._patterns.append(p)
         self._save(); self.patternsChanged.emit()
         return p

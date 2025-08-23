@@ -23,17 +23,31 @@ class DotPatternsDialog(QDialog):
     def _build_ui(self):
         v = QVBoxLayout(self)
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["ID", "Nome", "Qtd. gotas"])
+        # adiciona coluna de altura de aplicação
+        self.tree.setHeaderLabels([
+            "ID", "Nome", "Qtd. gotas", "Altura de aplicação"
+        ])
         self.tree.setColumnWidth(1, 160)
+        self.tree.setColumnWidth(3, 120)
         v.addWidget(self.tree, 1)
         # ---- formulário adicionar ---------------------------------
         h = QHBoxLayout()
-        self.ed_name = QLineEdit(); self.ed_name.setPlaceholderText("Nome")
-        self.sp_qty  = QSpinBox(); self.sp_qty.setRange(1, 1000)
+        self.ed_name = QLineEdit()
+        self.ed_name.setPlaceholderText("Nome")
+        self.sp_qty = QSpinBox()
+        self.sp_qty.setRange(1, 1000)
+        self.sp_qty.setValue(1)
+        # campo de altura de aplicação
+        self.sp_height = QSpinBox()
+        self.sp_height.setRange(0, 10000)
+        self.sp_height.setValue(0)
         btn_add = QPushButton("Adicionar")
         btn_del = QPushButton("Excluir")
-        h.addWidget(self.ed_name); h.addWidget(self.sp_qty)
-        h.addWidget(btn_add); h.addWidget(btn_del)
+        h.addWidget(self.ed_name)
+        h.addWidget(self.sp_qty)
+        h.addWidget(self.sp_height)
+        h.addWidget(btn_add)
+        h.addWidget(btn_del)
         v.addLayout(h)
         btn_close = QPushButton("Fechar"); btn_close.clicked.connect(self.hide)
         v.addWidget(btn_close, 0, Qt.AlignmentFlag.AlignRight)
@@ -46,16 +60,22 @@ class DotPatternsDialog(QDialog):
         self.tree.clear()
         for p in self.man.patterns():
             QTreeWidgetItem(self.tree,
-                            [str(p.id), p.name, str(p.qty)])
+                            [str(p.id),
+                             p.name,
+                             str(p.qty),
+                             str(p.height)])
 
     def _add(self):
         name = self.ed_name.text().strip()
-        qty  = self.sp_qty.value()
+        qty = self.sp_qty.value()
+        height = self.sp_height.value()
         if not name:
             QMessageBox.warning(self, "Nome vazio", "Digite um nome.")
             return
-        self.man.add(name, qty)
-        self.ed_name.clear(); self.sp_qty.setValue(1)
+        self.man.add(name, qty, height)
+        self.ed_name.clear()
+        self.sp_qty.setValue(1)
+        self.sp_height.setValue(0)
 
     def _delete(self):
         item = self.tree.currentItem()

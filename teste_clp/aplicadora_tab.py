@@ -36,6 +36,8 @@ class AdhesiveApplicatorTab(QWidget):
         super().__init__()
         self.ctrl = main_ctrl
         self.serial_connection = None
+        # flag para suprimir repetição de erros de permissão no COM
+        self._perm_error_logged = False
         self._extended_controls = []
         self._build_ui()
         # 1) Preenche combo com portas e seleciona a última porta salva (se existir)
@@ -198,6 +200,8 @@ class AdhesiveApplicatorTab(QWidget):
             except Exception:
                 print("Erro ao salvar porta no settings")
             QTimer.singleShot(AUTO_TEST_DELAY_MS, self.auto_test_connection)
+            # liberamos o aviso de permissão após (re)conectar
+            self._perm_error_logged = False
         except Exception as e:
             QMessageBox.critical(self, "Erro", str(e))
             self.log(f"falha na conexão: {e}")
@@ -257,6 +261,13 @@ class AdhesiveApplicatorTab(QWidget):
                 #          ' '.join(f"{b:02X}" for b in resp))
                 return resp
             self.log("sem resposta")
+            return None
+        except PermissionError as e:
+            # só loga a primeira vez que ocorrer falha de permissão
+            if not self._perm_error_logged:
+                self.log(f"AVISO: falha de permissão ao enviar comando: {e}")
+                self._perm_error_logged = True
+            # interrompe sem desconectar para não poluir log
             return None
         except Exception as e:
             self.log(f"erro: {e}")

@@ -10,8 +10,9 @@ class DotPatternsWidget(QGroupBox):
     def __init__(self, parent=None):
         super().__init__("Padrões de Dot", parent)
         self.tree = QTreeWidget()
-        self.tree.setHeaderLabels(["ID", "Nome", "Qtd"])
-        self.tree.setColumnWidth(1, 120)
+        self.tree.setHeaderLabels(["ID", "Nome", "Qtd", "Altura"])
+        # opcional: ajustar largura da nova coluna
+        self.tree.setColumnWidth(3, 80)
         v = QVBoxLayout(self); v.addWidget(self.tree)
         self.man = DotPatternManager()
         self.man.patternsChanged.connect(self._refresh)
@@ -39,7 +40,11 @@ class DotPatternsWidget(QGroupBox):
     def _refresh(self):
         self.tree.clear()
         for p in self.man.patterns():
-            QTreeWidgetItem(self.tree, [str(p.id), p.name, str(p.qty)])
+            QTreeWidgetItem(self.tree,
+                            [str(p.id),
+                             p.name,
+                             str(p.qty),
+                             str(p.height)])
 
     # =============================================================
     #  Seleciona o padrão cujo `pat_id` coincide com o informado.

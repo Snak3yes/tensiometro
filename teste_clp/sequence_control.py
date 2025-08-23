@@ -21,7 +21,7 @@ from barcode_scanner import BarcodeScanner
 from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QGroupBox, QVBoxLayout, QHBoxLayout, QPushButton,
-    QProgressBar, QLabel, QFileDialog, QMessageBox
+    QProgressBar, QLabel, QFileDialog, QMessageBox, QSpinBox
 )
 
 
@@ -179,8 +179,19 @@ class SequenceRunnerThread(QThread):
                         print("[seq] Falha ao definir modo de offset")
                         pass
 
+                # ─── Override Z em modo VIEW para ação 'dot':
+                #     usa a altura fixa de visualização configurada
+                z_move = pos.z
+                if (not self._apply_mode
+                        and (pos.camera_params or {}).get("action") == "dot"):
+                    try:
+                        z_move = self._motion._c.settings.data.get(
+                            "dot_view_height", pos.z)
+                    except Exception:
+                        z_move = pos.z
                 ok = self._motion.move_to_absolute_position(
-                    pos.x, pos.y2, pos.y1, pos.z, feed_rate=self._feed_rate)
+                    pos.x, pos.y2, pos.y1, z_move,
+                    feed_rate=self._feed_rate)
                 if not ok:
                     self.error.emit(f"Falha ao enviar movimento para {pos.name}")
                     return
@@ -246,6 +257,7 @@ class SequenceRunnerThread(QThread):
                 if action == "dot" and self._apply_mode:    # << APPLY apenas
                     # aplica configurações de dot (freq e qty)
                     qty = int((pos.camera_params or {}).get("dot_qty", 1))
+                    # aplica configuração de quantidade no CLP
                     if hasattr(self._motion, "apply_dot_qty"):
                         try:
                             self._motion.apply_dot_qty(qty)
@@ -253,9 +265,16 @@ class SequenceRunnerThread(QThread):
                             print("[seq] Falha ao aplicar dot settings")
                             pass
 
-                    # 1. envia PULSO em M5000
+                    # 1. envia PULSO em M5000 com duração adaptada a qty/freq
+                    # obtém frequência de aplicação (Hz) do meta ou do spinBox de D24000_FREQ
+                    freq = int((pos.camera_params or {}).get(
+                        "dot_freq_hz",
+                        self._motion._c.findChild(QSpinBox, "cfg_spin_D24000_FREQ").value()
+                    ))
+                    # calcula tempo de pulso em ms = qty/freq*1000 + folga de 2 ms
+                    pulse_ms = max(1, int(qty * 1000 / freq) + 2)
                     if hasattr(self._motion, "trigger_dot"):
-                        ok = self._motion.trigger_dot()
+                        ok = self._motion.trigger_dot(3)
                         if not ok:
                             self.error.emit("Falha ao acionar dot – M5000")
                             return

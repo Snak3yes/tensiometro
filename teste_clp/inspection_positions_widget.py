@@ -216,6 +216,9 @@ class InspectionPositionsWidget(QWidget):
                 return
         else:
             meta = None
+        # somente para 'dot' usamos a altura do padrão em vez do Z atual
+        if meta and meta.get("action") == "dot":
+            z = float(meta.get("dot_height", z))
         new_pos = InspectionPosition(name, x, y2, y1, z, meta=meta)
         self._model.add(new_pos)
         self._append_item_to_list(new_pos)
@@ -256,12 +259,14 @@ class InspectionPositionsWidget(QWidget):
         else:
             meta = None
         pos_dict = self._get_current_position() or {}
-        new_pos = InspectionPosition(str(row+1),
-                                     float(pos_dict.get("x", 0)),
-                                     float(pos_dict.get("y2", 0)),
-                                     float(pos_dict.get("y1", 0)),
-                                     float(pos_dict.get("z", 0)),
-                                     meta=meta)
+        x  = float(pos_dict.get("x", 0))
+        y2 = float(pos_dict.get("y2", 0))
+        y1 = float(pos_dict.get("y1", 0))
+        z  = float(pos_dict.get("z", 0))
+        # somente para 'dot' usamos a altura do padrão em vez do Z atual
+        if meta and meta.get("action") == "dot":
+            z = float(meta.get("dot_height", z))
+        new_pos = InspectionPosition(str(row+1), x, y2, y1, z, meta=meta)
         # insere no modelo e list widget
         self._model.insert(row, new_pos)
         self.list_widget.insertItem(row, QListWidgetItem())

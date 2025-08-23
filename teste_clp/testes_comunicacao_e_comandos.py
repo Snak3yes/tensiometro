@@ -457,6 +457,22 @@ class MultiAxisMotorController(QMainWindow):
         # Ao iniciar, criação/edição de programa fica BLOQUEADA
         QTimer.singleShot(0, lambda: self._set_creation_controls_enabled(False))
         self.connect_plc()
+        # -----------------------------------------------------------------
+        # Inicializa controladora de aplicação de adesivo em segundo plano
+        # para leitura de temperatura sem exibir janela.
+        try:
+            from aplicadora_tab import AdhesiveApplicatorTab
+            # instancia o tab (já conecta serial se houver porta salva),
+            # mas NÃO chama .show()
+            self.applicator_window = AdhesiveApplicatorTab(self)
+            # conecta os sinais de temperatura à aba Controle de Eixos
+            self.applicator_window.temperatureUpdated.connect(
+                self.control_tab.update_applicator_current_temp)
+            self.applicator_window.configTempUpdated.connect(
+                self.control_tab.update_applicator_config_temp)
+        except Exception as e:
+            self.log(f"■ Falha ao inicializar controladora de aplicação: {e}")
+        
 
         # Lê velocidades salvas na ROM após conectar
         QTimer.singleShot(1500, self.read_initial_jog_velocities)
@@ -480,6 +496,12 @@ class MultiAxisMotorController(QMainWindow):
         self.timer = QTimer()
         self.timer.timeout.connect(self.update_status)
         self.timer.start(500)
+
+        # --- inicializa timer de blink do botão Go to Zero ---
+        self._gozero_blink_timer = QTimer(self)
+        self._gozero_blink_timer.setInterval(500)  # ms
+        self._gozero_blink_timer.timeout.connect(self._toggle_go_to_zero_alert)
+        self._gozero_alert_on = False
 
     # ===============  LOG thread-safe  =================================
     def log(self, msg: str):
@@ -575,6 +597,9 @@ class MultiAxisMotorController(QMainWindow):
         # >>> NOVO: ação de configuração de processo
         act_proc_cfg = menu_cfg.addAction("Config. de Processo")
         act_proc_cfg.triggered.connect(self._open_process_config)
+        # ─── Diálogo: Altura de Visualização Dot ─────────────────────
+        act_dot_view = menu_cfg.addAction("Altura de Visualização Dot…")
+        act_dot_view.triggered.connect(self._open_dot_view_height_dialog)
 
         # ------------------ DOT PATTERNS ---------------------------
         act_dots = menu_prog.addAction("Padrões de Dots…")
@@ -1056,7 +1081,6 @@ class MultiAxisMotorController(QMainWindow):
         if hasattr(self, 'inspect_widget'):
             self.inspect_widget.btn_add.setEnabled(enabled)
         
-
     def _open_focus_dialog(self):
         from focus_calibration_dialog import FocusCalibrationDialog
         dlg = FocusCalibrationDialog(self, self)
@@ -1429,6 +1453,22 @@ class MultiAxisMotorController(QMainWindow):
         dlg.raise_()
         dlg.activateWindow()
 
+    # ------------------------------------------------------------------
+    def _open_dot_view_height_dialog(self):
+        """
+        Abre (ou traz à frente) o diálogo de altura de visualização para dots.
+        """
+        if not hasattr(self, '_dot_view_dialog'):
+            from dot_view_height_dialog import DotViewHeightDialog
+            self._dot_view_dialog = DotViewHeightDialog(self)
+        dlg = self._dot_view_dialog
+        # carrega valor salvo (0 se não existir)
+        val = self.settings.data.get("dot_view_height", 0)
+        dlg.spin.setValue(int(val))
+        dlg.show()
+        dlg.raise_()
+        dlg.activateWindow()
+
     def _open_process_config(self):
         """
         Abre (ou traz à frente) a janela de Config. de Processo.
@@ -1479,8 +1519,10 @@ class MultiAxisMotorController(QMainWindow):
         try:
             addr = self.addresses[mem_key]
             self.client.write_coil(addr, True)
-            QTimer.singleShot(100, lambda a=addr: self.client.write_coil(a, False))
-            self.log(f" Pulso {mem_key} enviado")
+            # Mantém ON por apenas 20 ms e depois desliga (falling-edge)
+            QTimer.singleShot(20,
+                              lambda a=addr: self.client.write_coil(a, False))
+            self.log(f"■ Pulso {mem_key} enviado (20 ms)")
         except Exception as e:
             self.log(f" Falha ao pulsar {mem_key}: {e}")
                 
@@ -2055,7 +2097,7 @@ class MultiAxisMotorController(QMainWindow):
             target_position = getattr(self, f'pulsos_spin_{axis_name}').value()
             self.log(f"🚀 Movendo eixo {axis_name} para posição {target_position}")
             
-            # envia pulso de 100 ms no coil → garante borda de subida
+            # envia pulso de 20 ms no coil → garante borda de subida
             self._pulse_coil(cmd_map[axis_name])
             self.log(f"🚀 Pulso {cmd_map[axis_name]} enviado – alvo {target_position}")
 
@@ -2441,7 +2483,7 @@ class MultiAxisMotorController(QMainWindow):
     #  NOVO: pulso momentâneo em M5000 (Y0.10) – “falling-edge trigger”
     # ------------------------------------------------------------------
     def pulse_y010(self):
-        """Dispara um pulso de 100 ms em M5000 (Y0.10) e solta o botão."""
+        """Dispara um pulso de 3 ms de borda de subida em M5000 (rising-edge trigger)."""
         if not self.connected:
             self.log("❌ CLP não conectado")
             return
@@ -2453,13 +2495,13 @@ class MultiAxisMotorController(QMainWindow):
             if result.isError():
                 self.log(f"‚ùå Erro ao escrever M5000: {result}")
             else:
-                # Mantém ON por 100 ms e depois desliga  (falling-edge)
-                QTimer.singleShot(100,
+                # Mantém ON por apenas 1 ms e depois desliga (falling-edge)
+                QTimer.singleShot(1,
                     lambda: self.client.write_coil(self.addresses['M5000'], False))
-                # Libera o botão na interface um pouco depois
-                QTimer.singleShot(120,
+                # Libera o botão na interface logo após (~2 ms)
+                QTimer.singleShot(2,
                     lambda: self.y010_btn.setChecked(False))
-                self.log("‚úÖ Pulso M5000 enviado (100 ms)")
+                self.log("‚úÖ Pulso M5000 enviado (1 ms)")
                 
         except Exception as e:
             self.log(f"❌ Erro Y0.10: {e}")
@@ -2668,6 +2710,24 @@ class MultiAxisMotorController(QMainWindow):
                 self.current_positions['Y2'])
         # ajusta foco conforme Z
         self.camera_manager.auto_focus(self.current_positions['Z'])  
+
+        # --- Atualiza visual do botão “Go to Zero” ---
+        try:
+            all_homed = True
+            # verifica cada memória de homing realizado
+            for mem in ('M300','M800','M1300','M1800'):
+                addr = self.addresses.get(mem)
+                if addr is None:
+                    continue
+                result = self.client.read_coils(addr, count=1)
+                # se leitura falhar ou estiver OFF, não está homed
+                if result.isError() or not result.bits[0]:
+                    all_homed = False
+                    break
+            self._update_go_to_zero_button(all_homed)
+        except Exception:
+            print("Erro ao atualizar botão Go to Zero")
+            
             
         try:
             # Atualiza saídas
@@ -2845,6 +2905,41 @@ class MultiAxisMotorController(QMainWindow):
             "y1": self.current_positions.get("Y1", 0),
             "z":  self.current_positions.get("Z",  0),
         }
+    # ====================================================================
+    # Métodos adicionados para controlar o piscar e o estilo do botão
+    # ====================================================================
+    def _toggle_go_to_zero_alert(self):
+        """Pisca o botão Go to Zero alternando vermelho e estilo padrão."""
+        btn = getattr(self, 'mov_widget', None)
+        if not btn:
+            return
+        w = btn.btn_gotozero
+        if self._gozero_alert_on:
+            w.setStyleSheet("")  # estilo padrão
+        else:
+            # alerta em vermelho piscante
+            w.setStyleSheet("QPushButton { background-color: red; color: white; }")
+        self._gozero_alert_on = not self._gozero_alert_on
+
+    def _update_go_to_zero_button(self, all_ok: bool):
+        """
+        Se todas as memórias de homing estiverem OK, para o blink e mantém verde.
+        Caso contrário, inicia o piscar em vermelho.
+        """
+        btn = getattr(self, 'mov_widget', None)
+        if not btn:
+            return
+        w = btn.btn_gotozero
+        if all_ok:
+            # homing OK → para blink e fixa verde
+            if self._gozero_blink_timer.isActive():
+                self._gozero_blink_timer.stop()
+            w.setStyleSheet("QPushButton { background-color: green; color: white; }")
+        else:
+            # homing perdido → inicia blink vermelho
+            if not self._gozero_blink_timer.isActive():
+                self._gozero_alert_on = False
+                self._gozero_blink_timer.start()
     
     # ------------------------------------------------------------------
     # converte lista do widget para InspectionPosition do sequence_control
@@ -3097,17 +3192,18 @@ class PLCMotionBackend(QObject):
     # --------------------------------------------------------------
     #  DISPARO DO DOT (pulso M5000)  + espera M5001
     # --------------------------------------------------------------
-    def trigger_dot(self, pulse_ms: int = 100) -> bool:
+    def trigger_dot(self, pulse_ms: int = 1) -> bool:
         """
         Gera um pulso no coil M5000.  Retorna True se escrito com sucesso.
         """
         if not self._c.connected or self._addr_trig is None:
             return False
         try:
+            # pulso de duração fixa de 1 ms para M5000
             self._c.client.write_coil(self._addr_trig, True)
             time.sleep(pulse_ms / 1000.0)
             self._c.client.write_coil(self._addr_trig, False)
-            self._c.log("■ Pulso M5000 enviado")
+            self._c.log(f"■ Pulso M5000 enviado ({pulse_ms} ms)")
             return True
         except Exception as exc:
             self._c.log(f"■ Erro no pulso M5000: {exc}")

@@ -67,19 +67,22 @@ class TableProgramTab(QWidget):
     #  TAMANHO FIXO DO VÍDEO
     # ------------------------------------------------------------------
     def _fix_video_size(self):
-        """Define largura/altura fixas para o lbl_video em ≈70 % da
-           janela e muda o SizePolicy para Fixed, impedindo que o layout
-           redimensione esse label no futuro."""
+        """Define dimensões fixas 
+        (máx. 50 % da janela) para o lbl_video mantendo aspecto 4:3."""
         win = self.window()
         if not win:
             return
-        w = int(win.width()  * 1.0)
-        h = int(win.height() * 1.0 * 1.0    )  
-        # mantém razão 4:3 aproximada
-        if h * 4 < w * 3:
-            w = int(h * 4 / 3)
+        # limita a 50% da largura e da altura da janela principal
+        max_w = int(win.width() * 0.7)
+        max_h = int(win.height() * 0.7)
+        # calcula w,h mantendo razão 4:3
+        if max_h * 4 < max_w * 3:
+            w = int(max_h * 4 / 3)
+            h = max_h
         else:
-            h = int(w * 3 / 4)
+            w = max_w
+            h = int(max_w * 3 / 4)
+        # aplica tamanho fixo
         self.lbl_video.setSizePolicy(QSizePolicy.Policy.Fixed,
                                      QSizePolicy.Policy.Fixed)
         self.lbl_video.setFixedSize(w, h)
@@ -314,9 +317,11 @@ class TableProgramTab(QWidget):
         self.lbl_video.setMidLineWidth(0)
         self.lbl_video.setStyleSheet("")  # clear any custom CSS
         # não deixa o label pedir altura maior que a célula
+        # policy fixa: será redimensionado manualmente em _fix_video_size(),
+        # evitando que “vaze” para a coluna da direita
         self.lbl_video.setSizePolicy(
-            QSizePolicy.Policy.Expanding,      # horizontal livre
-            QSizePolicy.Policy.Preferred)      # vertical controlado
+            QSizePolicy.Policy.Fixed,
+            QSizePolicy.Policy.Fixed)
         # mantém o label FIXO (já dimensionado por _fix_video_size) e
         # o coloca sempre no centro da célula  (h & v).
         grid.addWidget(self.lbl_video, 0, 1,
@@ -489,24 +494,31 @@ class TableProgramTab(QWidget):
             return
 
         # ------------------------ 2. nova POSIÇÃO ---------------------
-        cur_dict = self._get_current_position() or {}
-        x  = float(cur_dict.get("x", 0))
-        y1 = float(cur_dict.get("y1", 0))
-        y2 = float(cur_dict.get("y2", 0))
-        z  = float(cur_dict.get("z", 0))
-
-         # --------- remove OFFSET dinâmico aplicado pelo runner -------
-        dx_dyn = self.ctrl._plc_motion_backend._dx_dyn
-        dy_dyn = self.ctrl._plc_motion_backend._dy_dyn
-        if dx_dyn or dy_dyn:
-            x -= dx_dyn
+        # Usa os spinBoxes (última posição comandada) para X, Y, Z
+        x = float(self.ctrl.pulsos_spin_X.value())
+        if self.y_axis == 'Y1':
+            y1 = float(self.ctrl.pulsos_spin_Y1.value())
+            y2 = 0.0
+        else:
+            y2 = float(self.ctrl.pulsos_spin_Y2.value())
+            y1 = 0.0
+        z = float(self.ctrl.pulsos_spin_Z.value())
+        # Subtrai o último offset de fiducial (que foi aplicado para pré-visualização)
+        dx_last, dy_last = getattr(self.ctrl._plc_motion_backend, "_last_offset", (0, 0))
+        if dx_last or dy_last:
+            x -= dx_last
             if self.y_axis == 'Y1':
-                y1 -= dy_dyn
+                y1 -= dy_last
             else:
-                y2 -= dy_dyn
-
-        # zera offset dinâmico no backend imediatamente
+                y2 -= dy_last
+        # Limpa o offset dinâmico interno (não altera os spinBoxes nem a posição real)
         self.ctrl._plc_motion_backend.apply_dynamic_offset(0, 0)
+
+        # ---------------- Override de Z para 'dot' (conforme pattern) ---
+        # ─── Override de Z ao editar para ação ‘dot’:
+        #     usa a altura do padrão em vez do Z atual
+        if new_meta.get("action") == "dot":
+            z = float(new_meta.get("dot_height", z))
 
         # valida dentro da área da mesa
         if callable(self._validate_position):
@@ -558,14 +570,11 @@ class TableProgramTab(QWidget):
         except IndexError:
             return
 
-        # ‑-- monta micro-lista: todos fiducials (na ordem) + ponto alvo
+        # ■-- monta lista para preview: todos os fiduciais + o ponto clicado
         fid_points = [p for p in self.inspect_widget.positions()
                       if (p.meta or {}).get('action') == 'fiducial']
-
-        # se não houver fiducial basta mover diretamente (fluxo antigo)
-        if not fid_points:
-            self._apply_offset_and_move(item, (0, 0))
-            return
+        # NÃO retornamos aqui mesmo sem fiducial: vamos sempre usar o runner,
+        # o que padroniza a movimentação e aplica nosso override de Z abaixo.
 
         # ------------------------------------------------------------------
         # O ponto clicado NÃO deve executar nenhuma ação real (dot / barcode…)
@@ -573,7 +582,16 @@ class TableProgramTab(QWidget):
         # Criamos uma *cópia* sem campo "action".
         # ------------------------------------------------------------------
         import copy
-        clicked_copy         = copy.deepcopy(clicked_pos)
+        clicked_copy = copy.deepcopy(clicked_pos)
+        # ─── Override de Z PARA PREVIEW de DOT ──────────────────────────
+        # Se o ponto original era 'dot', sobrescreve o Z pelo dot_view_height
+        orig_meta = clicked_pos.meta if isinstance(clicked_pos.meta, dict) else None
+        if orig_meta and orig_meta.get("action") == "dot":
+            try:
+                z_view = self.ctrl.settings.data.get("dot_view_height", clicked_copy.z)
+                clicked_copy.z = float(z_view)
+            except Exception:
+                pass
         if isinstance(clicked_copy.meta, dict):
             clicked_copy.meta = clicked_copy.meta.copy()
             clicked_copy.meta.pop("action", None)   # neutraliza
@@ -955,10 +973,11 @@ class TableProgramTab(QWidget):
             if pat is None:
                 return None      # impede adicionar sem seleção
             return {
-                'action':   'dot',
-                'dot_id':   pat.id,
-                'dot_name': pat.name,
-                'dot_qty':  pat.qty,
+                'action':     'dot',
+                'dot_id':     pat.id,
+                'dot_name':   pat.name,
+                'dot_qty':    pat.qty,
+                'dot_height': pat.height,
                 # freq default será lida da aba Config Registradores
                 'dot_freq_hz': self.ctrl.findChild(QSpinBox,
                                       "cfg_spin_D24000_FREQ").value()

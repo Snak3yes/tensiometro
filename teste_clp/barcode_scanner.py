@@ -179,8 +179,22 @@ class BarcodeScanner:
         # -- OpenCV QRCodeDetector (apenas QR) --------------------------
         data, points, _ = self._qr_detector.detectAndDecode(proc)
         if data:
-            poly = [(int(p[0]), int(p[1])) for p in points] if points is not None else None
-            # evita duplicar caso pyzbar já tenha encontrado o mesmo QR
+            poly = None
+            if points is not None:
+                # Garante um array Nx2, mesmo vindo como Nx1x2
+                pts = np.array(points)
+                if pts.ndim == 3 and pts.shape[1] == 1:
+                    pts = pts[:, 0, :]
+                # achata qualquer forma residual e extrai pares (x,y)
+                pts = pts.reshape(-1, 2)
+                poly = []
+                for x_f, y_f in pts:
+                    try:
+                        poly.append((int(x_f), int(y_f)))
+                    except Exception:
+                        print("Erro ao converter pontos QR:", x_f, y_f)
+                        continue
+            # evita duplicar se o pyzbar já leu o mesmo QR
             if not any(r.data == data for r in results):
                 results.append(ScanResult(
                     data=data,
