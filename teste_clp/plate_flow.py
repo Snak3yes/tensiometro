@@ -298,11 +298,17 @@ class PlateFlowManager(QObject):
         Falhou durante PROCESSING: devolve a placa e emite DONE
         para que o ladder reset M20 / M30.
         """
-        # Mesmo raciocínio – garante que o deslocamento aplicado pelos
-        # fiduciais não contamine o movimento de saída.
+        # 1) Garante offset zerado
         self._c._plc_motion_backend.apply_dynamic_offset(0, 0)
         self._c._plc_motion_backend._targets.clear()
+        # 2) Eleva o eixo Z à origem (0) antes de devolver a placa, evitando colisões
+        self._c.log(f"■ Mesa {self._mesa}: elevando eixo Z antes de devolução de emergência")
+        # ajusta spin para Z=0 e dispara o movimento
+        getattr(self._c, 'pulsos_spin_Z').setValue(0)
+        self._c.move_axis_absolute('Z')
+        self._c._plc_motion_backend.wait_for_idle()
 
+        # 3) agora devolve a placa no eixo Y
         limit = int(self._y_limit)
         getattr(self._c, f'pulsos_spin_{self._y_axis}').setValue(limit)
         self._c.move_axis_absolute(self._y_axis)
