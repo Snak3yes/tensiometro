@@ -60,13 +60,41 @@ class PLCAxisController:
 
     def __init__(self, host: str='192.168.1.5', port: int=502):
         """Conecta ao CLP via Modbus TCP."""
+        # guarda os parâmetros de conexão para possível reconexão
+        self.host = host
+        self.port = port
+        # flag que a UI e o restante do app usam para saber se está online
+        self.is_connected = False
+        # estado da "máquina" para compatibilidade com update_position_display()
+        # ficará “Disconnected” até o connect() ter sucesso
+        self.machine_status = "Disconnected"
         self.client = ModbusTcpClient(host, port=port)
-        if not self.client.connect():
+        # limites de feed para compatibilidade com MovementControlWidget
+        # (valor alto para não clamar por padrão; ajuste conforme sua aplicação)
+        self.max_feed = {'x': float('inf'),
+                         'y': float('inf'),
+                         'z': float('inf')}
+        # fator de conversão pulses → mm (padrão: 1 pulso = 1 mm)
+        self.pulses_per_mm = 1.0
+        connected = self.client.connect()
+        if not connected:
             raise ConnectionError(f"Falha ao conectar ao CLP em {host}:{port}")
+        # só marcamos conectado se o connect() retornou True
+        self.is_connected = True
+        # após conectar, tratamos o PLC como "Idle"
+        self.machine_status = "Idle"
 
     def close(self):
         """Fecha a conexão Modbus."""
         self.client.close()
+        # sinaliza para a aplicação que não está mais conectado
+        self.is_connected = False
+
+    def disconnect(self):
+        """
+        Alias para fechar a conexão (compatibilidade com AOIControllerApp).
+        """
+        self.close()
 
     def _write_dword(self, address: int, value: int):
         """
@@ -133,27 +161,78 @@ class PLCAxisController:
                 return True
             time.sleep(0.05)
         return False
+    
+    def step_move(self, axis: str, distance_mm: float, feed_rate: float = None) -> bool:
+        """
+        Move um passo no eixo especificado:
+          - distance_mm: deslocamento em mm (positivo ou negativo)
+          - feed_rate: velocidade em mm/min (opcional)
+        Converte mm → pulsos usando pulses_per_mm, faz move_relative + wait_for_idle.
+        Retorna True se o eixo atingir o destino, False em timeout.
+        """
+        # 1) converte milímetros em pulsos
+        pulses = int(round(distance_mm * self.pulses_per_mm))
+        # 2) converte feed_rate (mm/min) em pulsos/min, se fornecido
+        speed = int(round(feed_rate * self.pulses_per_mm)) if feed_rate is not None else None
+        # 3) executa movimento relativo
+        self.move_relative(axis, pulses, speed)
+        # 4) aguarda até o eixo estar idle
+        return self.wait_for_idle(axis)
 
-    def jog_start(self, axis: str, direction: int, speed: int=None):
+    def jog_start(self, axis: str, direction: int, feed_rate: float = None):
         """
-        Inicia jog contínuo no eixo: `direction` = +1 ou -1.
-        Se `speed` for dado, atualiza registrador de velocidade.
+        Inicia jog contínuo no eixo.
+        Args:
+            axis: Nome do eixo ('X', 'Y' ou 'Z')
+            direction: Direção do movimento (+1 ou -1)
+            feed_rate: Velocidade em mm/min (será convertida para pulsos/min)
         """
+        # Normaliza nome do eixo para maiúscula
+        axis = axis.upper()
+        if axis not in self.ADDRESSES:
+            raise ValueError(f"Eixo inválido: {axis}")
         cfg = self.ADDRESSES[axis]
-        if speed is not None:
-            self._write_dword(cfg['speed'], int(speed))
+        # Converte feed_rate (mm/min) para pulsos/min se fornecido
+        if feed_rate is not None:
+            speed_pulses = int(round(feed_rate * self.pulses_per_mm))
+            self._write_dword(cfg['speed'], speed_pulses)
+        
+        # Aciona o coil apropriado baseado na direção
         coil = cfg['jog_plus'] if direction > 0 else cfg['jog_minus']
         self.client.write_coil(coil, True)
 
-    def jog_stop(self, axis: str):
-        """Para o jog contínuo do eixo."""
-        cfg = self.ADDRESSES[axis]
-        self.client.write_coil(cfg['jog_plus'], False)
-        self.client.write_coil(cfg['jog_minus'], False)
+    def jog_stop(self, axis: str = None):
+        """
+        Para o jog contínuo de todos os eixos.
+        O parâmetro axis é ignorado para manter compatibilidade com a UI.
+        """
+        # Para todos os eixos (a UI não especifica qual)
+        alvos = [axis] if axis else list(self.ADDRESSES.keys())
+        for ax in alvos:
+            cfg = self.ADDRESSES[ax]
+            self.client.write_coil(cfg['jog_plus'], False)
+            self.client.write_coil(cfg['jog_minus'], False)
 
     def read_position(self, axis: str) -> int:
         """Lê a posição atual do eixo em pulsos."""
         return self._read_dword(self.ADDRESSES[axis]['pos_reg'])
+    
+    def get_current_position(self) -> dict:
+        """
+        Retorna a posição atual de X, Y e Z em milímetros.
+        Assume 1 pulso = 1 mm por padrão; se necessário ajuste em pulses_per_mm.
+        """
+        try:
+            xp = self.read_position('X')
+            yp = self.read_position('Y')
+            zp = self.read_position('Z')
+            return {
+                'x': xp / self.pulses_per_mm,
+                'y': yp / self.pulses_per_mm,
+                'z': zp / self.pulses_per_mm
+            }
+        except Exception as e:
+            raise IOError(f"Falha ao obter posição atual via PLC: {e}")
 
     def home_axis(self, axis: str):
         """

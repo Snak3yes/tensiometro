@@ -5,14 +5,17 @@ import time
 import numpy as np
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QLabel, QGroupBox, QGridLayout, QLineEdit, 
-                            QComboBox, QListWidget, QCheckBox, QListWidgetItem, QFileDialog, QMessageBox, QTabWidget,
-                            QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QInputDialog,
+                            QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
+                            QFileDialog, QMessageBox, QTabWidget,
+                            QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, 
+                            QDialog, QInputDialog,
                             QProgressDialog)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF
 from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator, 
                          QPainter, QColor, QPen, QBrush)
 
 from aoi_lib import CNCAOIController, InspectionPosition
+from aoi_lib.plc_axis_controller import PLCAxisController
 from grbl_streamer import GrblStreamer
 from aoi_lib.utils.move_task import MoveTaskThread
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
@@ -20,8 +23,6 @@ from dataclasses import dataclass
 from aoi_lib.stencil_tension import StencilTensionDialog
 import logging
 import json
-
-
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -1194,8 +1195,22 @@ class MovementControlWidget(QWidget):
             
     def set_motion_mode(self, mode):
         """Set the motion mode (G90/G91)"""
+        # Se for PLC, não existe GRBL: apenas atualiza UI e guarda modo internamente
+        
+        if isinstance(self.controller.cnc, PLCAxisController):
+            if mode == "G90":
+                self.mode_absolute.setChecked(True)
+                self.mode_relative.setChecked(False)
+            else:
+                self.mode_absolute.setChecked(False)
+                self.mode_relative.setChecked(True)
+            # opcional: armazenar no controller para referência futura
+            self.controller.cnc.current_motion_mode = mode
+            logger.info(f"MOVIMENTO (PLC): modo de movimento definido para {mode}")
+            return
+
+        # Se não estiver conectado (nem PLC, nem GRBL), só atualiza UI e volta
         if not self.controller.cnc.is_connected:
-             # Se não estiver conectado, apenas atualiza a UI
             if mode == "G90":
                 self.mode_absolute.setChecked(True)
                 self.mode_relative.setChecked(False)
@@ -1205,20 +1220,15 @@ class MovementControlWidget(QWidget):
             logger.warning(f"MOVIMENTO: CNC não conectada, modo {mode} definido apenas na UI.")
             return
 
-        # Atualiza a UI
+        # Atualiza a UI (GRBL)
         if mode == "G90":
             self.mode_absolute.setChecked(True)
             self.mode_relative.setChecked(False)
-        else: # G91
+        else:  # G91
             self.mode_absolute.setChecked(False)
             self.mode_relative.setChecked(True)
-
-        # Envia o comando para o GRBL
+        # Envia o comando G90/G91 para o GRBL
         try:
-            # --- INÍCIO DA MODIFICAÇÃO ---
-            # Armazena o modo internamente para referência futura, se necessário
-            # self.controller.cnc.current_motion_mode = mode # Supondo que exista essa variável no controller
-            # --- FIM DA MODIFICAÇÃO ---
             logger.debug(f"MOVIMENTO: Definindo modo de movimento para {mode}")
             self.controller.cnc.grbl.send_immediately(mode)
         except Exception as e:
@@ -1362,9 +1372,16 @@ class AOIControllerApp(QMainWindow):
         self.setWindowTitle("Controle de Inspeção Óptica Automatizada")
         self.setGeometry(100, 100, 1200, 800)
         
-        # Inicializa o controlador AOI
-        self.controller = CNCAOIController()
+        # Carrega configurações do usuário
         self.config = AOIConfigManager()
+        # Inicializa o controlador AOI usando CLP (Modbus TCP)
+        plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
+        plc_port = self.config.get("connections", "plc_port", default=502)
+        self.controller = CNCAOIController(
+            use_plc=True,
+            plc_host=plc_host,
+            plc_port=plc_port
+        )
         self.current_sequence = None
         self.is_running_sequence = False
         
@@ -2526,19 +2543,32 @@ class AOIControllerApp(QMainWindow):
             
     def connect_cnc(self): 
         """Conecta à máquina CNC usando a biblioteca grbl-streamer""" 
-        if hasattr(self.controller.cnc, 'is_connected') and self.controller.cnc.is_connected: 
-            # Desconectar 
-            try: 
-                if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
-                    self.controller.cnc.grbl.poll_stop() 
-                    self.controller.cnc.grbl.disconnect() 
-                    self.controller.cnc.grbl = None
-                    self.controller.cnc.is_connected = False
-                    self.connect_cnc_btn.setText("Conectar CNC")
-                    self.cnc_status.setText("Desconectado")
-                    self.statusBar().showMessage("CNC desconectada")
-            except Exception as e:
-                self.statusBar().showMessage(f"Erro ao desconectar: {str(e)}")
+        # Se for PLCAxisController, alterna Modbus connect/disconnect
+        if isinstance(self.controller.cnc, PLCAxisController):
+            plc = self.controller.cnc
+            if plc.is_connected:
+                # já está aberto: fecha
+                plc.close()
+                self.connect_cnc_btn .setText("Conectar PLC")
+                self.cnc_status.setText("Desconectado")
+            else:
+                # recria com host/port armazenados
+                self.controller.cnc = PLCAxisController(
+                    host=plc.host, port=plc.port
+                )
+                self.connect_cnc_btn .setText("Desconectar PLC")
+                self.cnc_status.setText("Conectado")
+            return
+        # Senão, cai no fluxo original GRBL…
+        if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
+            self.controller.cnc.grbl.poll_stop() 
+            self.controller.cnc.grbl.disconnect() 
+            self.controller.cnc.grbl = None
+            self.controller.cnc.is_connected = False
+            self.connect_cnc_btn.setText("Conectar CNC")
+            self.cnc_status.setText("Desconectado")
+            self.statusBar().showMessage("CNC desconectada")
+    
         else:
             # Conectar
             port = self.cnc_port_combo.currentText()

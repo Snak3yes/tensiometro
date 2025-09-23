@@ -1,6 +1,7 @@
 import time
 import os, cv2, time, math, json, logging
 from .cnc_controller import GRBLCNCController
+from .plc_axis_controller import PLCAxisController
 from .camera_controller import CameraController
 from .position_manager import InspectionPositionManager, InspectionPosition, InspectionSequence
 
@@ -10,7 +11,12 @@ class CNCAOIController:
     para aplicações de Inspeção Óptica Automatizada (AOI).
     """
     
-    def __init__(self, serial_port=None, camera_interface=None):
+    def __init__(self,
+                 serial_port=None,
+                 camera_interface=None,
+                 use_plc=True,
+                 plc_host='192.168.1.5',
+                 plc_port=502):
         """
         Inicializa o controlador AOI.
         
@@ -18,11 +24,35 @@ class CNCAOIController:
             serial_port: Porta serial para conexão com a CNC (opcional)
             camera_interface: Interface para a câmera (opcional)
         """
-        self.cnc = GRBLCNCController()
+        # Seleciona backend de movimento: GRBL ou CLP via Modbus TCP
+        if use_plc:
+            # cria e conecta no CLP
+            self.cnc = PLCAxisController(host=plc_host, port=plc_port)
+            # ——— Carrega calibr. mecânica do config (igual ao AdhesiveApp) ———
+            from .config_manager import AOIConfigManager
+            cfg = AOIConfigManager()
+            ppr   = float(cfg.get("calibration", "pulses_per_rev", default=1.0))
+            pitch = float(cfg.get("calibration", "fuso_pitch",     default=1.0))
+            # cálculo pulses/mm idêntico à das steps/mm:
+            self.cnc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+        else:
+            self.cnc = GRBLCNCController()
         self.camera = CameraController(camera_interface)
         self.position_manager = InspectionPositionManager()
         self.is_running_sequence = False
         self.current_sequence: InspectionSequence | None = None
+    
+    def __getattr__(self, name):
+        """
+        Delegates movement methods (step_move, jog_start, move_absolute, etc.)
+        to the underlying CNC backend so the UI can call them directly:
+            controller.step_move(...), controller.jog_start(...), etc.
+        """
+        # intercepta chamadas típicas de controle manual
+        if hasattr(self.cnc, name):
+            return getattr(self.cnc, name)
+        # fallback padrão
+        raise AttributeError(f"{self.__class__.__name__!r} has no attribute {name!r}")
         
     def connect_cnc(self, port=None, baudrate=115200):
         """Conecta à máquina CNC."""
@@ -67,7 +97,12 @@ class CNCAOIController:
     
     def disconnect_cnc(self):
         """Desconecta da máquina CNC."""
-        if self.cnc.is_connected:
+        # CLP: fecha Modbus
+        if isinstance(self.cnc, PLCAxisController):
+            self.cnc.close()
+            return True
+        # GRBL: serial
+        if getattr(self.cnc, 'is_connected', False):
             return self.cnc.disconnect()
         return True
         
@@ -128,15 +163,24 @@ class CNCAOIController:
             if not self.is_running_sequence:          # stop_sequence() pode ter sido chamado
                 break
 
-            # 1. Move para a posição (X, Y **e Z**) - usar velocidade configurada se disponível
-            feed_rate = getattr(self, '_current_feed_rate', 1000)  # usar velocidade configurada ou padrão
-            self.cnc.move_to_absolute_position(
-                position.x,
-                position.y,
-                position.z,
-                feed_rate=feed_rate
-            )
-            self.cnc.wait_for_idle()
+            # 1. Move para a posição (X, Y, Z) - despacha para CLP ou GRBL
+            feed_rate = getattr(self, '_current_feed_rate', 1000)
+            if isinstance(self.cnc, PLCAxisController):
+                # EXEMPLO simplificado: 1 mm → 1 pulso
+                for axis, coord in (('X', position.x),
+                                     ('Y', position.y),
+                                     ('Z', position.z)):
+                    if coord is not None:
+                        pulsos = int(coord)
+                        self.cnc.move_absolute(axis, pulsos, speed=int(feed_rate))
+                        self.cnc.wait_for_idle(axis)
+            else:
+                # comportamento original GRBL
+                self.cnc.move_to_absolute_position(
+                    position.x, position.y, position.z,
+                    feed_rate=feed_rate
+                )
+                self.cnc.wait_for_idle()
 
             # 2. Captura a imagem
             image = self.camera.capture(position.camera_params)
