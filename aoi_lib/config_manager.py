@@ -24,6 +24,8 @@ class AOIConfigManager:
         },
         "connections": {
             "last_cnc_port": "",
+            "plc_host": "192.168.0.5",  # IP padrão do PLC
+            "plc_port": 502,            # Porta padrão Modbus TCP
             "auto_connect_cnc": True,
             "last_camera_id": 0,
             "auto_connect_camera": True

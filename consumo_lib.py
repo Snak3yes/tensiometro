@@ -6,7 +6,7 @@ import numpy as np
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                             QPushButton, QLabel, QGroupBox, QGridLayout, QLineEdit, 
                             QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
-                            QFileDialog, QMessageBox, QTabWidget,
+                            QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
                             QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, 
                             QDialog, QInputDialog,
                             QProgressDialog)
@@ -633,37 +633,31 @@ class CameraPreviewWidget(QWidget):
         
     def setup_ui(self):
         layout = QVBoxLayout(self)
-        
-        # Preview area - Ajustar para usar mais espaço
+        # GroupBox para preview da câmera (inclui botões de controle)
+        preview_group = QGroupBox("Camera Preview")
+        preview_group.setMinimumHeight(450)
+        pg_layout = QVBoxLayout(preview_group)
+
+        # Área de visualização
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setText("Camera Preview")
         self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
-        self.image_label.setMinimumSize(600, 450)  # Aumentar tamanho mínimo
-        
-        # Camera controls
-        controls_layout = QHBoxLayout()
+        self.image_label.setMinimumSize(600, 450)
+        pg_layout.addWidget(self.image_label)
+
+        # Botões de preview dentro da mesma groupbox
+        btn_layout = QHBoxLayout()
         self.start_preview_btn = QPushButton("Start Preview")
         self.start_preview_btn.clicked.connect(self.start_preview)
         self.stop_preview_btn = QPushButton("Stop Preview")
         self.stop_preview_btn.clicked.connect(self.stop_preview)
         self.stop_preview_btn.setEnabled(False)
-        controls_layout.addWidget(self.start_preview_btn)
-        controls_layout.addWidget(self.stop_preview_btn)
-        
-        # Position capture layout
-        capture_layout = QHBoxLayout()
-        self.position_name = QLineEdit()
-        self.position_name.setPlaceholderText("Position Name")
-        self.capture_button = QPushButton("Capture Image & Register Position")
-        self.capture_button.clicked.connect(self.capture_image)
-        capture_layout.addWidget(self.position_name)
-        capture_layout.addWidget(self.capture_button)
-        
-        # Adicionar elementos ao layout principal
-        layout.addWidget(self.image_label, 1)  # Proporção 1 para permitir expansão
-        layout.addLayout(controls_layout)
-        layout.addLayout(capture_layout)
+        btn_layout.addWidget(self.start_preview_btn)
+        btn_layout.addWidget(self.stop_preview_btn)
+        pg_layout.addLayout(btn_layout)
+
+        layout.addWidget(preview_group, 1)
         
     def start_preview(self):
         """Start camera preview"""
@@ -777,6 +771,8 @@ class MovementControlWidget(QWidget):
         
         # Group box for movement controls
         movement_group = QGroupBox("Movement Controls")
+        # Vertical size fixed to its contents (no stretch)
+        movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         movement_layout = QGridLayout()
         
         # Directional control buttons
@@ -794,9 +790,9 @@ class MovementControlWidget(QWidget):
             btn.setFont(font)
         
         # Connect press/release events for continuous movement
-        self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  1))
+        self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  -1))
         self.up_button.released.connect(self._on_direction_release)
-        self.down_button.pressed.connect(lambda: self._on_direction_press("Y", -1))
+        self.down_button.pressed.connect(lambda: self._on_direction_press("Y", 1))
         self.down_button.released.connect(self._on_direction_release)
         self.left_button.pressed.connect(lambda: self._on_direction_press("X", -1))
         self.left_button.released.connect(self._on_direction_release)
@@ -808,9 +804,9 @@ class MovementControlWidget(QWidget):
         self.z_down_button = QPushButton("Z-")
         for zbtn in (self.z_up_button, self.z_down_button):
             zbtn.setMinimumSize(50, 30)
-        self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  1))
+        self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  -1))
         self.z_up_button.released.connect(self._on_direction_release)
-        self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", -1))
+        self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", 1))
         self.z_down_button.released.connect(self._on_direction_release)
         
         # Add buttons to grid
@@ -881,24 +877,18 @@ class MovementControlWidget(QWidget):
         self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
         movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
 
-        # Botão para testar motor hold
-        self.test_motor_hold_btn = QPushButton("Testar Travamento dos Motores")
-        self.test_motor_hold_btn.setToolTip("Testa se os motores permanecem travados quando parados")
-        self.test_motor_hold_btn.clicked.connect(self.test_motor_hold)
-        movement_layout.addWidget(self.test_motor_hold_btn, 8, 0, 1, 3)
-
-        # Checkbox para habilitar/desabilitar controle via teclado
+        # Checkbox "Enable Keyboard Control" agora na linha 8 (posição anterior do Test Motor Hold)
         self.keyboard_control_checkbox = QCheckBox("Enable Keyboard Control")
         self.keyboard_control_checkbox.setChecked(False)
         movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
-        self.mode_absolute = QPushButton("Passo a Passo (G90)")
+        self.mode_absolute = QPushButton("Passo")
         self.mode_absolute.setCheckable(True)
         self.mode_absolute.clicked.connect(lambda: self.set_motion_mode("G90"))
         
-        self.mode_relative = QPushButton("Contínuo (G91)")
+        self.mode_relative = QPushButton("Contínuo")
         self.mode_relative.setCheckable(True)
         self.mode_relative.setChecked(True)  # Default to relative mode
         self.mode_relative.clicked.connect(lambda: self.set_motion_mode("G91"))
@@ -909,6 +899,8 @@ class MovementControlWidget(QWidget):
         
         movement_group.setLayout(movement_layout)
         layout.addWidget(movement_group)
+        # Keep the groupbox at top without stretching
+        layout.setAlignment(movement_group, Qt.AlignmentFlag.AlignTop)
 
     def _save_step_feed(self):
         try:
@@ -1281,31 +1273,6 @@ class MovementControlWidget(QWidget):
                 logger.error("RESET: Falha ao enviar comando de desbloqueio")
                 QMessageBox.critical(self, "Erro", "Falha ao desbloquear a máquina")
                 self.emergency_stop_button.setChecked(True)
-    
-    def test_motor_hold(self):
-        """Testa o travamento dos motores quando parados"""
-        if not self._precheck_connected():
-            return
-            
-        # Pequeno movimento para ativar os motores
-        feed = self._get_feed_rate()
-        if feed is None:
-            return
-            
-        # Move 1mm em X e volta
-        self.controller.cnc.move_relative(x=1.0, feed_rate=feed)
-        self.controller.cnc.wait_for_idle()
-        time.sleep(0.5)  # Aguarda meio segundo
-        self.controller.cnc.move_relative(x=-1.0, feed_rate=feed)
-        self.controller.cnc.wait_for_idle()
-        
-        QMessageBox.information(
-            self, "Teste de Motor Hold",
-            "Movimento de teste concluído.\n\n"
-            "Agora tente girar manualmente os motores:\n"
-            "• Se estiverem travados = configuração correta\n"
-            "• Se girarem facilmente = verificar configuração $1"
-        )
 
     def _auto_unlock_after_reset(self):
         """Executa sequência automática de desbloqueio após reset de emergência"""
@@ -1374,14 +1341,20 @@ class AOIControllerApp(QMainWindow):
         
         # Carrega configurações do usuário
         self.config = AOIConfigManager()
-        # Inicializa o controlador AOI usando CLP (Modbus TCP)
+        
+        # Inicializa o controlador AOI usando CLP (Modbus TCP),
+        # mas não trava a aplicação se a conexão falhar
         plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
         plc_port = self.config.get("connections", "plc_port", default=502)
+        # Inicializa o controlador com PLC mas sem conectar automaticamente
+        logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
         self.controller = CNCAOIController(
             use_plc=True,
             plc_host=plc_host,
             plc_port=plc_port
         )
+        logger.debug("CNCAOIController(use_plc=True) inicializado; backend = %s",
+                     type(self.controller.cnc).__name__)
         self.current_sequence = None
         self.is_running_sequence = False
         
@@ -1407,12 +1380,26 @@ class AOIControllerApp(QMainWindow):
         self.connection_group.setVisible(False)
 
         # -------- Auto-connect se preferido --------------------
-        self._attempt_auto_connect()
+        
+        logger.debug(
+            "Verificando conexão PLC no arranque; backend=%s, conectado=%s",
+            type(self.controller.cnc).__name__,
+            getattr(self.controller.cnc, 'is_connected', False)
+        )
+        if isinstance(self.controller.cnc, PLCAxisController):
+            # PLC não conectado - aguarda conexão manual
+            self.connect_cnc_btn.setText("Conectar PLC")
+            self.cnc_status.setText("Desconectado")
+            self.statusBar().showMessage("PLC desconectado - clique em 'Conectar PLC' no menu Conexões")
+            logger.info("PLC não conectado. Aguardando conexão manual pelo usuário.")
+        
+        # Auto-connect apenas após a interface estar pronta
+        QTimer.singleShot(500, self._attempt_auto_connect)
 
         # Timer para atualizar a posição – agora conectamos a um método que loga a ação 
         self.update_timer = QTimer(self) 
         self.update_timer.timeout.connect(self.on_update_timer) 
-        self.update_timer.start(1000) # Atualiza a cada 1000ms
+        self.update_timer.start(1000) # Atualiza a cada 1000ms        
 
         # Capturar eventos de teclado para movimentação de qualquer widget:
         # instala o filter globalmente apenas UMA vez
@@ -1631,25 +1618,8 @@ class AOIControllerApp(QMainWindow):
         
         left_layout.addWidget(self.sequence_widget)
         
-        # Painel direito: visualizador de imagem e resultados
+        # Painel direito: aba para Câmera & Movimento e Visualização de Tensão
         right_panel = QTabWidget()
-        
-        # Aba de visualização de imagem
-        self.image_viewer = ImageViewerWidget()
-        right_panel.addTab(self.image_viewer, "Visualizador de Imagem")
-        
-        # Aba de resultados
-        results_widget = QWidget()
-        results_layout = QVBoxLayout(results_widget)
-        
-        self.results_table = QTableWidget(0, 3)
-        self.results_table.setHorizontalHeaderLabels(["Posição", "Timestamp", "Status"])
-        self.results_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        
-        results_layout.addWidget(QLabel("Resultados da Inspeção:"))
-        results_layout.addWidget(self.results_table)
-        
-        right_panel.addTab(results_widget, "Resultados")
         
         # MOVER PARA AQUI: Adicionar a aba de Câmera & Movimento (após definir right_panel)
         # Tab para Camera & Movement
@@ -1664,18 +1634,13 @@ class AOIControllerApp(QMainWindow):
         self.movement_widget = MovementControlWidget(self.controller, self.config)
         cm_left_layout.addWidget(self.movement_widget)
         
-        # Position registry
-        self.position_registry = PositionRegistryWidget(self.controller, self.config)
-        self.position_registry.create_sequence_btn.clicked.connect(self.create_sequence_from_registry)
-        cm_left_layout.addWidget(self.position_registry)
-        
         # Right side: camera preview
         self.camera_preview = CameraPreviewWidget(self.controller, self.config)
         self.camera_preview.image_captured.connect(self.on_image_captured)
         
-        # Define proporções para os painéis - dar mais espaço para a visualização da câmera
-        camera_movement_layout.addWidget(cm_left_panel, 1)  # Proporção 1
-        camera_movement_layout.addWidget(self.camera_preview, 3)  # Proporção 3 (mais espaço)
+        # Inverter colunas: preview à esquerda (mais espaço) e controles à direita
+        camera_movement_layout.addWidget(self.camera_preview, 3)      # Proporção 3 (preview)
+        camera_movement_layout.addWidget(cm_left_panel, 1)            # Proporção 1 (controles)
         
         # Agora é seguro adicionar a nova aba ao right_panel que já foi definido
         right_panel.addTab(camera_movement_tab, "Câmera & Movimento")
@@ -2573,17 +2538,38 @@ class AOIControllerApp(QMainWindow):
         if isinstance(self.controller.cnc, PLCAxisController):
             plc = self.controller.cnc
             if plc.is_connected:
-                # já está aberto: fecha
+                # desconectar
                 plc.close()
-                self.connect_cnc_btn .setText("Conectar PLC")
+                self.connect_cnc_btn.setText("Conectar PLC")
                 self.cnc_status.setText("Desconectado")
+                self.statusBar().showMessage("PLC desconectado")
+                logger.info("PLC desconectado pelo usuário")
             else:
-                # recria com host/port armazenados
-                self.controller.cnc = PLCAxisController(
-                    host=plc.host, port=plc.port
-                )
-                self.connect_cnc_btn .setText("Desconectar PLC")
-                self.cnc_status.setText("Conectado")
+                # Conectar
+                logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
+                
+                # Tenta conectar
+                if plc.connect():
+                    # Aplica calibração
+                    ppr = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
+                    pitch = float(self.config.get("calibration", "fuso_pitch", default=1.0))
+                    plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+                    
+                    self.connect_cnc_btn.setText("Desconectar PLC")
+                    self.cnc_status.setText("Conectado")
+                    self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
+                    logger.info(f"PLC conectado com sucesso em {plc.host}:{plc.port}")
+                else:
+                    QMessageBox.warning(
+                        self, 
+                        "Erro de Conexão",
+                        f"Não foi possível conectar ao PLC em {plc.host}:{plc.port}\n"
+                        "Verifique se o CLP está ligado e acessível na rede."
+                    )
+                    self.connect_cnc_btn.setText("Conectar PLC")
+                    self.cnc_status.setText("Desconectado")
+                    self.statusBar().showMessage("Falha na conexão com o PLC")
+                    logger.error(f"Falha ao conectar ao PLC em {plc.host}:{plc.port}")
             return
         # Senão, cai no fluxo original GRBL…
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
