@@ -61,84 +61,34 @@ class PLCAxisController:
 
     def __init__(self, host: str='192.168.1.5', port: int=502):
         """Conecta ao CLP via Modbus TCP."""
-        self.logger = logging.getLogger(__name__)
-        # guarda os parâmetros de conexão para possível reconexão
+        # guarda os parâmetros de conexão
         self.host = host
         self.port = port
-        # flag que a UI e o restante do app usam para saber se está online
+        # flag para indicar se está online
         self.is_connected = False
-        # estado da "máquina" para compatibilidade com update_position_display()
-        # ficará “Disconnected” até o connect() ter sucesso
+        # estado inicial da máquina
         self.machine_status = "Disconnected"
-        # Não cria o cliente até o connect() ser chamado
-        self.client = None
-        # limites de feed para compatibilidade com MovementControlWidget
-        # (valor alto para não clamar por padrão; ajuste conforme sua aplicação)
+        # cria o cliente Modbus e tenta conectar imediatamente
+        self.client = ModbusTcpClient(host, port=port)
+        # limites de feed (compatível com MovementControlWidget)
         self.max_feed = {'x': float('inf'),
                          'y': float('inf'),
                          'z': float('inf')}
-        # fator de conversão pulses → mm (padrão: 1 pulso = 1 mm)
+        # fator de conversão pulses → mm
         self.pulses_per_mm = 1.0
-        self.logger.info(f"PLCAxisController inicializado para {host}:{port} - aguardando conexão manual")
-    
-    def _verify_connection(self, timeout_ms: int = 2000) -> bool:
-        """Verifica se o CLP está realmente respondendo."""
-        if not self.client:
-            return False
-        try:
-            # Tenta ler um registrador de teste (D3000_X - posição do eixo X)
-            test_address = self.ADDRESSES['X']['pos_reg']
-            # Verifica se o cliente está conectado antes de tentar ler
-            if not self.client.connected:
-                self.logger.debug("Cliente Modbus não está conectado")
-                return False
-            
-            # Tenta ler com timeout
-            result = self.client.read_holding_registers(test_address, count=2, unit=1)
-            
-            if result.isError():
-                self.logger.debug(f"Erro ao verificar conexão: {result}")
-                return False
-            
-            # Verifica se obtivemos valores válidos
-            if not hasattr(result, 'registers') or len(result.registers) < 2:
-                self.logger.debug("Resposta inválida do CLP")
-                return False
-            
-            # Se conseguiu ler sem erro, a conexão está funcional
-            self.logger.debug(f"Conexão verificada - valores lidos: {result.registers}")
-            return True
-        except Exception as e:
-            self.logger.debug(f"Exceção ao verificar conexão: {e}")
-            return False
-    
-    def connect(self):
-        """Estabelece conexão com o CLP."""
-        if self.is_connected:
-            return True
-        
-        # Cria o cliente Modbus se ainda não existir
-        if not self.client:
-            self.client = ModbusTcpClient(self.host, port=self.port)
-            
+        # tenta abrir a conexão; levanta erro se falhar
         connected = self.client.connect()
         if not connected:
-            return False
-            
-        # Verifica se a conexão está funcional
-        if self._verify_connection():
-            self.is_connected = True
-            self.machine_status = "Idle"
-            self.logger.info(f"CLP reconectado em {self.host}:{self.port}")
-            return True
-        else:
-            if self.client:
-                self.client.close()
-            return False
+            raise ConnectionError(f"Falha ao conectar ao CLP em {host}:{port}")
+        self.is_connected = True
+        self.machine_status = "Idle"
+    
+    
 
     def close(self):
         """Fecha a conexão Modbus."""
-        self.client.close()
+        if self.client:
+            self.client.close()
         # sinaliza para a aplicação que não está mais conectado
         self.is_connected = False
 

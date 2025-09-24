@@ -2545,31 +2545,28 @@ class AOIControllerApp(QMainWindow):
                 self.statusBar().showMessage("PLC desconectado")
                 logger.info("PLC desconectado pelo usuário")
             else:
-                # Conectar
+                # recria e conecta via construtor
                 logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
-                
-                # Tenta conectar
-                if plc.connect():
-                    # Aplica calibração
-                    ppr = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
-                    pitch = float(self.config.get("calibration", "fuso_pitch", default=1.0))
-                    plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
-                    
+                try:
+                    new_plc = PLCAxisController(host=plc.host, port=plc.port)
+                except Exception as e:
+                    QMessageBox.warning(
+                        self,
+                        "Erro de Conexão",
+                        f"Falha ao conectar ao PLC em {plc.host}:{plc.port}:\n{e}"
+                    )
+                    logger.error(f"Falha ao conectar ao PLC em {plc.host}:{plc.port}: {e}")
+                else:
+                    # substitui o controller e reaplica calibração
+                    self.controller.cnc = new_plc
+                    ppr   = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
+                    pitch = float(self.config.get("calibration", "fuso_pitch",     default=1.0))
+                    new_plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+
                     self.connect_cnc_btn.setText("Desconectar PLC")
                     self.cnc_status.setText("Conectado")
-                    self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
-                    logger.info(f"PLC conectado com sucesso em {plc.host}:{plc.port}")
-                else:
-                    QMessageBox.warning(
-                        self, 
-                        "Erro de Conexão",
-                        f"Não foi possível conectar ao PLC em {plc.host}:{plc.port}\n"
-                        "Verifique se o CLP está ligado e acessível na rede."
-                    )
-                    self.connect_cnc_btn.setText("Conectar PLC")
-                    self.cnc_status.setText("Desconectado")
-                    self.statusBar().showMessage("Falha na conexão com o PLC")
-                    logger.error(f"Falha ao conectar ao PLC em {plc.host}:{plc.port}")
+                    self.statusBar().showMessage(f"PLC conectado em {new_plc.host}:{new_plc.port}")
+                    logger.info(f"PLC conectado com sucesso em {new_plc.host}:{new_plc.port}")
             return
         # Senão, cai no fluxo original GRBL…
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
