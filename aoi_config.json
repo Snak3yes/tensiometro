@@ -29,8 +29,8 @@
     "theme": "light"
   },
   "calibration": {
-    "pulses_per_rev": 1600.0,
-    "fuso_pitch": 5.0
+    "pulses_per_rev": 1000.0,
+    "fuso_pitch": 10.0
   },
   "movement": {
     "step_size": 20.0,

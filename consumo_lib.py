@@ -2046,8 +2046,34 @@ class AOIControllerApp(QMainWindow):
         Aplica a calibração de movimento com base nos valores informados pelo usuário.
         Envia comandos diretos para o GRBL para configurar os steps/mm.
         """
-        if not self.controller.cnc.is_connected or not self.controller.cnc.grbl:
+        if not self.controller.cnc.is_connected:
             QMessageBox.warning(self, "Erro", "CNC não conectada. Conecte primeiro.")
+            return
+        
+        # Se for PLC, atualiza apenas o fator de conversão interno
+        if isinstance(self.controller.cnc, PLCAxisController):
+            try:
+                pulses = float(self.pulses_input.text())
+                fuso_pass = float(self.fuso_input.text())
+                
+                # Atualiza o fator de conversão pulsos/mm do PLC
+                self.controller.cnc.pulses_per_mm = pulses / fuso_pass
+                
+                # Salva no JSON para persistir a configuração
+                self.config.remember_calibration(pulses, fuso_pass)
+                
+                self.statusBar().showMessage(f"Calibração PLC aplicada: {pulses / fuso_pass:.3f} pulsos/mm")
+                QMessageBox.information(
+                    self, "Calibração PLC",
+                    f"Fator de conversão atualizado:\n{pulses / fuso_pass:.3f} pulsos/mm"
+                )
+            except ValueError:
+                QMessageBox.warning(self, "Erro", "Valores de calibração inválidos.")
+            return
+        
+        # Se for GRBL, verifica se tem o atributo grbl
+        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.grbl:
+            QMessageBox.warning(self, "Erro", "Controlador GRBL não disponível.")
             return
             
         try:

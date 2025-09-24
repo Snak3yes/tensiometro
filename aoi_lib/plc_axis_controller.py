@@ -141,12 +141,35 @@ class PLCAxisController:
             self._write_dword(cfg['speed'], int(speed))
         self._pulse_coil(cfg['move_abs'])
 
-    def move_relative(self, axis: str, offset: int, speed: int=None):
+    def move_relative(self, x=None, y=None, z=None, feed_rate=1000):
         """
-        Move o eixo `axis` de forma relativa ao valor atual.
+        Move de forma relativa em múltiplos eixos.
+        Compatível com GRBLCNCController para uso em threads de medição.
+        
+        Args:
+            x, y, z: Deslocamento relativo em mm (None para não mover o eixo)
+            feed_rate: Velocidade em mm/min
         """
-        current = self._read_dword(self.ADDRESSES[axis]['pos_reg'])
-        self.move_absolute(axis, current + offset, speed)
+        # Converte feed_rate (mm/min) para pulsos/min
+        speed_pulses = int(round(feed_rate * self.pulses_per_mm)) if feed_rate else None
+        
+        # Move cada eixo especificado de forma relativa
+        if x is not None:
+            x_pulses = int(round(x * self.pulses_per_mm))
+            current_x = self._read_dword(self.ADDRESSES['X']['pos_reg'])
+            self.move_absolute('X', current_x + x_pulses, speed_pulses)
+            
+        if y is not None:
+            y_pulses = int(round(y * self.pulses_per_mm))
+            current_y = self._read_dword(self.ADDRESSES['Y']['pos_reg'])
+            self.move_absolute('Y', current_y + y_pulses, speed_pulses)
+            
+        if z is not None:
+            z_pulses = int(round(z * self.pulses_per_mm))
+            current_z = self._read_dword(self.ADDRESSES['Z']['pos_reg'])
+            self.move_absolute('Z', current_z + z_pulses, speed_pulses)
+            
+        return True
 
     def wait_for_idle(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
         """
@@ -174,10 +197,17 @@ class PLCAxisController:
         pulses = int(round(distance_mm * self.pulses_per_mm))
         # 2) converte feed_rate (mm/min) em pulsos/min, se fornecido
         speed = int(round(feed_rate * self.pulses_per_mm)) if feed_rate is not None else None
-        # 3) executa movimento relativo
-        self.move_relative(axis, pulses, speed)
+        # 3) executa movimento relativo usando o método antigo interno
+        self._move_relative_single_axis(axis, pulses, speed)
         # 4) aguarda até o eixo estar idle
-        return self.wait_for_idle(axis)
+        return self._wait_for_idle_axis(axis)
+    
+    def _move_relative_single_axis(self, axis: str, offset: int, speed: int=None):
+        """
+        Move um único eixo de forma relativa (método interno).
+        """
+        current = self._read_dword(self.ADDRESSES[axis]['pos_reg'])
+        self.move_absolute(axis, current + offset, speed)
 
     def jog_start(self, axis: str, direction: int, feed_rate: float = None):
         """
@@ -212,6 +242,59 @@ class PLCAxisController:
             cfg = self.ADDRESSES[ax]
             self.client.write_coil(cfg['jog_plus'], False)
             self.client.write_coil(cfg['jog_minus'], False)
+
+    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=1000):
+        """
+        Move para uma posição absoluta em coordenadas.
+        Compatível com GRBLCNCController para uso em threads de medição.
+        
+        Args:
+            x, y, z: Coordenadas de destino em mm (None para não mover o eixo)
+            feed_rate: Velocidade em mm/min
+        """
+        # Converte feed_rate (mm/min) para pulsos/min
+        speed_pulses = int(round(feed_rate * self.pulses_per_mm)) if feed_rate else None
+        
+        # Move cada eixo que foi especificado
+        if x is not None:
+            x_pulses = int(round(x * self.pulses_per_mm))
+            self.move_absolute('X', x_pulses, speed_pulses)
+            
+        if y is not None:
+            y_pulses = int(round(y * self.pulses_per_mm))
+            self.move_absolute('Y', y_pulses, speed_pulses)
+            
+        if z is not None:
+            z_pulses = int(round(z * self.pulses_per_mm))
+            self.move_absolute('Z', z_pulses, speed_pulses)
+            
+        return True
+    
+    def wait_for_idle(self, timeout=10):
+        """
+        Aguarda todos os eixos ficarem idle.
+        Compatível com GRBLCNCController (sem parâmetro de eixo).
+        """
+        # Aguarda cada eixo sequencialmente
+        for axis in ['X', 'Y', 'Z']:
+            result = self._wait_for_idle_axis(axis, tolerance=1, timeout=timeout)
+            if not result:
+                return False
+        return True
+    
+    def _wait_for_idle_axis(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
+        """
+        Aguarda até um eixo específico atingir o alvo.
+        (Renomeado do antigo wait_for_idle para evitar conflito)
+        """
+        target = self._read_dword(self.ADDRESSES[axis]['pos_input'])
+        t0 = time.time()
+        while time.time() - t0 < timeout:
+            cur = self._read_dword(self.ADDRESSES[axis]['pos_reg'])
+            if abs(cur - target) <= tolerance:
+                return True
+            time.sleep(0.05)
+        return False
 
     def read_position(self, axis: str) -> int:
         """Lê a posição atual do eixo em pulsos."""
