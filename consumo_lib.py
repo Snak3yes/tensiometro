@@ -1438,10 +1438,10 @@ class AOIControllerApp(QMainWindow):
                 return True
             key = event.key()
             if key == Qt.Key.Key_Up:
-                self.movement_widget.start_movement("Y", 1)
+                self.movement_widget.start_movement("Y", -1)
                 return True
             elif key == Qt.Key.Key_Down:
-                self.movement_widget.start_movement("Y", -1)
+                self.movement_widget.start_movement("Y", 1)
                 return True
             elif key == Qt.Key.Key_Left:
                 self.movement_widget.start_movement("X", -1)
@@ -1450,10 +1450,10 @@ class AOIControllerApp(QMainWindow):
                 self.movement_widget.start_movement("X", 1)
                 return True
             elif key == Qt.Key.Key_PageUp:
-                 self.movement_widget.start_movement("Z", 1)
+                 self.movement_widget.start_movement("Z", -1)
                  return True
             elif key == Qt.Key.Key_PageDown:
-                 self.movement_widget.start_movement("Z", -1)
+                 self.movement_widget.start_movement("Z", 1)
                  return True
         # KeyRelease
         elif event.type() == QEvent.Type.KeyRelease and self.movement_widget.keyboard_control_checkbox.isChecked():
@@ -1620,6 +1620,8 @@ class AOIControllerApp(QMainWindow):
         
         # Painel direito: aba para Câmera & Movimento e Visualização de Tensão
         right_panel = QTabWidget()
+        # guardamos para habilitar/desabilitar abas depois
+        self.right_panel = right_panel
         
         # MOVER PARA AQUI: Adicionar a aba de Câmera & Movimento (após definir right_panel)
         # Tab para Camera & Movement
@@ -1648,10 +1650,13 @@ class AOIControllerApp(QMainWindow):
         # Aba de Visualização de Tensão
         self.tension_visualization = TensionVisualizationWidget()
         right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
+        # desabilita abas até o CLP conectar
+        self.right_panel.setTabEnabled(0, False)
+        self.right_panel.setTabEnabled(1, False)
         
         # Adiciona painéis ao splitter
         splitter.addWidget(left_panel)
-        splitter.addWidget(right_panel)
+        splitter.addWidget(self.right_panel)
         splitter.setSizes([400, 800])
         
         main_layout.addWidget(splitter)
@@ -2544,6 +2549,9 @@ class AOIControllerApp(QMainWindow):
                 self.cnc_status.setText("Desconectado")
                 self.statusBar().showMessage("PLC desconectado")
                 logger.info("PLC desconectado pelo usuário")
+                # ao desconectar PLC, volta a desabilitar as abas
+                self.right_panel.setTabEnabled(0, False)
+                self.right_panel.setTabEnabled(1, False)
             else:
                 # recria e conecta via construtor
                 logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
@@ -2567,6 +2575,9 @@ class AOIControllerApp(QMainWindow):
                     self.cnc_status.setText("Conectado")
                     self.statusBar().showMessage(f"PLC conectado em {new_plc.host}:{new_plc.port}")
                     logger.info(f"PLC conectado com sucesso em {new_plc.host}:{new_plc.port}")
+                    # ao conectar PLC com sucesso, habilita as abas
+                    self.right_panel.setTabEnabled(0, True)
+                    self.right_panel.setTabEnabled(1, True)
             return
         # Senão, cai no fluxo original GRBL…
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
