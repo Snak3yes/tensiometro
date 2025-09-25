@@ -1014,21 +1014,49 @@ class MovementControlWidget(QWidget):
 
     def go_to_zero(self):
         """
-        Move a cabeça para WPos (0, 0) reaproveitando a API de
-        alto-nível do GRBLCNCController; UI não envia mais G-code cru.
+        Dispara homing no CLP: envia pulso de 100 ms em cada coil de sensor:
+          - M1350 → eixo X
+          - M850  → eixo Y
+          - M185  → eixo Z
         """
         if not self._precheck_connected():
             return
-
-        # evita travamentos se a máquina já estiver ocupada
-        if self.controller.cnc.machine_status in ("Run", "Jog", "Alarm"):
-            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({self.controller.cnc.machine_status})")
+        # PLC backend → pulso de 100 ms em cada coil de homing
+        if isinstance(self.controller.cnc, PLCAxisController):
+            status = self.controller.cnc.machine_status
+            if status in ("Run", "Jog", "Alarm"):
+                QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
+                return
+            # Endereços dos coils de homing
+            homing_coils = {
+                'X': 1350,  # M1350_X
+                'Y': 850,   # M850_Y
+                'Z': 1850    # M185_Z
+            }
+            for axis, coil in homing_coils.items():
+                try:
+                    # sobe borda
+                    self.controller.cnc.client.write_coil(coil, True)
+                    time.sleep(0.1)
+                    # desce borda
+                    self.controller.cnc.client.write_coil(coil, False)
+                except Exception as e:
+                    logger.error(f"Homing CLP: falha no pulso de {axis} (coil {coil}): {e}")
+            # aguarda término de todos os eixos
+            self.controller.cnc.wait_for_idle()
+            # atualiza interface
+            self.window().update_position_display()
+            self.window().statusBar().showMessage("Homing CLP concluído")
             return
-
+        # GRBL or other → fallback ao “go to zero” por movimento absoluto
+        # evita travar se já em movimento/alarm
+        status = self.controller.cnc.machine_status
+        if status in ("Run", "Jog", "Alarm"):
+            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
+            return
         feed = self._get_feed_rate()
         if feed is None:
             return
-
         self._start_move_thread(x=0, y=0, z=0, feed=feed,
                                 status_msg="Movendo para posição zero")
     
@@ -1588,6 +1616,15 @@ class AOIControllerApp(QMainWindow):
         self.sequence_widget.load_gcode_btn.clicked.connect(self.load_gcode)
         
         left_layout.addWidget(self.sequence_widget)
+
+        # Table to display each step/result of the executed sequence
+        self.results_table = QTableWidget(0, 3)
+        self.results_table.setHorizontalHeaderLabels(["Posição", "Horário", "Status"])
+        # Make columns stretch to fill available space
+        self.results_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        left_layout.addWidget(self.results_table)
         
         # Painel direito: aba para Câmera & Movimento e Visualização de Tensão
         right_panel = QTabWidget()
@@ -2848,8 +2885,12 @@ class AOIControllerApp(QMainWindow):
         image = result["image"]
         timestamp = result["timestamp"]
         
-        # Display the image
-        self.image_viewer.display_image(image, f"Position: {position.name} ({position.x:.3f}, {position.y:.3f})")
+        # Display the image on the existing camera_preview widget
+        self.camera_preview.display_image(image)
+        # Atualiza a status bar com o nome/posição
+        self.statusBar().showMessage(
+            f"Position captured: {position.name} ({position.x:.3f}, {position.y:.3f})"
+        )
         
         # Add to results table
         row = self.results_table.rowCount()

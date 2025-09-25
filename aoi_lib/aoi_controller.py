@@ -166,14 +166,16 @@ class CNCAOIController:
             # 1. Move para a posição (X, Y, Z) - despacha para CLP ou GRBL
             feed_rate = getattr(self, '_current_feed_rate', 1000)
             if isinstance(self.cnc, PLCAxisController):
-                # EXEMPLO simplificado: 1 mm → 1 pulso
-                for axis, coord in (('X', position.x),
-                                     ('Y', position.y),
-                                     ('Z', position.z)):
-                    if coord is not None:
-                        pulsos = int(coord)
-                        self.cnc.move_absolute(axis, pulsos, speed=int(feed_rate))
-                        self.cnc.wait_for_idle(axis)
+                # Executa o movimento absoluto exato em mm, sem truncar
+                # (move_to_absolute_position converte internamente usando pulses_per_mm)
+                self.cnc.move_to_absolute_position(
+                    x=position.x,
+                    y=position.y,
+                    z=position.z,
+                    feed_rate=feed_rate
+                )
+                # Aguarda idle de todos os eixos
+                self.cnc.wait_for_idle()
             else:
                 # comportamento original GRBL
                 self.cnc.move_to_absolute_position(

@@ -278,15 +278,20 @@ class PLCAxisController:
             
         return True
     
-    def wait_for_idle(self, timeout=10):
+    def wait_for_idle(self, axis=None, tolerance: int=1, timeout: int=10):
         """
-        Aguarda todos os eixos ficarem idle.
-        Compatível com GRBLCNCController (sem parâmetro de eixo).
+        Aguarda até que os eixos fiquem idle.
+        - Se axis for uma string ('X','Y','Z'), aguarda apenas esse eixo.
+        - Se axis for None, aguarda todos os eixos (X, Y, Z) sequencialmente.
+        tolerance: tolerância em pulsos.
+        timeout: tempo máximo de espera em segundos.
         """
-        # Aguarda cada eixo sequencialmente
-        for axis in ['X', 'Y', 'Z']:
-            result = self._wait_for_idle_axis(axis, tolerance=1, timeout=timeout)
-            if not result:
+        # Se pediram eixo específico, despacha direto
+        if isinstance(axis, str):
+            return self._wait_for_idle_axis(axis, tolerance, timeout)
+        # Senão espera todos os eixos em série
+        for ax in ('X', 'Y', 'Z'):
+            if not self._wait_for_idle_axis(ax, tolerance, timeout):
                 return False
         return True
     
