@@ -1552,48 +1552,19 @@ class AOIControllerApp(QMainWindow):
         position_group = QGroupBox("Posição Atual")
         position_layout = QGridLayout()
 
-        # Exibe os valores X, Y e status
-        # ----- Eixo X ----------------------------------------------------
+        # Exibe os valores X, Y, Z e status
         position_layout.addWidget(QLabel("X:"), 0, 0)
         self.x_position = QLabel("0.000 mm")
         position_layout.addWidget(self.x_position, 0, 1)
-
-        # Botão para zerar apenas o eixo X
-        self.zero_x_btn = QPushButton("Zero X")
-        self.zero_x_btn.setToolTip("Zerar apenas o eixo X")
-        self.zero_x_btn.clicked.connect(self.set_zero_x_position)
-        position_layout.addWidget(self.zero_x_btn, 0, 2)
-
-        # ----- Eixo Y ----------------------------------------------------
         position_layout.addWidget(QLabel("Y:"), 1, 0)
         self.y_position = QLabel("0.000 mm")
         position_layout.addWidget(self.y_position, 1, 1)
-
-        # Botão para zerar apenas o eixo Y
-        self.zero_y_btn = QPushButton("Zero Y")
-        self.zero_y_btn.setToolTip("Zerar apenas o eixo Y")
-        self.zero_y_btn.clicked.connect(self.set_zero_y_position)
-        position_layout.addWidget(self.zero_y_btn, 1, 2)
-
-        # ----- Eixo Z ----------------------------------------------------
         position_layout.addWidget(QLabel("Z:"), 2, 0)
         self.z_position = QLabel("0.000 mm")
         position_layout.addWidget(self.z_position, 2, 1)
-        # Botão para zerar apenas o eixo Z
-        self.zero_z_btn = QPushButton("Zero Z")
-        self.zero_z_btn.setToolTip("Zerar apenas o eixo Z")
-        self.zero_z_btn.clicked.connect(self.set_zero_z_position)
-        position_layout.addWidget(self.zero_z_btn, 2, 2)
-
-        # ----- Status ----------------------------------------------------
         position_layout.addWidget(QLabel("Status:"), 3, 0)
         self.cnc_status = QLabel("Desconectado")
         position_layout.addWidget(self.cnc_status, 3, 1)
-
-        # Botão para setar todos os eixos como zero
-        self.set_zero_btn = QPushButton("Setar Posição Zero")
-        self.set_zero_btn.clicked.connect(self.set_zero_position)
-        position_layout.addWidget(self.set_zero_btn, 4, 0, 1, 3)
 
         position_group.setLayout(position_layout)
         left_layout.addWidget(position_group)
@@ -2260,141 +2231,7 @@ class AOIControllerApp(QMainWindow):
         except Exception as e:
             logger.error(f"CALIBRAÇÃO: Erro ao verificar resultado: {e}")
 
-    def set_zero_position(self):
-        """Define a posição de trabalho atual como zero usando G10 L20."""
-        if not self.controller.cnc.is_connected or not self.controller.cnc.grbl:
-            QMessageBox.warning(self, "Aviso", "CNC não conectada")
-            return
-        try:
-            # 1. Captura a MPos MAIS RECENTE armazenada ANTES de enviar o G10
-            #    Garante que estamos usando a posição correta para calcular o novo offset.
-            #    Usamos self.current_mpos que é atualizado pelo callback on_stateupdate.
-            mpos_correcta_no_zeramento = self.current_mpos.copy() # Captura a MPos atual armazenada
-            logger.info(f"SET ZERO: MPos capturada para zeramento: {mpos_correcta_no_zeramento}")
-
-            # Verifica se a MPos capturada parece válida (não apenas zeros se esperamos algo diferente)
-            # Este é um check adicional, pode ser ajustado ou removido se causar problemas.
-            if mpos_correcta_no_zeramento['x'] == 0.0 and mpos_correcta_no_zeramento['y'] == 0.0 and (self.last_logged_position and (self.last_logged_position['x'] != 0.0 or self.last_logged_position['y'] != 0.0)):
-                 logger.warning(f"SET ZERO: MPos capturada ({mpos_correcta_no_zeramento}) parece zerada, mas a última posição exibida era {self.last_logged_position}. Verifique a atualização de self.current_mpos.")
-                 # Poderia até abortar aqui ou pedir confirmação, mas vamos prosseguir por enquanto.
-
-            # 2. Obter o número P correspondente ao WCS ativo (Ex: G54 -> P1)
-            p_number = self.wcs_to_p.get(self.active_wcs)
-            if p_number is None:
-                logger.error(f"SET ZERO: WCS ativo '{self.active_wcs}' não reconhecido para G10 L20. Usando P1 (G54).")
-                p_number = 1 # Usa G54 como fallback
-
-            # 3. Construir o comando G10 L20
-            # O comando G10 L20 Pn X0 Y0 Z0 diz ao GRBL: "Ajuste o offset do WCS 'n' para que a MPos *atual* corresponda a WPos X0 Y0 Z0"
-            command = f"G10 L20 P{p_number} X0 Y0 Z0"
-            logger.info(f"SET ZERO: Enviando comando: {command} para zerar {self.active_wcs}")
-
-            # 4. Enviar o comando G10 L20 para o GRBL
-            self.controller.cnc.grbl.send_immediately(command)
-
-            # 5. Atualizar o offset interno da APLICAÇÃO
-            # O novo offset que a aplicação deve usar para calcular WPos = MPos - Offset
-            # é exatamente a MPos que a máquina tinha no momento do comando G10.
-            logger.info(f"SET ZERO: Atualizando offset interno de {self.current_wcs_offset} para {mpos_correcta_no_zeramento}")
-            self.current_wcs_offset = mpos_correcta_no_zeramento # ATUALIZAÇÃO CORRETA DO OFFSET INTERNO
-
-            # 6. Atualizar a posição interna da APLICAÇÃO (WPos) para zero
-            # Isso força a exibição a mostrar (0,0) imediatamente.
-            new_wpos = {'x': 0.0, 'y': 0.0, 'z': 0.0} # A WPos deve ser zero agora
-            logger.info(f"SET ZERO: Forçando posição interna (WPos) para {new_wpos}")
-            self.controller.cnc.current_position = new_wpos
-
-            # 7. Atualizar a interface gráfica imediatamente com a WPos zerada
-            self.update_position_display() # Chama a função que atualiza os labels X e Y
-
-            self.statusBar().showMessage(f"Posição zero definida para {self.active_wcs} na localização atual.")
-
-            # 8. (Opcional) Solicitar $# ou $G após um tempo para verificar se o GRBL processou
-            QTimer.singleShot(500, lambda: self.controller.cnc.grbl.send_immediately("$#"))
-            QTimer.singleShot(600, lambda: self.controller.cnc.grbl.send_immediately("$G"))
-
-        except Exception as e:
-            logger.error(f"SET ZERO: Erro ao definir posição zero: {e}", exc_info=True)
-            QMessageBox.warning(self, "Erro", f"Falha ao setar posição zero: {str(e)}")
-
-    def set_zero_x_position(self):
-        """Zera apenas o eixo X (WPos.x = 0), mantendo Y."""
-        from PyQt6.QtWidgets import QMessageBox
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Aviso", "CNC não conectada")
-            return
-        try:
-            # Captura a MPos atual
-            mpos = self.current_mpos.copy()
-            # Número do WCS (G54…G59)
-            p_number = self.wcs_to_p.get(self.active_wcs, 1)
-            # Comando para zerar X no offset ativo
-            cmd = f"G10 L20 P{p_number} X0"
-            self.controller.cnc.grbl.send_immediately(cmd)
-            # Atualiza o offset interno de X
-            self.current_wcs_offset['x'] = mpos['x']
-            # Ajusta a posição interna (WPos) para refletir X=0
-            new_wpos = {
-                'x': 0.0,
-                'y': self.controller.cnc.current_position.get('y', 0.0),
-                'z': self.controller.cnc.current_position.get('z', 0.0)
-            }
-            self.controller.cnc.current_position = new_wpos
-            self.update_position_display()
-            self.statusBar().showMessage("Eixo X zerado")
-        except Exception as e:
-            logger.error(f"Erro ao zerar eixo X: {e}", exc_info=True)
-            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo X:\n{e}")
-
-    def set_zero_y_position(self):
-        """Zera apenas o eixo Y (WPos.y = 0), mantendo X."""
-        from PyQt6.QtWidgets import QMessageBox
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Aviso", "CNC não conectada")
-            return
-        try:
-            mpos = self.current_mpos.copy()
-            p_number = self.wcs_to_p.get(self.active_wcs, 1)
-            cmd = f"G10 L20 P{p_number} Y0"
-            self.controller.cnc.grbl.send_immediately(cmd)
-            self.current_wcs_offset['y'] = mpos['y']
-            new_wpos = {
-                'x': self.controller.cnc.current_position.get('x', 0.0),
-                'y': 0.0,
-                'z': self.controller.cnc.current_position.get('z', 0.0)
-            }
-            self.controller.cnc.current_position = new_wpos
-            self.update_position_display()
-            self.statusBar().showMessage("Eixo Y zerado")
-        except Exception as e:
-            logger.error(f"Erro ao zerar eixo Y: {e}", exc_info=True)
-            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo Y:\n{e}")
-
-    def set_zero_z_position(self):
-        """Zera apenas o eixo Z (WPos.z = 0)."""
-        from PyQt6.QtWidgets import QMessageBox
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Aviso", "CNC não conectada")
-            return
-        try:
-            mpos = self.current_mpos.copy()
-            p_number = self.wcs_to_p.get(self.active_wcs, 1)
-            cmd = f"G10 L20 P{p_number} Z0"
-            self.controller.cnc.grbl.send_immediately(cmd)
-            # Offset interno
-            self.current_wcs_offset['z'] = mpos['z']
-            # Atualiza posição lógica
-            new_wpos = {
-                'x': self.controller.cnc.current_position.get('x', 0.0),
-                'y': self.controller.cnc.current_position.get('y', 0.0),
-                'z': 0.0
-            }
-            self.controller.cnc.current_position = new_wpos
-            self.update_position_display()
-            self.statusBar().showMessage("Eixo Z zerado")
-        except Exception as e:
-            logger.error(f"Erro ao zerar eixo Z: {e}", exc_info=True)
-            QMessageBox.critical(self, "Erro", f"Falha ao zerar eixo Z:\n{e}")
+    
 
     def on_image_captured(self, image, position_name):
         """Handle captured image and register position"""
