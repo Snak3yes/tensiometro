@@ -500,7 +500,7 @@ class StencilTensionDialog(QDialog):
 
         # Velocidade de movimentação configurável
         adv_layout.addWidget(QLabel("Velocidade de movimentação (mm/min):"), 1, 0)
-        self.movement_feed = QLineEdit("1000")
+        self.movement_feed = QLineEdit("30")
         self.movement_feed.setToolTip("Velocidade para todas as movimentações durante a medição")
         adv_layout.addWidget(self.movement_feed, 1, 1)
         
@@ -725,8 +725,11 @@ class StencilTensionDialog(QDialog):
         if pts is None:
             return
 
+        # Agora o zero de Z fica no topo -> valor POSITIVO desce, 
+        # valor NEGATIVO sobe. Basta usar o valor digitado para descer.
         try:
-            z_down = float(self.ed_z.text()) * -1   # negativo para descer
+            z_val = float(self.ed_z.text())
+            z_down = z_val
         except ValueError:
             QMessageBox.warning(self, "Erro", "Altura Z inválida.")
             return

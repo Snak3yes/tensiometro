@@ -36,15 +36,15 @@ class PLCAxisController:
             'pos_reg':        3000     # D3000_X
         },
         'Y': {
-            'zero':           500,     # M500_Y1
-            'move_abs':       550,     # M550_Y1
-            'pos_input':      600,     # D600_Y1
-            'speed':          20500,   # D20500_Y1
-            'jog_plus':       570,     # M570_Y1
-            'jog_minus':      580,     # M580_Y1
-            'jog_stop_plus':  510,     # M510_Y1
-            'jog_stop_minus': 511,     # M511_Y1
-            'pos_reg':        3400     # D3400_Y1
+            'zero':           500,     # M500_Y
+            'move_abs':       550,     # M550_Y
+            'pos_input':      600,     # D600_Y
+            'speed':          20500,   # D20500_Y
+            'jog_plus':       570,     # M570_Y
+            'jog_minus':      580,     # M580_Y
+            'jog_stop_plus':  510,     # M510_Y
+            'jog_stop_minus': 511,     # M511_Y
+            'pos_reg':        3200     # D3200_Y
         },
         'Z': {
             'zero':           1500,    # M1500_Z
@@ -55,7 +55,7 @@ class PLCAxisController:
             'jog_minus':      1580,    # M1580_Z
             'jog_stop_plus':  1510,    # M1510_Z
             'jog_stop_minus': 1511,    # M1511_Z
-            'pos_reg':        3200     # D3200_Z
+            'pos_reg':        3400     # D3400_Z
         }
     }
 
