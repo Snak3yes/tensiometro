@@ -2769,7 +2769,7 @@ class AOIControllerApp(QMainWindow):
         try: 
             # get_current_position agora retorna a WPos calculada
             position = self.controller.cnc.get_current_position() 
-            logger.debug("update_position_display: posição (WPos calculada) obtida do CNC: %s", position) 
+            # logger.debug("update_position_display: posição (WPos calculada) obtida do CNC: %s", position) 
         except Exception as e: 
             logger.error("update_position_display: erro ao obter posição: %s", e) 
             return
@@ -2780,10 +2780,12 @@ class AOIControllerApp(QMainWindow):
                 pass
                 # logger.warning("update_position_display: posição (WPos calculada) inalterada: %s", position)
             else:
-                logger.debug("update_position_display: posição (WPos calculada) mudou de %s para %s", 
-                            self.last_logged_position, position)
+                # logger.debug("update_position_display: posição (WPos calculada) mudou de %s para %s", 
+                #             self.last_logged_position, position)
+                pass
         else:
-            logger.debug("update_position_display: nenhuma posição (WPos calculada) anterior registrada.")
+            #logger.debug("update_position_display: nenhuma posição (WPos calculada) anterior registrada.")
+            pass
         
         self.last_logged_position = position.copy()
 

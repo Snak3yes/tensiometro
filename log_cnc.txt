@@ -1,309 +1,106 @@
-PS C:\Users\sense\PycharmProjects\cnc_aoi> & c:/Users/sense/PycharmProjects/cnc_aoi/.venv/Scripts/python.exe c:/Users/sense/PycharmProjects/cnc_aoi/consumo_lib.py
-2025-05-26 08:54:55,849 - consumo_lib - DEBUG - CALLBACK: Evento 'on_settings_downloaded' recebido com data: ({130: {'val': '1000', 'cmt': 'width'}, 131: {'val': '1000', 'cmt': 'height'}},)
-2025-05-26 08:54:55,849 - consumo_lib - DEBUG - CALLBACK: Evento 'on_hash_stateupdate' recebido com data: ({'G54': (0, 0, 0), 'G55': (0, 0, 0), 'G56': (0, 0, 0), 'G57': (0, 0, 0), 'G58': (0, 0, 0), 'G59': (0, 0, 0), 'G28': (0, 0, 0), 'G30': (0, 0, 0), 'G92': (0, 0, 0), 'TLO': 0, 'PRB': (0, 0, 0)},)
-2025-05-26 08:54:55,849 - consumo_lib - INFO - CALLBACK: Offset G54 atualizado (físico): {x:0.000, y:0.000, z:0.000}; (lógico Y=0.000)
-2025-05-26 08:54:55,850 - consumo_lib - DEBUG - CALLBACK: Evento 'on_gcode_parser_stateupdate' recebido com data: (['0', '54', '17', '21', '90', '94', '0', '0', '5', '0', '99', '0'],)
-2025-05-26 08:54:55,850 - consumo_lib - INFO - CALLBACK ($G): Sincronizando UI para G90 (Absoluto)
-2025-05-26 08:54:55,850 - consumo_lib - DEBUG - CONEXÃO: Tentando conectar à porta COM22 com baudrate 115200
-2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ("Grbl 1.2h ['$' for help]",)
-2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_job_completed' recebido com data: ()
-2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_feed_change' recebido com data: (None,)
-2025-05-26 08:54:57,021 - consumo_lib - DEBUG - CALLBACK: Evento 'on_progress_percent' recebido com data: (0,)
-2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_boot' recebido com data: ()
-2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$$\n',)
-2025-05-26 08:54:57,022 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $$
-
-2025-05-26 08:54:57,025 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$0=10',)
-2025-05-26 08:54:57,028 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$1=254',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$2=0',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$3=0',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$4=0',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$5=0',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$6=0',)
-2025-05-26 08:54:57,029 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$10=3',)
-2025-05-26 08:54:57,032 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$11=0.020',)
-2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$12=0.002',)
-2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$13=0',)
-2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$20=0',)
-2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$21=0',)
-2025-05-26 08:54:57,033 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$22=0',)
-2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$23=0',)
-2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$24=25.000',)
-2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$25=250.000',)
-2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$26=250',)
-2025-05-26 08:54:57,037 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$27=5.000',)
-2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$30=12000',)
-2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$31=550',)
-2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$32=0',)
-2025-05-26 08:54:57,041 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$100=400.000',)
-2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$101=400.000',)
-2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$102=400.000',)
-2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$103=8.889',)
-2025-05-26 08:54:57,045 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$104=8.889',)
-2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$110=5000.000',)
-2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$111=5000.000',)
-2025-05-26 08:54:57,049 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$112=750.000',)
-2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$113=1440.000',)
-2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$114=1440.000',)
-2025-05-26 08:54:57,053 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$120=300.000',)
-2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$121=200.000',)
-2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$122=50.000',)
-2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$123=50.000',)
-2025-05-26 08:54:57,057 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$124=50.000',)
-2025-05-26 08:54:57,061 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$130=10000.000',)
-2025-05-26 08:54:57,062 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$131=10000.000',)
-2025-05-26 08:54:57,062 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$132=200.000',)
-2025-05-26 08:54:57,065 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$133=360.000',)
-2025-05-26 08:54:57,065 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('$134=180.000',)
-2025-05-26 08:54:57,066 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CONEXÃO: Enviando comando de desbloqueio $X
-2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$X\n',)
-2025-05-26 08:54:57,854 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $X
-
-2025-05-26 08:54:57,860 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CONEXÃO: Configurando $10=3 para relatório completo de posição
-2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$10=3\n',)
-2025-05-26 08:54:57,956 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $10=3        
-
-2025-05-26 08:54:57,962 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:58,057 - consumo_lib - DEBUG - CONEXÃO: Solicitando estado hash ($#) para obter offsets
-2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CONEXÃO: Configurando modo relativo G91
-2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('G91\n',)
-2025-05-26 08:54:58,157 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: G91
-
-2025-05-26 08:54:58,163 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:58,257 - consumo_lib - DEBUG - CONEXÃO: Iniciando polling de status
-2025-05-26 08:54:58,257 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$#\n',)
-2025-05-26 08:54:58,257 - consumo_lib - ERROR - CONEXÃO: Falha ao conectar ou configurar: 'z'     
-Traceback (most recent call last):
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\consumo_lib.py", line 2292, in connect_cnc
-    self.config.apply_to_cnc(self.controller.cnc)
-  File "c:\Users\sense\PycharmProjects\cnc_aoi\aoi_lib\config_manager.py", line 129, in apply_to_cnc
-    f"$110={maxf['x']}", f"$111={maxf['y']}", f"$112={maxf['z']}",
-KeyError: 'z'
-2025-05-26 08:54:58,258 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $#
-
-2025-05-26 08:54:58,266 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G54:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,270 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G55:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,274 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G56:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,274 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G57:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,278 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G58:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,282 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G59:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,286 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G28:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,290 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G30:0.000,0.000,0.000,0.000,0.000]',)
-2025-05-26 08:54:58,290 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[G92:0.000,0.000,0.000,0.000,0.000]',)
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-I2025-05-26 08:54:58.291929 (19928) [INFO] [VCAMDS] python.exe
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-E2025-05-26 08:54:58.291929 (19928)  [ERR] [VCAMDS] Failed to open settings hive
-E2025-05-26 08:54:58.292914 (19928)  [ERR] [VCAMDS] Failed to open NBX hive
-I2025-05-26 08:54:58.292914 (19928) [INFO] [VCAMDS] Creating WndMsg Listener Window
-I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Performing initializing sequence
-I2025-05-26 08:54:58.293922 (19928) [INFO] [VCAMDS] Entered Shared Memory Consumer Initialize     
-E2025-05-26 08:54:58.293922 (19928)  [ERR] [VCAMDS] Shared Memory Consumer 2 Initialize Exception: O sistema nÒo pode encontrar o caminho especificado.
-E2025-05-26 08:54:58.294914 (19928)  [ERR] [VCAMDS] NvMxnCltShmConsumer Init Failed. Err: -610    
-I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Initializing streaming output
-W2025-05-26 08:54:58.294914 (19928) [WARN] [VCAMDS] query out res failed -- choose defaults       
-I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Already initialized
-2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[TLO:0.000]',)
-I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.294914 (19928) [INFO] [VCAMDS] Already initialized
-2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[PRB:0.000,0.000,0.000,0.000,0.000:0]',)
-2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_hash_stateupdate' recebido com data: ({'G54': (0.0, 0.0, 0.0, 0.0, 0.0), 'G55': (0.0, 0.0, 0.0, 0.0, 0.0), 'G56': (0.0, 0.0, 0.0, 0.0, 0.0), 'G57': (0.0, 0.0, 0.0, 0.0, 0.0), 'G58': (0.0, 0.0, 0.0, 0.0, 0.0), 'G59': (0.0, 0.0, 0.0, 0.0, 0.0), 'G28': (0.0, 0.0, 0.0, 0.0, 0.0), 'G30': (0.0, 0.0, 0.0, 0.0, 0.0), 'G92': (0.0, 0.0, 0.0, 0.0, 0.0), 'TLO': (0.0,), 'PRB': (0.0, 0.0, 0.0, 0.0, 0.0)},)
-2025-05-26 08:54:58,294 - consumo_lib - INFO - CALLBACK: Offset G54 atualizado (físico): {x:0.000, y:0.000, z:0.000}; (lógico Y=0.000)
-2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_probe' recebido com data: ((0.0, 0.0, 0.0, 0.0, 0.0),)
-2025-05-26 08:54:58,294 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:58,461 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 08:54:58,461 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 08:54:58,466 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G0 G54 G17 G21 G91 G94 M5 M9 T0 F0 S0]',)
-2025-05-26 08:54:58,466 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-I2025-05-26 08:54:58.507135 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.508124 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.509123 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.510133 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085458.6336'!
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.511122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Requested to perform initializing sequence    
-I2025-05-26 08:54:58.512122 (19928) [INFO] [VCAMDS] Already initialized
-I2025-05-26 08:54:58.512122 (31380) [INFO] [VCAMDS] On Thread Create
-I2025-05-26 08:54:58.512122 (31380) [INFO] [VCAMDS] Video data consumption app tracker updating num apps streaming active: 1
-E2025-05-26 08:54:58.512122 (31380)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps streaming active
-I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] Fill buffer started
-I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] Initializing image blit data
-E2025-05-26 08:54:58.513124 (31380)  [ERR] [VCAMDS] Failed to create decoder from filename. Err: -2147024893
-I2025-05-26 08:54:58.513124 (31380) [INFO] [VCAMDS] FB delta time: 0 | Final time: 33333
-2025-05-26 08:54:58,517 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:54:58,517 - consumo_lib - DEBUG - update_position_display: nenhuma posição (WPos calculada) anterior registrada.
-I2025-05-26 08:54:58.547245 (31380) [INFO] [VCAMDS] Verify core stream readiness before the first frame (sh)
-2025-05-26 08:54:58,684 - consumo_lib - DEBUG - CALLBACK: Evento 'on_stateupdate' recebido com data: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 08:54:58,684 - consumo_lib - INFO - CALLBACK: Processando 'on_stateupdate'. Dados brutos: ('Idle', (0.0, 0.0, 0.0), (0, 0, 0))
-2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK DETALHADO: state=Idle, mpos=(0.0, 0.0, 0.0)
-2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK: Estado da máquina mudou de 'Disconnected' para 'Idle'
-2025-05-26 08:54:58,685 - consumo_lib - DEBUG - CALLBACK: MPos=(0.0, 0.0, 0.0), Offset={'x': 0.0, 'y': 0.0, 'z': 0.0}, WPos Calculada={'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 08:54:58,686 - consumo_lib - DEBUG - CALLBACK: Tentando atualizar posição interna (usando WPOS CALCULADA) para: {'x': 0.0, 'y': 0.0, 'z': 0.0}
-2025-05-26 08:54:58,764 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:54:58,871 - consumo_lib - DEBUG - CALLBACK: Evento 'on_write' recebido com data: ('$G\n',)
-2025-05-26 08:54:58,871 - consumo_lib - DEBUG - CALLBACK: Comando enviado para GRBL: $G
-
-2025-05-26 08:54:58,880 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('[GC:G0 G54 G17 G21 G91 G94 M5 M9 T0 F0 S0]',)
-2025-05-26 08:54:58,880 - consumo_lib - DEBUG - CALLBACK: Evento 'on_rx_buffer_percent' recebido com data: (0,)
-2025-05-26 08:54:59,756 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:00,756 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:00,890 - consumo_lib - DEBUG - CALLBACK: Evento 'on_standstill' recebido com data: ()
-2025-05-26 08:55:01,757 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:02,761 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-I2025-05-26 08:55:03.556897 (31380) [INFO] [VCAMDS] VidFilter Out FPS: 29.7441
-2025-05-26 08:55:03,758 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:04,761 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:05,754 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:06,766 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 0, 'y': 0, 'z': 0}
-2025-05-26 08:55:08,515 - consumo_lib - DEBUG - CALLBACK: Evento 'on_read' recebido com data: ('dummy_msg_for_joining_thread',)
-2025-05-26 08:55:08,515 - consumo_lib - DEBUG - CALLBACK: Evento 'on_disconnected' recebido com data: ()
-I2025-05-26 08:55:08.532418 (31380) [INFO] [VCAMDS] On Thread Destroy
-I2025-05-26 08:55:08.533501 (31380) [INFO] [VCAMDS] Video data consumption app tracker updating num apps streaming active: 0
-E2025-05-26 08:55:08.533501 (31380)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps streaming active
-I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroying parent object
-I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroying WndMsg Listener Window
-I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Destroyed window
-I2025-05-26 08:55:08.534418 (19928) [INFO] [VCAMDS] Unregistered window class
-I2025-05-26 08:55:08.535419 (19928) [INFO] [VCAMDS] Video data consumption app tracker updating num DLL loaded: 0
-Could not create log file: No such file or directory
-COULD NOT CREATE LOGFILE '20250526-085508.6336'!
-E2025-05-26 08:55:08.535419 (19928)  [ERR] [VCAMDS] NvMxnCltShmConsumer Failed to update num apps DLL loaded
-PS C:\Users\sense\PycharmProjects\cnc_aoi> 
+2025-09-26 08:43:47,810 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:48,828 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:49,818 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:50,821 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:51,822 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:52,825 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:53,830 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:54,819 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 16.1}
+2025-09-26 08:43:55,822 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 167.42, 'y': 109.52, 'z': 16.1}
+2025-09-26 08:43:55,822 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 117.37, 'z': 16.1} para {'x': 167.42, 'y': 109.52, 'z': 16.1}
+2025-09-26 08:43:56,818 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 137.57, 'y': 79.66, 'z': 16.1}
+2025-09-26 08:43:56,818 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 167.42, 'y': 109.52, 'z': 16.1} para {'x': 137.57, 'y': 79.66, 'z': 16.1}
+2025-09-26 08:43:57,817 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 107.58, 'y': 49.67, 'z': 16.1}
+2025-09-26 08:43:57,817 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 137.57, 'y': 79.66, 'z': 16.1} para {'x': 107.58, 'y': 49.67, 'z': 16.1}
+2025-09-26 08:43:58,816 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 23.13, 'z': 16.1}
+2025-09-26 08:43:58,817 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 107.58, 'y': 49.67, 'z': 16.1} para {'x': 90.01, 'y': 23.13, 'z': 16.1}
+2025-09-26 08:43:59,825 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 21.85, 'z': 41.24}
+2025-09-26 08:43:59,825 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 23.13, 'z': 16.1} para {'x': 90.01, 'y': 21.85, 'z': 41.24}
+2025-09-26 08:44:00,818 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 21.85, 'z': 53.19}
+2025-09-26 08:44:00,818 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 21.85, 'z': 41.24} para {'x': 90.01, 'y': 21.85, 'z': 53.19}
+2025-09-26 08:44:01,843 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 21.85, 'z': 40.51}
+2025-09-26 08:44:01,843 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 21.85, 'z': 53.19} para {'x': 90.01, 'y': 21.85, 'z': 40.51}
+2025-09-26 08:44:02,832 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 104.74, 'y': 21.85, 'z': 32.2}
+2025-09-26 08:44:02,833 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 21.85, 'z': 40.51} para {'x': 104.74, 'y': 21.85, 'z': 32.2}
+2025-09-26 08:44:03,846 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 21.85, 'z': 32.2}
+2025-09-26 08:44:03,846 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 104.74, 'y': 21.85, 'z': 32.2} para {'x': 133.04, 'y': 21.85, 'z': 32.2}
+2025-09-26 08:44:04,832 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 21.85, 'z': 59.76}
+2025-09-26 08:44:04,833 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 21.85, 'z': 32.2} para {'x': 133.04, 'y': 21.85, 'z': 59.76}
+2025-09-26 08:44:05,836 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 21.85, 'z': 69.29}
+2025-09-26 08:44:05,836 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 21.85, 'z': 59.76} para {'x': 133.04, 'y': 21.85, 'z': 69.29}
+2025-09-26 08:44:06,840 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 134.02, 'y': 21.85, 'z': 48.3}
+2025-09-26 08:44:06,841 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 21.85, 'z': 69.29} para {'x': 134.02, 'y': 21.85, 'z': 48.3}
+2025-09-26 08:44:07,847 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 163.83, 'y': 21.85, 'z': 48.3}
+2025-09-26 08:44:07,848 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 134.02, 'y': 21.85, 'z': 48.3} para {'x': 163.83, 'y': 21.85, 'z': 48.3}
+2025-09-26 08:44:08,852 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 21.85, 'z': 61.8}
+2025-09-26 08:44:08,853 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 163.83, 'y': 21.85, 'z': 48.3} para {'x': 176.07, 'y': 21.85, 'z': 61.8}
+2025-09-26 08:44:09,871 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 21.85, 'z': 85.39}
+2025-09-26 08:44:09,872 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 21.85, 'z': 61.8} para {'x': 176.07, 'y': 21.85, 'z': 85.39}
+2025-09-26 08:44:10,864 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 21.85, 'z': 70.97}
+2025-09-26 08:44:10,864 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 21.85, 'z': 85.39} para {'x': 176.07, 'y': 21.85, 'z': 70.97}
+2025-09-26 08:44:11,868 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 37.93, 'z': 64.4}
+2025-09-26 08:44:11,869 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 21.85, 'z': 70.97} para {'x': 176.07, 'y': 37.93, 'z': 64.4}
+2025-09-26 08:44:12,877 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 65.04, 'z': 64.4}
+2025-09-26 08:44:12,878 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 37.93, 'z': 64.4} para {'x': 176.07, 'y': 65.04, 'z': 64.4}
+2025-09-26 08:44:13,876 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 69.61, 'z': 86.38}
+2025-09-26 08:44:13,876 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 65.04, 'z': 64.4} para {'x': 176.07, 'y': 69.61, 'z': 86.38}
+2025-09-26 08:44:14,867 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 69.61, 'z': 101.49}
+2025-09-26 08:44:14,868 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 69.61, 'z': 86.38} para {'x': 176.07, 'y': 69.61, 'z': 101.49}
+2025-09-26 08:44:15,873 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 69.61, 'z': 90.33}
+2025-09-26 08:44:15,873 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 69.61, 'z': 101.49} para {'x': 176.07, 'y': 69.61, 'z': 90.33}
+2025-09-26 08:44:16,876 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 162.43, 'y': 69.61, 'z': 80.5}
+2025-09-26 08:44:16,876 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 69.61, 'z': 90.33} para {'x': 162.43, 'y': 69.61, 'z': 80.5}
+2025-09-26 08:44:17,868 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.47, 'y': 69.61, 'z': 80.5}
+2025-09-26 08:44:17,869 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 162.43, 'y': 69.61, 'z': 80.5} para {'x': 133.47, 'y': 69.61, 'z': 80.5}
+2025-09-26 08:44:18,863 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 69.61, 'z': 106.56}
+2025-09-26 08:44:18,864 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.47, 'y': 69.61, 'z': 80.5} para {'x': 133.04, 'y': 69.61, 'z': 106.56}
+2025-09-26 08:44:19,889 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 69.61, 'z': 117.59}
+2025-09-26 08:44:19,889 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 69.61, 'z': 106.56} para {'x': 133.04, 'y': 69.61, 'z': 117.59}
+2025-09-26 08:44:20,900 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 132.46, 'y': 69.61, 'z': 96.6}
+2025-09-26 08:44:20,900 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 69.61, 'z': 117.59} para {'x': 132.46, 'y': 69.61, 'z': 96.6}
+2025-09-26 08:44:21,905 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 102.96, 'y': 69.61, 'z': 96.6}
+2025-09-26 08:44:21,905 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 132.46, 'y': 69.61, 'z': 96.6} para {'x': 102.96, 'y': 69.61, 'z': 96.6}
+2025-09-26 08:44:22,899 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 69.61, 'z': 109.13}
+2025-09-26 08:44:22,900 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 102.96, 'y': 69.61, 'z': 96.6} para {'x': 90.01, 'y': 69.61, 'z': 109.13}
+2025-09-26 08:44:23,903 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 69.61, 'z': 133.69}
+2025-09-26 08:44:23,904 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 69.61, 'z': 109.13} para {'x': 90.01, 'y': 69.61, 'z': 133.69}
+2025-09-26 08:44:24,909 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 69.61, 'z': 120.25}
+2025-09-26 08:44:24,910 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 69.61, 'z': 133.69} para {'x': 90.01, 'y': 69.61, 'z': 120.25}
+2025-09-26 08:44:25,904 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 84.49, 'z': 112.7}
+2025-09-26 08:44:25,904 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 69.61, 'z': 120.25} para {'x': 90.01, 'y': 84.49, 'z': 112.7}
+2025-09-26 08:44:26,905 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 114.59, 'z': 112.7}
+2025-09-26 08:44:26,905 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 84.49, 'z': 112.7} para {'x': 90.01, 'y': 114.59, 'z': 112.7}
+2025-09-26 08:44:27,898 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 117.37, 'z': 136.18}
+2025-09-26 08:44:27,899 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 114.59, 'z': 112.7} para {'x': 90.01, 'y': 117.37, 'z': 136.18}
+2025-09-26 08:44:28,920 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 117.37, 'z': 149.79}
+2025-09-26 08:44:28,920 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 117.37, 'z': 136.18} para {'x': 90.01, 'y': 117.37, 'z': 149.79}
+2025-09-26 08:44:29,918 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 90.01, 'y': 117.37, 'z': 139.7}
+2025-09-26 08:44:29,918 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 117.37, 'z': 149.79} para {'x': 90.01, 'y': 117.37, 'z': 139.7}
+2025-09-26 08:44:30,923 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 102.63, 'y': 117.37, 'z': 128.8}
+2025-09-26 08:44:30,923 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 90.01, 'y': 117.37, 'z': 139.7} para {'x': 102.63, 'y': 117.37, 'z': 128.8}
+2025-09-26 08:44:31,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 132.38, 'y': 117.37, 'z': 128.8}
+2025-09-26 08:44:31,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 102.63, 'y': 117.37, 'z': 128.8} para {'x': 132.38, 'y': 117.37, 'z': 128.8}
+2025-09-26 08:44:32,928 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 117.37, 'z': 154.27}
+2025-09-26 08:44:32,929 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 132.38, 'y': 117.37, 'z': 128.8} para {'x': 133.04, 'y': 117.37, 'z': 154.27}
+2025-09-26 08:44:33,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 117.37, 'z': 165.89}
+2025-09-26 08:44:33,936 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 117.37, 'z': 154.27} para {'x': 133.04, 'y': 117.37, 'z': 165.89}
+2025-09-26 08:44:34,929 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 133.04, 'y': 117.37, 'z': 144.9}
+2025-09-26 08:44:34,929 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 117.37, 'z': 165.89} para {'x': 133.04, 'y': 117.37, 'z': 144.9}
+2025-09-26 08:44:35,927 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 161.37, 'y': 117.37, 'z': 144.9}
+2025-09-26 08:44:35,927 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 133.04, 'y': 117.37, 'z': 144.9} para {'x': 161.37, 'y': 117.37, 'z': 144.9}
+2025-09-26 08:44:36,932 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 156.15}
+2025-09-26 08:44:36,932 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 161.37, 'y': 117.37, 'z': 144.9} para {'x': 176.07, 'y': 117.37, 'z': 156.15}
+2025-09-26 08:44:37,939 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 181.99}
+2025-09-26 08:44:37,939 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 117.37, 'z': 156.15} para {'x': 176.07, 'y': 117.37, 'z': 181.99}
+2025-09-26 08:44:38,940 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 170.09}
+2025-09-26 08:44:38,940 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 117.37, 'z': 181.99} para {'x': 176.07, 'y': 117.37, 'z': 170.09}
+2025-09-26 08:44:39,929 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:39,929 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) mudou de {'x': 176.07, 'y': 117.37, 'z': 170.09} para {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:40,933 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:41,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:42,937 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:43,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:44,927 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:45,942 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+2025-09-26 08:44:46,935 - consumo_lib - DEBUG - update_position_display: posição (WPos calculada) obtida do CNC: {'x': 176.07, 'y': 117.37, 'z': 161.0}
+(.venv) PS C:\Users\sense\PycharmProjects\Tensiometro>

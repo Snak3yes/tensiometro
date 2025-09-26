@@ -8,6 +8,7 @@ import serial
 import serial.tools.list_ports
 import numpy as np
 import logging
+from PyQt6.QtCore import QThread, pyqtSignal, QTimer
 from tkinter import Toplevel, Label, Entry, Button, messagebox
 from PyQt6.QtWidgets import (
     QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QMessageBox,
@@ -202,13 +203,14 @@ class TensionMeasurementThread(QThread):
     finished = pyqtSignal(list)                   # lista completa de medições
     error_occurred = pyqtSignal(str)              # mensagem de erro
     
-    def __init__(self, cnc_controller, tensiometer, points, z_down, 
+    def __init__(self, cnc_controller, tensiometer, points, z_down, z_move, 
                  user_feed, stabilization_time, parameters):
         super().__init__()
         self.cnc = cnc_controller
         self.tensiometer = tensiometer
         self.points = points
-        self.z_down = z_down
+        self.z_down        = z_down
+        self.z_move        = z_move
         self.user_feed = user_feed
         self.stabilization_time = stabilization_time
         self.parameters = parameters
@@ -232,8 +234,8 @@ class TensionMeasurementThread(QThread):
                 if hasattr(self.cnc, "send_raw_gcode"):
                     self.cnc.send_raw_gcode("G90")
             
-            # Move para altura segura
-            self._move_abs(z=0, feed=self.user_feed)
+            # Move para altura de movimentação (safe height)
+            self._move_abs(z=self.z_move, feed=self.user_feed)
             
             total_points = len(self.points)
             
@@ -249,11 +251,11 @@ class TensionMeasurementThread(QThread):
                 # Emite progresso
                 self.progress_updated.emit(idx, total_points, f"Medindo ponto {idx}/{total_points}")
                 
-                # 1) Move XY
-                self._move_abs(x=x, y=y, feed=self.user_feed)
+                # 1) Move XY mantendo a safe height
+                self._move_abs(x=x, y=y, z=self.z_move, feed=self.user_feed)
                 
-                # 2) Desce Z
-                self._move_rel(z=self.z_down, feed=self.user_feed)
+                # 2) Desce até a altura de medição
+                self._move_abs(z=self.z_down, feed=self.user_feed)
                 
                 # 3) Aguarda estabilização
                 stabilization_sec = self.stabilization_time / 1000.0
@@ -271,8 +273,8 @@ class TensionMeasurementThread(QThread):
                 # Emite medição individual
                 self.measurement_completed.emit(measurement)
                 
-                # 6) Sobe Z
-                self._move_rel(z=-self.z_down, feed=self.user_feed)
+                # 6) Retorna para a safe height
+                self._move_abs(z=self.z_move, feed=self.user_feed)
                 
                 # 7) Pequena pausa entre pontos
                 time.sleep(0.1)
@@ -482,6 +484,14 @@ class StencilTensionDialog(QDialog):
         conn_layout.addWidget(self.connection_status, 1, 3)
         
         lay.addWidget(conn_group, r, 0, 1, 5); r += 1
+
+        # -------------------------------------------------------------------
+        # botão liga/desliga (toggle) para enviar pulso a M0
+        # -------------------------------------------------------------------
+        self.power_btn = QPushButton("Ligar")
+        self.power_btn.setCheckable(True)
+        self.power_btn.toggled.connect(self._on_power_toggle)
+        conn_layout.addWidget(self.power_btn, 2, 0, 1, 4)
         
         # Separador
         line = QFrame()
@@ -507,29 +517,43 @@ class StencilTensionDialog(QDialog):
         adv_group.setLayout(adv_layout)
         lay.addWidget(adv_group, r, 0, 1, 5); r += 1
 
-        lay.addWidget(QLabel("<b>Ponto Inicial</b>"), r, 0, 1, 5);  r += 1
-
-        lay.addWidget(QLabel("X:"), r, 0)
-        self.ed_sx = QLineEdit(); lay.addWidget(self.ed_sx, r, 1)
-        lay.addWidget(QLabel("Y:"), r, 2)
-        self.ed_sy = QLineEdit(); lay.addWidget(self.ed_sy, r, 3)
-        btn_cap_start = QPushButton("Capturar"); lay.addWidget(btn_cap_start, r, 4); r += 1
-
-        lay.addWidget(QLabel("<b>Ponto Final</b>"), r, 0, 1, 5);    r += 1
-
-        lay.addWidget(QLabel("X:"), r, 0)
-        self.ed_ex = QLineEdit(); lay.addWidget(self.ed_ex, r, 1)
-        lay.addWidget(QLabel("Y:"), r, 2)
-        self.ed_ey = QLineEdit(); lay.addWidget(self.ed_ey, r, 3)
-        btn_cap_end = QPushButton("Capturar"); lay.addWidget(btn_cap_end, r, 4); r += 1
-
+        # Campos reorganizados: Quantidade → Inicial → Final → Altura de Movimentação → Altura de Medição
+        # 1) Quantidade
         lay.addWidget(QLabel("Quantidade (N):"), r, 0)
-        self.ed_n = QLineEdit("3"); lay.addWidget(self.ed_n, r, 1)
-        lay.addWidget(QLabel("Altura Z (mm):"), r, 2)
-        self.ed_z = QLineEdit("2"); lay.addWidget(self.ed_z, r, 3)
-        btn_cap_z = QPushButton("Capturar"); lay.addWidget(btn_cap_z, r, 4); r += 1
+        self.ed_n       = QLineEdit("3");       lay.addWidget(self.ed_n, r, 1)
+        r += 1
 
-        # Botões de controle da medição
+        # 2) Ponto Inicial
+        lay.addWidget(QLabel("<b>Ponto Inicial</b>"), r, 0, 1, 5)
+        r += 1
+        lay.addWidget(QLabel("X:"), r, 0)
+        self.ed_sx      = QLineEdit();          lay.addWidget(self.ed_sx, r, 1)
+        lay.addWidget(QLabel("Y:"), r, 2)
+        self.ed_sy      = QLineEdit();          lay.addWidget(self.ed_sy, r, 3)
+        btn_cap_start  = QPushButton("Capturar"); lay.addWidget(btn_cap_start, r, 4)
+        r += 1
+
+        # 3) Ponto Final
+        lay.addWidget(QLabel("<b>Ponto Final</b>"), r, 0, 1, 5)
+        r += 1
+        lay.addWidget(QLabel("X:"), r, 0)
+        self.ed_ex      = QLineEdit();          lay.addWidget(self.ed_ex, r, 1)
+        lay.addWidget(QLabel("Y:"), r, 2)
+        self.ed_ey      = QLineEdit();          lay.addWidget(self.ed_ey, r, 3)
+        btn_cap_end    = QPushButton("Capturar"); lay.addWidget(btn_cap_end, r, 4)
+        r += 1
+
+        # 4) Altura de Movimentação (safe height)
+        lay.addWidget(QLabel("Altura de Movimentação (mm):"), r, 2)
+        self.ed_move_z  = QLineEdit("0");       lay.addWidget(self.ed_move_z, r, 3)
+        btn_cap_move_z = QPushButton("Capturar"); lay.addWidget(btn_cap_move_z, r, 4)
+        r += 1
+
+        # 5) Altura de Medição
+        lay.addWidget(QLabel("Altura de Medição (mm):"), r, 2)
+        self.ed_z       = QLineEdit("2");       lay.addWidget(self.ed_z, r, 3)
+        btn_cap_z      = QPushButton("Capturar"); lay.addWidget(btn_cap_z, r, 4)
+        r += 1
         measurement_buttons_layout = QHBoxLayout()
         self.start_measurement_btn = QPushButton("Iniciar Medição")
         self.stop_measurement_btn = QPushButton("Parar Medição")
@@ -554,6 +578,30 @@ class StencilTensionDialog(QDialog):
         btn_cap_start.clicked.connect(self._capture_start_xy)
         btn_cap_end.clicked.connect(self._capture_end_xy)
         btn_cap_z.clicked.connect(self._capture_z_height)
+        btn_cap_move_z.clicked.connect(self._capture_move_z_height)
+
+    def _on_power_toggle(self, checked: bool):
+        """
+        Liga/desliga o tensiômetro enviando um pulso para a memória M0:
+          - ao ligar (checked=True): pulso de 100 ms
+          - ao desligar (checked=False): pulso de 3000 ms
+        """
+        coil_addr = 0      # M0
+        duration = 100 if checked else 3000
+        # Atualiza texto do botão
+        self.power_btn.setText("Desligar" if checked else "Ligar")
+        try:
+            # Aciona o coil
+            self.cnc.client.write_coil(coil_addr, True)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao acionar M0: {e}")
+            # desfaz toggle se houver erro
+            self.power_btn.setChecked(not checked)
+            return
+        # Programa desligamento após a duração
+        QTimer.singleShot(duration,
+            lambda: self.cnc.client.write_coil(coil_addr, False)
+        )
 
     # ---------------------- Conexão do Tensiômetro ----------------------
     def _refresh_ports(self):
@@ -708,6 +756,13 @@ class StencilTensionDialog(QDialog):
         pos = self.cnc.get_current_position()
         # Usa valor absoluto para sempre baixar – usuário pode ajustar depois
         self.ed_z.setText(f"{abs(pos['z']):.3f}")
+    
+    def _capture_move_z_height(self):
+        """Captura a altura de movimentação (safe height) atual."""
+        if not self._require_connection():
+            return
+        pos = self.cnc.get_current_position()
+        self.ed_move_z.setText(f"{abs(pos['z']):.3f}")
 
     def _read_tension(self):
         """
@@ -727,12 +782,14 @@ class StencilTensionDialog(QDialog):
 
         # Agora o zero de Z fica no topo -> valor POSITIVO desce, 
         # valor NEGATIVO sobe. Basta usar o valor digitado para descer.
+        # Lê alturas de medição e movimentação
         try:
-            z_val = float(self.ed_z.text())
-            z_down = z_val
+            z_measure  = float(self.ed_z.text())
+            z_move     = float(self.ed_move_z.text())
         except ValueError:
-            QMessageBox.warning(self, "Erro", "Altura Z inválida.")
+            QMessageBox.warning(self, "Erro", "Alturas inválidas.")
             return
+        z_down = z_measure
         # Verifica se tensiômetro está conectado
         if not self.tensiometer.is_connected:
             QMessageBox.warning(self, "Erro", "Conecte o tensiômetro antes de iniciar")
@@ -754,7 +811,8 @@ class StencilTensionDialog(QDialog):
             "start": {"x": float(self.ed_sx.text()), "y": float(self.ed_sy.text())},
             "end":   {"x": float(self.ed_ex.text()), "y": float(self.ed_ey.text())},
             "quantity": int(self.ed_n.text()),
-            "height":   float(self.ed_z.text())
+            "measurement_height": float(self.ed_z.text()),
+            "movement_height":    float(self.ed_move_z.text())
         }
         
         # Configura interface para medição
@@ -762,7 +820,8 @@ class StencilTensionDialog(QDialog):
         
         # Cria e inicia thread de medição
         self.measurement_thread = TensionMeasurementThread(
-            self.cnc, self.tensiometer, pts, z_down, 
+            self.cnc, self.tensiometer, pts,
+            z_down, z_move,
             user_feed, stabilization_ms, parameters
         )
         
@@ -817,13 +876,14 @@ class StencilTensionDialog(QDialog):
         self._reset_measurement_ui()
         self.setWindowTitle("Tensão do Stencil")
         
-        # Salva resultados
+        # Salva resultados (agora incluindo both heights)
         try:
             parameters = {
                 "start": {"x": float(self.ed_sx.text()), "y": float(self.ed_sy.text())},
                 "end":   {"x": float(self.ed_ex.text()), "y": float(self.ed_ey.text())},
                 "quantity": int(self.ed_n.text()),
-                "height":   float(self.ed_z.text())
+                "measurement_height": float(self.ed_z.text()),
+                "movement_height":    float(self.ed_move_z.text())
             }
             
             data = {
