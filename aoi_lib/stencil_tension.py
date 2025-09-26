@@ -14,6 +14,7 @@ from PyQt6.QtWidgets import (
     QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QMessageBox,
     QComboBox, QGroupBox, QFrame, QHBoxLayout, QProgressBar
 )
+from aoi_lib.plc_axis_controller import PLCAxisController
 from PyQt6.QtCore import QThread, pyqtSignal
 import time, logging         
 
@@ -281,6 +282,13 @@ class TensionMeasurementThread(QThread):
             
             # Emite resultado final
             log.info("Medição de tensão concluída com sucesso")
+            # Desliga o sensor de tensão (pulso de 3000 ms na memória M0)
+            try:
+                if hasattr(self.cnc, "_pulse_coil"):
+                    self.cnc._pulse_coil(0, 3000)
+            except Exception as e:
+                log.error(f"Falha ao desligar sensor: {e}")
+            # Emite sinal de finalização
             self.finished.emit(self.measurements)
             
         except Exception as e:
@@ -780,21 +788,72 @@ class StencilTensionDialog(QDialog):
         if pts is None:
             return
 
-        # Agora o zero de Z fica no topo -> valor POSITIVO desce, 
-        # valor NEGATIVO sobe. Basta usar o valor digitado para descer.
-        # Lê alturas de medição e movimentação
+        # 1) Parse das alturas
         try:
-            z_measure  = float(self.ed_z.text())
-            z_move     = float(self.ed_move_z.text())
+            z_measure = float(self.ed_z.text())
+            z_move    = float(self.ed_move_z.text())
         except ValueError:
             QMessageBox.warning(self, "Erro", "Alturas inválidas.")
             return
         z_down = z_measure
-        # Verifica se tensiômetro está conectado
-        if not self.tensiometer.is_connected:
-            QMessageBox.warning(self, "Erro", "Conecte o tensiômetro antes de iniciar")
+
+        # --- Rotina automática de checagem do sensor ---
+        try:
+            # a) Liga o sensor via pulso de 100 ms em M0 (somente CLP)
+            if not hasattr(self.cnc, '_pulse_coil'):
+                QMessageBox.warning(
+                    self, "Erro",
+                    "Controle de sensor não disponível neste backend"
+                )
+                return
+            try:
+                # Dispara o pulso de 100 ms
+                self.cnc._pulse_coil(0, 100)
+            except Exception as e:
+                QMessageBox.critical(
+                    self, "Erro",
+                    f"Falha ao acionar sensor: {e}"
+                )
+                return
+            # Atualiza visual do botão para 'Desligar', sem disparar _on_power_toggle
+            self.power_btn.blockSignals(True)
+            self.power_btn.setChecked(True)
+            self.power_btn.setText("Desligar")
+            self.power_btn.blockSignals(False)
+            # b) Aguarda 1 s para estabilização antes de conectar o serial
+            time.sleep(1.0)
+            # c) Conecta ao tensiômetro (porta + baud da UI)
+            port = self.port_combo.currentText()
+            baud = int(self.baudrate_combo.currentText())
+            if not self.tensiometer.connect(port, baud):
+                QMessageBox.critical(
+                    self, "Erro", 
+                    f"Falha ao conectar tensiômetro:\n{self.tensiometer.last_error}"
+                )
+                return
+            # d) Aguarda 1 s
+            time.sleep(1.0)
+            # e) Testa leitura inicial (deve ser zero)
+            raw = self.tensiometer.read_tension_value()
+            try:
+                val = float(raw)
+            except ValueError:
+                QMessageBox.critical(
+                    self, "Erro", 
+                    f"Leitura inválida do sensor: '{raw}'"
+                )
+                return
+            if abs(val) > 1e-6:
+                QMessageBox.critical(
+                    self, "Erro", 
+                    f"Leitura inicial deve ser 0.0, obtido {val:.2f}"
+                )
+                return
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Erro na checagem do sensor:\n{e}")
             return
 
+        # Verifica conexão com CNC
         if not self.cnc.is_connected:
             QMessageBox.warning(self, "Erro", "CNC não conectada")
             return
@@ -896,12 +955,11 @@ class StencilTensionDialog(QDialog):
                 json.dump(data, fp, indent=4, ensure_ascii=False)
                 
             QMessageBox.information(
-                self, "Concluído", 
-                f"Medição concluída!\n"
-                f"Total de pontos: {len(measurements)}\n"
-                f"Arquivo salvo: stencil_tension_measurements.json"
-            )
-            self.accept()
+            self, "Concluído", 
+            f"Medição concluída!\n"
+            f"Total de pontos: {len(measurements)}\n"
+            f"Arquivo salvo: stencil_tension_measurements.json"
+        )
             
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Falha ao salvar resultados: {e}")
