@@ -3,13 +3,14 @@ import cv2
 import os
 import time
 import numpy as np
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
-                            QPushButton, QLabel, QGroupBox, QGridLayout, QLineEdit, 
-                            QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
-                            QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
-                            QSplitter, QFrame, QTableWidget, QTableWidgetItem, QHeaderView, 
-                            QDialog, QInputDialog,
-                            QProgressDialog)
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                             QHBoxLayout, QPushButton, QLabel, QGroupBox, 
+                             QGridLayout, QLineEdit, 
+                             QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
+                             QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
+                             QSplitter, QFrame, QTableWidget, QTableWidgetItem, 
+                             QHeaderView, QDialog, QInputDialog,
+                             QProgressDialog)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF
 from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator, 
                          QPainter, QColor, QPen, QBrush)
@@ -1435,7 +1436,6 @@ class AOIControllerApp(QMainWindow):
 
         # chama cleanup se o Qt encerrar por outros caminhos
         QApplication.instance().aboutToQuit.connect(self._cleanup_resources)
-
 
     #   Auto-connect com base no JSON de prefs
     def _attempt_auto_connect(self):

@@ -23,7 +23,7 @@
   "connections": {
     "last_cnc_port": "COM22",
     "auto_connect_cnc": true,
-    "last_camera_id": 0,
+    "last_camera_id": 2,
     "auto_connect_camera": true
   },
   "ui": {
@@ -34,7 +34,7 @@
     "fuso_pitch": 10.0
   },
   "movement": {
-    "step_size": 10.0,
-    "feed_rate": 50.0
+    "step_size": 1.0,
+    "feed_rate": 600.0
   }
 }
