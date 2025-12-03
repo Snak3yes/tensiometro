@@ -368,6 +368,119 @@ def _parse_xy_from_line(line: str) -> tuple[str | None, str | None]:
         y_str = line[i:j]
     return x_str, y_str
 
+def gerber_to_records(gerber_lines: List[str]) -> List[str]:
+    """
+    Converte a lista de linhas do arquivo Gerber em uma lista de
+    "registros" separados por '*', como definido no padrão RS-274X.
+
+    Isso permite lidar tanto com arquivos em que cada comando está
+    em uma linha quanto com arquivos "compactados" (vários comandos
+    na mesma linha, como o exportado pelo ViewMate Pro).
+    """
+    text = ""
+    for line in gerber_lines:
+        s = line.strip()
+        if not s:
+            continue
+        text += s
+
+    parts = text.split("*")
+    records: List[str] = []
+    for p in parts:
+        p = p.strip()
+        if not p:
+            continue
+        records.append(p + "*")
+    return records
+
+
+def _get_draw_mode(record: str) -> str | None:
+    """
+    Retorna o modo de desenho (D01/D02/D03) de um registro, aceitando
+    tanto D01/D02/D03 quanto D1/D2/D3 (como gerados pelo ViewMate).
+
+    Se não houver modo explícito, retorna None.
+    """
+    if "D" not in record:
+        return None
+    idx = record.rfind("D")
+    if idx == -1:
+        return None
+    j = idx + 1
+    num = ""
+    while j < len(record) and record[j].isdigit():
+        num += record[j]
+        j += 1
+    if not num:
+        return None
+
+    if num in ("1", "01"):
+        return "D01"
+    if num in ("2", "02"):
+        return "D02"
+    if num in ("3", "03"):
+        return "D03"
+    return None
+
+
+def _parse_ij_from_record(record: str) -> tuple[str | None, str | None]:
+    """Extrai substrings de I e J (centro relativo de arco) de um registro."""
+    i_str = None
+    j_str = None
+    if "I" in record:
+        k = record.index("I") + 1
+        j = k
+        while j < len(record) and record[j] in "+-0123456789":
+            j += 1
+        i_str = record[k:j]
+    if "J" in record:
+        k = record.index("J") + 1
+        j = k
+        while j < len(record) and record[j] in "+-0123456789":
+            j += 1
+        j_str = record[k:j]
+    return i_str, j_str
+
+
+def _approx_arc_ccw_points(
+    x0: float,
+    y0: float,
+    x1: float,
+    y1: float,
+    cx: float,
+    cy: float,
+    max_seg_deg: float = 5.0,
+) -> List[tuple[float, float]]:
+    """
+    Aproxima um arco CCW (G03) por uma sequência de pontos.
+
+    Retorna uma lista de pontos **sem** o ponto inicial (x0,y0),
+    mas incluindo sempre o ponto final (x1,y1). O chamador deve
+    garantir que já possui o ponto inicial em sua lista.
+    """
+    # raio médio
+    r0 = math.hypot(x0 - cx, y0 - cy)
+    r1 = math.hypot(x1 - cx, y1 - cy)
+    r = (r0 + r1) / 2.0 if (r0 > 0 and r1 > 0) else max(r0, r1)
+    if r == 0:
+        return [(x1, y1)]
+
+    a0 = math.atan2(y0 - cy, x0 - cx)
+    a1 = math.atan2(y1 - cy, x1 - cx)
+    if a1 <= a0:
+        a1 += 2.0 * math.pi
+
+    sweep = a1 - a0
+    max_seg_rad = max_seg_deg * math.pi / 180.0
+    n_seg = max(4, int(math.ceil(abs(sweep) / max_seg_rad)))
+
+    pts: List[tuple[float, float]] = []
+    for k in range(1, n_seg + 1):
+        t = a0 + sweep * (k / n_seg)
+        x = cx + r * math.cos(t)
+        y = cy + r * math.sin(t)
+        pts.append((x, y))
+    return pts
 
 def build_layer_polys_mm(
     gerber_lines: List[str],
@@ -399,8 +512,11 @@ def build_layer_polys_mm(
             return v_base * INCH_TO_MM
         return v_base
 
-    for raw in gerber_lines:
-        line = raw.strip()
+    # Converte texto em registros separados por '*'
+    records = gerber_to_records(gerber_lines)
+
+    for rec in records:
+        line = rec.strip()
         if not line:
             continue
 
@@ -408,7 +524,7 @@ def build_layer_polys_mm(
         if line.startswith("G04") or line.startswith("%"):
             continue
 
-        # Início/fim de região
+        # Início/fim de região (G36/G37)
         if "G36*" in line:
             region_active = True
             region_pts = []
@@ -422,9 +538,8 @@ def build_layer_polys_mm(
             region_pts = []
             continue
 
-        # Seleção de D-code: G54Dnn* ou Dnn* sozinho
+        # Seleção de D-code: G54Dnn* ou Dnn* sozinho (sem X/Y)
         if line.startswith("G54D"):
-            # Ex.: "G54D174*"
             idx = line.index("D") + 1
             j = idx
             while j < len(line) and line[j].isdigit():
@@ -434,8 +549,6 @@ def build_layer_polys_mm(
             continue
         if (
             line.startswith("D")
-            and len(line) > 2
-            and line[1].isdigit()
             and "X" not in line
             and "Y" not in line
         ):
@@ -444,22 +557,19 @@ def build_layer_polys_mm(
             j = idx
             while j < len(line) and line[j].isdigit():
                 j += 1
-            current_dcode = int(line[idx:j])
+            if j > idx:
+                current_dcode = int(line[idx:j])
             continue
 
-        # Determina o modo de desenho atual (D01/D02/D03), atualizando last_draw_mode
-        draw_mode = None
-        if "D01*" in line:
-            draw_mode = "D01"
-        elif "D02*" in line:
-            draw_mode = "D02"
-        elif "D03*" in line:
-            draw_mode = "D03"
-
+        # Determina o modo de desenho atual (D01/D02/D03), aceitando D1/D2/D3
+        draw_mode = _get_draw_mode(line)
         if draw_mode is not None:
             last_draw_mode = draw_mode
         else:
             draw_mode = last_draw_mode
+
+        # Guarda posição anterior antes de atualizar
+        prev_x_mm, prev_y_mm = cur_x_mm, cur_y_mm
 
         # Atualiza coordenadas X/Y (em mm)
         x_str, y_str = _parse_xy_from_line(line)
@@ -474,12 +584,38 @@ def build_layer_polys_mm(
         if cur_x_mm is None or cur_y_mm is None:
             continue
 
-        # Tratamento de regiões (G36/G37) – usa D02/D01
+        # Tratamento de regiões (G36/G37)
         if region_active:
+            is_arc = line.lstrip().startswith("G3")
+
             if draw_mode == "D02":
+                # Move sem desenhar: inicia novo caminho
                 region_pts = [(cur_x_mm, cur_y_mm)]
-            elif draw_mode == "D01" and region_pts:
-                region_pts.append((cur_x_mm, cur_y_mm))
+            elif draw_mode == "D01":
+                if not region_pts:
+                    region_pts = [(cur_x_mm, cur_y_mm)]
+                else:
+                    if is_arc:
+                        # Aproxima arco G03 por segmentos
+                        start_x, start_y = region_pts[-1]
+                        i_str, j_str = _parse_ij_from_record(line)
+                        if i_str is not None or j_str is not None:
+                            i_base = parse_coord(i_str, cfg) if i_str else 0.0
+                            j_base = parse_coord(j_str, cfg) if j_str else 0.0
+                            i_mm = coord_to_mm(i_base)
+                            j_mm = coord_to_mm(j_base)
+                            cx = start_x + i_mm
+                            cy = start_y + j_mm
+                            arc_pts = _approx_arc_ccw_points(
+                                start_x, start_y, cur_x_mm, cur_y_mm, cx, cy
+                            )
+                            region_pts.extend(arc_pts)
+                        else:
+                            # Sem I/J, trata como segmento reto
+                            region_pts.append((cur_x_mm, cur_y_mm))
+                    else:
+                        # Segmento linear normal
+                        region_pts.append((cur_x_mm, cur_y_mm))
             continue
 
         # Flashes D03 (pads / furos do stencil)
@@ -809,24 +945,29 @@ class GerberMacroViewer(QMainWindow):
         self.apertures_by_dcode = parse_add(lines, self.gerber_cfg)
 
         macros = parse_all_macros(lines)
-        if not macros:
-            QMessageBox.information(
-                self,
-                "Nenhuma macro encontrada",
-                "Nenhuma macro (%AM...%) foi encontrada neste arquivo.",
-            )
-            self.tree.clear()
-            self._clear_preview()
-            self.macros = {}
-            return
 
         # sempre que trocar de arquivo, limpamos informações de contexto
         self._current_mode = None
         self._full_layer_polys_mm = None
         self.macros = macros
-        # Habilita botão de camada completa se tivermos ADD + macros
-        self.full_layer_btn.setEnabled(bool(self.apertures_by_dcode))
-        self._populate_tree()
+        self.tree.clear()
+
+        if macros:
+            self._populate_tree()
+        else:
+            # Arquivo sem macros: árvore fica vazia, mas a camada completa
+            # ainda pode ser gerada (ex.: arquivos poligonais do ViewMate).
+            QMessageBox.information(
+                self,
+                "Arquivo sem macros",
+                "Nenhuma macro (%AM...%) foi encontrada neste arquivo.\n"
+                "A visualização por macro ficará vazia, mas a camada "
+                "completa ainda pode ser gerada.",
+            )
+
+        # Para arquivos puramente poligonais (sem %ADD / %AM), ainda podemos
+        # gerar a camada completa a partir das regiões G36/G37.
+        self.full_layer_btn.setEnabled(True)
         self._clear_preview()
 
     def _populate_tree(self):
@@ -863,14 +1004,7 @@ class GerberMacroViewer(QMainWindow):
                 "Abra um arquivo Gerber antes de gerar a camada completa.",
             )
             return
-        if not self.apertures_by_dcode:
-            QMessageBox.information(
-                self,
-                "Sem aperturas",
-                "Nenhuma abertura (%ADD...) foi encontrada.\n"
-                "Não é possível gerar a camada completa.",
-            )
-            return
+        
 
         try:
             polys_mm = build_layer_polys_mm(
