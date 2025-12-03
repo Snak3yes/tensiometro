@@ -8,11 +8,8 @@ from PyQt6.QtWidgets import (
     QInputDialog,
     QMainWindow,
     QWidget,
-    QVBoxLayout,
-    QHBoxLayout,
+    QVBoxLayout, QHBoxLayout,
     QPushButton,
-    QTreeWidget,
-    QTreeWidgetItem,
     QLabel,
     QFileDialog,
     QMessageBox,
@@ -806,8 +803,8 @@ class GerberMacroViewer(QMainWindow):
     """
     Janela principal da aplicação (PyQt6):
       - Botão para selecionar arquivo Gerber.
-      - Tree (QTreeWidget) à esquerda listando todas as macros (%AM...%).
-      - Área de preview à direita mostrando a forma da macro selecionada.
+      - Botão para gerar a camada completa (todas as aberturas).
+      - Área de preview com zoom/pan para visualizar a camada completa.
     """
 
     def __init__(self):
@@ -824,21 +821,14 @@ class GerberMacroViewer(QMainWindow):
         self.gerber_lines: List[str] | None = None
         self.gerber_cfg: GerberConfig | None = None
 
-        # Armazena macros carregadas (%AM...)
+        # Armazena macros carregadas (%AM...) e aperturas (%ADD...)
         self.macros: Dict[str, ApertureMacro] = {}
-
-        # Armazena aperturas mapeadas dos %ADD...%
         self.apertures_by_dcode: Dict[int, ApertureInstance] = {}
 
         # Guarda referência para a imagem exibida (evita GC)
         self._current_image = None   # PIL.Image
         self._current_pixmap = None  # QPixmap (último mostrado)
-
-        # Controle de contexto do preview (para exportação)
-        #   - "macro": preview de macro individual
-        #   - "layer": preview da camada completa
-        self._current_mode: str | None = None
-        self._current_macro_name: str | None = None
+        
         self._full_layer_polys_mm: List[List[tuple[float, float]]] | None = None
 
         self._build_ui()
@@ -869,27 +859,11 @@ class GerberMacroViewer(QMainWindow):
         top_layout.addStretch(1)
         main_layout.addLayout(top_layout)
 
-        # --- Área principal: esquerda (tree) e direita (preview) ---
-        content_layout = QHBoxLayout()
-        main_layout.addLayout(content_layout, 1)
-
-        # ---- Esquerda: Tree de macros ----
-        left_layout = QVBoxLayout()
-        content_layout.addLayout(left_layout, 1)
-
-        lbl_macros = QLabel("Macros encontradas:")
-        left_layout.addWidget(lbl_macros)
-
-        self.tree = QTreeWidget()
-        self.tree.setHeaderHidden(True)
-        self.tree.itemSelectionChanged.connect(self.on_tree_select)
-        left_layout.addWidget(self.tree, 1)
-
-        # ---- Direita: Preview ----
+        # --- Área principal: apenas preview da camada completa ---
         right_layout = QVBoxLayout()
-        content_layout.addLayout(right_layout, 2)
+        main_layout.addLayout(right_layout, 1)
 
-        lbl_preview = QLabel("Pré-visualização da macro selecionada:")
+        lbl_preview = QLabel("Pré-visualização da camada completa:")
         right_layout.addWidget(lbl_preview)
 
         # Substitui QLabel simples por um QGraphicsView com zoom/pan
@@ -941,51 +915,20 @@ class GerberMacroViewer(QMainWindow):
         self.gerber_lines = lines
         self.gerber_cfg = parse_gerber_config(lines)
 
-        # Parseia aperturas (%ADD...)
+        # Parseia aperturas (%ADD...) e macros (%AM...)
         self.apertures_by_dcode = parse_add(lines, self.gerber_cfg)
 
         macros = parse_all_macros(lines)
 
         # sempre que trocar de arquivo, limpamos informações de contexto
-        self._current_mode = None
+        
         self._full_layer_polys_mm = None
-        self.macros = macros
-        self.tree.clear()
-
-        if macros:
-            self._populate_tree()
-        else:
-            # Arquivo sem macros: árvore fica vazia, mas a camada completa
-            # ainda pode ser gerada (ex.: arquivos poligonais do ViewMate).
-            QMessageBox.information(
-                self,
-                "Arquivo sem macros",
-                "Nenhuma macro (%AM...%) foi encontrada neste arquivo.\n"
-                "A visualização por macro ficará vazia, mas a camada "
-                "completa ainda pode ser gerada.",
-            )
+        self.macros = macros        
 
         # Para arquivos puramente poligonais (sem %ADD / %AM), ainda podemos
         # gerar a camada completa a partir das regiões G36/G37.
         self.full_layer_btn.setEnabled(True)
         self._clear_preview()
-
-    def _populate_tree(self):
-        """Preenche a tree com os nomes das macros carregadas."""
-        self.tree.clear()
-
-        names = sorted(self.macros.keys())
-        first_item = None
-        for name in names:
-            item = QTreeWidgetItem([name])
-            self.tree.addTopLevelItem(item)
-            if first_item is None:
-                first_item = item
-
-        # Seleciona automaticamente a primeira macro, se existir
-        if first_item is not None:
-            self.tree.setCurrentItem(first_item)
-            self._update_preview(first_item.text(0))
 
     # ------------------------------------------------------------------
     # Camada completa (todas as formas em mm)
@@ -1015,8 +958,6 @@ class GerberMacroViewer(QMainWindow):
             )
             # guarda para exportações de alta resolução
             self._full_layer_polys_mm = polys_mm
-            self._current_mode = "layer"
-            self._current_macro_name = None
         except Exception:
             traceback.print_exc()
             QMessageBox.critical(
@@ -1080,14 +1021,14 @@ class GerberMacroViewer(QMainWindow):
         """
         Exporta o que estiver sendo mostrado no preview (macro ou camada
         completa) como PNG de alta resolução.
-        - Para macros: re-renderiza a macro em resolução maior.
-        - Para camada completa: re-renderiza a partir dos polígonos mm.
+        - Re-renderiza a camada completa a partir dos polígonos em mm.
         """
-        if self._current_mode is None:
+        if not self._full_layer_polys_mm:
             QMessageBox.information(
                 self,
                 "Nada para exportar",
-                "Não há nenhuma imagem no preview para exportar.",
+                "Não há nenhum dado de camada completa para exportar.\n"
+                "Gere a camada completa primeiro.",
             )
             return
 
@@ -1114,48 +1055,14 @@ class GerberMacroViewer(QMainWindow):
             return
 
         try:
-            if self._current_mode == "macro":
-                if not self._current_macro_name or self._current_macro_name not in self.macros:
-                    QMessageBox.information(
-                        self,
-                        "Macro indisponível",
-                        "A macro atual não pôde ser encontrada para exportação.",
-                    )
-                    return
-                macro = self.macros[self._current_macro_name]
-                polys = macro.render()
-                img = render_polys_to_image(
-                    polys,
-                    img_size=(
-                        self.preview_width * factor,
-                        self.preview_height * factor,
-                    ),
-                    margin=30 * factor,
-                )
-            elif self._current_mode == "layer":
-                if not self._full_layer_polys_mm:
-                    QMessageBox.information(
-                        self,
-                        "Dados indisponíveis",
-                        "Os polígonos da camada completa não estão disponíveis para exportação.",
-                    )
-                    return
-                img = render_polys_to_image(
-                    self._full_layer_polys_mm,
-                    img_size=(
-                        self.preview_width * factor,
-                        self.preview_height * factor,
-                    ),
-                    margin=20 * factor,
-                )
-            else:
-                QMessageBox.information(
-                    self,
-                    "Modo desconhecido",
-                    "Modo de preview desconhecido para exportação.",
-                )
-                return
-
+            img = render_polys_to_image(
+                self._full_layer_polys_mm,
+                img_size=(
+                    self.preview_width * factor,
+                    self.preview_height * factor,
+                ),
+                margin=20 * factor,
+            )
             img.save(path, format="PNG")
         except Exception:
             traceback.print_exc()
@@ -1170,82 +1077,7 @@ class GerberMacroViewer(QMainWindow):
         """Limpa o preview (remove imagem e referências)."""
         self.preview_view.set_pixmap(None)
         self._current_image = None
-        self._current_pixmap = None
-        self._current_mode = None
-        self._current_macro_name = None
-
-    # ------------------------------------------------------------------
-    # Interação com a tree / preview
-    # ------------------------------------------------------------------
-    def on_tree_select(self):
-        """Callback quando a seleção na tree é alterada."""
-        try:
-            selected_items = self.tree.selectedItems()
-            if not selected_items:
-                return
-            name = selected_items[0].text(0)
-            self._update_preview(name)
-        except Exception:
-            # Garante que qualquer exceção apareça no terminal
-            traceback.print_exc()
-            QMessageBox.critical(
-                self,
-                "Erro na seleção",
-                "Ocorreu um erro ao atualizar o preview. Veja o terminal para detalhes.",
-            )
-    def _update_preview(self, macro_name: str):
-        """Gera e mostra o preview da macro com nome 'macro_name'."""
-        macro = self.macros.get(macro_name)
-        if macro is None:
-            return
-
-        try:
-            polys = macro.render()
-            img = render_polys_to_image(
-                polys,
-                img_size=(self.preview_width, self.preview_height),
-                margin=30,
-            )
-        except Exception as e:
-            QMessageBox.critical(
-                self,
-                "Erro ao renderizar macro",
-                f"Macro: {macro_name}\n\n{e}",
-            )
-            return
-
-        # Atualiza contexto para exportação
-        self._current_mode = "macro"
-        self._current_macro_name = macro_name
-
-        # Guarda referências para evitar coleta de lixo
-        self._current_image = img
-
-        # Converte PIL.Image -> QPixmap via buffer em memória (evita problemas
-        # de compatibilidade entre Pillow e PyQt6)
-        try:
-            ba = QByteArray()
-            buffer = QBuffer(ba)
-            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-            # salva a imagem em formato PNG no buffer
-            img.save(buffer, format="PNG")
-            buffer.close()
-
-            pixmap = QPixmap()
-            pixmap.loadFromData(ba, "PNG")
-
-            self._current_pixmap = pixmap
-            self.preview_view.set_pixmap(pixmap)
-            # há algo para exportar
-            self.export_btn.setEnabled(True)
-        except Exception:
-            traceback.print_exc()
-            QMessageBox.critical(
-                self,
-                "Erro ao converter imagem",
-                f"Não foi possível converter a macro '{macro_name}' para exibição.",
-            )
-
+        self._current_pixmap = None      
 
 if __name__ == "__main__":
     # Inicia a aplicação PyQt6
