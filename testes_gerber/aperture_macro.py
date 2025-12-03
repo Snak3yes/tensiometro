@@ -7,6 +7,7 @@ from PyQt6.QtWidgets import (
     QApplication,
     QInputDialog,
     QMainWindow,
+    QMenu,
     QWidget,
     QVBoxLayout, QHBoxLayout,
     QPushButton,
@@ -17,8 +18,9 @@ from PyQt6.QtWidgets import (
     QGraphicsView,
     QGraphicsScene,
 )
-from PyQt6.QtCore import Qt, QByteArray, QBuffer, QIODevice
-from PyQt6.QtGui import QPixmap, QPainter
+from PyQt6.QtWidgets import QColorDialog
+from PyQt6.QtCore import Qt, QByteArray, QBuffer, QIODevice, QRectF
+from PyQt6.QtGui import QPixmap, QPainter, QPainterPath, QBrush, QPen, QColor
 
 from PIL import Image, ImageDraw
 
@@ -438,6 +440,27 @@ def _parse_ij_from_record(record: str) -> tuple[str | None, str | None]:
         j_str = record[k:j]
     return i_str, j_str
 
+def _get_g_code(record: str) -> int | None:
+    """
+    Extrai o código G (2, 3, 36, 37, etc.) de um registro.
+    Retorna um inteiro (por ex. 2 para G02, 3 para G03) ou None.
+    """
+    s = record.lstrip()
+    if "G" not in s:
+        return None
+    idx = s.index("G") + 1
+    j = idx
+    digits = ""
+    while j < len(s) and s[j].isdigit():
+        digits += s[j]
+        j += 1
+    if not digits:
+        return None
+    try:
+        return int(digits)
+    except ValueError:
+        return None
+
 
 def _approx_arc_ccw_points(
     x0: float,
@@ -479,6 +502,52 @@ def _approx_arc_ccw_points(
         pts.append((x, y))
     return pts
 
+def _approx_arc_points(
+    x0: float,
+    y0: float,
+    x1: float,
+    y1: float,
+    cx: float,
+    cy: float,
+    ccw: bool,
+    max_seg_deg: float = 5.0,
+) -> List[tuple[float, float]]:
+    """
+    Aproxima um arco circular (G02/G03) por uma sequência de pontos.
+
+    - ccw = True  → arco anti‑horário (G03)
+    - ccw = False → arco horário (G02)
+
+    Retorna pontos **sem** o ponto inicial (x0,y0), e **com** o ponto final
+    (x1,y1). O chamador deve garantir que já possui (x0,y0).
+    """
+    r0 = math.hypot(x0 - cx, y0 - cy)
+    r1 = math.hypot(x1 - cx, y1 - cy)
+    r = (r0 + r1) / 2.0 if (r0 > 0 and r1 > 0) else max(r0, r1)
+    if r == 0:
+        return [(x1, y1)]
+
+    a0 = math.atan2(y0 - cy, x0 - cx)
+    a1 = math.atan2(y1 - cy, x1 - cx)
+    if ccw:
+        if a1 <= a0:
+            a1 += 2.0 * math.pi
+    else:
+        if a1 >= a0:
+            a1 -= 2.0 * math.pi
+
+    sweep = a1 - a0
+    max_seg_rad = max_seg_deg * math.pi / 180.0
+    n_seg = max(4, int(math.ceil(abs(sweep) / max_seg_rad)))
+
+    pts: List[tuple[float, float]] = []
+    for k in range(1, n_seg + 1):
+        t = a0 + sweep * (k / n_seg)
+        x = cx + r * math.cos(t)
+        y = cy + r * math.sin(t)
+        pts.append((x, y))
+    return pts
+
 def build_layer_polys_mm(
     gerber_lines: List[str],
     macros: Dict[str, ApertureMacro],
@@ -498,11 +567,14 @@ def build_layer_polys_mm(
 
     current_dcode: int | None = None
     last_draw_mode: str | None = None  # "D01", "D02", "D03"
+    current_g: int | None = None       # último G de interpolação (1,2,3)
     cur_x_mm: float | None = None
     cur_y_mm: float | None = None
 
     region_active = False
     region_pts: List[tuple[float, float]] = []
+
+    debug_region_counter = 0
 
     def coord_to_mm(v_base: float) -> float:
         if cfg.unit == "inch":
@@ -521,16 +593,35 @@ def build_layer_polys_mm(
         if line.startswith("G04") or line.startswith("%"):
             continue
 
+        # Atualiza G-code atual (modo de interpolação) quando aparece
+        g_tmp = _get_g_code(line)
+        if g_tmp in (1, 2, 3):  # G01, G02, G03
+            current_g = g_tmp
+        # (G36/G37 são tratados abaixo e não interferem em current_g)
+
         # Início/fim de região (G36/G37)
         if "G36*" in line:
             region_active = True
             region_pts = []
+            debug_region_counter += 1
+            # print(f"[DEBUG] Início de região #{debug_region_counter}")
             continue
         if "G37*" in line:
             if region_active and len(region_pts) > 1:
                 if region_pts[0] != region_pts[-1]:
                     region_pts.append(region_pts[0])
-                all_polys.append(region_pts.copy())
+                poly = region_pts.copy()
+                # DEBUG: loga regiões pequenas (suspeitas)
+                if len(poly) <= 8:
+                    try:
+                        print(
+                            f"[DEBUG] Região #{debug_region_counter} "
+                            f"com {len(poly)} pontos. "
+                            f"Primeiro={poly[0]}, Último={poly[-1]}"
+                        )
+                    except Exception:
+                        traceback.print_exc()
+                all_polys.append(poly)
             region_active = False
             region_pts = []
             continue
@@ -583,7 +674,10 @@ def build_layer_polys_mm(
 
         # Tratamento de regiões (G36/G37)
         if region_active:
-            is_arc = line.lstrip().startswith("G3")
+            # Usa o G-code persistente para decidir se é arco ou linha.
+            # current_g é atualizado acima sempre que aparecer G01/G02/G03.
+            g_code = current_g
+            is_arc = g_code in (2, 3)  # G02 (CW) ou G03 (CCW)
 
             if draw_mode == "D02":
                 # Move sem desenhar: inicia novo caminho
@@ -593,7 +687,7 @@ def build_layer_polys_mm(
                     region_pts = [(cur_x_mm, cur_y_mm)]
                 else:
                     if is_arc:
-                        # Aproxima arco G03 por segmentos
+                        # Aproxima arco G02/G03 por segmentos
                         start_x, start_y = region_pts[-1]
                         i_str, j_str = _parse_ij_from_record(line)
                         if i_str is not None or j_str is not None:
@@ -603,8 +697,12 @@ def build_layer_polys_mm(
                             j_mm = coord_to_mm(j_base)
                             cx = start_x + i_mm
                             cy = start_y + j_mm
-                            arc_pts = _approx_arc_ccw_points(
-                                start_x, start_y, cur_x_mm, cur_y_mm, cx, cy
+                            ccw = (g_code == 3)
+                            arc_pts = _approx_arc_points(
+                                start_x, start_y,
+                                cur_x_mm, cur_y_mm,
+                                cx, cy,
+                                ccw=ccw,
                             )
                             region_pts.extend(arc_pts)
                         else:
@@ -713,16 +811,19 @@ class PreviewGraphicsView(QGraphicsView):
     """
     Área de preview com suporte a:
       - zoom com scroll do mouse;
-      - pan (arrastar) com botão esquerdo pressionado.
+      - pan (arrastar) com botão esquerdo pressionado;
       - reset da visão (ajustar à área disponível).
+    Renderiza os polígonos diretamente como vetores (QPainterPath),
+    evitando perda de detalhe por rasterização em PNG no preview.
     """
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
-        self._pix_item = None
         self._zoom = 1.0
+        # Guarda os polígonos em mm na mesma ordem em que foram desenhados
+        self._polys_mm: List[List[tuple[float, float]]] = []
 
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
@@ -743,27 +844,73 @@ class PreviewGraphicsView(QGraphicsView):
         """
         self.resetTransform()
         self._zoom = 1.0
-        if self._pix_item is not None:
-            self.fitInView(self._scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+        if not self._scene.items():
+            return
+        self.fitInView(self._scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
 
-    def set_pixmap(self, pix: QPixmap | None):
-        """Limpa a cena e mostra o novo pixmap, resetando zoom/pan."""
+    def set_polygons(
+        self,
+        polys_mm: List[List[tuple[float, float]]],
+        aperture_color: QColor,
+        bg_color:      QColor,
+    ):
+        """
+        Recebe a lista de polígonos em coordenadas de mundo (mm) e desenha
+        vetorialmente na cena (QGraphicsScene) usando QPainterPath.
+        Também armazena esses polígonos para permitir inspeção por clique.
+        """
         self._scene.clear()
-        self._pix_item = None
         self._zoom = 1.0
         self.resetTransform()
+        self._polys_mm = polys_mm or []
 
-        if pix is not None and not pix.isNull():
-            self._pix_item = self._scene.addPixmap(pix)
-            # Em PyQt6, setSceneRect espera QRectF ou 4 floats.
-            # Usar explicitamente as dimensões do pixmap evita o TypeError.
-            self._scene.setSceneRect(0.0, 0.0, float(pix.width()), float(pix.height()))
-            # Ajusta a visão inicial para enquadrar a imagem completa
-            self.reset_view()
+        if not polys_mm:
+            return
+        
+        # cor de fundo
+        self._scene.setBackgroundBrush(bg_color)
+
+        # Determina bounding box em mm
+        xs = [pt[0] for poly in polys_mm for pt in poly]
+        ys = [pt[1] for poly in polys_mm for pt in poly]
+        minx, maxx = min(xs), max(xs)
+        miny, maxy = min(ys), max(ys)
+        w = maxx - minx
+        h = maxy - miny
+        if w == 0 or h == 0:
+            return
+
+        # Desenha cada polígono como um path preenchido
+        brush = QBrush(aperture_color)
+        pen = QPen(Qt.PenStyle.NoPen)
+        for idx, poly in enumerate(polys_mm):
+            if len(poly) < 3:
+                continue
+            path = QPainterPath()
+            # Inverte o eixo Y para ficar "natural" (origem em baixo)
+            x0, y0 = poly[0]
+            path.moveTo(x0, -y0)
+            for x, y in poly[1:]:
+                path.lineTo(x, -y)
+            item = self._scene.addPath(path, pen, brush)
+            # Armazena o índice do polígono neste item para futura identificação
+            # Usamos a role 0 (DefaultRole) para simplicidade.
+            try:
+                item.setData(0, idx)
+            except Exception:
+                # Se por algum motivo setData falhar, apenas ignoramos;
+                # o clique direito não funcionará para esse item específico.
+                traceback.print_exc()
+            item.setBrush(brush)
+
+        # Define o retângulo da cena em mm (com Y invertido)
+        rect = QRectF(minx, -maxy, w, h)
+        self._scene.setSceneRect(rect)
+        self.reset_view()
 
     def wheelEvent(self, event):
         """Zoom com scroll do mouse."""
-        if self._pix_item is None:
+        if not self._scene.items():
             return
 
         angle = event.angleDelta().y()
@@ -779,7 +926,51 @@ class PreviewGraphicsView(QGraphicsView):
 
         self.scale(factor, factor)
 
+    def _show_polygon_info(self, poly_index: int):
+        """
+        Mostra em uma MessageBox informações sobre o polígono clicado:
+          - índice
+          - número de pontos
+          - limites (min/max X,Y em mm)
+          - centro aproximado
+        """
+        if not (0 <= poly_index < len(self._polys_mm)):
+            return
+        poly = self._polys_mm[poly_index]
+        if not poly:
+            return
+
+        xs = [p[0] for p in poly]
+        ys = [p[1] for p in poly]
+        minx, maxx = min(xs), max(xs)
+        miny, maxy = min(ys), max(ys)
+        cx = (minx + maxx) / 2.0
+        cy = (miny + maxy) / 2.0
+
+        text = (
+            f"Índice do polígono: {poly_index}\n"
+            f"Número de pontos: {len(poly)}\n"
+            f"Limits X: ({minx:.6f}, {maxx:.6f}) mm\n"
+            f"Limits Y: ({miny:.6f}, {maxy:.6f}) mm\n"
+            f"Centro aproximado: ({cx:.6f}, {cy:.6f}) mm\n"
+        )
+        QMessageBox.information(self, "Informações do polígono", text)
+
     def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.RightButton:
+            # Clique direito: identifica o polígono clicado e mostra info
+            scene_pos = self.mapToScene(event.pos())
+            items = self._scene.items(scene_pos)
+            if items:
+                item = items[0]
+                try:
+                    idx = int(item.data(0))
+                    self._show_polygon_info(idx)
+                except Exception:
+                    traceback.print_exc()
+            event.accept()
+            return
+
         if event.button() == Qt.MouseButton.LeftButton:
             self._panning = True
             self._last_mouse_pos = event.pos()
@@ -835,9 +1026,12 @@ class GerberMacroViewer(QMainWindow):
         self.macros: Dict[str, ApertureMacro] = {}
         self.apertures_by_dcode: Dict[int, ApertureInstance] = {}
 
-        # Guarda referência para a imagem exibida (evita GC)
-        self._current_image = None   # PIL.Image
-        self._current_pixmap = None  # QPixmap (último mostrado)
+        # Cores configuráveis pelo usuário
+        self.aperture_color = QColor(Qt.GlobalColor.black)
+        self.background_color = QColor(Qt.GlobalColor.white)
+
+        # Guarda último pixmap apenas para exportar (não é usado no preview vetorial)
+        self._current_pixmap = None  # QPixmap (apenas para referência ao exportar)
         
         self._full_layer_polys_mm: List[List[tuple[float, float]]] | None = None
 
@@ -845,6 +1039,15 @@ class GerberMacroViewer(QMainWindow):
 
     def _build_ui(self):
         """Monta a interface principal."""
+        # --- Barra de menus ---
+        menubar = self.menuBar()
+        config_menu = menubar.addMenu("Configurações")
+
+        act_aperture_color = config_menu.addAction("Cor da abertura")
+        act_aperture_color.triggered.connect(self.on_choose_aperture_color)
+
+        act_bg_color = config_menu.addAction("Cor do fundo")
+        act_bg_color.triggered.connect(self.on_choose_background_color)
         # Widget central + layout principal vertical
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -1010,19 +1213,16 @@ class GerberMacroViewer(QMainWindow):
             return
 
         # Exibe na mesma área de preview das macros
-        self._current_image = img
+        
         try:
-            ba = QByteArray()
-            buffer = QBuffer(ba)
-            buffer.open(QIODevice.OpenModeFlag.WriteOnly)
-            img.save(buffer, format="PNG")
-            buffer.close()
-
-            pixmap = QPixmap()
-            pixmap.loadFromData(ba, "PNG")
-
-            self._current_pixmap = pixmap
-            self.preview_view.set_pixmap(pixmap)
+            # Para preview, usamos renderização vetorial (sem rasterização).
+            # O pixmap atual é mantido apenas como referência (não obrigatório).
+            self._current_pixmap = None
+            self.preview_view.set_polygons(
+                polys_mm,
+                aperture_color=self.aperture_color,
+                bg_color=self.background_color,
+            )
             # há algo para exportar e para reajustar visão
             self.export_btn.setEnabled(True)
             self.reset_view_btn.setEnabled(True)
@@ -1074,6 +1274,12 @@ class GerberMacroViewer(QMainWindow):
             return
 
         try:
+            # converte as cores (QColor) para tuplas RGB para o Pillow
+            ac = self.aperture_color
+            bc = self.background_color
+            fill_rgb = (ac.red(), ac.green(), ac.blue())
+            bg_rgb = (bc.red(), bc.green(), bc.blue())
+
             img = render_polys_to_image(
                 self._full_layer_polys_mm,
                 img_size=(
@@ -1081,6 +1287,8 @@ class GerberMacroViewer(QMainWindow):
                     self.preview_height * factor,
                 ),
                 margin=20 * factor,
+                fill=fill_rgb,
+                bg=bg_rgb,
             )
             img.save(path, format="PNG")
         except Exception:
@@ -1097,14 +1305,52 @@ class GerberMacroViewer(QMainWindow):
         Handler do botão 'Ajustar visão':
         restaura o enquadramento da imagem para caber na área disponível.
         """
-        if self._current_pixmap is None:
-            return
+        
         self.preview_view.reset_view()
+
+    # ------------------------------------------------------------------
+    # Configuração de cores
+    # ------------------------------------------------------------------
+    def on_choose_aperture_color(self):
+        """Escolhe a cor das aberturas (polígonos) via diálogo de cor."""
+        color = QColorDialog.getColor(
+            self.aperture_color,
+            self,
+            "Selecionar cor da abertura",
+        )
+        if not color.isValid():
+            return
+        self.aperture_color = color
+        # Re-renderiza preview se já existir camada carregada
+        if self._full_layer_polys_mm:
+            self.preview_view.set_polygons(
+                self._full_layer_polys_mm,
+                aperture_color=self.aperture_color,
+                bg_color=self.background_color,
+            )
+
+    def on_choose_background_color(self):
+        """Escolhe a cor do fundo via diálogo de cor."""
+        color = QColorDialog.getColor(
+            self.background_color,
+            self,
+            "Selecionar cor do fundo",
+        )
+        if not color.isValid():
+            return
+        self.background_color = color
+        # Re-renderiza preview se já existir camada carregada
+        if self._full_layer_polys_mm:
+            self.preview_view.set_polygons(
+                self._full_layer_polys_mm,
+                aperture_color=self.aperture_color,
+                bg_color=self.background_color,
+            )
 
     def _clear_preview(self):
         """Limpa o preview (remove imagem e referências)."""
-        self.preview_view.set_pixmap(None)
-        self._current_image = None
+        self.preview_view._scene.clear()
+        self.preview_view._polys_mm = []
         self._current_pixmap = None
         self.export_btn.setEnabled(False)
         self.reset_view_btn.setEnabled(False)
