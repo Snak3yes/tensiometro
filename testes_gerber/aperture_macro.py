@@ -714,6 +714,7 @@ class PreviewGraphicsView(QGraphicsView):
     Área de preview com suporte a:
       - zoom com scroll do mouse;
       - pan (arrastar) com botão esquerdo pressionado.
+      - reset da visão (ajustar à área disponível).
     """
 
     def __init__(self, parent=None):
@@ -735,6 +736,16 @@ class PreviewGraphicsView(QGraphicsView):
         self._panning = False
         self._last_mouse_pos = None
 
+    def reset_view(self):
+        """
+        Restaura o zoom/pan para enquadrar toda a imagem
+        na área visível, mantendo o aspecto.
+        """
+        self.resetTransform()
+        self._zoom = 1.0
+        if self._pix_item is not None:
+            self.fitInView(self._scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+
     def set_pixmap(self, pix: QPixmap | None):
         """Limpa a cena e mostra o novo pixmap, resetando zoom/pan."""
         self._scene.clear()
@@ -748,7 +759,7 @@ class PreviewGraphicsView(QGraphicsView):
             # Usar explicitamente as dimensões do pixmap evita o TypeError.
             self._scene.setSceneRect(0.0, 0.0, float(pix.width()), float(pix.height()))
             # Ajusta a visão inicial para enquadrar a imagem completa
-            self.fitInView(self._scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.reset_view()
 
     def wheelEvent(self, event):
         """Zoom com scroll do mouse."""
@@ -811,9 +822,8 @@ class GerberMacroViewer(QMainWindow):
         super().__init__()
         self.setWindowTitle("Gerber Macro Viewer")
 
-        # Dimensões do preview (aumentadas para melhorar a resolução base).
-        # O zoom do QGraphicsView trabalha em cima dessa imagem; quanto maior,
-        # melhor a definição visual quando aproximar.
+        # Dimensões da imagem base (alta resolução para zoom),
+        # independentes do tamanho do widget de visualização.
         self.preview_width = 2000
         self.preview_height = 2000
         
@@ -834,6 +844,7 @@ class GerberMacroViewer(QMainWindow):
         self._build_ui()
 
     def _build_ui(self):
+        """Monta a interface principal."""
         # Widget central + layout principal vertical
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -845,6 +856,10 @@ class GerberMacroViewer(QMainWindow):
         self.open_btn = QPushButton("Abrir arquivo Gerber...")
         self.open_btn.clicked.connect(self.on_open_file)
         top_layout.addWidget(self.open_btn)
+        self.reset_view_btn = QPushButton("Ajustar visão")
+        self.reset_view_btn.clicked.connect(self.on_reset_view)
+        self.reset_view_btn.setEnabled(False)
+        top_layout.addWidget(self.reset_view_btn)
         self.full_layer_btn = QPushButton("Camada completa (mm)")
         self.full_layer_btn.clicked.connect(self.on_render_full_layer)
         self.full_layer_btn.setEnabled(False)
@@ -872,7 +887,10 @@ class GerberMacroViewer(QMainWindow):
             QSizePolicy.Policy.Expanding,
             QSizePolicy.Policy.Expanding,
         )
-        self.preview_view.setMinimumSize(self.preview_width, self.preview_height)
+        # Limita o tamanho mínimo do widget de visualização para evitar
+        # que a área extrapole a janela e dificulte ver a parte inferior.
+        # A imagem renderizada continua em alta resolução (preview_width/height).
+        self.preview_view.setMinimumSize(600, 400)
         right_layout.addWidget(self.preview_view, 1)
 
     # ------------------------------------------------------------------
@@ -1005,8 +1023,9 @@ class GerberMacroViewer(QMainWindow):
 
             self._current_pixmap = pixmap
             self.preview_view.set_pixmap(pixmap)
-            # há algo para exportar
+            # há algo para exportar e para reajustar visão
             self.export_btn.setEnabled(True)
+            self.reset_view_btn.setEnabled(True)
         except Exception:
             traceback.print_exc()
             QMessageBox.critical(
@@ -1073,11 +1092,22 @@ class GerberMacroViewer(QMainWindow):
                 "Veja o terminal para detalhes.",
             )
 
+    def on_reset_view(self):
+        """
+        Handler do botão 'Ajustar visão':
+        restaura o enquadramento da imagem para caber na área disponível.
+        """
+        if self._current_pixmap is None:
+            return
+        self.preview_view.reset_view()
+
     def _clear_preview(self):
         """Limpa o preview (remove imagem e referências)."""
         self.preview_view.set_pixmap(None)
         self._current_image = None
-        self._current_pixmap = None      
+        self._current_pixmap = None
+        self.export_btn.setEnabled(False)
+        self.reset_view_btn.setEnabled(False)
 
 if __name__ == "__main__":
     # Inicia a aplicação PyQt6
