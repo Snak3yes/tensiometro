@@ -1,0 +1,57 @@
+BACKLOGS
+
+- lembrar de informar aos clientes a possibilidade de erros ao abrir determinados tipos de arquivos com as variações
+dos tipos de gbr existentes no mercado.
+
+- importar arquivos gbr/dxf.
+- salvar projeto
+- exportar no formato gerber.
+- exportar no formato dxf.
+- manipulação básica do arquivo gerber aberto
+	- selecionar objeto com clique do mouse.
+	- excluir objeto(s) selecionados do arquivo carregado.
+	- desfazer e refazer modificações.
+	- modificar dimensões dos objetos.
+	- mover objetos.
+	- copiar/colar objetos.
+- criar arquivo para salvar configurações realizadas pelo usuário para que sejam mantidas das próximas execuções da aplicação
+- organizar a aplicação segundo as boas praticas de arquitetura e desenvolvimento de software.
+
+
+
+
+
+
+
+
+
+EM DESENVOLVIMENTO
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+REALIZADAS
+
+OK - revisa a funcionalidade de exibição de aberturas e macros individuais usadas durante os estudos iniciais de interpretação das formas do gerber.
+
+ok - corrigir interpretação de região circular 
+
+ok - adicionar barra de menus.
+
+OK - correção no posicionamento após a aplicação do zoom ou do pan pelo usuário.
+
+ok - adicionar controles de configuração para modificar a cor das aberturas.
+
+ok - adicionar controles de configuração para modificar a cor do fundo.
+
+ok - realizar melhorias na visualização usando linhas vetoriais ao invés de apenas uma imagem png.
