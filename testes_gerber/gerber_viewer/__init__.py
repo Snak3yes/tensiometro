@@ -12,7 +12,8 @@ from .geometry import (
     rect_to_polys_mm,
     oval_to_polys_mm,
 )
-from .parser import build_layer_polys_mm
+from .parser import build_layer_polys_mm, build_layer_objects_mm, GerberObject
+from .exporter import objects_to_gerber
 from .render import render_polys_to_image, draw_polys
 
 __all__ = [
@@ -29,6 +30,9 @@ __all__ = [
     "rect_to_polys_mm",
     "oval_to_polys_mm",
     "build_layer_polys_mm",
+    "build_layer_objects_mm",
+    "GerberObject",
+    "objects_to_gerber",
     "render_polys_to_image",
     "draw_polys",
 ]

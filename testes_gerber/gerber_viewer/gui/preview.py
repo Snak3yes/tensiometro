@@ -1,25 +1,32 @@
 from __future__ import annotations
 
 import traceback
-from typing import List
+from typing import List, Optional
 
-from PyQt6.QtCore import Qt, QRectF
+from PyQt6.QtCore import Qt, QRectF, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen
 from PyQt6.QtWidgets import (
+    QGraphicsItem,
     QGraphicsScene,
     QGraphicsView,
+    QMenu,
     QMessageBox,
 )
+from ..parser import GerberObject
 
 
 class PreviewGraphicsView(QGraphicsView):
     """
     Área de preview com suporte a:
       - zoom com scroll do mouse;
-      - pan (arrastar) com botão esquerdo pressionado;
+      - pan (arrastar) com botão do meio (scroll) pressionado;
       - reset da visão (ajustar à área disponível).
     Renderiza os polígonos diretamente como vetores (QPainterPath).
     """
+
+    # Emite o índice do objeto/polígono para exclusão ou edição
+    objectDeleteRequested = pyqtSignal(int)
+    objectEditRequested = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -28,6 +35,11 @@ class PreviewGraphicsView(QGraphicsView):
         self._zoom = 1.0
         # Guarda os polígonos em mm na mesma ordem em que foram desenhados
         self._polys_mm: List[List[tuple[float, float]]] = []
+        # Opcional: lista de objetos Gerber associados a esses polígonos
+        self._objects: Optional[List[GerberObject]] = None
+
+        # Conjunto de índices atualmente selecionados (para possível uso futuro)
+        self._selected_indices: set[int] = set()
 
         self.setRenderHints(
             QPainter.RenderHint.Antialiasing
@@ -39,6 +51,9 @@ class PreviewGraphicsView(QGraphicsView):
         self.setResizeAnchor(
             QGraphicsView.ViewportAnchor.AnchorViewCenter
         )
+
+        # Para receber eventos de teclado (Delete etc.)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Controle de pan
         self._panning = False
@@ -58,21 +73,69 @@ class PreviewGraphicsView(QGraphicsView):
             Qt.AspectRatioMode.KeepAspectRatio,
         )
 
+    def set_objects(
+        self,
+        objects: List[GerberObject],
+        aperture_color: QColor,
+        bg_color: QColor,
+        *,
+        preserve_view: bool = False,
+    ):
+        """
+        Nova interface: recebe a lista de GerberObject e desenha seus
+        polígonos (polygon_mm). A ordem dos objetos é usada como índice
+        para mapear itens gráficos → objeto.
+
+        Por compatibilidade, internamente chamamos set_polygons().
+        """
+        # Corrige o mapeamento índice do polígono -> objeto:
+        # mantém apenas objetos com polígono válido, na mesma ordem.
+        self._objects = []
+        polys_mm: List[List[tuple[float, float]]] = []
+
+        for obj in objects or []:
+            poly = obj.polygon_mm
+            if not poly or len(poly) < 3:
+                continue
+            self._objects.append(obj)
+            polys_mm.append(poly)
+
+        # Limpa seleção ao recarregar
+        self._selected_indices.clear()
+
+        self.set_polygons(
+            polys_mm,
+            aperture_color,
+            bg_color,
+            preserve_view=preserve_view,
+        )
+
     def set_polygons(
         self,
         polys_mm: List[List[tuple[float, float]]],
         aperture_color: QColor,
         bg_color: QColor,
+        *,
+        preserve_view: bool = False,
     ):
         """
         Recebe a lista de polígonos em coordenadas de mundo (mm) e desenha
         vetorialmente na cena (QGraphicsScene) usando QPainterPath.
         Também armazena esses polígonos para permitir inspeção por clique.
         """
+        # Guarda transformação atual se for para preservar zoom/pan
+        old_transform = self.transform() if preserve_view else None
+        old_zoom = self._zoom if preserve_view else None
         self._scene.clear()
-        self._zoom = 1.0
-        self.resetTransform()
+        if not preserve_view:
+            self._zoom = 1.0
+            self.resetTransform()
         self._polys_mm = polys_mm or []
+        # Limpa seleção atual
+        self._selected_indices.clear()
+        # Se estiver apenas usando polígonos, limpa os objetos associados
+        if not polys_mm:
+            self._objects = None
 
         if not polys_mm:
             return
@@ -103,13 +166,21 @@ class PreviewGraphicsView(QGraphicsView):
             item = self._scene.addPath(path, pen, brush)
             try:
                 item.setData(0, idx)
+                # Permite seleção por clique esquerdo (Qt gerencia visual)                
+                item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
             except Exception:
                 traceback.print_exc()
             item.setBrush(brush)
 
         rect = QRectF(minx, -maxy, w, h)
         self._scene.setSceneRect(rect)
-        self.reset_view()
+        # Restaura transform se for para preservar visão
+        if preserve_view and old_transform is not None and old_zoom is not None:
+            self.setTransform(old_transform)
+            self._zoom = old_zoom
+        else:
+            # Comportamento padrão: ajustar à tela
+            self.reset_view()
 
     def wheelEvent(self, event):
         """Zoom com scroll do mouse."""
@@ -129,11 +200,21 @@ class PreviewGraphicsView(QGraphicsView):
 
     def _show_polygon_info(self, poly_index: int):
         """
-        Mostra em uma MessageBox informações sobre o polígono clicado.
+        Mostra em uma MessageBox informações sobre o polígono / objeto
+        clicado. Se houver objetos Gerber associados, usa esses dados;
+        caso contrário, usa apenas o polígono.
         """
-        if not (0 <= poly_index < len(self._polys_mm)):
-            return
-        poly = self._polys_mm[poly_index]
+        # Tenta primeiro usar a lista de objetos Gerber (se disponível)
+        obj: Optional[GerberObject] = None
+        if self._objects is not None and 0 <= poly_index < len(self._objects):
+            obj = self._objects[poly_index]
+            poly = obj.polygon_mm
+        else:
+            # Fallback: usa apenas a lista de polígonos
+            if not (0 <= poly_index < len(self._polys_mm)):
+                return
+            poly = self._polys_mm[poly_index]
+
         if not poly:
             return
 
@@ -144,16 +225,42 @@ class PreviewGraphicsView(QGraphicsView):
         cx = (minx + maxx) / 2.0
         cy = (miny + maxy) / 2.0
 
-        text = (
-            f"Índice do polígono: {poly_index}\n"
-            f"Número de pontos: {len(poly)}\n"
-            f"Limits X: ({minx:.6f}, {maxx:.6f}) mm\n"
-            f"Limits Y: ({miny:.6f}, {maxy:.6f}) mm\n"
-            f"Centro aproximado: ({cx:.6f}, {cy:.6f}) mm\n"
-        )
+        lines = [
+            f"Índice do polígono: {poly_index}",
+            f"Número de pontos: {len(poly)}",
+            f"Limits X: ({minx:.6f}, {maxx:.6f}) mm",
+            f"Limits Y: ({miny:.6f}, {maxy:.6f}) mm",
+            f"Centro aproximado: ({cx:.6f}, {cy:.6f}) mm",
+        ]
+
+        # Se tivermos um GerberObject, acrescenta informações semânticas
+        if obj is not None:
+            lines.append("")
+            lines.append(f"Tipo: {obj.kind}")
+            if obj.dcode is not None:
+                lines.append(f"D-code: D{obj.dcode}")
+            if obj.x_mm is not None and obj.y_mm is not None:
+                lines.append(f"Posição do flash: ({obj.x_mm:.6f}, {obj.y_mm:.6f}) mm")
+
+            if obj.kind.startswith("flash_"):
+                # Alguns parâmetros típicos
+                if "dia_mm" in obj.params:
+                    lines.append(f"Diâmetro: {float(obj.params['dia_mm']):.6f} mm")
+                if "width_mm" in obj.params and "height_mm" in obj.params:
+                    lines.append(
+                        "Largura x Altura: "
+                        f"{float(obj.params['width_mm']):.6f} x "
+                        f"{float(obj.params['height_mm']):.6f} mm"
+                    )
+                if "macro_name" in obj.params:
+                    lines.append(f"Macro: {obj.params['macro_name']}")
+
+        text = "\n".join(lines)
         QMessageBox.information(self, "Informações do polígono", text)
 
     def mousePressEvent(self, event):
+        # Garante que a view receba eventos de teclado após clique
+        self.setFocus()
         if event.button() == Qt.MouseButton.RightButton:
             scene_pos = self.mapToScene(event.pos())
             items = self._scene.items(scene_pos)
@@ -161,19 +268,56 @@ class PreviewGraphicsView(QGraphicsView):
                 item = items[0]
                 try:
                     idx = int(item.data(0))
-                    self._show_polygon_info(idx)
                 except Exception:
                     traceback.print_exc()
-            event.accept()
-            return
+                    event.accept()
+                    return
 
-        if event.button() == Qt.MouseButton.LeftButton:
+                # Menu de contexto para o objeto clicado
+                menu = QMenu(self)
+                act_info = menu.addAction("Informações do objeto")
+                act_edit = menu.addAction("Editar propriedades…")
+                act_delete = menu.addAction("Excluir objeto")
+
+                global_pos = self.mapToGlobal(event.pos())
+                chosen = menu.exec(global_pos)
+
+                if chosen is act_info:
+                    try:
+                        self._show_polygon_info(idx)
+                    except Exception:
+                        traceback.print_exc()
+                elif chosen is act_edit:
+                    # Solicita ao "dono" que edite o objeto
+                    try:
+                        print(f"[DEBUG preview] objectEditRequested idx={idx}")
+                        self.objectEditRequested.emit(idx)
+                    except Exception:
+                        traceback.print_exc()
+                elif chosen is act_delete:
+                    # Solicita ao "dono" (janela principal) que exclua o objeto
+                    try:
+                        self.objectDeleteRequested.emit(idx)
+                    except Exception:
+                        traceback.print_exc()
+
+                event.accept()
+                return
+            else:
+                # Clique direito em área vazia: nada a fazer por enquanto
+                event.accept()
+                return
+
+        # Pan agora é com botão do meio (scroll)
+        if event.button() == Qt.MouseButton.MiddleButton:
             self._panning = True
             self._last_mouse_pos = event.pos()
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
             event.accept()
-        else:
-            super().mousePressEvent(event)
+            return
+
+        # Clique esquerdo: deixa o QGraphicsView lidar com seleção
+        super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
         if self._panning and self._last_mouse_pos is not None:
@@ -188,9 +332,43 @@ class PreviewGraphicsView(QGraphicsView):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.LeftButton and self._panning:
+        if event.button() == Qt.MouseButton.MiddleButton and self._panning:
             self._panning = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
             event.accept()
         else:
             super().mouseReleaseEvent(event)
+
+    # ------------------------------------------------------------------ teclado (Delete)
+    def keyPressEvent(self, event):
+        """
+        Permite excluir objetos selecionados com a tecla Delete/Backspace.
+        A confirmação é tratada pela janela principal (on_delete_object).
+        """
+        key = event.key()
+        if key in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace):
+            items = self._scene.selectedItems()
+            if not items:
+                event.accept()
+                return
+
+            indices: set[int] = set()
+            for it in items:
+                try:
+                    idx = int(it.data(0))
+                    indices.add(idx)
+                except Exception:
+                    traceback.print_exc()
+
+            # Emite pedido de exclusão para cada índice selecionado
+            for idx in sorted(indices):
+                try:
+                    self.objectDeleteRequested.emit(idx)
+                except Exception:
+                    traceback.print_exc()
+
+            event.accept()
+            return
+
+        # Teclas não tratadas: comportamento padrão
+        super().keyPressEvent(event)

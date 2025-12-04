@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 import math
-import traceback
-from typing import Dict, List, Tuple
+
+from dataclasses import dataclass
+from typing import Dict, List, Tuple, Optional
 
 from .apertures import ApertureInstance, ApertureMacro
 from .config import GerberConfig, parse_coord, to_mm_from_unit
@@ -11,6 +12,33 @@ from .geometry import (
     rect_to_polys_mm,
     oval_to_polys_mm,
 )
+
+Point = Tuple[float, float]
+
+
+@dataclass
+class GerberObject:
+    """
+    Representa um elemento geométrico já interpretado do Gerber, em mm:
+
+      - kind:
+          "flash_circle", "flash_rect", "flash_oval", "flash_macro", "region"
+      - dcode:
+          D-code ativo no momento do flash (ou None para regiões)
+      - x_mm, y_mm:
+          posição do flash (para regiões pode ser None ou centro aproximado)
+      - params:
+          dicionário com parâmetros geométricos (ex.: dia_mm, width_mm, etc.)
+      - polygon_mm:
+          lista de pontos (x,y) em mm, já fechada (primeiro == último).
+    """
+    id: int
+    kind: str
+    dcode: Optional[int]
+    x_mm: Optional[float]
+    y_mm: Optional[float]
+    params: Dict[str, float | str]
+    polygon_mm: List[Point]
 
 
 def _parse_xy_from_line(line: str) -> tuple[str | None, str | None]:
@@ -169,19 +197,25 @@ def _approx_arc_points(
     return pts
 
 
-def build_layer_polys_mm(
+def _build_layer_core_mm(
     gerber_lines: List[str],
     macros: Dict[str, ApertureMacro],
     apertures: Dict[int, ApertureInstance],
     cfg: GerberConfig,
-) -> List[List[tuple[float, float]]]:
+) -> Tuple[List[List[Point]], List[GerberObject]]:
+    """
+    Núcleo comum:
+      - interpreta o Gerber e gera
+        (lista de polígonos, lista de GerberObject).
+    """
     """
     Percorre o arquivo Gerber inteiro e retorna uma lista de polígonos
     em coordenadas absolutas **em milímetros**, combinando:
       - flashes D03 (pads instanciados via aperturas e macros)
       - regiões G36/G37 (polígonos sólidos)
     """
-    all_polys: List[List[tuple[float, float]]] = []
+    all_polys: List[List[Point]] = []
+    all_objects: List[GerberObject] = []
 
     current_dcode: int | None = None
     last_draw_mode: str | None = None  # "D01", "D02", "D03"
@@ -192,7 +226,7 @@ def build_layer_polys_mm(
     region_active = False
     region_pts: List[tuple[float, float]] = []
 
-    debug_region_counter = 0
+    
 
     def coord_to_mm(v_base: float) -> float:
         return to_mm_from_unit(v_base, cfg)
@@ -218,23 +252,35 @@ def build_layer_polys_mm(
         if "G36*" in line:
             region_active = True
             region_pts = []
-            debug_region_counter += 1
+            
             continue
         if "G37*" in line:
             if region_active and len(region_pts) > 1:
                 if region_pts[0] != region_pts[-1]:
                     region_pts.append(region_pts[0])
                 poly = region_pts.copy()
-                if len(poly) <= 8:
-                    try:
-                        print(
-                            f"[DEBUG] Região #{debug_region_counter} "
-                            f"com {len(poly)} pontos. "
-                            f"Primeiro={poly[0]}, Último={poly[-1]}"
-                        )
-                    except Exception:
-                        traceback.print_exc()
+                
                 all_polys.append(poly)
+
+                # Cria objeto de região
+                try:
+                    xs = [p[0] for p in poly]
+                    ys = [p[1] for p in poly]
+                    cx = (min(xs) + max(xs)) / 2.0
+                    cy = (min(ys) + max(ys)) / 2.0
+                except Exception:
+                    cx = cy = None
+
+                obj = GerberObject(
+                    id=len(all_objects),
+                    kind="region",
+                    dcode=None,
+                    x_mm=cx,
+                    y_mm=cy,
+                    params={},
+                    polygon_mm=poly,
+                )
+                all_objects.append(obj)
             region_active = False
             region_pts = []
             continue
@@ -326,19 +372,52 @@ def build_layer_polys_mm(
                 continue
 
             if ap.kind == "circle":
-                dia_mm = ap.params["dia_mm"]
+                dia_mm = float(ap.params["dia_mm"])
                 polys = circle_to_polys_mm(cur_x_mm, cur_y_mm, dia_mm)
-                all_polys.extend(polys)
+                for poly in polys:
+                    all_polys.append(poly)
+                    obj = GerberObject(
+                        id=len(all_objects),
+                        kind="flash_circle",
+                        dcode=current_dcode,
+                        x_mm=cur_x_mm,
+                        y_mm=cur_y_mm,
+                        params={"dia_mm": dia_mm},
+                        polygon_mm=poly,
+                    )
+                    all_objects.append(obj)
             elif ap.kind == "rect":
-                w_mm = ap.params["width_mm"]
-                h_mm = ap.params["height_mm"]
+                w_mm = float(ap.params["width_mm"])
+                h_mm = float(ap.params["height_mm"])
                 polys = rect_to_polys_mm(cur_x_mm, cur_y_mm, w_mm, h_mm)
-                all_polys.extend(polys)
+                for poly in polys:
+                    all_polys.append(poly)
+                    obj = GerberObject(
+                        id=len(all_objects),
+                        kind="flash_rect",
+                        dcode=current_dcode,
+                        x_mm=cur_x_mm,
+                        y_mm=cur_y_mm,
+                        params={"width_mm": w_mm, "height_mm": h_mm},
+                        polygon_mm=poly,
+                    )
+                    all_objects.append(obj)
             elif ap.kind == "oval":
-                w_mm = ap.params["width_mm"]
-                h_mm = ap.params["height_mm"]
+                w_mm = float(ap.params["width_mm"])
+                h_mm = float(ap.params["height_mm"])
                 polys = oval_to_polys_mm(cur_x_mm, cur_y_mm, w_mm, h_mm)
-                all_polys.extend(polys)
+                for poly in polys:
+                    all_polys.append(poly)
+                    obj = GerberObject(
+                        id=len(all_objects),
+                        kind="flash_oval",
+                        dcode=current_dcode,
+                        x_mm=cur_x_mm,
+                        y_mm=cur_y_mm,
+                        params={"width_mm": w_mm, "height_mm": h_mm},
+                        polygon_mm=poly,
+                    )
+                    all_objects.append(obj)
             elif ap.kind == "macro":
                 macro_name = ap.params.get("macro_name")
                 mac = macros.get(macro_name)
@@ -350,6 +429,46 @@ def build_layer_polys_mm(
                     rot_deg=0.0,
                     trans=(cur_x_mm, cur_y_mm),
                 )
-                all_polys.extend(polys)
+                for poly in polys:
+                    all_polys.append(poly)
+                    obj = GerberObject(
+                        id=len(all_objects),
+                        kind="flash_macro",
+                        dcode=current_dcode,
+                        x_mm=cur_x_mm,
+                        y_mm=cur_y_mm,
+                        params={"macro_name": macro_name or ""},
+                        polygon_mm=poly,
+                    )
+                    all_objects.append(obj)
 
-    return all_polys
+    return all_polys, all_objects
+
+
+def build_layer_polys_mm(
+    gerber_lines: List[str],
+    macros: Dict[str, ApertureMacro],
+    apertures: Dict[int, ApertureInstance],
+    cfg: GerberConfig,
+) -> List[List[Point]]:
+    """
+    Interface antiga preservada:
+      - retorna apenas a lista de polígonos em mm.
+    """
+    polys, _ = _build_layer_core_mm(gerber_lines, macros, apertures, cfg)
+    return polys
+
+
+def build_layer_objects_mm(
+    gerber_lines: List[str],
+    macros: Dict[str, ApertureMacro],
+    apertures: Dict[int, ApertureInstance],
+    cfg: GerberConfig,
+) -> List[GerberObject]:
+    """
+    Nova interface:
+      - retorna a lista de objetos Gerber (flash/região) já em mm,
+        com tipo, D-code, posição, parâmetros e polígono associado.
+    """
+    _, objects = _build_layer_core_mm(gerber_lines, macros, apertures, cfg)
+    return objects
