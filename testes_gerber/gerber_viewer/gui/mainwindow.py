@@ -2,14 +2,19 @@ from __future__ import annotations
 
 import sys
 import traceback
-from typing import Dict, List
+from typing import Dict, List, Callable
 
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QAction
 from PyQt6.QtWidgets import (
     QApplication,
     QColorDialog,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
+    QFormLayout,
+    QDoubleSpinBox,
+    QCheckBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -29,6 +34,207 @@ from ..parser import build_layer_objects_mm, GerberObject
 from ..exporter import objects_to_gerber
 from ..render import render_polys_to_image
 from .preview import PreviewGraphicsView
+
+class WidthHeightDialog(QDialog):
+    """
+    Diálogo para edição simultânea de largura e altura, em mm e em %.
+    Padrão inspirado em Corel/Illustrator:
+      - campos absolutos (mm),
+      - campos de escala (% da dimensão original),
+      - opção "Manter proporção".
+    Usado para:
+      - flash_rect / flash_oval
+      - regiões (kind == "region")
+    """
+
+    def __init__(
+        self,
+        title: str,
+        label_width: str,
+        label_height: str,
+        cur_w: float,
+        cur_h: float,
+        parent: QWidget | None = None,
+        move_callback: Callable[[float, float], None] | None = None,
+    ):
+        super().__init__(parent)
+        self.setWindowTitle(title)
+        self._move_cb = move_callback
+
+        layout = QFormLayout(self)
+
+        # Guarda dimensões originais (para cálculo de % e manter proporção)
+        self._orig_w = cur_w
+        self._orig_h = cur_h
+        self._updating = False  # evita loops de sinal
+
+        # --------------------- Campos absolutos (mm) ---------------------
+        self._w_mm_spin = QDoubleSpinBox(self)
+        self._w_mm_spin.setRange(0.001, 1000.0)
+        self._w_mm_spin.setDecimals(3)
+        self._w_mm_spin.setValue(cur_w)
+
+        self._h_mm_spin = QDoubleSpinBox(self)
+        self._h_mm_spin.setRange(0.001, 1000.0)
+        self._h_mm_spin.setDecimals(3)
+        self._h_mm_spin.setValue(cur_h)
+
+        layout.addRow(label_width, self._w_mm_spin)
+        layout.addRow(label_height, self._h_mm_spin)
+
+        # ------------------------ Campos em % ----------------------------
+        self._w_pct_spin = QDoubleSpinBox(self)
+        self._w_pct_spin.setRange(0.01, 10000.0)  # 0,01% a 100x
+        self._w_pct_spin.setDecimals(2)
+        self._w_pct_spin.setSuffix(" %")
+        self._w_pct_spin.setValue(100.0)
+
+        self._h_pct_spin = QDoubleSpinBox(self)
+        self._h_pct_spin.setRange(0.01, 10000.0)
+        self._h_pct_spin.setDecimals(2)
+        self._h_pct_spin.setSuffix(" %")
+        self._h_pct_spin.setValue(100.0)
+
+        layout.addRow("Largura (%):", self._w_pct_spin)
+        layout.addRow("Altura (%):", self._h_pct_spin)
+
+        # -------------------- Manter proporção ---------------------------
+        self._lock_aspect_chk = QCheckBox("Manter proporção", self)
+        self._lock_aspect_chk.setChecked(True)
+        layout.addRow("", self._lock_aspect_chk)
+
+        # --------------------- Movimento (X/Y) ---------------------------
+        # Passo de movimento
+        self._move_step_spin = QDoubleSpinBox(self)
+        self._move_step_spin.setRange(0.001, 1000.0)
+        self._move_step_spin.setDecimals(3)
+        self._move_step_spin.setValue(0.050)  # passo padrão: 0,05 mm
+        layout.addRow("Passo mov. (mm):", self._move_step_spin)
+
+        # Botões de seta (← ↑ ↓ →)
+        move_widget = QWidget(self)
+        move_layout = QHBoxLayout(move_widget)
+        move_layout.setContentsMargins(0, 0, 0, 0)
+
+        self._btn_left = QPushButton("←", self)
+        self._btn_up = QPushButton("↑", self)
+        self._btn_down = QPushButton("↓", self)
+        self._btn_right = QPushButton("→", self)
+
+        for b in (self._btn_left, self._btn_up, self._btn_down, self._btn_right):
+            b.setFixedWidth(32)
+
+        move_layout.addWidget(self._btn_left)
+        move_layout.addWidget(self._btn_up)
+        move_layout.addWidget(self._btn_down)
+        move_layout.addWidget(self._btn_right)
+
+        layout.addRow("Mover:", move_widget)
+
+        # Conexão de sinais (mm <-> %)
+        self._w_mm_spin.valueChanged.connect(self._on_mm_changed)
+        self._h_mm_spin.valueChanged.connect(self._on_mm_changed)
+        self._w_pct_spin.valueChanged.connect(self._on_pct_changed)
+        self._h_pct_spin.valueChanged.connect(self._on_pct_changed)
+
+        btn_box = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel,
+            parent=self,
+        )
+        btn_box.accepted.connect(self.accept)
+        btn_box.rejected.connect(self.reject)
+        layout.addRow(btn_box)
+
+        # Conexão das setas de movimento
+        self._btn_left.clicked.connect(lambda: self._on_move_clicked(-1, 0))
+        self._btn_right.clicked.connect(lambda: self._on_move_clicked(1, 0))
+        self._btn_up.clicked.connect(lambda: self._on_move_clicked(0, 1))
+        self._btn_down.clicked.connect(lambda: self._on_move_clicked(0, -1))
+
+    # ---------------------------- Lógica ----------------------------
+    def _on_mm_changed(self, _value: float):
+        """Atualiza % a partir dos campos em mm, e aplica 'manter proporção'."""
+        if self._updating:
+            return
+        self._updating = True
+        try:
+            sender = self.sender()
+            # Manter proporção: altera a outra dimensão com base na escala
+            if self._lock_aspect_chk.isChecked():
+                if sender is self._w_mm_spin and self._orig_w > 0:
+                    scale = self._w_mm_spin.value() / self._orig_w
+                    new_h = self._orig_h * scale
+                    self._h_mm_spin.setValue(new_h)
+                elif sender is self._h_mm_spin and self._orig_h > 0:
+                    scale = self._h_mm_spin.value() / self._orig_h
+                    new_w = self._orig_w * scale
+                    self._w_mm_spin.setValue(new_w)
+
+            # Atualiza % com base nos valores atuais em mm
+            if self._orig_w > 0:
+                self._w_pct_spin.setValue(
+                    self._w_mm_spin.value() / self._orig_w * 100.0
+                )
+            if self._orig_h > 0:
+                self._h_pct_spin.setValue(
+                    self._h_mm_spin.value() / self._orig_h * 100.0
+                )
+        finally:
+            self._updating = False
+
+    
+
+    def _on_pct_changed(self, _value: float):
+        """Atualiza mm a partir dos campos em %, e aplica 'manter proporção'."""
+        if self._updating:
+            return
+        self._updating = True
+        try:
+            sender = self.sender()
+            if sender is self._w_pct_spin and self._orig_w > 0:
+                scale = self._w_pct_spin.value() / 100.0
+                new_w = self._orig_w * scale
+                self._w_mm_spin.setValue(new_w)
+                if self._lock_aspect_chk.isChecked():
+                    # mesma % na outra dimensão
+                    self._h_pct_spin.setValue(self._w_pct_spin.value())
+                    # e mesmo fator de escala aplicado em mm
+                    if self._orig_h > 0:
+                        new_h = self._orig_h * scale
+                        self._h_mm_spin.setValue(new_h)
+            elif sender is self._h_pct_spin and self._orig_h > 0:
+                scale = self._h_pct_spin.value() / 100.0
+                new_h = self._orig_h * scale
+                self._h_mm_spin.setValue(new_h)
+                if self._lock_aspect_chk.isChecked():
+                    self._w_pct_spin.setValue(self._h_pct_spin.value())
+                    if self._orig_w > 0:
+                        new_w = self._orig_w * scale
+                        self._w_mm_spin.setValue(new_w)
+        finally:
+            self._updating = False
+
+    def _on_move_clicked(self, dx_sign: int, dy_sign: int):
+        """
+        Move o objeto imediatamente, usando o passo configurado e
+        chamando o callback fornecido pela janela principal.
+        """
+        if self._move_cb is None:
+            return
+        step = self._move_step_spin.value()
+        dx = dx_sign * step
+        dy = dy_sign * step
+        self._move_cb(dx, dy)
+
+    def values(self) -> tuple[float, float]:
+        """
+        Retorna as dimensões finais em mm.
+        (Os campos em % já atualizam automaticamente os campos em mm.)
+        """
+        return self._w_mm_spin.value(), self._h_mm_spin.value()
+
+
 
 
 class GerberMacroViewer(QMainWindow):
@@ -58,6 +264,8 @@ class GerberMacroViewer(QMainWindow):
         # Cores configuráveis pelo usuário
         self.aperture_color = QColor(Qt.GlobalColor.black)
         self.background_color = QColor(Qt.GlobalColor.white)
+        # Cor usada para destacar o objeto selecionado
+        self.selection_color = QColor(Qt.GlobalColor.red)
 
         # Guarda polígonos da camada para exportar (PNG) e objetos para edição
         self._full_layer_polys_mm: List[List[tuple[float, float]]] | None = None
@@ -106,6 +314,9 @@ class GerberMacroViewer(QMainWindow):
 
         act_bg_color = config_menu.addAction("Cor do fundo")
         act_bg_color.triggered.connect(self.on_choose_background_color)
+        act_sel_color = config_menu.addAction("Cor da seleção")
+        act_sel_color.triggered.connect(self.on_choose_selection_color)
+        
 
         central = QWidget(self)
         self.setCentralWidget(central)
@@ -140,6 +351,8 @@ class GerberMacroViewer(QMainWindow):
             QSizePolicy.Policy.Expanding,
         )
         self.preview_view.setMinimumSize(600, 400)
+        # Cor inicial da seleção no preview
+        self.preview_view.set_selection_color(self.selection_color)
         # Conecta sinal de exclusão de objeto vindo do preview
         self.preview_view.objectDeleteRequested.connect(self.on_delete_object)
         self.preview_view.objectEditRequested.connect(self.on_edit_object)
@@ -451,6 +664,9 @@ class GerberMacroViewer(QMainWindow):
 
     # ------------------------------------------------------------------ Cores
     def on_choose_aperture_color(self):
+        """
+        Define a cor padrão das aberturas (objetos não selecionados).
+        """
         color = QColorDialog.getColor(
             self.aperture_color,
             self,
@@ -470,9 +686,23 @@ class GerberMacroViewer(QMainWindow):
         elif self._full_layer_polys_mm:
             self.preview_view.set_polygons(
                 self._full_layer_polys_mm,
-                aperture_color=self.aperture_color,
-                bg_color=self.background_color,
+                preserve_view=True,
             )
+    
+    def on_choose_selection_color(self):
+        """
+        Define a cor usada para destacar o objeto selecionado.
+        """
+        color = QColorDialog.getColor(
+            self.selection_color,
+            self,
+            "Selecionar cor da seleção",
+        )
+        if not color.isValid():
+            return
+        self.selection_color = color
+        # Atualiza diretamente o preview (não é necessário re-render completo)
+        self.preview_view.set_selection_color(self.selection_color)
 
     # ------------------------------------------------------------------ Edição: alterar propriedades do objeto
     def on_edit_object(self, index: int):
@@ -534,31 +764,27 @@ class GerberMacroViewer(QMainWindow):
             cur_w = float(obj.params.get("width_mm", 0.0))
             cur_h = float(obj.params.get("height_mm", 0.0))
 
-            # Pergunta largura
-            new_w, ok = QInputDialog.getDouble(
-                self,
-                "Editar largura",
-                "Nova largura (mm):",
-                cur_w,
-                0.001,
-                1000.0,
-                3,
+            # Pergunta largura e altura na MESMA janela
+            title = (
+                "Editar abertura retangular"
+                if obj.kind == "flash_rect"
+                else "Editar abertura oval"
             )
-            if not ok:
+            dlg = WidthHeightDialog(
+                title=title,
+                label_width="Largura (mm):",
+                label_height="Altura (mm):",
+                cur_w=cur_w,
+                cur_h=cur_h,
+                parent=self,
+                move_callback=lambda dx, dy, o=obj: self._move_object(
+                    o, dx, dy
+                ),
+            )
+            if dlg.exec() != QDialog.DialogCode.Accepted:
                 return
 
-            # Pergunta altura
-            new_h, ok = QInputDialog.getDouble(
-                self,
-                "Editar altura",
-                "Nova altura (mm):",
-                cur_h,
-                0.001,
-                1000.0,
-                3,
-            )
-            if not ok:
-                return
+            new_w, new_h = dlg.values()
 
             if new_w <= 0 or new_h <= 0:
                 QMessageBox.warning(self, "Valores inválidos",
@@ -604,31 +830,23 @@ class GerberMacroViewer(QMainWindow):
             cx = (minx + maxx) / 2.0
             cy = (miny + maxy) / 2.0
 
-            # Pergunta nova largura
-            new_w, ok = QInputDialog.getDouble(
-                self,
-                "Editar largura da região",
-                "Nova largura (mm):",
-                cur_w,
-                0.001,
-                1000.0,
-                3,
+            # Pergunta nova largura/altura na MESMA janela
+            dlg = WidthHeightDialog(
+                title="Editar tamanho da região",
+                label_width="Largura (mm):",
+                label_height="Altura (mm):",
+                cur_w=cur_w,
+                cur_h=cur_h,
+                parent=self,
+                # Habilita também o movimento para regiões
+                move_callback=lambda dx, dy, o=obj: self._move_object(
+                    o, dx, dy
+                ),
             )
-            if not ok:
+            if dlg.exec() != QDialog.DialogCode.Accepted:
                 return
 
-            # Pergunta nova altura
-            new_h, ok = QInputDialog.getDouble(
-                self,
-                "Editar altura da região",
-                "Nova altura (mm):",
-                cur_h,
-                0.001,
-                1000.0,
-                3,
-            )
-            if not ok:
-                return
+            new_w, new_h = dlg.values()
 
             if new_w <= 0 or new_h <= 0:
                 QMessageBox.warning(
@@ -758,10 +976,42 @@ class GerberMacroViewer(QMainWindow):
         elif self._full_layer_polys_mm:
             self.preview_view.set_polygons(
                 self._full_layer_polys_mm,
-                aperture_color=self.aperture_color,
-                bg_color=self.background_color,
+                preserve_view=True,
             )
         
+    # ------------------------------------------------------------------ Utilitários de edição
+    def _move_object(self, obj: GerberObject, dx: float, dy: float):
+        """
+        Aplica uma translação (dx, dy) em mm ao objeto e re-renderiza
+        imediatamente o preview.
+        Chamado pelos botões de seta do diálogo de edição.
+        """
+        # Atualiza posição do flash/centro, se existir
+        if obj.x_mm is not None:
+            obj.x_mm += dx
+        if obj.y_mm is not None:
+            obj.y_mm += dy
+
+        # Translada o polígono associado
+        if obj.polygon_mm:
+            obj.polygon_mm = [
+                (x + dx, y + dy) for (x, y) in obj.polygon_mm
+            ]
+
+        # Atualiza lista de polígonos a partir dos objetos atuais
+        if self._full_layer_objects is not None:
+            self._full_layer_polys_mm = [
+                o.polygon_mm
+                for o in self._full_layer_objects
+                if o.polygon_mm and len(o.polygon_mm) >= 3
+            ]
+            # Re-renderiza preservando zoom/pan
+            self.preview_view.set_objects(
+                self._full_layer_objects,
+                aperture_color=self.aperture_color,
+                bg_color=self.background_color,
+                preserve_view=True,
+            )
 
     # ------------------------------------------------------------------ Utilitários
     def _clear_preview(self):

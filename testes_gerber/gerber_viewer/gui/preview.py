@@ -6,6 +6,7 @@ from typing import List, Optional
 from PyQt6.QtCore import Qt, QRectF, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen
 from PyQt6.QtWidgets import (
+    QGraphicsPathItem,
     QGraphicsItem,
     QGraphicsScene,
     QGraphicsView,
@@ -13,6 +14,39 @@ from PyQt6.QtWidgets import (
     QMessageBox,
 )
 from ..parser import GerberObject
+
+class GerberGraphicsItem(QGraphicsPathItem):
+    """
+    Item gráfico para um polígono Gerber.
+    Troca automaticamente de cor quando é selecionado / desmarcado.
+    """
+
+    def __init__(
+        self,
+        path: QPainterPath,
+        index: int,
+        normal_brush: QBrush,
+        selection_brush: QBrush,
+        pen: QPen,
+    ):
+        super().__init__(path)
+        self._normal_brush = normal_brush
+        self._selection_brush = selection_brush
+        self.setBrush(self._normal_brush)
+        self.setPen(pen)
+        self.setData(0, index)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
+
+    def setSelectionBrush(self, brush: QBrush):
+        self._selection_brush = brush
+        if self.isSelected():
+            self.setBrush(self._selection_brush)
+
+    def itemChange(self, change: QGraphicsItem.GraphicsItemChange, value):
+        if change == QGraphicsItem.GraphicsItemChange.ItemSelectedHasChanged:
+            self.setBrush(self._selection_brush if bool(value) else self._normal_brush)
+        return super().itemChange(change, value)
+
 
 
 class PreviewGraphicsView(QGraphicsView):
@@ -33,10 +67,16 @@ class PreviewGraphicsView(QGraphicsView):
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
         self._zoom = 1.0
+        # Cores atuais (vêm da janela principal)
+        self._aperture_color = QColor(Qt.GlobalColor.black)
+        self._selection_color = QColor(Qt.GlobalColor.red)
+        self._bg_color = QColor(Qt.GlobalColor.white)
         # Guarda os polígonos em mm na mesma ordem em que foram desenhados
         self._polys_mm: List[List[tuple[float, float]]] = []
         # Opcional: lista de objetos Gerber associados a esses polígonos
         self._objects: Optional[List[GerberObject]] = None
+        # Itens gráficos efetivos na cena
+        self._items: List[GerberGraphicsItem] = []
 
         # Conjunto de índices atualmente selecionados (para possível uso futuro)
         self._selected_indices: set[int] = set()
@@ -58,6 +98,18 @@ class PreviewGraphicsView(QGraphicsView):
         # Controle de pan
         self._panning = False
         self._last_mouse_pos = None
+
+    # ------------------------------------------------------------------ Cores
+    def set_selection_color(self, selection_color: QColor):
+        """
+        Define a cor usada para destacar os objetos selecionados.
+        Atualiza imediatamente todos os itens já existentes.
+        """
+        self._selection_color = selection_color
+        sel_brush = QBrush(self._selection_color)
+        for it in self._items:
+            it.setSelectionBrush(sel_brush)
+            # brush normal permanece a cor da abertura
 
     def reset_view(self):
         """
@@ -90,6 +142,11 @@ class PreviewGraphicsView(QGraphicsView):
         """
         # Corrige o mapeamento índice do polígono -> objeto:
         # mantém apenas objetos com polígono válido, na mesma ordem.
+
+        self._aperture_color = aperture_color
+        self._bg_color = bg_color
+
+        self._items = []
         self._objects = []
         polys_mm: List[List[tuple[float, float]]] = []
 
@@ -105,16 +162,12 @@ class PreviewGraphicsView(QGraphicsView):
 
         self.set_polygons(
             polys_mm,
-            aperture_color,
-            bg_color,
             preserve_view=preserve_view,
         )
 
     def set_polygons(
         self,
         polys_mm: List[List[tuple[float, float]]],
-        aperture_color: QColor,
-        bg_color: QColor,
         *,
         preserve_view: bool = False,
     ):
@@ -127,6 +180,7 @@ class PreviewGraphicsView(QGraphicsView):
         old_transform = self.transform() if preserve_view else None
         old_zoom = self._zoom if preserve_view else None
         self._scene.clear()
+        self._items = []
         if not preserve_view:
             self._zoom = 1.0
             self.resetTransform()
@@ -141,7 +195,7 @@ class PreviewGraphicsView(QGraphicsView):
             return
 
         # cor de fundo
-        self._scene.setBackgroundBrush(bg_color)
+        self._scene.setBackgroundBrush(self._bg_color)
 
         # Determina bounding box em mm
         xs = [pt[0] for poly in polys_mm for pt in poly]
@@ -153,7 +207,8 @@ class PreviewGraphicsView(QGraphicsView):
         if w == 0 or h == 0:
             return
 
-        brush = QBrush(aperture_color)
+        normal_brush = QBrush(self._aperture_color)
+        selection_brush = QBrush(self._selection_color)
         pen = QPen(Qt.PenStyle.NoPen)
         for idx, poly in enumerate(polys_mm):
             if len(poly) < 3:
@@ -163,14 +218,18 @@ class PreviewGraphicsView(QGraphicsView):
             path.moveTo(x0, -y0)
             for x, y in poly[1:]:
                 path.lineTo(x, -y)
-            item = self._scene.addPath(path, pen, brush)
             try:
-                item.setData(0, idx)
-                # Permite seleção por clique esquerdo (Qt gerencia visual)                
-                item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
+                item = GerberGraphicsItem(
+                    path,
+                    idx,
+                    normal_brush,
+                    selection_brush,
+                    pen,
+                )
+                self._scene.addItem(item)
+                self._items.append(item)
             except Exception:
                 traceback.print_exc()
-            item.setBrush(brush)
 
         rect = QRectF(minx, -maxy, w, h)
         self._scene.setSceneRect(rect)

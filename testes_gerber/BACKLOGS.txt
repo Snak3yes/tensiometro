@@ -5,17 +5,18 @@ dos tipos de gbr existentes no mercado.
 
 - importar arquivos gbr/dxf.
 - salvar projeto
-- exportar no formato gerber.
-- exportar no formato dxf.
-- manipulação básica do arquivo gerber aberto
-	- selecionar objeto com clique do mouse.
-	- excluir objeto(s) selecionados do arquivo carregado.
+- exportar no formato gbr.
+- exportar no formato png.
+	
+	
 	- desfazer e refazer modificações.
-	- modificar dimensões dos objetos.
 	- mover objetos.
 	- copiar/colar objetos.
-- criar arquivo para salvar configurações realizadas pelo usuário para que sejam mantidas das próximas execuções da aplicação
-- organizar a aplicação segundo as boas praticas de arquitetura e desenvolvimento de software.
+- criar arquivo para salvar configurações realizadas pelo usuário para que sejam mantidas das próximas execuções da aplicação.
+- corrigir exclusão de mais de um objeto ao mesmo tempo.
+- adicionar funcionalidade de seleção de objetos por clica e arrasta com cobertura de área.
+- 
+
 
 
 
@@ -29,6 +30,14 @@ EM DESENVOLVIMENTO
 
 
 
+- criar uma janela de diálogo mais completa para realizar as modificações/edições em objetos do gerber.
+	- adicionar dimensões horizontal e vertical.
+	- adicionar setas nas direções verticais e horizontais com campo onde deve existir o valor em mm do deslocamento que será aplicado quando clicado.
+	- deve existir a opção de ajuste nas dimensões de forma uniforme, pode ser um radiobutton que pode ser marcado ou desmarcado que mantem a proporção travada quando uma das medidas é modificada.
+	- deve existir a possibilidade de modificar as dimensões do objeto selecionado por valores percentuais, normalmente usados para aberturas de stencils.
+
+- manter a visualização ao fazer o re-render depois de realizar alguma modificação no gerber, impedir que a imagem seja reajustada.
+	
 
 
 
@@ -41,6 +50,25 @@ EM DESENVOLVIMENTO
 
 
 REALIZADAS
+
+04/12/2025
+
+ok - organizar a aplicação segundo as boas praticas de arquitetura e desenvolvimento de software.
+
+ok - adicionar novas funcionalidades na barra de menus
+ok - implementar o botão 'novo projeto' na barra de menus
+ok - implementar o botão importar arquivo gbr
+ok - manipulação básica do arquivo gerber aberto
+ok - selecionar objeto com clique do mouse botão esquerdo.
+ok - levar o pan sobre a imagem para o clique do scroll
+ok - excluir objeto(s) selecionados do arquivo carregado.
+ok - modificar o modo de leitura para tratar as aberturas como objetos editáveis e não como regiões de preenchimento.
+ok - modificar o modo de interpretação para que os objetos possam ser modificados independente do formato do arquivo gbr.
+ok - editar dimensões, largura e espessura, do objeto selecionado.
+
+
+
+03/12/2025
 
 OK - revisa a funcionalidade de exibição de aberturas e macros individuais usadas durante os estudos iniciais de interpretação das formas do gerber.
 
@@ -55,3 +83,6 @@ ok - adicionar controles de configuração para modificar a cor das aberturas.
 ok - adicionar controles de configuração para modificar a cor do fundo.
 
 ok - realizar melhorias na visualização usando linhas vetoriais ao invés de apenas uma imagem png.
+
+
+
