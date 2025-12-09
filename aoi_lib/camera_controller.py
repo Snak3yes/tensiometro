@@ -135,12 +135,13 @@ class CameraController:
     def capture(self, params=None):
         """
         Captura uma imagem da câmera.
+        A imagem é automaticamente recortada para formato quadrado (centro da imagem).
         
         Args:
             params: Parâmetros específicos da câmera (exposição, etc.)
             
         Returns:
-            A imagem capturada ou None em caso de erro
+            A imagem capturada (quadrada) ou None em caso de erro
         """
         if not self.is_connected:
             self.last_error = "Câmera não conectada"
@@ -153,7 +154,8 @@ class CameraController:
                 if image is None:
                     self.last_error = "A captura de imagem retornou None"
                     return None
-                return image
+                # Recorta para quadrado
+                return self._crop_to_square(image)
                 
             # Para OpenCV
             import cv2
@@ -169,8 +171,9 @@ class CameraController:
                 if frame.size == 0 or frame.shape[0] == 0 or frame.shape[1] == 0:
                     self.last_error = "Imagem capturada tem dimensões inválidas"
                     return None
-                    
-                return frame
+                
+                # Recorta para formato quadrado (centro da imagem)
+                return self._crop_to_square(frame)
             else:
                 self.last_error = "Falha ao capturar imagem (sem dados ou retorno negativo)"
                 return None
@@ -178,6 +181,37 @@ class CameraController:
         except Exception as e:
             self.last_error = f"Erro na captura de imagem: {str(e)}"
             return None
+    
+    def _crop_to_square(self, image):
+        """
+        Recorta uma imagem para formato quadrado, pegando a região central.
+        
+        Args:
+            image: Imagem numpy array (height, width, channels)
+            
+        Returns:
+            Imagem recortada em formato quadrado
+        """
+        if image is None:
+            return None
+            
+        height, width = image.shape[:2]
+        
+        # Se já é quadrada, retorna como está
+        if height == width:
+            return image
+        
+        # Calcula o tamanho do lado do quadrado (usa a menor dimensão)
+        size = min(height, width)
+        
+        # Calcula o offset para centralizar o recorte
+        x_offset = (width - size) // 2
+        y_offset = (height - size) // 2
+        
+        # Recorta a região central
+        cropped = image[y_offset:y_offset + size, x_offset:x_offset + size]
+        
+        return cropped
             
     def set_parameters(self, **kwargs):
         """
