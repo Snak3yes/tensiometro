@@ -517,133 +517,216 @@ class StencilTensionDialog(QDialog):
         
         # ================== PAINEL DIREITO: CONFIGURAÇÕES ==================
         config_widget = QWidget()
-        lay = QGridLayout(config_widget)
-        r = 0
-        # Grupo de Conexão do Tensiômetro
-        conn_group = QGroupBox("Conexão do Tensiômetro")
-        conn_layout = QGridLayout(conn_group)
+        config_layout = QVBoxLayout(config_widget)
+        config_layout.setSpacing(10)
         
-        # Porta Serial
+        # ============ GRUPO 1: CONEXÃO DO TENSIÔMETRO ============
+        conn_group = QGroupBox("🔌 Conexão do Tensiômetro")
+        conn_layout = QGridLayout(conn_group)
+        conn_layout.setSpacing(8)
+        
+        # Linha 1: Porta e Baudrate
         conn_layout.addWidget(QLabel("Porta:"), 0, 0)
         self.port_combo = QComboBox()
+        self.port_combo.setMinimumWidth(100)
         conn_layout.addWidget(self.port_combo, 0, 1)
         
-        # Baudrate
         conn_layout.addWidget(QLabel("Baudrate:"), 0, 2)
         self.baudrate_combo = QComboBox()
         self.baudrate_combo.addItems(["2400", "9600", "19200", "38400", "57600", "115200"])
         self.baudrate_combo.setCurrentText("2400")
         conn_layout.addWidget(self.baudrate_combo, 0, 3)
         
-        # Botões de conexão
-        self.refresh_ports_btn = QPushButton("Atualizar")
+        # Linha 2: Botões de conexão
+        btn_conn_layout = QHBoxLayout()
+        self.refresh_ports_btn = QPushButton("🔄 Atualizar")
         self.refresh_ports_btn.clicked.connect(self._refresh_ports)
-        conn_layout.addWidget(self.refresh_ports_btn, 1, 0)
+        btn_conn_layout.addWidget(self.refresh_ports_btn)
         
-        self.connect_btn = QPushButton("Conectar")
+        self.connect_btn = QPushButton("🔗 Conectar")
         self.connect_btn.clicked.connect(self._toggle_connection)
-        conn_layout.addWidget(self.connect_btn, 1, 1)
+        btn_conn_layout.addWidget(self.connect_btn)
         
-        self.test_btn = QPushButton("Testar Leitura")
+        self.test_btn = QPushButton("📡 Testar")
         self.test_btn.clicked.connect(self._test_reading)
         self.test_btn.setEnabled(False)
-        conn_layout.addWidget(self.test_btn, 1, 2)
+        btn_conn_layout.addWidget(self.test_btn)
         
-        # Status da conexão
-        self.connection_status = QLabel("Desconectado")
-        self.connection_status.setStyleSheet("color: red; font-weight: bold;")
-        conn_layout.addWidget(self.connection_status, 1, 3)
+        self.connection_status = QLabel("● Desconectado")
+        self.connection_status.setStyleSheet("color: #ff6b6b; font-weight: bold;")
+        btn_conn_layout.addWidget(self.connection_status)
         
-        lay.addWidget(conn_group, r, 0, 1, 5); r += 1
-
-        # -------------------------------------------------------------------
-        # botão liga/desliga (toggle) para enviar pulso a M0
-        # -------------------------------------------------------------------
-        self.power_btn = QPushButton("Ligar")
+        conn_layout.addLayout(btn_conn_layout, 1, 0, 1, 4)
+        
+        # Linha 3: Botão Liga/Desliga
+        self.power_btn = QPushButton("⚡ Ligar Tensiômetro")
         self.power_btn.setCheckable(True)
+        self.power_btn.setStyleSheet("""
+            QPushButton { background-color: #2d5a27; color: white; padding: 8px; font-weight: bold; }
+            QPushButton:checked { background-color: #8b0000; }
+        """)
         self.power_btn.toggled.connect(self._on_power_toggle)
         conn_layout.addWidget(self.power_btn, 2, 0, 1, 4)
         
+        config_layout.addWidget(conn_group)
+        
+        # ============ GRUPO 2: ÁREA DE MEDIÇÃO (Grid NxN) ============
+        area_group = QGroupBox("📐 Área de Medição")
+        area_layout = QGridLayout(area_group)
+        area_layout.setSpacing(8)
+        
+        # Quantidade de pontos
+        area_layout.addWidget(QLabel("Grid (NxN):"), 0, 0)
+        self.ed_n = QLineEdit("3")
+        self.ed_n.setMaximumWidth(60)
+        self.ed_n.setToolTip("Número de pontos em cada direção (3 = grid 3x3 = 9 pontos)")
+        area_layout.addWidget(self.ed_n, 0, 1)
+        area_layout.addWidget(QLabel("pontos"), 0, 2)
+        
         # Separador
-        line = QFrame()
-        line.setFrameShape(QFrame.Shape.HLine)
-        line.setFrameShadow(QFrame.Shadow.Sunken)
-        lay.addWidget(line, r, 0, 1, 5); r += 1
-
-        # Grupo de Configurações Avançadas
-        adv_group = QGroupBox("Configurações de Medição")
-        adv_layout = QGridLayout(adv_group)
+        area_layout.addWidget(QLabel(""), 0, 3)  # Espaçamento
         
-        adv_layout.addWidget(QLabel("Tempo de estabilização (ms):"), 0, 0)
+        # Ponto Inicial
+        area_layout.addWidget(QLabel("<b>Ponto Inicial:</b>"), 1, 0)
+        pt_start_layout = QHBoxLayout()
+        pt_start_layout.addWidget(QLabel("X:"))
+        self.ed_sx = QLineEdit()
+        self.ed_sx.setMaximumWidth(80)
+        pt_start_layout.addWidget(self.ed_sx)
+        pt_start_layout.addWidget(QLabel("Y:"))
+        self.ed_sy = QLineEdit()
+        self.ed_sy.setMaximumWidth(80)
+        pt_start_layout.addWidget(self.ed_sy)
+        btn_cap_start = QPushButton("📍 Capturar")
+        btn_cap_start.setToolTip("Captura a posição atual como ponto inicial")
+        pt_start_layout.addWidget(btn_cap_start)
+        pt_start_layout.addStretch()
+        area_layout.addLayout(pt_start_layout, 1, 1, 1, 4)
+        
+        # Ponto Final
+        area_layout.addWidget(QLabel("<b>Ponto Final:</b>"), 2, 0)
+        pt_end_layout = QHBoxLayout()
+        pt_end_layout.addWidget(QLabel("X:"))
+        self.ed_ex = QLineEdit()
+        self.ed_ex.setMaximumWidth(80)
+        pt_end_layout.addWidget(self.ed_ex)
+        pt_end_layout.addWidget(QLabel("Y:"))
+        self.ed_ey = QLineEdit()
+        self.ed_ey.setMaximumWidth(80)
+        pt_end_layout.addWidget(self.ed_ey)
+        btn_cap_end = QPushButton("📍 Capturar")
+        btn_cap_end.setToolTip("Captura a posição atual como ponto final")
+        pt_end_layout.addWidget(btn_cap_end)
+        pt_end_layout.addStretch()
+        area_layout.addLayout(pt_end_layout, 2, 1, 1, 4)
+        
+        config_layout.addWidget(area_group)
+        
+        # ============ GRUPO 3: CONFIGURAÇÕES DE ALTURA ============
+        height_group = QGroupBox("📏 Alturas (Eixo Z)")
+        height_layout = QGridLayout(height_group)
+        height_layout.setSpacing(8)
+        
+        # Altura de Movimentação
+        height_layout.addWidget(QLabel("Altura de Movimentação:"), 0, 0)
+        self.ed_move_z = QLineEdit("0")
+        self.ed_move_z.setMaximumWidth(80)
+        self.ed_move_z.setToolTip("Altura segura para movimentação entre pontos")
+        height_layout.addWidget(self.ed_move_z, 0, 1)
+        height_layout.addWidget(QLabel("mm"), 0, 2)
+        btn_cap_move_z = QPushButton("📍 Capturar")
+        height_layout.addWidget(btn_cap_move_z, 0, 3)
+        
+        # Altura de Medição
+        height_layout.addWidget(QLabel("Altura de Medição:"), 1, 0)
+        self.ed_z = QLineEdit("2")
+        self.ed_z.setMaximumWidth(80)
+        self.ed_z.setToolTip("Altura onde o tensiômetro encosta no stencil para medir")
+        height_layout.addWidget(self.ed_z, 1, 1)
+        height_layout.addWidget(QLabel("mm"), 1, 2)
+        btn_cap_z = QPushButton("📍 Capturar")
+        height_layout.addWidget(btn_cap_z, 1, 3)
+        
+        # Adiciona stretch para alinhar à esquerda
+        height_layout.setColumnStretch(4, 1)
+        
+        config_layout.addWidget(height_group)
+        
+        # ============ GRUPO 4: PARÂMETROS DE MEDIÇÃO ============
+        params_group = QGroupBox("⚙️ Parâmetros de Medição")
+        params_layout = QGridLayout(params_group)
+        params_layout.setSpacing(8)
+        
+        # Tempo de estabilização
+        params_layout.addWidget(QLabel("Tempo de estabilização:"), 0, 0)
         self.stabilization_time = QLineEdit("500")
-        self.stabilization_time.setToolTip("Tempo de espera após descida do Z antes da leitura")
-        adv_layout.addWidget(self.stabilization_time, 0, 1)
-
-        # Velocidade de movimentação configurável
-        adv_layout.addWidget(QLabel("Velocidade de movimentação (mm/min):"), 1, 0)
+        self.stabilization_time.setMaximumWidth(80)
+        self.stabilization_time.setToolTip("Tempo aguardando após descer o Z antes de ler")
+        params_layout.addWidget(self.stabilization_time, 0, 1)
+        params_layout.addWidget(QLabel("ms"), 0, 2)
+        
+        # Velocidade
+        params_layout.addWidget(QLabel("Velocidade de movimento:"), 1, 0)
         self.movement_feed = QLineEdit("30")
-        self.movement_feed.setToolTip("Velocidade para todas as movimentações durante a medição")
-        adv_layout.addWidget(self.movement_feed, 1, 1)
+        self.movement_feed.setMaximumWidth(80)
+        self.movement_feed.setToolTip("Velocidade dos movimentos durante a medição")
+        params_layout.addWidget(self.movement_feed, 1, 1)
+        params_layout.addWidget(QLabel("mm/min"), 1, 2)
         
-        adv_group.setLayout(adv_layout)
-        lay.addWidget(adv_group, r, 0, 1, 5); r += 1
-
-        # Campos reorganizados: Quantidade → Inicial → Final → Altura de Movimentação → Altura de Medição
-        # 1) Quantidade
-        lay.addWidget(QLabel("Quantidade (N):"), r, 0)
-        self.ed_n       = QLineEdit("3");       lay.addWidget(self.ed_n, r, 1)
-        r += 1
-
-        # 2) Ponto Inicial
-        lay.addWidget(QLabel("<b>Ponto Inicial</b>"), r, 0, 1, 5)
-        r += 1
-        lay.addWidget(QLabel("X:"), r, 0)
-        self.ed_sx      = QLineEdit();          lay.addWidget(self.ed_sx, r, 1)
-        lay.addWidget(QLabel("Y:"), r, 2)
-        self.ed_sy      = QLineEdit();          lay.addWidget(self.ed_sy, r, 3)
-        btn_cap_start  = QPushButton("Capturar"); lay.addWidget(btn_cap_start, r, 4)
-        r += 1
-
-        # 3) Ponto Final
-        lay.addWidget(QLabel("<b>Ponto Final</b>"), r, 0, 1, 5)
-        r += 1
-        lay.addWidget(QLabel("X:"), r, 0)
-        self.ed_ex      = QLineEdit();          lay.addWidget(self.ed_ex, r, 1)
-        lay.addWidget(QLabel("Y:"), r, 2)
-        self.ed_ey      = QLineEdit();          lay.addWidget(self.ed_ey, r, 3)
-        btn_cap_end    = QPushButton("Capturar"); lay.addWidget(btn_cap_end, r, 4)
-        r += 1
-
-        # 4) Altura de Movimentação (safe height)
-        lay.addWidget(QLabel("Altura de Movimentação (mm):"), r, 2)
-        self.ed_move_z  = QLineEdit("0");       lay.addWidget(self.ed_move_z, r, 3)
-        btn_cap_move_z = QPushButton("Capturar"); lay.addWidget(btn_cap_move_z, r, 4)
-        r += 1
-
-        # 5) Altura de Medição
-        lay.addWidget(QLabel("Altura de Medição (mm):"), r, 2)
-        self.ed_z       = QLineEdit("2");       lay.addWidget(self.ed_z, r, 3)
-        btn_cap_z      = QPushButton("Capturar"); lay.addWidget(btn_cap_z, r, 4)
-        r += 1
-        measurement_buttons_layout = QHBoxLayout()
-        self.start_measurement_btn = QPushButton("Iniciar Medição")
-        self.stop_measurement_btn = QPushButton("Parar Medição")
+        params_layout.setColumnStretch(3, 1)
+        
+        config_layout.addWidget(params_group)
+        
+        # ============ BOTÕES DE AÇÃO ============
+        action_layout = QHBoxLayout()
+        
+        self.start_measurement_btn = QPushButton("▶ Iniciar Medição")
+        self.start_measurement_btn.setMinimumHeight(40)
+        self.start_measurement_btn.setStyleSheet("""
+            QPushButton { 
+                background-color: #1e88e5; 
+                color: white; 
+                font-weight: bold; 
+                font-size: 14px;
+                border-radius: 5px;
+            }
+            QPushButton:hover { background-color: #1976d2; }
+            QPushButton:disabled { background-color: #666; }
+        """)
+        action_layout.addWidget(self.start_measurement_btn)
+        
+        self.stop_measurement_btn = QPushButton("⏹ Parar Medição")
+        self.stop_measurement_btn.setMinimumHeight(40)
         self.stop_measurement_btn.setEnabled(False)
-        measurement_buttons_layout.addWidget(self.start_measurement_btn)
-        measurement_buttons_layout.addWidget(self.stop_measurement_btn)
-        lay.addLayout(measurement_buttons_layout, r, 0, 1, 5); r += 1
+        self.stop_measurement_btn.setStyleSheet("""
+            QPushButton { 
+                background-color: #e53935; 
+                color: white; 
+                font-weight: bold;
+                font-size: 14px;
+                border-radius: 5px;
+            }
+            QPushButton:hover { background-color: #c62828; }
+            QPushButton:disabled { background-color: #666; }
+        """)
+        action_layout.addWidget(self.stop_measurement_btn)
         
-        # Barra de progresso
+        config_layout.addLayout(action_layout)
         
+        # ============ BARRA DE PROGRESSO E STATUS ============
         self.progress_bar = QProgressBar()
         self.progress_bar.setVisible(False)
-        lay.addWidget(self.progress_bar, r, 0, 1, 5); r += 1
+        self.progress_bar.setMinimumHeight(20)
+        config_layout.addWidget(self.progress_bar)
         
-        # Labels de status
         self.status_label = QLabel("")
-        lay.addWidget(self.status_label, r, 0, 1, 5); r += 1
+        self.status_label.setStyleSheet("color: #aaa; font-style: italic;")
+        config_layout.addWidget(self.status_label)
+        
+        # Adiciona stretch para empurrar tudo para cima
+        config_layout.addStretch()
 
-        # Conexões ------------------------------------------------------
+        # Conexões dos botões de captura
         self.start_measurement_btn.clicked.connect(self._on_start)
         self.stop_measurement_btn.clicked.connect(self._on_stop)
         btn_cap_start.clicked.connect(self._capture_start_xy)
@@ -653,7 +736,7 @@ class StencilTensionDialog(QDialog):
         
         # Finaliza splitter e layout principal
         splitter.addWidget(config_widget)
-        splitter.setSizes([250, 650])  # Tamanhos iniciais dos painéis
+        splitter.setSizes([280, 620])  # Tamanhos iniciais dos painéis
         main_layout.addWidget(splitter)
 
     def _on_power_toggle(self, checked: bool):
