@@ -187,153 +187,203 @@ class AOIConfigManager:
         ref[path[-1]] = value
         self.save()
 
-    # -------- aplica limites ao GRBL -------
+    # -------- aplica configurações ao controlador de eixos -------
     def apply_to_cnc(self, cnc):
         """
-        Envia $110,$111,$120,$121 e sentido de Y logo
-        após a conexão da CNC.
+        Aplica configurações salvas ao controlador de eixos (PLC).
+        Atualiza velocidades máximas e fator de calibração.
         """
-        # modo cartesiano × corexy ------------------
-        try:
-            sys_type = self.get("cnc", "system_type", default="cartesian")
-            cnc.set_kinematics_mode(sys_type)
-            # passa configurações específicas do CoreXY
-            cnc.corexy_cfg = self.get("cnc", "corexy_config", default={})
-            self.log.info("Modo de cinemática aplicado: %s", sys_type)
-        except Exception as e:
-            self.log.error("Falha ao aplicar modo de cinemática: %s", e)
         if not cnc or not cnc.is_connected:
             return
+        
+        # Aplica velocidades máximas (limites de segurança)
         maxf = self.get("cnc", "max_feed", default={})
-        acc  = self.get("cnc", "max_acc",  default={})
+        if hasattr(cnc, 'max_feed'):
+            cnc.max_feed['x'] = maxf.get('x', 5000)
+            cnc.max_feed['y'] = maxf.get('y', 5000)
+            cnc.max_feed['z'] = maxf.get('z', 800)
+        
+        # Aplica fator de conversão pulsos/mm
+        ppr = self.get("calibration", "pulses_per_rev", default=1000)
+        pitch = self.get("calibration", "fuso_pitch", default=10)
+        if pitch > 0 and hasattr(cnc, 'pulses_per_mm'):
+            cnc.pulses_per_mm = ppr / pitch
+        
+        self.log.info(f"Configurações aplicadas ao PLC: max_feed={maxf}, pulses_per_mm={ppr/pitch if pitch > 0 else 'N/A'}")
 
-        # ------------------ GARANTE EIXO Z ------------------
-        # Se o usuário ainda não possui as novas chaves no JSON,
-        # criamos valores seguros para evitar KeyError.
-        if "z" not in maxf:
-            maxf["z"] = 800.0          # mm/min   (ajuste depois em Preferências)
-            self.set("cnc", "max_feed", "z", value=maxf["z"])
-        if "z" not in acc:
-            acc["z"] = 60.0            # mm/s²
-            self.set("cnc", "max_acc",  "z", value=acc["z"])
-        invert_y = self.get("cnc", "invert_y", default=True)
-        invert_z = self.get("cnc", "invert_z", default=False)
-        cmds = [
-            f"$110={maxf['x']}", f"$111={maxf['y']}", f"$112={maxf['z']}",
-            f"$120={acc['x']}",  f"$121={acc['y']}",  f"$122={acc['z']}",
-        ]
-        for c in cmds:
-            cnc.send_command(c, priority=True)
-        cnc.set_invert_y(invert=invert_y)
-        cnc.set_invert_z(invert=invert_z)
-        # Configuração de motor hold
-        motor_hold = self.get("cnc", "motor_hold_enabled", default=True)
-        cnc.set_motor_hold_enabled(motor_hold)
-        self.log.info("Limites aplicados ao GRBL: feed %s  acc %s  invert_y=%s",
-                      maxf, acc, invert_y, invert_z)
 
 # ============================================================
 #  SettingsDialog – UI PyQt6 para editar as preferências
 # ============================================================
 from PyQt6.QtWidgets import (QDialog, QFormLayout, QDoubleSpinBox, QCheckBox,
-                             QPushButton, QHBoxLayout, QGroupBox, QComboBox)
+                             QPushButton, QHBoxLayout, QVBoxLayout, QGroupBox, 
+                             QComboBox, QLineEdit, QSpinBox, QLabel, QTabWidget,
+                             QWidget)
 
 class SettingsDialog(QDialog):
     def __init__(self, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Preferências da AOI / CNC")
+        self.setWindowTitle("Preferências do Sistema AOI")
         self.cfg = cfg
-        form = QFormLayout(self)
-
-        # ------ widgets para feed / acel -------
-        self.spin_f_x = QDoubleSpinBox(); self.spin_f_x.setRange(1, 30000)
-        self.spin_f_y = QDoubleSpinBox(); self.spin_f_y.setRange(1, 30000)
-        self.spin_f_z = QDoubleSpinBox(); self.spin_f_z.setRange(1, 30000)
-        self.spin_a_x = QDoubleSpinBox(); self.spin_a_x.setRange(1, 1000)
-        self.spin_a_y = QDoubleSpinBox(); self.spin_a_y.setRange(1, 1000)
-        self.spin_a_z = QDoubleSpinBox(); self.spin_a_z.setRange(1, 1000)
-        self.chk_invert_y = QCheckBox("Inverter lógica do eixo Y (+Y frente)")
-        self.chk_invert_z = QCheckBox("Inverter lógica do eixo Z (+Z cima)")
-
-        # Configuração de motor hold
-        self.chk_motor_hold = QCheckBox("Manter motores energizados quando parados")
-        self.chk_motor_hold.setToolTip("Evita que motores fiquem 'soltos' e possam ser girados manualmente")
-
-        # valores atuais
-        self.spin_f_x.setValue(cfg.get("cnc", "max_feed", "x"))
-        self.spin_f_y.setValue(cfg.get("cnc", "max_feed", "y"))
-        self.spin_a_x.setValue(cfg.get("cnc", "max_acc", "x"))
-        self.spin_a_y.setValue(cfg.get("cnc", "max_acc", "y"))
-        # Usa False como valor-padrão caso a chave ainda não exista no JSON
-        self.chk_invert_y.setChecked(cfg.get("cnc", "invert_y", default=False))
-        self.chk_invert_z.setChecked(cfg.get("cnc", "invert_z", default=False))
-        self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z"))
-        self.spin_a_z.setValue(cfg.get("cnc", "max_acc",  "z"))
-        self.chk_motor_hold.setChecked(cfg.get("cnc", "motor_hold_enabled", default=True))
-
-        form.addRow("Feed máx X (mm/min):", self.spin_f_x)
-        form.addRow("Feed máx Y (mm/min):", self.spin_f_y)
-        form.addRow("Feed máx Z (mm/min):", self.spin_f_z)
-        form.addRow("Acel máx X (mm/s²):",  self.spin_a_x)
-        form.addRow("Acel máx Y (mm/s²):",  self.spin_a_y)
-        form.addRow("Acel máx Z (mm/s²):",  self.spin_a_z)
-        form.addRow(self.chk_invert_y)
-        form.addRow(self.chk_invert_z)
-        form.addRow(self.chk_motor_hold)
-
-        # --- NOVO BLOCO: seleção do tipo de sistema -----------------------
-        self.combo_sys = QComboBox()
-        self.combo_sys.addItems(["cartesian", "corexy"])
-        self.combo_sys.setCurrentText(cfg.get("cnc", "system_type",
-                                              default="cartesian"))
-        form.addRow("Tipo de sistema:", self.combo_sys)
-
-        # Grupo CoreXY (visível apenas quando selecionado)
-        self.grp_corexy = QGroupBox("Opções CoreXY")
-        g_core = QFormLayout(self.grp_corexy)
-        self.chk_inv_a = QCheckBox("Inverter Motor A")
-        self.chk_inv_b = QCheckBox("Inverter Motor B")
-        core_cfg = cfg.get("cnc", "corexy_config", default={})
-        self.chk_inv_a.setChecked(core_cfg.get("motor_a_invert", False))
-        self.chk_inv_b.setChecked(core_cfg.get("motor_b_invert", False))
-        g_core.addRow(self.chk_inv_a)
-        g_core.addRow(self.chk_inv_b)
-        form.addRow(self.grp_corexy)
-
-        # Mostrar/esconder grupo conforme seleção inicial
-        self.grp_corexy.setVisible(self.combo_sys.currentText() == "corexy")
-        self.combo_sys.currentTextChanged.connect(
-            lambda txt: self.grp_corexy.setVisible(txt == "corexy")
-        )
-
+        self.setMinimumWidth(450)
+        
+        main_layout = QVBoxLayout(self)
+        
+        # Cria abas para organizar as configurações
+        tabs = QTabWidget()
+        main_layout.addWidget(tabs)
+        
+        # ================== ABA: CONEXÕES ==================
+        conn_tab = QWidget()
+        conn_layout = QFormLayout(conn_tab)
+        
+        # Grupo PLC
+        plc_group = QGroupBox("Conexão PLC (Modbus TCP)")
+        plc_layout = QFormLayout(plc_group)
+        
+        self.edit_plc_host = QLineEdit()
+        self.edit_plc_host.setText(cfg.get("connections", "plc_host", default="192.168.0.5"))
+        plc_layout.addRow("Endereço IP:", self.edit_plc_host)
+        
+        self.spin_plc_port = QSpinBox()
+        self.spin_plc_port.setRange(1, 65535)
+        self.spin_plc_port.setValue(cfg.get("connections", "plc_port", default=502))
+        plc_layout.addRow("Porta Modbus:", self.spin_plc_port)
+        
+        conn_layout.addRow(plc_group)
+        
+        # Grupo Câmera
+        cam_group = QGroupBox("Câmera")
+        cam_layout = QFormLayout(cam_group)
+        
+        self.spin_camera_id = QSpinBox()
+        self.spin_camera_id.setRange(0, 10)
+        self.spin_camera_id.setValue(cfg.get("connections", "last_camera_id", default=0))
+        cam_layout.addRow("ID da Câmera:", self.spin_camera_id)
+        
+        self.chk_auto_camera = QCheckBox("Conectar câmera automaticamente")
+        self.chk_auto_camera.setChecked(cfg.get("connections", "auto_connect_camera", default=False))
+        cam_layout.addRow(self.chk_auto_camera)
+        
+        conn_layout.addRow(cam_group)
+        
+        tabs.addTab(conn_tab, "Conexões")
+        
+        # ================== ABA: MOVIMENTO ==================
+        mov_tab = QWidget()
+        mov_layout = QFormLayout(mov_tab)
+        
+        # Velocidades máximas (limites de segurança na UI)
+        speed_group = QGroupBox("Velocidades Máximas (mm/min)")
+        speed_layout = QFormLayout(speed_group)
+        
+        self.spin_f_x = QDoubleSpinBox()
+        self.spin_f_x.setRange(1, 30000)
+        self.spin_f_x.setValue(cfg.get("cnc", "max_feed", "x", default=5000))
+        speed_layout.addRow("Eixo X:", self.spin_f_x)
+        
+        self.spin_f_y = QDoubleSpinBox()
+        self.spin_f_y.setRange(1, 30000)
+        self.spin_f_y.setValue(cfg.get("cnc", "max_feed", "y", default=5000))
+        speed_layout.addRow("Eixo Y:", self.spin_f_y)
+        
+        self.spin_f_z = QDoubleSpinBox()
+        self.spin_f_z.setRange(1, 30000)
+        self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z", default=800))
+        speed_layout.addRow("Eixo Z:", self.spin_f_z)
+        
+        mov_layout.addRow(speed_group)
+        
+        # Calibração mecânica
+        calib_group = QGroupBox("Calibração Mecânica")
+        calib_layout = QFormLayout(calib_group)
+        
+        self.spin_pulses_rev = QDoubleSpinBox()
+        self.spin_pulses_rev.setRange(1, 100000)
+        self.spin_pulses_rev.setValue(cfg.get("calibration", "pulses_per_rev", default=1000))
+        calib_layout.addRow("Pulsos por revolução:", self.spin_pulses_rev)
+        
+        self.spin_fuso = QDoubleSpinBox()
+        self.spin_fuso.setRange(0.1, 100)
+        self.spin_fuso.setValue(cfg.get("calibration", "fuso_pitch", default=10))
+        calib_layout.addRow("Passo do fuso (mm):", self.spin_fuso)
+        
+        # Mostra o valor calculado
+        self.lbl_pulses_mm = QLabel()
+        self._update_pulses_mm_label()
+        self.spin_pulses_rev.valueChanged.connect(self._update_pulses_mm_label)
+        self.spin_fuso.valueChanged.connect(self._update_pulses_mm_label)
+        calib_layout.addRow("Pulsos/mm:", self.lbl_pulses_mm)
+        
+        mov_layout.addRow(calib_group)
+        
+        tabs.addTab(mov_tab, "Movimento")
+        
+        # ================== ABA: INTERFACE ==================
+        ui_tab = QWidget()
+        ui_layout = QFormLayout(ui_tab)
+        
+        # Controles padrão
+        default_group = QGroupBox("Valores Padrão")
+        default_layout = QFormLayout(default_group)
+        
+        self.spin_step = QDoubleSpinBox()
+        self.spin_step.setRange(0.1, 1000)
+        self.spin_step.setValue(cfg.get("movement", "step_size", default=10))
+        default_layout.addRow("Tamanho do passo (mm):", self.spin_step)
+        
+        self.spin_feed = QDoubleSpinBox()
+        self.spin_feed.setRange(1, 10000)
+        self.spin_feed.setValue(cfg.get("movement", "feed_rate", default=1000))
+        default_layout.addRow("Feed Rate padrão (mm/min):", self.spin_feed)
+        
+        ui_layout.addRow(default_group)
+        
+        tabs.addTab(ui_tab, "Interface")
+        
         # ------ botões ----------
         btn_box = QHBoxLayout()
-        btn_ok  = QPushButton("Salvar")
+        btn_ok = QPushButton("Salvar")
         btn_can = QPushButton("Cancelar")
         btn_ok.clicked.connect(self._on_save)
         btn_can.clicked.connect(self.reject)
-        btn_box.addWidget(btn_ok); btn_box.addWidget(btn_can)
-        form.addRow(btn_box)
+        btn_box.addStretch()
+        btn_box.addWidget(btn_ok)
+        btn_box.addWidget(btn_can)
+        main_layout.addLayout(btn_box)
+
+    def _update_pulses_mm_label(self):
+        """Atualiza o label de pulsos/mm calculado."""
+        try:
+            pulses = self.spin_pulses_rev.value()
+            pitch = self.spin_fuso.value()
+            if pitch > 0:
+                pulses_mm = pulses / pitch
+                self.lbl_pulses_mm.setText(f"<b>{pulses_mm:.2f}</b> pulsos/mm")
+            else:
+                self.lbl_pulses_mm.setText("Erro: passo = 0")
+        except:
+            self.lbl_pulses_mm.setText("--")
 
     def _on_save(self):
+        # Conexões
+        self.cfg.set("connections", "plc_host", value=self.edit_plc_host.text().strip())
+        self.cfg.set("connections", "plc_port", value=self.spin_plc_port.value())
+        self.cfg.set("connections", "last_camera_id", value=self.spin_camera_id.value())
+        self.cfg.set("connections", "auto_connect_camera", value=self.chk_auto_camera.isChecked())
+        
+        # Velocidades
         self.cfg.set("cnc", "max_feed", "x", value=self.spin_f_x.value())
         self.cfg.set("cnc", "max_feed", "y", value=self.spin_f_y.value())
-        self.cfg.set("cnc", "max_acc",  "x", value=self.spin_a_x.value())
-        self.cfg.set("cnc", "max_acc",  "y", value=self.spin_a_y.value())
         self.cfg.set("cnc", "max_feed", "z", value=self.spin_f_z.value())
-        self.cfg.set("cnc", "max_acc",  "z", value=self.spin_a_z.value())
-        self.cfg.set("cnc", "invert_y", value=self.chk_invert_y.isChecked())
-        self.cfg.set("cnc", "invert_z", value=self.chk_invert_z.isChecked())
-        self.cfg.set("cnc", "motor_hold_enabled", value=self.chk_motor_hold.isChecked())
-
-        # -------- grava modo cartesiano/corexy ---------------------------
-        sys_type = self.combo_sys.currentText()
-        self.cfg.remember_system_type(sys_type)
-
-        # -------- grava parâmetros CoreXY se aplicável -------------------
-        if sys_type == "corexy":
-            self.cfg.set("cnc", "corexy_config", "motor_a_invert",
-                         value=self.chk_inv_a.isChecked())
-            self.cfg.set("cnc", "corexy_config", "motor_b_invert",
-                         value=self.chk_inv_b.isChecked())
+        
+        # Calibração
+        self.cfg.set("calibration", "pulses_per_rev", value=self.spin_pulses_rev.value())
+        self.cfg.set("calibration", "fuso_pitch", value=self.spin_fuso.value())
+        
+        # Interface
+        self.cfg.set("movement", "step_size", value=self.spin_step.value())
+        self.cfg.set("movement", "feed_rate", value=self.spin_feed.value())
+        
         self.accept()
+
