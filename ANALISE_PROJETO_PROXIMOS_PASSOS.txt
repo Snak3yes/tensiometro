@@ -1,0 +1,242 @@
+================================================================================
+    ANÁLISE DO PROJETO - SISTEMA DE INSPEÇÃO DE STENCIL
+    Data: 2025-12-09
+    Versão: 0.2.0
+================================================================================
+
+================================================================================
+ 1. OBJETIVO DO PROJETO
+================================================================================
+
+O projeto visa criar um sistema completo para:
+
+  a) MEDIÇÃO DE TENSÃO DO STENCIL
+     - Medir a tensão superficial de stencils usados nas printers SMT
+     - Usar sensor AS-120N conectado via serial
+     - Movimentar a head em grid NxN para múltiplas medições
+     - Registrar valores medidos em JSON para consulta posterior
+
+  b) INSPEÇÃO VISUAL DOS FUROS DO STENCIL
+     - Validar a qualidade da limpeza do stencil
+     - Usar luz de fundo (backlight) para iluminar os furos
+     - Capturar imagens com câmera industrial
+     - Detectar obstruções nos furos (análise de "branco" vs "não-branco")
+     - Gerar relatórios de aprovação/reprovação
+
+  c) GERAÇÃO DE IMAGEM MAPA (STITCHING)
+     - Capturar múltiplas imagens em grade
+     - Cortar bordas para eliminar distorções de lente
+     - Montar imagem panorâmica completa do stencil
+     - Sobrepor máscaras do Gerber para inspeção
+
+  d) EDITOR DE ARQUIVOS GERBER
+     - Ler e interpretar arquivos Gerber (.gbr)
+     - Gerar máscaras para definir regiões de inspeção
+     - Editar aberturas (dimensões, posição)
+     - Exportar arquivos modificados
+
+================================================================================
+ 2. ESTADO ATUAL DO PROJETO
+================================================================================
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│ FUNCIONALIDADE                           │ STATUS      │ OBSERVAÇÕES       │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Controle de Movimento via CLP             │ ✅ PRONTO   │ Modbus TCP        │
+│ Comunicação com PLCAxisController         │ ✅ PRONTO   │ X, Y, Z           │
+│ Interface PyQt6 Principal (consumo_lib)   │ ✅ PRONTO   │ Funcional         │
+│ Visualização de Câmera                    │ ✅ PRONTO   │ OpenCV + PyQt6    │
+│ Geração de Mapa (Grid de Imagens)         │ ✅ PRONTO   │ Captura em grade  │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Conexão Serial com Tensiômetro AS-120N   │ ✅ PRONTO   │ 2400 baud, 8N1    │
+│ Decodificação do Frame do Tensiômetro    │ ✅ PRONTO   │ 9 bytes           │
+│ Thread de Medição de Tensão               │ ✅ PRONTO   │ Não bloqueia UI   │
+│ Diálogo de Medição (StencilTensionDialog) │ ✅ PRONTO   │ PyQt6             │
+│ Cálculo de Grid de Pontos                 │ ✅ PRONTO   │ Zig-zag           │
+│ Salvamento de Resultados em JSON          │ ✅ PRONTO   │                   │
+│ Visualização de Tensão (Heatmap)          │ ✅ PRONTO   │ TensionCanvas     │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Parser de Arquivos Gerber                 │ ✅ PRONTO   │ RS-274X           │
+│ Renderização Vetorial (QPainterPath)      │ ✅ PRONTO   │ Zoom, Pan         │
+│ Seleção de Objetos Gerber                 │ ✅ PRONTO   │ Multi-seleção     │
+│ Edição de Dimensões                        │ ✅ PRONTO   │ mm e %            │
+│ Exclusão de Objetos                        │ ✅ PRONTO   │ Individual/Grupo  │
+│ Movimentação de Objetos                    │ ⏳ EM DEV   │ Setas no diálogo  │
+│ Exportação para Gerber                    │ ✅ PRONTO   │ Simplificado      │
+│ Exportação para PNG                        │ ✅ PRONTO   │                   │
+├────────────────────────────────────────────────────────────────────────────┤
+│ Stitching de Imagens (Mosaico)            │ ❌ PENDENTE │ Não implementado  │
+│ Correção de Distorção de Lente            │ ❌ PENDENTE │ Não implementado  │
+│ Sobreposição de Máscara Gerber            │ ❌ PENDENTE │ Não implementado  │
+│ Algoritmo de Detecção de Obstrução        │ ❌ PENDENTE │ Não implementado  │
+│ Relatórios de Inspeção                    │ ❌ PENDENTE │ Não implementado  │
+│ Integração com Sistema da Fábrica         │ ❌ PENDENTE │ Não implementado  │
+└────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+ 3. ESTRUTURA DE ARQUIVOS RELEVANTES
+================================================================================
+
+CONTROLE VIA CLP:
+  ├── aoi_lib/
+  │   ├── plc_axis_controller.py     ✅ Controlador CLP (Modbus TCP)
+  │   ├── aoi_controller.py          ✅ Controlador AOI principal
+  │   ├── camera_controller.py       ✅ Controle de câmera
+  │   ├── position_manager.py        ✅ Gerenciamento de posições
+  │   ├── stencil_tension.py         ✅ Medição de tensão (986 linhas)
+  │   └── config_manager.py          ✅ Configurações
+
+APLICAÇÃO PRINCIPAL:
+  ├── consumo_lib.py                 ✅ Interface principal (3106 linhas)
+
+EDITOR GERBER:
+  └── testes_gerber/gerber_viewer/
+      ├── parser.py                  ✅ Parser RS-274X (475 linhas)
+      ├── apertures.py               ✅ Definição de aberturas
+      ├── geometry.py                ✅ Geometria (círculo, retângulo, oval)
+      ├── config.py                  ✅ Configuração do parser
+      ├── render.py                  ✅ Renderização para imagem
+      ├── exporter.py                ✅ Exportação para Gerber
+      └── gui/
+          ├── mainwindow.py          ✅ Janela principal (1385 linhas)
+          └── preview.py             ✅ Visualização vetorial (467 linhas)
+
+================================================================================
+ 4. PRÓXIMOS PASSOS PARA CONCLUSÃO DO PROJETO
+================================================================================
+
+FASE 1: STITCHING DE IMAGENS (Prioridade: ALTA)
+────────────────────────────────────────────────────────────────────────────────
+1.1 - Implementar módulo de calibração de câmera
+      □ Usar padrão de tabuleiro de xadrez (OpenCV calibrateCamera)
+      □ Salvar parâmetros intrínsecos e coeficientes de distorção
+
+1.2 - Criar algoritmo de correção de distorção
+      □ Aplicar cv2.undistort() em cada imagem capturada
+      □ Cortar bordas com distorção (zona segura central)
+
+1.3 - Implementar stitching de imagens
+      □ Definir percentual de overlap entre capturas
+      □ Implementar blending nas bordas (feather blending ou multiband)
+      □ Calcular tamanho final da imagem composta
+      □ Montar imagem panorâmica usando coordenadas do grid
+
+1.4 - Criar interface de visualização do mapa completo
+      □ Widget com zoom/pan para imagem de alta resolução
+      □ Exportação para TIFF ou PNG de alta qualidade
+
+FASE 2: INTEGRAÇÃO GERBER + INSPEÇÃO (Prioridade: ALTA)
+────────────────────────────────────────────────────────────────────────────────
+2.1 - Criar módulo de alinhamento Gerber → Imagem
+      □ Detectar fiduciais na imagem
+      □ Calcular transformação (escala, rotação, translação)
+      □ Aplicar transformação afim ao Gerber
+
+2.2 - Gerar máscaras de inspeção a partir do Gerber
+      □ Converter polígonos Gerber em máscaras binárias
+      □ Cada abertura = uma região de inspeção
+      □ Armazenar coordenadas de cada furo para análise
+
+2.3 - Implementar algoritmo de detecção de obstrução
+      □ Para cada furo (região da máscara):
+          - Calcular percentual de pixels "brancos" (luz de fundo)
+          - Comparar com threshold configurável (ex: 95%)
+          - Se < threshold → furo obstruído → DEFEITO
+      □ Marcar furos defeituosos visualmente (overlay vermelho)
+
+FASE 3: SISTEMA DE RELATÓRIOS (Prioridade: MÉDIA)
+────────────────────────────────────────────────────────────────────────────────
+3.1 - Criar modelo de dados para relatório de inspeção
+      □ ID do stencil / código de barras
+      □ Data/hora da inspeção
+      □ Total de furos inspecionados
+      □ Quantidade de furos OK
+      □ Quantidade de furos com defeito
+      □ Lista de coordenadas dos defeitos
+      □ Imagem do mapa com marcações
+
+3.2 - Implementar geração de relatório
+      □ PDF com resumo + imagem anotada
+      □ JSON para integração com sistemas externos
+      □ Histórico persistido no sistema local
+
+3.3 - Criar interface de histórico
+      □ Lista de inspeções anteriores
+      □ Filtros por data, stencil, resultado
+      □ Visualização comparativa
+
+FASE 4: INTEGRAÇÃO COM SISTEMA DA FÁBRICA (Prioridade: MÉDIA-BAIXA)
+────────────────────────────────────────────────────────────────────────────────
+4.1 - Definir protocolo de comunicação
+      □ API REST / TCP / arquivo compartilhado
+      □ Formato de dados de saída (JSON/XML)
+
+4.2 - Implementar envio automático de resultados
+      □ Após cada inspeção, enviar resultado ao sistema central
+      □ Log de comunicação para auditoria
+
+4.3 - Receber tarefas de inspeção
+      □ Fila de stencils a inspecionar
+      □ Identificação por código de barras
+
+FASE 5: MELHORIAS E POLIMENTO (Prioridade: BAIXA)
+────────────────────────────────────────────────────────────────────────────────
+5.1 - Unificar aplicação principal
+      □ Integrar editor Gerber ao consumo_lib.py
+      □ Menu único para todas as funcionalidades
+      □ Remover referências a "Underfill/Adhesive"
+
+5.2 - Implementar calibração automática de luz
+      □ Ajustar threshold de "branco" baseado na iluminação
+
+5.3 - Adicionar suporte a gravação de vídeo da inspeção
+
+5.4 - Otimização de performance
+      □ Processamento paralelo de regiões
+      □ Cache de imagens
+
+================================================================================
+ 5. ESTIMATIVA DE ESFORÇO
+================================================================================
+
+┌─────────────────────────────────────────────────────────────────┐
+│ FASE                                       │ ESTIMATIVA         │
+├─────────────────────────────────────────────────────────────────┤
+│ Fase 1: Stitching de Imagens              │ 3-5 dias           │
+│ Fase 2: Integração Gerber + Inspeção      │ 5-8 dias           │
+│ Fase 3: Sistema de Relatórios             │ 2-3 dias           │
+│ Fase 4: Integração com Sistema Fabrica    │ 3-5 dias           │
+│ Fase 5: Melhorias e Polimento             │ 2-3 dias           │
+├─────────────────────────────────────────────────────────────────┤
+│ TOTAL ESTIMADO                             │ 15-24 dias         │
+└─────────────────────────────────────────────────────────────────┘
+
+================================================================================
+ 6. DEPENDÊNCIAS TÉCNICAS
+================================================================================
+
+BIBLIOTECAS PYTHON EXISTENTES:
+  ✅ PyQt6         - Interface gráfica
+  ✅ OpenCV (cv2)  - Processamento de imagem
+  ✅ NumPy         - Operações numéricas
+  ✅ PyModbus      - Comunicação Modbus TCP
+  ✅ PySerial      - Comunicação serial
+
+BIBLIOTECAS A ADICIONAR:
+  ⬜ reportlab / WeasyPrint  - Geração de PDF
+  ⬜ Pillow                   - Manipulação adicional de imagens
+  ⬜ scikit-image            - Stitching avançado (opcional)
+
+================================================================================
+ 7. CÓDIGO LEGADO A LIMPAR
+================================================================================
+
+RESQUÍCIOS A REMOVER/RENOMEAR:
+  - Referências a "Underfill" / "Adhesive" em teste_clp/
+  - Referências a "duas mesas" (Mesa 1 / Mesa 2) - não se aplica
+  - Comentários mencionando "dot" ou "cola" 
+  - Arquivo "contexto da aplicação - Copia.txt" (desatualizado)
+
+================================================================================
+
+Documento gerado automaticamente pela análise do projeto.
