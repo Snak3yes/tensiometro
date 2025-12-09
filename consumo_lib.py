@@ -716,8 +716,15 @@ class CameraPreviewWidget(QWidget):
         # Criar uma cópia da imagem para não modificar a original
         display_img = image.copy()
         
+        # Aplicar espelhamento se configurado na janela principal
+        main_window = self.window()
+        if hasattr(main_window, '_camera_mirror_x') and main_window._camera_mirror_x:
+            display_img = cv2.flip(display_img, 1)  # Flip horizontal
+        if hasattr(main_window, '_camera_mirror_y') and main_window._camera_mirror_y:
+            display_img = cv2.flip(display_img, 0)  # Flip vertical
+        
         # Desenhar a cruz vermelha no centro
-        h, w, _ = display_img.shape
+        h, w = display_img.shape[:2]
         center_x, center_y = w // 2, h // 2
         
         # Parâmetros da cruz
@@ -738,7 +745,8 @@ class CameraPreviewWidget(QWidget):
                 color, thickness)
                 
         # Converter a imagem OpenCV para QPixmap
-        h, w, c = display_img.shape
+        h, w = display_img.shape[:2]
+        c = display_img.shape[2] if len(display_img.shape) == 3 else 1
         bytes_per_line = 3 * w
         q_img = QImage(display_img.data, w, h, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
         pixmap = QPixmap.fromImage(q_img)
@@ -1774,97 +1782,129 @@ class AOIControllerApp(QMainWindow):
             QMessageBox.warning(self, "Aviso", "Conecte a câmera antes de ajustar as configurações.")
             return
         
+        # Obtém o objeto VideoCapture
+        cap = self.controller.camera.camera  # O atributo 'camera' do CameraController é o VideoCapture
+        if cap is None:
+            QMessageBox.warning(self, "Erro", "Câmera não disponível.")
+            return
+        
         dialog = QDialog(self)
         dialog.setWindowTitle("Configurações de Câmera")
-        dialog.setMinimumWidth(400)
+        dialog.setMinimumWidth(500)
         
         layout = QVBoxLayout(dialog)
         
-        # Grupo de configurações
         from PyQt6.QtWidgets import QSlider
         
+        # ============== ESPELHAMENTO ==============
+        mirror_group = QGroupBox("Espelhamento da Imagem")
+        mirror_layout = QHBoxLayout(mirror_group)
+        
+        self.chk_mirror_x = QCheckBox("Espelhar Horizontalmente (X)")
+        self.chk_mirror_x.setChecked(getattr(self, '_camera_mirror_x', False))
+        mirror_layout.addWidget(self.chk_mirror_x)
+        
+        self.chk_mirror_y = QCheckBox("Espelhar Verticalmente (Y)")
+        self.chk_mirror_y.setChecked(getattr(self, '_camera_mirror_y', False))
+        mirror_layout.addWidget(self.chk_mirror_y)
+        
+        layout.addWidget(mirror_group)
+        
+        # ============== AJUSTES DE IMAGEM ==============
         settings_group = QGroupBox("Ajustes de Imagem")
         settings_layout = QGridLayout(settings_group)
         
-        # Brilho
-        settings_layout.addWidget(QLabel("Brilho:"), 0, 0)
-        self.slider_brightness = QSlider(Qt.Orientation.Horizontal)
-        self.slider_brightness.setRange(0, 100)
-        self.slider_brightness.setValue(50)
-        self.lbl_brightness = QLabel("50")
-        self.slider_brightness.valueChanged.connect(
-            lambda v: [self.lbl_brightness.setText(str(v)), 
-                      self._apply_camera_setting(cv2.CAP_PROP_BRIGHTNESS, v / 100)]
-        )
-        settings_layout.addWidget(self.slider_brightness, 0, 1)
-        settings_layout.addWidget(self.lbl_brightness, 0, 2)
+        # Função para criar slider com label
+        def create_slider_row(row, label, prop_id, min_val, max_val, default, scale=1.0):
+            settings_layout.addWidget(QLabel(f"{label}:"), row, 0)
+            slider = QSlider(Qt.Orientation.Horizontal)
+            slider.setRange(min_val, max_val)
+            
+            # Tenta ler valor atual
+            try:
+                current = cap.get(prop_id)
+                if current != -1 and current != 0:
+                    slider.setValue(int(current * scale))
+                else:
+                    slider.setValue(default)
+            except:
+                slider.setValue(default)
+            
+            lbl = QLabel(str(slider.value()))
+            slider.valueChanged.connect(lambda v: lbl.setText(str(v)))
+            slider.valueChanged.connect(lambda v: self._apply_camera_prop(cap, prop_id, v / scale))
+            
+            settings_layout.addWidget(slider, row, 1)
+            settings_layout.addWidget(lbl, row, 2)
+            return slider
         
-        # Contraste
-        settings_layout.addWidget(QLabel("Contraste:"), 1, 0)
-        self.slider_contrast = QSlider(Qt.Orientation.Horizontal)
-        self.slider_contrast.setRange(0, 100)
-        self.slider_contrast.setValue(50)
-        self.lbl_contrast = QLabel("50")
-        self.slider_contrast.valueChanged.connect(
-            lambda v: [self.lbl_contrast.setText(str(v)),
-                      self._apply_camera_setting(cv2.CAP_PROP_CONTRAST, v / 100)]
-        )
-        settings_layout.addWidget(self.slider_contrast, 1, 1)
-        settings_layout.addWidget(self.lbl_contrast, 1, 2)
+        # Brilho (0-255 na maioria das câmeras)
+        self.slider_brightness = create_slider_row(0, "Brilho", cv2.CAP_PROP_BRIGHTNESS, 0, 255, 128, 1.0)
         
-        # Saturação
-        settings_layout.addWidget(QLabel("Saturação:"), 2, 0)
-        self.slider_saturation = QSlider(Qt.Orientation.Horizontal)
-        self.slider_saturation.setRange(0, 100)
-        self.slider_saturation.setValue(50)
-        self.lbl_saturation = QLabel("50")
-        self.slider_saturation.valueChanged.connect(
-            lambda v: [self.lbl_saturation.setText(str(v)),
-                      self._apply_camera_setting(cv2.CAP_PROP_SATURATION, v / 100)]
-        )
-        settings_layout.addWidget(self.slider_saturation, 2, 1)
-        settings_layout.addWidget(self.lbl_saturation, 2, 2)
+        # Contraste (0-255)
+        self.slider_contrast = create_slider_row(1, "Contraste", cv2.CAP_PROP_CONTRAST, 0, 255, 128, 1.0)
         
-        # Exposição
+        # Saturação (0-255)
+        self.slider_saturation = create_slider_row(2, "Saturação", cv2.CAP_PROP_SATURATION, 0, 255, 128, 1.0)
+        
+        # Exposição (-13 a 0 para câmeras USB típicas)
         settings_layout.addWidget(QLabel("Exposição:"), 3, 0)
         self.slider_exposure = QSlider(Qt.Orientation.Horizontal)
-        self.slider_exposure.setRange(-10, 0)
-        self.slider_exposure.setValue(-5)
-        self.lbl_exposure = QLabel("-5")
-        self.slider_exposure.valueChanged.connect(
-            lambda v: [self.lbl_exposure.setText(str(v)),
-                      self._apply_camera_setting(cv2.CAP_PROP_EXPOSURE, v)]
-        )
+        self.slider_exposure.setRange(-13, 0)
+        try:
+            exp = int(cap.get(cv2.CAP_PROP_EXPOSURE))
+            self.slider_exposure.setValue(exp if -13 <= exp <= 0 else -6)
+        except:
+            self.slider_exposure.setValue(-6)
+        self.lbl_exposure = QLabel(str(self.slider_exposure.value()))
+        self.slider_exposure.valueChanged.connect(lambda v: self.lbl_exposure.setText(str(v)))
+        self.slider_exposure.valueChanged.connect(lambda v: self._apply_camera_prop(cap, cv2.CAP_PROP_EXPOSURE, v))
         settings_layout.addWidget(self.slider_exposure, 3, 1)
         settings_layout.addWidget(self.lbl_exposure, 3, 2)
         
-        # Ganho
-        settings_layout.addWidget(QLabel("Ganho:"), 4, 0)
-        self.slider_gain = QSlider(Qt.Orientation.Horizontal)
-        self.slider_gain.setRange(0, 100)
-        self.slider_gain.setValue(50)
-        self.lbl_gain = QLabel("50")
-        self.slider_gain.valueChanged.connect(
-            lambda v: [self.lbl_gain.setText(str(v)),
-                      self._apply_camera_setting(cv2.CAP_PROP_GAIN, v)]
-        )
-        settings_layout.addWidget(self.slider_gain, 4, 1)
-        settings_layout.addWidget(self.lbl_gain, 4, 2)
+        # Ganho (0-255)
+        self.slider_gain = create_slider_row(4, "Ganho", cv2.CAP_PROP_GAIN, 0, 255, 128, 1.0)
         
         layout.addWidget(settings_group)
         
-        # Checkbox para auto-exposição
-        self.chk_auto_exp = QCheckBox("Exposição Automática")
-        self.chk_auto_exp.toggled.connect(
-            lambda on: self._apply_camera_setting(cv2.CAP_PROP_AUTO_EXPOSURE, 3 if on else 1)
-        )
-        layout.addWidget(self.chk_auto_exp)
+        # ============== EXPOSIÇÃO AUTOMÁTICA ==============
+        auto_group = QGroupBox("Controle Automático")
+        auto_layout = QHBoxLayout(auto_group)
         
-        # Botões
+        self.chk_auto_exp = QCheckBox("Exposição Automática")
+        try:
+            auto_val = cap.get(cv2.CAP_PROP_AUTO_EXPOSURE)
+            self.chk_auto_exp.setChecked(auto_val == 3 or auto_val == 1)
+        except:
+            self.chk_auto_exp.setChecked(True)
+        self.chk_auto_exp.toggled.connect(
+            lambda on: self._apply_camera_prop(cap, cv2.CAP_PROP_AUTO_EXPOSURE, 3 if on else 1)
+        )
+        auto_layout.addWidget(self.chk_auto_exp)
+        
+        self.chk_auto_wb = QCheckBox("Balanço de Branco Automático")
+        try:
+            wb_val = cap.get(cv2.CAP_PROP_AUTO_WB)
+            self.chk_auto_wb.setChecked(wb_val == 1)
+        except:
+            self.chk_auto_wb.setChecked(True)
+        self.chk_auto_wb.toggled.connect(
+            lambda on: self._apply_camera_prop(cap, cv2.CAP_PROP_AUTO_WB, 1 if on else 0)
+        )
+        auto_layout.addWidget(self.chk_auto_wb)
+        
+        layout.addWidget(auto_group)
+        
+        # ============== BOTÕES ==============
         btn_layout = QHBoxLayout()
+        
         btn_reset = QPushButton("Restaurar Padrão")
-        btn_reset.clicked.connect(self._reset_camera_settings)
+        btn_reset.clicked.connect(lambda: self._reset_camera_props(cap))
         btn_layout.addWidget(btn_reset)
+        
+        btn_apply = QPushButton("Aplicar Espelhamento")
+        btn_apply.clicked.connect(self._apply_mirror_settings)
+        btn_layout.addWidget(btn_apply)
         
         btn_close = QPushButton("Fechar")
         btn_close.clicked.connect(dialog.accept)
@@ -1872,46 +1912,48 @@ class AOIControllerApp(QMainWindow):
         
         layout.addLayout(btn_layout)
         
-        # Tenta ler valores atuais da câmera
-        self._read_camera_settings()
+        # Nota informativa
+        note = QLabel("<i>Nota: Algumas configurações podem não funcionar com todas as câmeras.</i>")
+        note.setWordWrap(True)
+        layout.addWidget(note)
         
         dialog.exec()
+        
+        # Salva configurações de espelhamento
+        self._camera_mirror_x = self.chk_mirror_x.isChecked()
+        self._camera_mirror_y = self.chk_mirror_y.isChecked()
 
-    def _apply_camera_setting(self, prop, value):
-        """Aplica uma configuração à câmera"""
+    def _apply_camera_prop(self, cap, prop_id, value):
+        """Aplica uma propriedade à câmera OpenCV"""
         try:
-            if hasattr(self.controller.camera, '_capture'):
-                self.controller.camera._capture.set(prop, value)
-            elif hasattr(self.controller.camera, 'cap'):
-                self.controller.camera.cap.set(prop, value)
+            result = cap.set(prop_id, value)
+            if result:
+                logger.debug(f"Câmera: Propriedade {prop_id} = {value}")
+            else:
+                logger.warning(f"Câmera: Falha ao definir propriedade {prop_id} = {value}")
         except Exception as e:
-            logger.warning(f"Não foi possível aplicar configuração de câmera: {e}")
+            logger.warning(f"Erro ao aplicar configuração de câmera: {e}")
 
-    def _read_camera_settings(self):
-        """Lê configurações atuais da câmera"""
-        try:
-            cap = None
-            if hasattr(self.controller.camera, '_capture'):
-                cap = self.controller.camera._capture
-            elif hasattr(self.controller.camera, 'cap'):
-                cap = self.controller.camera.cap
-            
-            if cap:
-                self.slider_brightness.setValue(int(cap.get(cv2.CAP_PROP_BRIGHTNESS) * 100))
-                self.slider_contrast.setValue(int(cap.get(cv2.CAP_PROP_CONTRAST) * 100))
-                self.slider_saturation.setValue(int(cap.get(cv2.CAP_PROP_SATURATION) * 100))
-                self.slider_exposure.setValue(int(cap.get(cv2.CAP_PROP_EXPOSURE)))
-                self.slider_gain.setValue(int(cap.get(cv2.CAP_PROP_GAIN)))
-        except Exception as e:
-            logger.warning(f"Não foi possível ler configurações de câmera: {e}")
-
-    def _reset_camera_settings(self):
+    def _reset_camera_props(self, cap):
         """Restaura configurações padrão da câmera"""
-        self.slider_brightness.setValue(50)
-        self.slider_contrast.setValue(50)
-        self.slider_saturation.setValue(50)
-        self.slider_exposure.setValue(-5)
-        self.slider_gain.setValue(50)
+        self.slider_brightness.setValue(128)
+        self.slider_contrast.setValue(128)
+        self.slider_saturation.setValue(128)
+        self.slider_exposure.setValue(-6)
+        self.slider_gain.setValue(128)
+        self.chk_auto_exp.setChecked(True)
+        self.chk_auto_wb.setChecked(True)
+        self.chk_mirror_x.setChecked(False)
+        self.chk_mirror_y.setChecked(False)
+
+    def _apply_mirror_settings(self):
+        """Salva configurações de espelhamento"""
+        self._camera_mirror_x = self.chk_mirror_x.isChecked()
+        self._camera_mirror_y = self.chk_mirror_y.isChecked()
+        self.statusBar().showMessage(
+            f"Espelhamento: X={'Sim' if self._camera_mirror_x else 'Não'}, "
+            f"Y={'Sim' if self._camera_mirror_y else 'Não'}"
+        )
 
 
     def show_settings_dialog(self):
