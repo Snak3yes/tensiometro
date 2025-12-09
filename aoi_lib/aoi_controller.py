@@ -1,42 +1,47 @@
+"""
+Controlador principal para Inspeção Óptica Automatizada (AOI).
+Versão Industrial - Exclusivamente via CLP (Modbus TCP).
+
+Removido suporte a GRBL/Arduino (versão anterior).
+"""
 import time
-import os, cv2, time, math, json, logging
-from .cnc_controller import GRBLCNCController
+import os, cv2, math, json, logging
 from .plc_axis_controller import PLCAxisController
 from .camera_controller import CameraController
 from .position_manager import InspectionPositionManager, InspectionPosition, InspectionSequence
 
+
 class CNCAOIController:
     """
-    Controlador principal que integra o movimento CNC e captura de imagem
+    Controlador principal que integra o movimento CNC (via CLP) e captura de imagem
     para aplicações de Inspeção Óptica Automatizada (AOI).
+    
+    Esta versão utiliza exclusivamente comunicação Modbus TCP com CLP industrial.
     """
     
     def __init__(self,
-                 serial_port=None,
                  camera_interface=None,
-                 use_plc=True,
                  plc_host='192.168.1.5',
                  plc_port=502):
         """
         Inicializa o controlador AOI.
         
         Args:
-            serial_port: Porta serial para conexão com a CNC (opcional)
             camera_interface: Interface para a câmera (opcional)
+            plc_host: Endereço IP do CLP (padrão: 192.168.1.5)
+            plc_port: Porta Modbus TCP (padrão: 502)
         """
-        # Seleciona backend de movimento: GRBL ou CLP via Modbus TCP
-        if use_plc:
-            # cria e conecta no CLP
-            self.cnc = PLCAxisController(host=plc_host, port=plc_port)
-            # ——— Carrega calibr. mecânica do config (igual ao AdhesiveApp) ———
-            from .config_manager import AOIConfigManager
-            cfg = AOIConfigManager()
-            ppr   = float(cfg.get("calibration", "pulses_per_rev", default=1.0))
-            pitch = float(cfg.get("calibration", "fuso_pitch",     default=1.0))
-            # cálculo pulses/mm idêntico à das steps/mm:
-            self.cnc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
-        else:
-            self.cnc = GRBLCNCController()
+        # Backend de movimento via CLP (Modbus TCP)
+        self.cnc = PLCAxisController(host=plc_host, port=plc_port)
+        
+        # Carrega calibração mecânica do config
+        from .config_manager import AOIConfigManager
+        cfg = AOIConfigManager()
+        ppr   = float(cfg.get("calibration", "pulses_per_rev", default=1.0))
+        pitch = float(cfg.get("calibration", "fuso_pitch",     default=1.0))
+        # Cálculo pulses/mm:
+        self.cnc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+        
         self.camera = CameraController(camera_interface)
         self.position_manager = InspectionPositionManager()
         self.is_running_sequence = False
@@ -53,10 +58,19 @@ class CNCAOIController:
             return getattr(self.cnc, name)
         # fallback padrão
         raise AttributeError(f"{self.__class__.__name__!r} has no attribute {name!r}")
-        
-    def connect_cnc(self, port=None, baudrate=115200):
-        """Conecta à máquina CNC."""
-        return self.cnc.connect(port, baudrate)
+    
+    def connect(self):
+        """
+        Conecta ao CLP.
+        Nota: A conexão é feita automaticamente no __init__.
+        Este método existe para compatibilidade de API.
+        """
+        return self.cnc.is_connected
+    
+    def disconnect(self):
+        """Desconecta do CLP."""
+        self.cnc.close()
+        return True
     
     def run_gcode_file(self, filename, callback=None):
         """
@@ -94,17 +108,6 @@ class CNCAOIController:
         
         # Executa a sequência
         return self.run_sequence(temp_sequence.name, callback)
-    
-    def disconnect_cnc(self):
-        """Desconecta da máquina CNC."""
-        # CLP: fecha Modbus
-        if isinstance(self.cnc, PLCAxisController):
-            self.cnc.close()
-            return True
-        # GRBL: serial
-        if getattr(self.cnc, 'is_connected', False):
-            return self.cnc.disconnect()
-        return True
         
     def connect_camera(self, camera_id=0):
         """Conecta à câmera."""
@@ -163,31 +166,21 @@ class CNCAOIController:
             if not self.is_running_sequence:          # stop_sequence() pode ter sido chamado
                 break
 
-            # 1. Move para a posição (X, Y, Z) - despacha para CLP ou GRBL
+            # Move para a posição (X, Y, Z) via CLP
             feed_rate = getattr(self, '_current_feed_rate', 1000)
-            if isinstance(self.cnc, PLCAxisController):
-                # Executa o movimento absoluto exato em mm, sem truncar
-                # (move_to_absolute_position converte internamente usando pulses_per_mm)
-                self.cnc.move_to_absolute_position(
-                    x=position.x,
-                    y=position.y,
-                    z=position.z,
-                    feed_rate=feed_rate
-                )
-                # Aguarda idle de todos os eixos
-                self.cnc.wait_for_idle()
-            else:
-                # comportamento original GRBL
-                self.cnc.move_to_absolute_position(
-                    position.x, position.y, position.z,
-                    feed_rate=feed_rate
-                )
-                self.cnc.wait_for_idle()
+            self.cnc.move_to_absolute_position(
+                x=position.x,
+                y=position.y,
+                z=position.z,
+                feed_rate=feed_rate
+            )
+            # Aguarda idle de todos os eixos
+            self.cnc.wait_for_idle()
 
-            # 2. Captura a imagem
+            # Captura a imagem
             image = self.camera.capture(position.camera_params)
 
-            # 3. Monta resultado
+            # Monta resultado
             result = {
                 "position":   position,
                 "image":      image,
@@ -201,7 +194,7 @@ class CNCAOIController:
                 callback(result)
 
         self.is_running_sequence = False
-        return results        # opcional, mantido para retro-compat.
+        return results
     
     def set_feed_rate(self, feed_rate):
         """Define a velocidade de movimentação para sequências"""
@@ -228,7 +221,7 @@ class CNCAOIController:
         
         logger = logging.getLogger("CNCAOIController.generate_map")
 
-        # 1) validações básicas
+        # Validações básicas
         os.makedirs(folder, exist_ok=True)
         points = list(self._grid_points(origin, end, step_x, step_y))
         cols = max(p[1] for p in points) + 1
@@ -236,13 +229,12 @@ class CNCAOIController:
         logger.info("Gerando mapa: %d colunas × %d linhas  (%d pts)",
                     cols, rows, len(points))
 
-        # 4) vai para a origem
+        # Vai para a origem
         self.cnc.move_to_absolute_position(origin['x'], origin['y'])
         self.cnc.wait_for_idle()
 
-        # 5) percorre a grade
-        capture_map = []          # para salvar JSON no final
-        # Usar velocidade configurada se disponível
+        # Percorre a grade
+        capture_map = []
         feed_rate = getattr(self, '_current_feed_rate', 1000)
         for row_idx, col_idx, x, y in points:
             # move + espera
@@ -264,7 +256,7 @@ class CNCAOIController:
             # curto delay para estabilizar
             time.sleep(0.05)
 
-        # 6) salva metadados ------------------------------------------------
+        # Salva metadados
         try:
             with open(os.path.join(folder, f"{program_name}_map.json"), "w") as fp:
                 json.dump(capture_map, fp, indent=2)
@@ -276,7 +268,7 @@ class CNCAOIController:
     @staticmethod
     def _grid_points(origin, end, sx, sy, snake=True):
         """
-        Gera tuplas (row, col, x, y) seguindo padrão “zig-zag” (snake) opcional.
+        Gera tuplas (row, col, x, y) seguindo padrão "zig-zag" (snake) opcional.
         """
         dx = end['x'] - origin['x']
         dy = end['y'] - origin['y']
@@ -295,4 +287,3 @@ class CNCAOIController:
             for c_idx, x in enumerate(scan):
                 col = c_idx if (r % 2 == 0 or not snake) else cols - 1 - c_idx
                 yield r, col, x, y
-

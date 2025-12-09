@@ -11,7 +11,7 @@ class MovementControlsWidget(QWidget):
     """
     Painel com todos os controles de movimentação manual da CNC.
     A aplicação hospedeira conecta os sinais abaixo aos métodos do
-    driver de movimento (GRBL, PLC, etc.).
+    driver de movimento via CLP (Modbus TCP).
 
     Sinais:
         stepMoveRequested(axis, distance, feed)    – G90 (passo-a-passo)

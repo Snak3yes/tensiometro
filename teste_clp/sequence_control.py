@@ -42,7 +42,7 @@ class InspectionPosition:
 # 2) Protocolos (interfaces) para back-ends
 # ----------------------------------------------------------------------
 class MotionBackend(Protocol):
-    """Funções mínimas exigidas do sistema de movimento (GRBL, PLC etc.)."""
+    """Funções mínimas exigidas do sistema de movimento (CLP via Modbus TCP)."""
     def move_to_absolute_position(self,
                                   x:  float | None,
                                   y2: float | None,

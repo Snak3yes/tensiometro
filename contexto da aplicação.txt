@@ -1,10 +1,15 @@
 Objetivo da aplicação:
-- Criação de um sistema completo de AOI (máquina de inspeção automática).
-- Esse sistema deve ter como uma das suas funcionalidades fazer todo o controle da cnc que será usada para fazer as movimentações da head para a captura das imagens que serão processadas para inspecionar defeitos em placas de circuito eletrônico.
-- Para o controle dos eixos o sistema está usando Arduino Uno com uma shield cnc v3, o Arduino tem o firmware GRBL v1.1 instalado e estão sendo usados apenas os eixos x e y (por enquanto).
-- A comunicação com o Arduino acontece via USB por comunicação serial.
-- Vamos usar como referência o firmaware GRBL v1.1 para desenvolver nossas funcionalidades.
-- Como biblioteca principal deve ser usado a lib grbl-stream que já possui funcionalidades bem implementadas e testadas para enviar comando diretamente ao grbl.
+- Criação de um sistema completo de AOI (máquina de inspeção automática) para ambiente industrial.
+- Esse sistema controla uma máquina CNC industrial para movimentação da head para captura de imagens e aplicação de adesivo em placas de circuito eletrônico.
+- Para o controle dos eixos (X, Y1, Y2, Z) o sistema utiliza CLP (Controlador Lógico Programável) da série AS via protocolo Modbus TCP.
+- A comunicação com o CLP acontece via rede Ethernet (TCP/IP) na porta 502.
+- O sistema suporta duas mesas de trabalho independentes (Mesa 1 e Mesa 2) com eixos Y individuais.
 
+Arquitetura:
+- Backend de movimento: PLCAxisController (Modbus TCP)
+- Interface gráfica: PyQt6
+- Visão computacional: OpenCV
+- Comunicação: pymodbus
 
-
+Nota: Suporte a Arduino/GRBL foi removido na versão 0.2.0.
+O sistema agora opera exclusivamente com CLP industrial.
