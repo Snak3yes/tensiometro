@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from aoi_lib.stencil_tension import StencilTensionDialog
 import logging
 import json
+from mosaic_builder import compose_mosaic_from_folder
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -1860,6 +1861,35 @@ class AOIControllerApp(QMainWindow):
         h3.addWidget(self.map_step_y_edit)
         layout.addLayout(h3)
 
+        # ============== OPÇÕES DE MOSAICO ==============
+        from PyQt6.QtWidgets import QSpinBox
+        mosaic_group = QGroupBox("Montagem de Mosaico")
+        mosaic_layout = QGridLayout(mosaic_group)
+        
+        # Checkbox para ativar montagem automática
+        self.chk_auto_mosaic = QCheckBox("Montar mosaico automaticamente após captura")
+        self.chk_auto_mosaic.setChecked(True)
+        mosaic_layout.addWidget(self.chk_auto_mosaic, 0, 0, 1, 4)
+        
+        # Margem de corte (para remover distorção de lente)
+        mosaic_layout.addWidget(QLabel("Margem de corte (px):"), 1, 0)
+        self.spin_mosaic_margin = QSpinBox()
+        self.spin_mosaic_margin.setRange(0, 500)
+        self.spin_mosaic_margin.setValue(50)
+        self.spin_mosaic_margin.setToolTip("Pixels a remover de cada borda para eliminar distorção de lente")
+        mosaic_layout.addWidget(self.spin_mosaic_margin, 1, 1)
+        
+        # Blending nas junções
+        mosaic_layout.addWidget(QLabel("Blending (px):"), 1, 2)
+        self.spin_mosaic_blend = QSpinBox()
+        self.spin_mosaic_blend.setRange(0, 100)
+        self.spin_mosaic_blend.setValue(20)
+        self.spin_mosaic_blend.setToolTip("Tamanho da zona de transição gradual entre tiles")
+        mosaic_layout.addWidget(self.spin_mosaic_blend, 1, 3)
+        
+        layout.addWidget(mosaic_group)
+        # ============== FIM OPÇÕES DE MOSAICO ==============
+
         # Botões de definição de canto
         btn_origin = QPushButton("Definir canto inferior esquerdo")
         btn_origin.clicked.connect(lambda: self._define_map_corner('origin'))
@@ -1870,7 +1900,8 @@ class AOIControllerApp(QMainWindow):
         layout.addWidget(btn_end)
 
         # Botão gerar mapa
-        btn_generate = QPushButton("Gerar Mapa")
+        btn_generate = QPushButton("🔧 Gerar Mapa de Imagens")
+        btn_generate.setMinimumHeight(40)
         btn_generate.clicked.connect(lambda: self._on_generate_map(dialog))
         layout.addWidget(btn_generate)
 
@@ -1989,7 +2020,59 @@ class AOIControllerApp(QMainWindow):
 
     def _on_map_finished(self, dialog):
         self.map_progress.close()
-        QMessageBox.information(self, "Concluído", "Mapa gerado com sucesso.")
+        
+        # Obtém parâmetros da pasta e opções de mosaico
+        folder = getattr(self, 'map_folder_edit', None)
+        folder_path = folder.text().strip() if folder else ""
+        
+        # Verifica se montagem automática está habilitada
+        auto_mosaic = getattr(self, 'chk_auto_mosaic', None)
+        should_build_mosaic = auto_mosaic.isChecked() if auto_mosaic else True
+        
+        if should_build_mosaic and folder_path and os.path.isdir(folder_path):
+            # Obtém parâmetros de margem e blending
+            margin = getattr(self, 'spin_mosaic_margin', None)
+            margin_value = margin.value() if margin else 50
+            
+            blend = getattr(self, 'spin_mosaic_blend', None)
+            blend_value = blend.value() if blend else 20
+            
+            # Monta o mosaico
+            self.statusBar().showMessage("Montando mosaico das imagens capturadas...")
+            QApplication.processEvents()
+            
+            try:
+                mosaic_path = compose_mosaic_from_folder(
+                    folder_path,
+                    invert_rows=True,  # Origem no canto inferior-esquerdo
+                    margin=margin_value,
+                    blend_size=blend_value,
+                )
+                
+                if mosaic_path:
+                    QMessageBox.information(
+                        self, "Concluído", 
+                        f"✅ Mapa gerado com sucesso!\n\n"
+                        f"📁 Imagens salvas em:\n{folder_path}\n\n"
+                        f"🖼️ Mosaico montado:\n{mosaic_path}"
+                    )
+                    self.statusBar().showMessage(f"Mosaico salvo: {mosaic_path}")
+                else:
+                    QMessageBox.information(
+                        self, "Concluído", 
+                        f"Mapa gerado com sucesso.\n\n"
+                        f"⚠️ Falha ao montar mosaico (sem imagens válidas encontradas)."
+                    )
+            except Exception as e:
+                logger.error(f"Erro ao montar mosaico: {e}")
+                QMessageBox.information(
+                    self, "Concluído", 
+                    f"Mapa gerado com sucesso.\n\n"
+                    f"⚠️ Erro ao montar mosaico: {e}"
+                )
+        else:
+            QMessageBox.information(self, "Concluído", "Mapa gerado com sucesso.")
+        
         dialog.accept()
 
     def _on_map_error(self, msg: str):
