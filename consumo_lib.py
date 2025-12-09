@@ -3205,10 +3205,12 @@ class AOIControllerApp(QMainWindow):
         image = self.controller.camera.capture()
         
         if image is not None:
-            self.image_viewer.display_image(image, "Imagem de teste da câmera")
-            self.statusBar().showMessage("Imagem capturada com sucesso")
+            # Usa o widget de preview da câmera para exibir a imagem
+            self.camera_preview.display_image(image)
+            self.statusBar().showMessage("Imagem de teste capturada com sucesso")
         else:
-            QMessageBox.warning(self, "Erro", f"Falha ao capturar imagem: {self.controller.camera.last_error}")
+            error_msg = getattr(self.controller.camera, 'last_error', 'Erro desconhecido')
+            QMessageBox.warning(self, "Erro", f"Falha ao capturar imagem: {error_msg}")
             
     def update_position_display(self): 
         """Atualiza a exibição da posição atual (agora exibindo WPos calculada)""" 
