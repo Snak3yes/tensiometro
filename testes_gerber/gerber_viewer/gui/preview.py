@@ -55,12 +55,15 @@ class PreviewGraphicsView(QGraphicsView):
       - zoom com scroll do mouse;
       - pan (arrastar) com botão do meio (scroll) pressionado;
       - reset da visão (ajustar à área disponível).
-    Renderiza os polígonos diretamente como vetores (QPainterPath).
+    Renderiza os polígonos diretamente como vetores (QPainterPath) e
+    permite seleção múltipla (Ctrl+clique) e por retângulo (RubberBand).
     """
 
     # Emite o índice do objeto/polígono para exclusão ou edição
     objectDeleteRequested = pyqtSignal(int)
     objectEditRequested = pyqtSignal(int)
+    objectDeleteManyRequested = pyqtSignal(list)
+    objectEditManyRequested = pyqtSignal(list)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,6 +94,9 @@ class PreviewGraphicsView(QGraphicsView):
         self.setResizeAnchor(
             QGraphicsView.ViewportAnchor.AnchorViewCenter
         )
+
+        # Permite seleção por retângulo com o botão esquerdo
+        self.setDragMode(QGraphicsView.DragMode.RubberBandDrag)
 
         # Para receber eventos de teclado (Delete etc.)
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
@@ -331,6 +337,16 @@ class PreviewGraphicsView(QGraphicsView):
                     traceback.print_exc()
                     event.accept()
                     return
+                
+                # Conjunto atual de índices selecionados
+                selected_items = self._scene.selectedItems()
+                selected_indices: set[int] = set()
+                for sit in selected_items:
+                    try:
+                        si = int(sit.data(0))
+                        selected_indices.add(si)
+                    except Exception:
+                        traceback.print_exc()
 
                 # Menu de contexto para o objeto clicado
                 menu = QMenu(self)
@@ -347,16 +363,29 @@ class PreviewGraphicsView(QGraphicsView):
                     except Exception:
                         traceback.print_exc()
                 elif chosen is act_edit:
-                    # Solicita ao "dono" que edite o objeto
+                    # Edição em grupo se houver vários selecionados e o
+                    # item clicado fizer parte da seleção; caso contrário,
+                    # edição simples.
                     try:
-                        print(f"[DEBUG preview] objectEditRequested idx={idx}")
-                        self.objectEditRequested.emit(idx)
+                        if len(selected_indices) > 1 and idx in selected_indices:
+                            self.objectEditManyRequested.emit(
+                                sorted(selected_indices)
+                            )
+                        else:
+                            self.objectEditRequested.emit(idx)
                     except Exception:
                         traceback.print_exc()
                 elif chosen is act_delete:
-                    # Solicita ao "dono" (janela principal) que exclua o objeto
+                    # Exclusão em grupo se houver vários selecionados e o
+                    # item clicado fizer parte da seleção; caso contrário,
+                    # exclusão simples.
                     try:
-                        self.objectDeleteRequested.emit(idx)
+                        if len(selected_indices) > 1 and idx in selected_indices:
+                            self.objectDeleteManyRequested.emit(
+                                sorted(selected_indices)
+                            )
+                        else:
+                            self.objectDeleteRequested.emit(idx)
                     except Exception:
                         traceback.print_exc()
 
@@ -419,12 +448,16 @@ class PreviewGraphicsView(QGraphicsView):
                 except Exception:
                     traceback.print_exc()
 
-            # Emite pedido de exclusão para cada índice selecionado
-            for idx in sorted(indices):
-                try:
-                    self.objectDeleteRequested.emit(idx)
-                except Exception:
-                    traceback.print_exc()
+            indices_sorted = sorted(indices)
+            try:
+                if len(indices_sorted) == 1:
+                    # Mantém o comportamento de exclusão simples
+                    self.objectDeleteRequested.emit(indices_sorted[0])
+                else:
+                    # Exclusão em grupo com uma única confirmação
+                    self.objectDeleteManyRequested.emit(indices_sorted)
+            except Exception:
+                traceback.print_exc()
 
             event.accept()
             return

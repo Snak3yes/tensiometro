@@ -7,37 +7,19 @@ dos tipos de gbr existentes no mercado.
 - salvar projeto
 - exportar no formato gbr.
 - exportar no formato png.
-	
-	
+		
 	- desfazer e refazer modificações.
 	- mover objetos.
 	- copiar/colar objetos.
 - criar arquivo para salvar configurações realizadas pelo usuário para que sejam mantidas das próximas execuções da aplicação.
-- corrigir exclusão de mais de um objeto ao mesmo tempo.
-- adicionar funcionalidade de seleção de objetos por clica e arrasta com cobertura de área.
-- 
-
-
-
-
-
-
-
-
+- mover mais de um objeto ao mesmo tempo.
 
 
 EM DESENVOLVIMENTO
 
 
 
-- criar uma janela de diálogo mais completa para realizar as modificações/edições em objetos do gerber.
-	- adicionar dimensões horizontal e vertical.
-	- adicionar setas nas direções verticais e horizontais com campo onde deve existir o valor em mm do deslocamento que será aplicado quando clicado.
-	- deve existir a opção de ajuste nas dimensões de forma uniforme, pode ser um radiobutton que pode ser marcado ou desmarcado que mantem a proporção travada quando uma das medidas é modificada.
-	- deve existir a possibilidade de modificar as dimensões do objeto selecionado por valores percentuais, normalmente usados para aberturas de stencils.
 
-- manter a visualização ao fazer o re-render depois de realizar alguma modificação no gerber, impedir que a imagem seja reajustada.
-	
 
 
 
@@ -50,6 +32,25 @@ EM DESENVOLVIMENTO
 
 
 REALIZADAS
+
+
+
+
+
+
+
+05/12/2025
+
+ok - corrigir exclusão de mais de um objeto ao mesmo tempo.
+ok - adicionar funcionalidade de seleção de objetos por clica e arrasta com cobertura de área.
+ok - criar uma janela de diálogo mais completa para realizar as modificações/edições em objetos do gerber.
+ok - adicionar dimensões horizontal e vertical.
+ok - adicionar setas nas direções verticais e horizontais com campo onde deve existir o valor em mm do deslocamento que será aplicado quando clicado.
+ok - deve existir a opção de ajuste nas dimensões de forma uniforme, pode ser um radiobutton que pode ser marcado ou desmarcado que mantem a proporção travada quando uma das medidas é modificada.
+ok - deve existir a possibilidade de modificar as dimensões do objeto selecionado por valores percentuais, normalmente usados para aberturas de stencils.
+ok - manter a visualização ao fazer o re-render depois de realizar alguma modificação no gerber, impedir que a imagem seja reajustada.
+
+
 
 04/12/2025
 
@@ -71,17 +72,11 @@ ok - editar dimensões, largura e espessura, do objeto selecionado.
 03/12/2025
 
 OK - revisa a funcionalidade de exibição de aberturas e macros individuais usadas durante os estudos iniciais de interpretação das formas do gerber.
-
 ok - corrigir interpretação de região circular 
-
 ok - adicionar barra de menus.
-
 OK - correção no posicionamento após a aplicação do zoom ou do pan pelo usuário.
-
 ok - adicionar controles de configuração para modificar a cor das aberturas.
-
 ok - adicionar controles de configuração para modificar a cor do fundo.
-
 ok - realizar melhorias na visualização usando linhas vetoriais ao invés de apenas uma imagem png.
 
 
