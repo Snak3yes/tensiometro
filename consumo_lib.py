@@ -1429,11 +1429,11 @@ class AOIControllerApp(QMainWindow):
             getattr(self.controller.cnc, 'is_connected', False)
         )
         if isinstance(self.controller.cnc, PLCAxisController):
-            # PLC não conectado - aguarda conexão manual
+            # Estado inicial - aguardando tentativa de conexão automática
             self.connect_cnc_btn.setText("Conectar PLC")
-            self.cnc_status.setText("Desconectado")
-            self.statusBar().showMessage("PLC desconectado - clique em 'Conectar PLC' no menu Conexões")
-            logger.info("PLC não conectado. Aguardando conexão manual pelo usuário.")
+            self.cnc_status.setText("Iniciando...")
+            self.statusBar().showMessage("Iniciando aplicação - conexão automática ao PLC em breve...")
+            logger.info("Aplicação iniciada. Tentativa de conexão automática ao PLC agendada.")
         
         # Auto-connect apenas após a interface estar pronta
         QTimer.singleShot(500, self._attempt_auto_connect)
@@ -1452,21 +1452,72 @@ class AOIControllerApp(QMainWindow):
 
     #   Auto-connect com base no JSON de prefs
     def _attempt_auto_connect(self):
-        # CNC
-        if self.config.get("connections", "auto_connect_cnc", default=False):
-            port = self.config.get("connections", "last_cnc_port", default="")
-            if port:
-                idx = self.cnc_port_combo.findText(port)
-                if idx >= 0:
-                    self.cnc_port_combo.setCurrentIndex(idx)
-                QTimer.singleShot(100, self.connect_cnc)
-        # Câmera
+        """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""
+        
+        # ========== CONEXÃO AUTOMÁTICA AO PLC ==========
+        if isinstance(self.controller.cnc, PLCAxisController):
+            plc = self.controller.cnc
+            plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
+            plc_port = self.config.get("connections", "plc_port", default=502)
+            
+            self.statusBar().showMessage(f"Tentando conexão automática ao PLC em {plc_host}:{plc_port}...")
+            QApplication.processEvents()  # Atualiza a UI
+            
+            logger.info(f"Iniciando conexão automática ao PLC em {plc_host}:{plc_port}")
+            
+            try:
+                # Tenta criar conexão com o PLC
+                new_plc = PLCAxisController(host=plc_host, port=plc_port)
+                
+                # Substitui o controller e aplica calibração
+                self.controller.cnc = new_plc
+                ppr   = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
+                pitch = float(self.config.get("calibration", "fuso_pitch", default=1.0))
+                new_plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+                
+                # Atualiza UI
+                self.connect_cnc_btn.setText("Desconectar PLC")
+                self.cnc_status.setText("Conectado")
+                self.statusBar().showMessage(f"✅ PLC conectado automaticamente em {plc_host}:{plc_port}")
+                logger.info(f"PLC conectado automaticamente com sucesso em {plc_host}:{plc_port}")
+                
+                # Habilita abas de controle
+                self.right_panel.setTabEnabled(0, True)
+                self.right_panel.setTabEnabled(1, True)
+                
+            except Exception as e:
+                # Conexão falhou - exibe mensagem para o usuário
+                error_msg = str(e)
+                self.connect_cnc_btn.setText("Conectar PLC")
+                self.cnc_status.setText("Desconectado")
+                self.statusBar().showMessage(f"⚠️ Falha na conexão automática ao PLC - Use menu Conexões para conectar manualmente")
+                logger.warning(f"Falha na conexão automática ao PLC em {plc_host}:{plc_port}: {e}")
+                
+                # Exibe mensagem informativa (não-bloqueante)
+                QTimer.singleShot(1000, lambda: self._show_plc_connection_error(plc_host, plc_port, error_msg))
+        
+        # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
         if self.config.get("connections", "auto_connect_camera", default=False):
             cam_id = int(self.config.get("connections", "last_camera_id", default=0))
             idx = self.camera_id_combo.findText(str(cam_id))
             if idx >= 0:
                 self.camera_id_combo.setCurrentIndex(idx)
-            QTimer.singleShot(200, self.connect_camera)
+            QTimer.singleShot(500, self.connect_camera)
+
+    def _show_plc_connection_error(self, host: str, port: int, error: str):
+        """Exibe mensagem de erro de conexão ao PLC."""
+        QMessageBox.warning(
+            self,
+            "Conexão Automática ao PLC",
+            f"Não foi possível conectar automaticamente ao PLC.\n\n"
+            f"Endereço: {host}:{port}\n"
+            f"Erro: {error}\n\n"
+            f"Verifique se:\n"
+            f"• O PLC está ligado e na mesma rede\n"
+            f"• O endereço IP está correto (Configurações → Preferências)\n"
+            f"• Não há firewall bloqueando a porta {port}\n\n"
+            f"Você pode conectar manualmente através do menu 'Conexões'."
+        )
 
     def eventFilter(self, source, event):
         """
