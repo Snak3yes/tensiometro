@@ -1703,6 +1703,11 @@ class AOIControllerApp(QMainWindow):
         calibration_action.triggered.connect(self.show_calibration_dialog)
         tools_menu.addAction(calibration_action)
 
+        # Calibração de Câmera (correção de distorção)
+        camera_calib_action = QAction('Calibração de Câmera (Distorção)', self)
+        camera_calib_action.triggered.connect(self.show_camera_calibration_dialog)
+        tools_menu.addAction(camera_calib_action)
+
         # Configurações de Câmera
         camera_settings_action = QAction('Configurações de Câmera', self)
         camera_settings_action.triggered.connect(self.show_camera_settings_dialog)
@@ -1751,6 +1756,17 @@ class AOIControllerApp(QMainWindow):
         self.mosaic_window = MosaicBuilder()
         self.mosaic_window.resize(1200, 900)
         self.mosaic_window.show()
+
+    def show_camera_calibration_dialog(self):
+        """Abre diálogo para calibração de câmera (correção de distorção)"""
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Aviso", "Conecte a câmera antes de calibrar.")
+            return
+        
+        from camera_calibration import CameraCalibrationDialog
+        self.camera_calib_dialog = CameraCalibrationDialog(self.controller.camera, self)
+        self.camera_calib_dialog.resize(900, 750)
+        self.camera_calib_dialog.show()
 
     def show_camera_settings_dialog(self):
         """Abre diálogo para configurações de câmera"""

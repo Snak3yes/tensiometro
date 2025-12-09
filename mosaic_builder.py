@@ -5,8 +5,9 @@ Módulo para montagem de mosaico (stitching) de imagens capturadas em grade.
 
 Funcionalidades:
   - Carrega tiles no padrão *_rNNN_cNNN.png
-  - Aplica corte de bordas para remover distorções de lente
-  - Monta imagem panorâmica com opção de blending nas junções
+  - Aplica correção de distorção usando calibração de câmera
+  - Aplica corte de bordas para remover distorções residuais
+  - Monta imagem panorâmica com blending multiband para junções invisíveis
   - Interface PyQt6 standalone ou uso programático
 
 Uso standalone:
@@ -29,13 +30,23 @@ try:
     from PyQt6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
         QPushButton, QLabel, QFileDialog, QSpinBox, QGroupBox, QMessageBox,
-        QCheckBox, QProgressBar,
+        QCheckBox, QProgressBar, QComboBox,
     )
     from PyQt6.QtGui import QPixmap, QImage
     from PyQt6.QtCore import Qt
     HAS_PYQT = True
 except ImportError:
     HAS_PYQT = False
+
+# Calibração de câmera (opcional)
+try:
+    from camera_calibration import CameraCalibrator
+    HAS_CALIBRATION = True
+except ImportError:
+    HAS_CALIBRATION = False
+
+import logging
+log = logging.getLogger(__name__)
 
 
 # Regex para detectar tiles: nome_r000_c000.png
@@ -46,58 +57,79 @@ TILE_RX = re.compile(
 
 
 # =============================================================================
-# FUNÇÕES CORE (usáveis programaticamente)
+# FUNÇÕES DE BLENDING
 # =============================================================================
 
-def load_tiles(folder: str) -> Tuple[Dict[Tuple[int, int], str], Optional[str]]:
-    """
-    Varre a pasta e devolve dicionário {(row, col): filepath}, program_name.
-    
-    Args:
-        folder: Caminho da pasta contendo as imagens
-        
-    Returns:
-        Tupla (tiles_dict, program_name)
-    """
-    tiles = {}
-    program_name = None
-    
-    if not os.path.isdir(folder):
-        return tiles, program_name
-        
-    for fn in os.listdir(folder):
-        m = TILE_RX.match(fn)
-        if m:
-            row = int(m.group("row"))
-            col = int(m.group("col"))
-            tiles[(row, col)] = os.path.join(folder, fn)
-            if program_name is None:
-                program_name = m.group("name")
-                
-    return tiles, program_name
+def create_gaussian_pyramid(img: np.ndarray, levels: int) -> List[np.ndarray]:
+    """Cria pirâmide Gaussiana."""
+    pyramid = [img.astype(np.float32)]
+    for _ in range(levels):
+        img = cv2.pyrDown(img)
+        pyramid.append(img.astype(np.float32))
+    return pyramid
 
 
-def crop_tile_margins(image: np.ndarray, margin: int) -> np.ndarray:
+def create_laplacian_pyramid(img: np.ndarray, levels: int) -> List[np.ndarray]:
+    """Cria pirâmide Laplaciana."""
+    gaussian = create_gaussian_pyramid(img, levels)
+    laplacian = []
+    for i in range(levels):
+        size = (gaussian[i].shape[1], gaussian[i].shape[0])
+        expanded = cv2.pyrUp(gaussian[i + 1], dstsize=size)
+        laplacian.append(gaussian[i] - expanded)
+    laplacian.append(gaussian[-1])
+    return laplacian
+
+
+def reconstruct_from_laplacian(pyramid: List[np.ndarray]) -> np.ndarray:
+    """Reconstrói imagem a partir da pirâmide Laplaciana."""
+    img = pyramid[-1]
+    for i in range(len(pyramid) - 2, -1, -1):
+        size = (pyramid[i].shape[1], pyramid[i].shape[0])
+        img = cv2.pyrUp(img, dstsize=size) + pyramid[i]
+    return img
+
+
+def multiband_blend(img1: np.ndarray, img2: np.ndarray, 
+                    mask: np.ndarray, levels: int = 4) -> np.ndarray:
     """
-    Remove as margens de uma imagem para eliminar distorções de lente.
+    Faz blending multiband de duas imagens.
     
     Args:
-        image: Imagem OpenCV (BGR ou grayscale)
-        margin: Quantidade de pixels a remover de cada lado
+        img1: Primeira imagem
+        img2: Segunda imagem
+        mask: Máscara (0-1) indicando quanto de img2 usar
+        levels: Níveis da pirâmide
         
     Returns:
-        Imagem cortada
+        Imagem resultante com blending suave
     """
-    if margin <= 0:
-        return image
+    # Garante que as imagens têm o mesmo tamanho
+    if img1.shape != img2.shape:
+        return img2 if mask.mean() > 0.5 else img1
         
-    h, w = image.shape[:2]
+    # Normaliza máscara
+    if mask.max() > 1:
+        mask = mask.astype(np.float32) / 255.0
+    if len(mask.shape) == 2:
+        mask = np.stack([mask] * 3, axis=-1)
+        
+    # Cria pirâmides Laplacianas
+    lp1 = create_laplacian_pyramid(img1, levels)
+    lp2 = create_laplacian_pyramid(img2, levels)
     
-    # Garante que não cortamos mais do que a imagem permite
-    if margin * 2 >= h or margin * 2 >= w:
-        return image
+    # Cria pirâmide Gaussiana da máscara
+    gp_mask = create_gaussian_pyramid(mask, levels)
+    
+    # Combina as pirâmides
+    blended_pyramid = []
+    for l1, l2, gm in zip(lp1, lp2, gp_mask):
+        blended = l1 * (1 - gm) + l2 * gm
+        blended_pyramid.append(blended)
         
-    return image[margin:h-margin, margin:w-margin].copy()
+    # Reconstrói
+    result = reconstruct_from_laplacian(blended_pyramid)
+    return np.clip(result, 0, 255).astype(np.uint8)
 
 
 def create_blend_mask(tile_h: int, tile_w: int, blend_size: int) -> np.ndarray:
@@ -131,6 +163,45 @@ def create_blend_mask(tile_h: int, tile_w: int, blend_size: int) -> np.ndarray:
     return mask
 
 
+# =============================================================================
+# FUNÇÕES CORE
+# =============================================================================
+
+def load_tiles(folder: str) -> Tuple[Dict[Tuple[int, int], str], Optional[str]]:
+    """
+    Varre a pasta e devolve dicionário {(row, col): filepath}, program_name.
+    """
+    tiles = {}
+    program_name = None
+    
+    if not os.path.isdir(folder):
+        return tiles, program_name
+        
+    for fn in os.listdir(folder):
+        m = TILE_RX.match(fn)
+        if m:
+            row = int(m.group("row"))
+            col = int(m.group("col"))
+            tiles[(row, col)] = os.path.join(folder, fn)
+            if program_name is None:
+                program_name = m.group("name")
+                
+    return tiles, program_name
+
+
+def crop_tile_margins(image: np.ndarray, margin: int) -> np.ndarray:
+    """Remove as margens de uma imagem para eliminar distorções de lente."""
+    if margin <= 0:
+        return image
+        
+    h, w = image.shape[:2]
+    
+    if margin * 2 >= h or margin * 2 >= w:
+        return image
+        
+    return image[margin:h-margin, margin:w-margin].copy()
+
+
 def compose_mosaic(
     tiles: Dict[Tuple[int, int], str],
     delta_x: int = 0,
@@ -138,6 +209,8 @@ def compose_mosaic(
     invert_rows: bool = False,
     margin: int = 0,
     blend_size: int = 0,
+    use_multiband: bool = False,
+    calibrator: Optional['CameraCalibrator'] = None,
     progress_callback=None,
 ) -> Tuple[np.ndarray, int, int, Tuple[int, int]]:
     """
@@ -150,6 +223,8 @@ def compose_mosaic(
         invert_rows: Se True, inverte a ordem das linhas (origem inferior-esquerda)
         margin: Pixels a cortar de cada borda dos tiles
         blend_size: Tamanho da zona de blending (0 = sem blending)
+        use_multiband: Se True, usa blending multiband (mais lento, melhor qualidade)
+        calibrator: Objeto CameraCalibrator para correção de distorção
         progress_callback: Função opcional (current, total) para progresso
         
     Returns:
@@ -164,6 +239,10 @@ def compose_mosaic(
     if first is None:
         raise IOError(f"Falha ao ler imagem: {first_path}")
     
+    # Aplica correção de distorção se disponível
+    if calibrator is not None:
+        first = calibrator.undistort(first, crop=True)
+    
     # Aplica corte de margem para calcular dimensões finais
     first_cropped = crop_tile_margins(first, margin)
     tile_h, tile_w = first_cropped.shape[:2]
@@ -173,30 +252,40 @@ def compose_mosaic(
     cols = max(c for _, c in tiles.keys()) + 1
 
     # Calcula tamanho do canvas
-    # O passo efetivo considera o delta (negativo = sobreposição)
     step_x = tile_w + delta_x
     step_y = tile_h + delta_y
     
     canvas_h = tile_h + (rows - 1) * step_y
     canvas_w = tile_w + (cols - 1) * step_x
 
-    # Cria canvas e acumulador de pesos (para blending)
+    # Cria canvas e acumulador de pesos
     canvas = np.zeros((canvas_h, canvas_w, 3), dtype=np.float32)
     weights = np.zeros((canvas_h, canvas_w), dtype=np.float32)
     
-    # Máscara de blending (reutilizada para todos os tiles)
+    # Máscara de blending
     blend_mask = create_blend_mask(tile_h, tile_w, blend_size) if blend_size > 0 else None
     
     total_tiles = len(tiles)
     processed = 0
 
-    for (r, c), path in tiles.items():
+    # Ordena tiles para processamento (importante para blending)
+    sorted_tiles = sorted(tiles.items(), key=lambda x: (x[0][0], x[0][1]))
+
+    for (r, c), path in sorted_tiles:
         img = cv2.imread(path)
         if img is None:
             continue
+        
+        # Aplica correção de distorção
+        if calibrator is not None:
+            img = calibrator.undistort(img, crop=True)
             
         # Aplica corte de margem
         img = crop_tile_margins(img, margin)
+        
+        # Garante que o tile tem o tamanho esperado
+        if img.shape[0] != tile_h or img.shape[1] != tile_w:
+            img = cv2.resize(img, (tile_w, tile_h))
         
         # Índice de linha (com possível inversão)
         r_plot = (rows - 1 - r) if invert_rows else r
@@ -204,23 +293,40 @@ def compose_mosaic(
         # Calcula posição no canvas
         y0 = r_plot * step_y
         x0 = c * step_x
-        y1 = y0 + tile_h
-        x1 = x0 + tile_w
-        
-        # Garante que não ultrapassa o canvas
-        y1 = min(y1, canvas_h)
-        x1 = min(x1, canvas_w)
+        y1 = min(y0 + tile_h, canvas_h)
+        x1 = min(x0 + tile_w, canvas_w)
         actual_h = y1 - y0
         actual_w = x1 - x0
         
         if blend_mask is not None and blend_size > 0:
-            # Blending com máscara
             img_float = img[:actual_h, :actual_w].astype(np.float32)
             mask_slice = blend_mask[:actual_h, :actual_w]
             
-            for ch in range(3):
-                canvas[y0:y1, x0:x1, ch] += img_float[:, :, ch] * mask_slice
-            weights[y0:y1, x0:x1] += mask_slice
+            if use_multiband and weights[y0:y1, x0:x1].max() > 0:
+                # Blending multiband para sobreposição
+                existing = canvas[y0:y1, x0:x1].copy()
+                if existing.max() > 0:
+                    blend_weight = np.zeros((actual_h, actual_w), dtype=np.float32)
+                    blend_weight[:, :actual_w//2] = np.linspace(0, 1, actual_w//2)[np.newaxis, :]
+                    blend_weight[:, actual_w//2:] = np.linspace(1, 0, actual_w - actual_w//2)[np.newaxis, :]
+                    
+                    blended = multiband_blend(
+                        existing.astype(np.uint8),
+                        img_float.astype(np.uint8),
+                        blend_weight,
+                        levels=3
+                    )
+                    canvas[y0:y1, x0:x1] = blended.astype(np.float32)
+                    weights[y0:y1, x0:x1] = 1.0
+                else:
+                    for ch in range(3):
+                        canvas[y0:y1, x0:x1, ch] += img_float[:, :, ch] * mask_slice
+                    weights[y0:y1, x0:x1] += mask_slice
+            else:
+                # Blending linear simples
+                for ch in range(3):
+                    canvas[y0:y1, x0:x1, ch] += img_float[:, :, ch] * mask_slice
+                weights[y0:y1, x0:x1] += mask_slice
         else:
             # Sem blending: sobrescreve
             canvas[y0:y1, x0:x1] = img[:actual_h, :actual_w].astype(np.float32)
@@ -230,12 +336,11 @@ def compose_mosaic(
         if progress_callback:
             progress_callback(processed, total_tiles)
 
-    # Normaliza pelo peso (evita divisão por zero)
+    # Normaliza pelo peso
     weights = np.maximum(weights, 1e-6)
     for ch in range(3):
         canvas[:, :, ch] /= weights
         
-    # Converte para uint8
     canvas = np.clip(canvas, 0, 255).astype(np.uint8)
 
     return canvas, rows, cols, (tile_w, tile_h)
@@ -248,6 +353,8 @@ def compose_mosaic_from_folder(
     invert_rows: bool = True,
     margin: int = 0,
     blend_size: int = 20,
+    use_multiband: bool = False,
+    calibration_file: Optional[str] = None,
     output_suffix: str = "_mosaic",
     progress_callback=None,
 ) -> Optional[str]:
@@ -261,6 +368,8 @@ def compose_mosaic_from_folder(
         invert_rows: Inverter ordem das linhas
         margin: Pixels a cortar de cada borda
         blend_size: Tamanho da zona de blending
+        use_multiband: Usar blending multiband
+        calibration_file: Arquivo JSON com calibração de câmera
         output_suffix: Sufixo para o arquivo de saída
         progress_callback: Função (current, total) para progresso
         
@@ -274,6 +383,14 @@ def compose_mosaic_from_folder(
         
     if program_name is None:
         program_name = "mosaic"
+    
+    # Carrega calibração se disponível
+    calibrator = None
+    if calibration_file and HAS_CALIBRATION:
+        calibrator = CameraCalibrator()
+        if not calibrator.load(calibration_file):
+            calibrator = None
+            log.warning(f"Não foi possível carregar calibração: {calibration_file}")
         
     try:
         mosaic, rows, cols, _ = compose_mosaic(
@@ -283,10 +400,12 @@ def compose_mosaic_from_folder(
             invert_rows=invert_rows,
             margin=margin,
             blend_size=blend_size,
+            use_multiband=use_multiband,
+            calibrator=calibrator,
             progress_callback=progress_callback,
         )
     except Exception as e:
-        print(f"Erro ao montar mosaico: {e}")
+        log.error(f"Erro ao montar mosaico: {e}")
         return None
         
     # Salva o resultado
@@ -297,7 +416,7 @@ def compose_mosaic_from_folder(
 
 
 # =============================================================================
-# INTERFACE GRÁFICA (STANDALONE)
+# INTERFACE GRÁFICA
 # =============================================================================
 
 if HAS_PYQT:
@@ -310,6 +429,7 @@ if HAS_PYQT:
             self.folder = ""
             self.tiles = {}
             self.program_name = "mosaic"
+            self.calibrator = None
             self._build_ui()
 
         def _build_ui(self):
@@ -327,20 +447,38 @@ if HAS_PYQT:
             gl.addWidget(self.folder_lbl, 1)
             v.addWidget(grp)
 
+            # --- Calibração de Câmera ---
+            calib_grp = QGroupBox("Correção de Distorção (Calibração)")
+            calib_layout = QHBoxLayout(calib_grp)
+            
+            self.calib_status = QLabel("Sem calibração carregada")
+            calib_layout.addWidget(self.calib_status)
+            
+            btn_load_calib = QPushButton("Carregar Calibração")
+            btn_load_calib.clicked.connect(self._load_calibration)
+            calib_layout.addWidget(btn_load_calib)
+            
+            self.chk_use_calib = QCheckBox("Aplicar correção")
+            self.chk_use_calib.setChecked(True)
+            self.chk_use_calib.setEnabled(False)
+            calib_layout.addWidget(self.chk_use_calib)
+            
+            v.addWidget(calib_grp)
+
             # --- Configurações de Corte ---
-            crop_grp = QGroupBox("Corte de Bordas (Remoção de Distorção)")
+            crop_grp = QGroupBox("Corte de Bordas")
             crop_layout = QHBoxLayout(crop_grp)
             crop_layout.addWidget(QLabel("Margem (px):"))
             self.spin_margin = QSpinBox()
             self.spin_margin.setRange(0, 500)
             self.spin_margin.setValue(50)
-            self.spin_margin.setToolTip("Pixels a remover de cada borda para eliminar distorção de lente")
+            self.spin_margin.setToolTip("Pixels a remover de cada borda")
             crop_layout.addWidget(self.spin_margin)
             crop_layout.addStretch()
             v.addWidget(crop_grp)
 
             # --- Ajuste de Pitch ---
-            adj = QGroupBox("Ajuste de Pitch (Sobreposição)")
+            adj = QGroupBox("Ajuste de Sobreposição")
             hl = QHBoxLayout(adj)
             hl.addWidget(QLabel("ΔX:"))
             self.spin_dx = QSpinBox()
@@ -352,29 +490,35 @@ if HAS_PYQT:
             self.spin_dy = QSpinBox()
             self.spin_dy.setRange(-500, 500)
             self.spin_dy.setValue(0)
-            self.spin_dy.setToolTip("Negativo = sobreposição, Positivo = gap")
             hl.addWidget(self.spin_dy)
             v.addWidget(adj)
 
             # --- Opções de Blending ---
             blend_grp = QGroupBox("Blending (Suavização de Junções)")
             blend_layout = QHBoxLayout(blend_grp)
+            
             self.chk_blend = QCheckBox("Aplicar blending")
             self.chk_blend.setChecked(True)
             blend_layout.addWidget(self.chk_blend)
+            
             blend_layout.addWidget(QLabel("Tamanho:"))
             self.spin_blend = QSpinBox()
             self.spin_blend.setRange(0, 200)
             self.spin_blend.setValue(20)
-            self.spin_blend.setToolTip("Pixels de transição gradual nas bordas")
             blend_layout.addWidget(self.spin_blend)
+            
+            blend_layout.addWidget(QLabel("Tipo:"))
+            self.combo_blend_type = QComboBox()
+            self.combo_blend_type.addItems(["Linear (rápido)", "Multiband (qualidade)"])
+            blend_layout.addWidget(self.combo_blend_type)
+            
             blend_layout.addStretch()
             v.addWidget(blend_grp)
 
             # --- Orientação ---
             orient_grp = QGroupBox("Orientação")
             orient_layout = QHBoxLayout(orient_grp)
-            self.chk_invert = QCheckBox("Origem no canto inferior-esquerdo (inverter linhas)")
+            self.chk_invert = QCheckBox("Origem no canto inferior-esquerdo")
             self.chk_invert.setChecked(True)
             orient_layout.addWidget(self.chk_invert)
             v.addWidget(orient_grp)
@@ -398,6 +542,23 @@ if HAS_PYQT:
             v.addWidget(self.preview_lbl, 1)
 
             self.statusBar().showMessage("Selecione a pasta com as imagens capturadas")
+
+        def _load_calibration(self):
+            """Carrega arquivo de calibração."""
+            filepath, _ = QFileDialog.getOpenFileName(
+                self, "Carregar Calibração de Câmera",
+                "", "Arquivos JSON (*.json)"
+            )
+            
+            if filepath and HAS_CALIBRATION:
+                self.calibrator = CameraCalibrator()
+                if self.calibrator.load(filepath):
+                    self.calib_status.setText(f"✅ Calibração carregada: RMS={self.calibrator.rms_error:.3f}")
+                    self.chk_use_calib.setEnabled(True)
+                else:
+                    self.calibrator = None
+                    self.calib_status.setText("❌ Falha ao carregar")
+                    self.chk_use_calib.setEnabled(False)
 
         def on_select_folder(self):
             folder = QFileDialog.getExistingDirectory(self, "Escolha a pasta com as imagens")
@@ -423,7 +584,13 @@ if HAS_PYQT:
             dy = self.spin_dy.value()
             margin = self.spin_margin.value()
             blend_size = self.spin_blend.value() if self.chk_blend.isChecked() else 0
+            use_multiband = self.combo_blend_type.currentIndex() == 1
             invert = self.chk_invert.isChecked()
+            
+            # Usa calibração se disponível e habilitada
+            calibrator = None
+            if self.calibrator is not None and self.chk_use_calib.isChecked():
+                calibrator = self.calibrator
             
             self.progress.setVisible(True)
             self.progress.setRange(0, len(self.tiles))
@@ -439,6 +606,8 @@ if HAS_PYQT:
                     invert_rows=invert,
                     margin=margin,
                     blend_size=blend_size,
+                    use_multiband=use_multiband,
+                    calibrator=calibrator,
                     progress_callback=update_progress,
                 )
             except Exception as e:
@@ -457,14 +626,13 @@ if HAS_PYQT:
             qimg = QImage(mosaic.data, w, h, w * 3, QImage.Format.Format_BGR888)
             pix = QPixmap.fromImage(qimg)
             
-            # Escala para caber na janela
             max_w, max_h = 1200, 600
             if w > max_w or h > max_h:
                 pix = pix.scaled(max_w, max_h, Qt.AspectRatioMode.KeepAspectRatio)
             self.preview_lbl.setPixmap(pix)
             
             self.statusBar().showMessage(
-                f"✅ Mosaico criado: {w}x{h} px ({cols}x{rows} tiles, tile={tw}x{th}). Salvo: {out_name}"
+                f"✅ Mosaico criado: {w}x{h} px ({cols}x{rows} tiles). Salvo: {out_name}"
             )
 
 
