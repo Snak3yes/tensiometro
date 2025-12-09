@@ -2031,6 +2031,10 @@ class AOIControllerApp(QMainWindow):
     def _on_map_finished(self, dialog):
         self.map_progress.close()
         
+        # IMPORTANTE: Fecha o diálogo ANTES de exibir mensagens
+        # Isso evita conflito com WindowStaysOnTopHint
+        dialog.accept()
+        
         # Obtém parâmetros da pasta e opções de mosaico
         folder = getattr(self, 'map_folder_edit', None)
         folder_path = folder.text().strip() if folder else ""
@@ -2082,8 +2086,6 @@ class AOIControllerApp(QMainWindow):
                 )
         else:
             QMessageBox.information(self, "Concluído", "Mapa gerado com sucesso.")
-        
-        dialog.accept()
 
     def _on_map_error(self, msg: str):
         self.map_progress.close()
