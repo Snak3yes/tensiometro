@@ -579,25 +579,77 @@ if HAS_PYQT:
             if frame is None:
                 QMessageBox.warning(self, "Erro", "Falha ao capturar imagem")
                 return
+            
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            
+            # Primeiro tenta com o tamanho configurado
+            target_cols = self.spin_cols.value()
+            target_rows = self.spin_rows.value()
+            pattern_size = (target_cols, target_rows)
+            
+            flags = cv2.CALIB_CB_ADAPTIVE_THRESH + cv2.CALIB_CB_NORMALIZE_IMAGE + cv2.CALIB_CB_FAST_CHECK
+            ret, corners = cv2.findChessboardCorners(gray, pattern_size, flags)
+            
+            if ret:
+                # Atualiza padrão no calibrador
+                self.calibrator.pattern_size = pattern_size
+                self.calibrator.square_size_mm = self.spin_square.value()
+                # Recalcula objp com novo tamanho
+                self.calibrator.objp = np.zeros((pattern_size[0] * pattern_size[1], 3), np.float32)
+                self.calibrator.objp[:, :2] = np.mgrid[0:pattern_size[0], 0:pattern_size[1]].T.reshape(-1, 2)
+                self.calibrator.objp *= self.spin_square.value()
                 
-            # Atualiza padrão no calibrador
-            self.calibrator.pattern_size = (self.spin_cols.value(), self.spin_rows.value())
-            self.calibrator.square_size_mm = self.spin_square.value()
+                success, img_with_corners = self.calibrator.add_calibration_image(frame)
+                
+                if success:
+                    self.status_label.setText(f"Imagens capturadas: {self.calibrator.get_image_count()}")
+                    QMessageBox.information(self, "Sucesso", 
+                        f"Padrão {target_cols}×{target_rows} detectado e adicionado!")
+                    return
             
-            success, img_with_corners = self.calibrator.add_calibration_image(frame)
+            # Se não encontrou, tenta tamanhos menores automaticamente
+            found_size = None
+            for cols in range(target_cols, 3, -1):
+                for rows in range(target_rows, 3, -1):
+                    test_size = (cols, rows)
+                    ret, corners = cv2.findChessboardCorners(gray, test_size, flags)
+                    if ret:
+                        found_size = test_size
+                        break
+                if found_size:
+                    break
             
-            if success:
-                self.status_label.setText(f"Imagens capturadas: {self.calibrator.get_image_count()}")
-                QMessageBox.information(self, "Sucesso", "Padrão detectado e adicionado!")
-            else:
-                QMessageBox.warning(
-                    self, "Padrão Não Encontrado",
-                    "Não foi possível encontrar o padrão de tabuleiro.\n"
-                    "Certifique-se de que:\n"
-                    "- O padrão está totalmente visível\n"
-                    "- A iluminação está adequada\n"
-                    "- O número de cantos está correto"
+            if found_size:
+                # Pergunta ao usuário se quer usar o tamanho encontrado
+                reply = QMessageBox.question(
+                    self, "Padrão Menor Encontrado",
+                    f"O padrão {target_cols}×{target_rows} não foi encontrado, mas\n"
+                    f"foi detectado um padrão de {found_size[0]}×{found_size[1]}.\n\n"
+                    f"Isso pode acontecer se:\n"
+                    f"- O tabuleiro está parcialmente cortado\n"
+                    f"- O número de cantos configurado está incorreto\n\n"
+                    f"Deseja ajustar para {found_size[0]}×{found_size[1]} e tentar novamente?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
                 )
+                
+                if reply == QMessageBox.StandardButton.Yes:
+                    self.spin_cols.setValue(found_size[0])
+                    self.spin_rows.setValue(found_size[1])
+                    self._capture_image()  # Tenta novamente com novo tamanho
+                    return
+            
+            # Nenhum padrão encontrado
+            QMessageBox.warning(
+                self, "Padrão Não Encontrado",
+                f"Não foi possível encontrar o padrão de tabuleiro.\n\n"
+                f"Certifique-se de que:\n"
+                f"• O padrão está TOTALMENTE visível na imagem\n"
+                f"• O número de cantos está correto ({target_cols}×{target_rows})\n"
+                f"• A iluminação está adequada (sem reflexos)\n"
+                f"• A imagem está em foco\n\n"
+                f"Dica: Conte os cantos internos do tabuleiro\n"
+                f"(onde 4 quadrados se encontram) e ajuste os valores."
+            )
                 
         def _clear_images(self):
             """Limpa imagens de calibração."""
