@@ -3525,13 +3525,18 @@ class MapGeneratorThread(QThread):
     """
     Thread responsável por percorrer a grade, movimentar a CNC e capturar
     as imagens sem travar a GUI.
+    
+    Otimizações de velocidade:
+    - Movimento direto sem espera inicial desnecessária
+    - Delay mínimo de estabilização configurável
+    - Usa feed_rate para maximizar velocidade de movimento
     """
     progress = pyqtSignal(int, int)       # imagens_capturadas, total
     image_captured = pyqtSignal(object)   # cv2 image (opcional para preview)
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000, capture_delay_ms=200):
+    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000, capture_delay_ms=100):
         super().__init__()
         self.ctrl = controller
         self.origin = origin
@@ -3540,8 +3545,10 @@ class MapGeneratorThread(QThread):
         self.sy = sy
         self.folder = folder
         self.prog_name = prog_name
-        self.feed_rate = feed_rate
-        self.capture_delay_ms = capture_delay_ms
+        # Usa no mínimo 2000 mm/min para movimento rápido
+        self.feed_rate = max(feed_rate, 2000)
+        # Delay mínimo de 50ms para estabilização
+        self.capture_delay_ms = max(capture_delay_ms, 50)
 
     def run(self):
         log = logging.getLogger("MapGeneratorThread")
@@ -3553,38 +3560,47 @@ class MapGeneratorThread(QThread):
 
             # Converte delay de ms para segundos
             delay_sec = self.capture_delay_ms / 1000.0
-            log.info(f"MapGeneratorThread: Delay antes da captura = {self.capture_delay_ms}ms")
+            log.info(f"MapGeneratorThread: Delay={self.capture_delay_ms}ms, FeedRate={self.feed_rate}mm/min, Total={total} pontos")
 
-            # -- Vai para a origem (somente se não estivermos nela) ----------
-            cur = self.ctrl.cnc.get_current_position()
-            if (abs(cur['x'] - self.origin['x']) > 1e-3 or
-                abs(cur['y'] - self.origin['y']) > 1e-3):
-                self.ctrl.cnc.move_to_absolute_position(self.origin['x'],
-                                                        self.origin['y'], feed_rate=self.feed_rate)
-                self.ctrl.cnc.wait_for_idle()
-            else:
-                log.debug("MapGeneratorThread: Já estamos na origem; iniciando varredura sem espera extra.")
+            # Descarta frames antigos do buffer da câmera antes de iniciar
+            for _ in range(3):
+                self.ctrl.camera.capture()
 
             captured = 0
+            last_x, last_y = None, None
+            
             for r, col, x, y in points:
                 if self.isInterruptionRequested():
                     log.warning("Mapa cancelado pelo usuário")
                     self.error.emit("Operação cancelada")
                     return
-                self.ctrl.cnc.move_to_absolute_position(x, y, feed_rate=self.feed_rate)
-                self.ctrl.cnc.wait_for_idle()
+                
+                # Move apenas se a posição mudou
+                need_move = (last_x is None or last_y is None or 
+                            abs(x - last_x) > 0.01 or abs(y - last_y) > 0.01)
+                
+                if need_move:
+                    self.ctrl.cnc.move_to_absolute_position(x, y, feed_rate=self.feed_rate)
+                    self.ctrl.cnc.wait_for_idle(tolerance=2, timeout=15)
+                    last_x, last_y = x, y
+                    
+                    # Aguarda estabilização apenas se houve movimento
+                    if delay_sec > 0:
+                        time.sleep(delay_sec)
 
-                # Aguarda estabilização da câmera antes de capturar
-                time.sleep(delay_sec)
-
+                # Captura imagem
                 img = self.ctrl.camera.capture()
                 if img is not None:
                     fname = f"{self.prog_name}_r{r:03d}_c{col:03d}.png"
                     cv2.imwrite(os.path.join(self.folder, fname), img)
                     self.image_captured.emit(img)
+                else:
+                    log.warning(f"Falha ao capturar imagem em r={r}, c={col}")
+                    
                 captured += 1
                 self.progress.emit(captured, total)
 
+            log.info(f"MapGeneratorThread: Finalizado - {captured} imagens capturadas")
             self.finished.emit()
         except Exception as exc:
             log.exception("Erro na geração do mapa")
