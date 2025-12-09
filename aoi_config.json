@@ -35,6 +35,6 @@
   },
   "movement": {
     "step_size": 1.0,
-    "feed_rate": 600.0
+    "feed_rate": 50.0
   }
 }
