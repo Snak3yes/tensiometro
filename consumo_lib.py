@@ -1916,48 +1916,58 @@ class AOIControllerApp(QMainWindow):
         pos = self.controller.cnc.get_current_position()
         if which == 'origin':
             self.map_origin = {'x': pos['x'], 'y': pos['y']}
-            QMessageBox.information(self, "Origem", f"Canto inferior esquerdo: X={pos['x']:.3f}, Y={pos['y']:.3f}")
+            # Usa statusBar em vez de MessageBox para evitar bloqueio
+            # (o diálogo está como WindowStaysOnTopHint)
+            self.statusBar().showMessage(
+                f"✅ Origem definida: X={pos['x']:.3f}, Y={pos['y']:.3f}"
+            )
         else:
             self.map_end = {'x': pos['x'], 'y': pos['y']}
-            QMessageBox.information(self, "Limite", f"Canto superior direito: X={pos['x']:.3f}, Y={pos['y']:.3f}")
+            self.statusBar().showMessage(
+                f"✅ Limite definido: X={pos['x']:.3f}, Y={pos['y']:.3f}"
+            )
 
     def _on_generate_map(self, dialog):
                 
         # Passo 1 – coletar e validar parâmetros ---------------------
-        params = self._collect_map_params()
+        params = self._collect_map_params(dialog)
         if params is None:      # validação falhou ⇒ aborta
             return
 
         # Passo 2 – iniciar thread de geração -----------------------
         self._start_map_thread(params, dialog)
 
-    def _collect_map_params(self) -> MapParams | None:
+    def _collect_map_params(self, parent_dialog=None) -> MapParams | None:
         """
         Valida inputs da UI e devolve objeto MapParams ou None em caso de erro.
-        Toda mensagem ao usuário é tratada aqui.
+        Usa parent_dialog para exibir mensagens sobre o diálogo flutuante.
         """
+        # Usa o diálogo como parent para os MessageBox evitando conflito
+        # com WindowStaysOnTopHint
+        msg_parent = parent_dialog if parent_dialog else self
+        
         origin = getattr(self, 'map_origin', None)
         end    = getattr(self, 'map_end',    None)
         if not origin or not end:
-            QMessageBox.warning(self, "Erro", "Defina ambos os cantos antes de gerar o mapa.")
+            QMessageBox.warning(msg_parent, "Erro", "Defina ambos os cantos antes de gerar o mapa.")
             return None
 
         try:
             step_x = float(self.map_step_x_edit.text())
             step_y = float(self.map_step_y_edit.text())
         except ValueError:
-            QMessageBox.warning(self, "Erro", "Passos X/Y inválidos.")
+            QMessageBox.warning(msg_parent, "Erro", "Passos X/Y inválidos.")
             return None
 
         dx, dy = end['x'] - origin['x'], end['y'] - origin['y']
         if step_x <= 0 or step_y <= 0:
-            QMessageBox.warning(self, "Erro", "Os passos devem ser maiores que zero.")
+            QMessageBox.warning(msg_parent, "Erro", "Os passos devem ser maiores que zero.")
             return None
 
         # Ajuste opcional se o passo superar dimensão
         if step_x > dx or step_y > dy:
             if QMessageBox.question(
-                    self,
+                    msg_parent,
                     "Passo maior que dimensão",
                     ("Algum passo é maior que a dimensão da placa. "
                      "Deseja ajustar automaticamente?"),
@@ -1972,7 +1982,7 @@ class AOIControllerApp(QMainWindow):
         folder = self.map_folder_edit.text().strip()
         prog   = self.map_program_name_edit.text().strip()
         if not folder or not prog:
-            QMessageBox.warning(self, "Erro", "Informe o nome do programa e a pasta de salvamento.")
+            QMessageBox.warning(msg_parent, "Erro", "Informe o nome do programa e a pasta de salvamento.")
             return None
 
         return MapParams(origin, end, step_x, step_y, folder, prog)
