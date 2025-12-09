@@ -1378,11 +1378,10 @@ class AOIControllerApp(QMainWindow):
         # Inicializa o controlador com PLC mas sem conectar automaticamente
         logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
         self.controller = CNCAOIController(
-            use_plc=True,
             plc_host=plc_host,
             plc_port=plc_port
         )
-        logger.debug("CNCAOIController(use_plc=True) inicializado; backend = %s",
+        logger.debug("CNCAOIController inicializado; backend = %s",
                      type(self.controller.cnc).__name__)
         self.current_sequence = None
         self.is_running_sequence = False

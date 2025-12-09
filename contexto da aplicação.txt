@@ -1,9 +1,9 @@
 Objetivo da aplicação:
 - Criação de um sistema completo de AOI (máquina de inspeção automática) para ambiente industrial.
-- Esse sistema controla uma máquina CNC industrial para movimentação da head para captura de imagens e aplicação de adesivo em placas de circuito eletrônico.
-- Para o controle dos eixos (X, Y1, Y2, Z) o sistema utiliza CLP (Controlador Lógico Programável) da série AS via protocolo Modbus TCP.
+- Esse sistema controla uma máquina CNC industrial para movimentação da head para captura de imagens e inspeção de stencil usado em aplicação de pasta de solda em placas de circuito eletrônico. essa máquina também possui a funcionalidade de medir a tensão do stencil (medição do seu tensionamento) e registra os valores medidos no sensor que está fixo a head e é colocado sobre o stencil descendo o eixo z sobre o stencil.
+- Para o controle dos eixos (X, Y, Z) o sistema utiliza CLP (Controlador Lógico Programável) da série AS Delta via protocolo Modbus TCP.
 - A comunicação com o CLP acontece via rede Ethernet (TCP/IP) na porta 502.
-- O sistema suporta duas mesas de trabalho independentes (Mesa 1 e Mesa 2) com eixos Y individuais.
+
 
 Arquitetura:
 - Backend de movimento: PLCAxisController (Modbus TCP)
