@@ -1408,6 +1408,11 @@ class AOIControllerApp(QMainWindow):
         # Mapeamento de WCS para número P do G10
         self.wcs_to_p = {"G54": 1, "G55": 2, "G56": 3, "G57": 4, "G58": 5, "G59": 6}
         
+        # -------- Carrega configurações de câmera salvas --------
+        self._camera_mirror_x = self.config.get("camera", "mirror_x", default=False)
+        self._camera_mirror_y = self.config.get("camera", "mirror_y", default=False)
+        logger.debug(f"Configurações de câmera carregadas: mirror_x={self._camera_mirror_x}, mirror_y={self._camera_mirror_y}")
+        
         # Configuração da interface
         self.setup_ui()
         # Configuração do menu
@@ -1801,11 +1806,16 @@ class AOIControllerApp(QMainWindow):
         mirror_layout = QHBoxLayout(mirror_group)
         
         self.chk_mirror_x = QCheckBox("Espelhar Horizontalmente (X)")
-        self.chk_mirror_x.setChecked(getattr(self, '_camera_mirror_x', False))
+        # Carrega do config ou usa atributo local
+        saved_mirror_x = self.config.get("camera", "mirror_x", default=False)
+        self._camera_mirror_x = getattr(self, '_camera_mirror_x', saved_mirror_x)
+        self.chk_mirror_x.setChecked(self._camera_mirror_x)
         mirror_layout.addWidget(self.chk_mirror_x)
         
         self.chk_mirror_y = QCheckBox("Espelhar Verticalmente (Y)")
-        self.chk_mirror_y.setChecked(getattr(self, '_camera_mirror_y', False))
+        saved_mirror_y = self.config.get("camera", "mirror_y", default=False)
+        self._camera_mirror_y = getattr(self, '_camera_mirror_y', saved_mirror_y)
+        self.chk_mirror_y.setChecked(self._camera_mirror_y)
         mirror_layout.addWidget(self.chk_mirror_y)
         
         layout.addWidget(mirror_group)
@@ -1947,12 +1957,30 @@ class AOIControllerApp(QMainWindow):
         self.chk_mirror_y.setChecked(False)
 
     def _apply_mirror_settings(self):
-        """Salva configurações de espelhamento"""
+        """Salva configurações de espelhamento no config"""
         self._camera_mirror_x = self.chk_mirror_x.isChecked()
         self._camera_mirror_y = self.chk_mirror_y.isChecked()
+        
+        # Salva todas as configurações de câmera no arquivo
+        try:
+            self.config.remember_camera_settings(
+                mirror_x=self._camera_mirror_x,
+                mirror_y=self._camera_mirror_y,
+                brightness=self.slider_brightness.value(),
+                contrast=self.slider_contrast.value(),
+                saturation=self.slider_saturation.value(),
+                exposure=self.slider_exposure.value(),
+                gain=self.slider_gain.value(),
+                auto_exp=self.chk_auto_exp.isChecked(),
+                auto_wb=self.chk_auto_wb.isChecked()
+            )
+            logger.info("Configurações de câmera salvas")
+        except Exception as e:
+            logger.warning(f"Erro ao salvar configurações de câmera: {e}")
+        
         self.statusBar().showMessage(
             f"Espelhamento: X={'Sim' if self._camera_mirror_x else 'Não'}, "
-            f"Y={'Sim' if self._camera_mirror_y else 'Não'}"
+            f"Y={'Sim' if self._camera_mirror_y else 'Não'} (Salvo)"
         )
 
 
@@ -2060,6 +2088,9 @@ class AOIControllerApp(QMainWindow):
         h1 = QHBoxLayout()
         h1.addWidget(QLabel("Nome do Programa:"))
         self.map_program_name_edit = QLineEdit()
+        # Carrega último nome de programa usado
+        last_program = self.config.get("mosaic", "last_program_name", default="")
+        self.map_program_name_edit.setText(last_program)
         h1.addWidget(self.map_program_name_edit)
         layout.addLayout(h1)
 
@@ -2067,6 +2098,9 @@ class AOIControllerApp(QMainWindow):
         h2 = QHBoxLayout()
         h2.addWidget(QLabel("Pasta de Salvamento:"))
         self.map_folder_edit = QLineEdit()
+        # Carrega última pasta usada
+        last_folder = self.config.get("mosaic", "last_folder", default="")
+        self.map_folder_edit.setText(last_folder)
         h2.addWidget(self.map_folder_edit)
         btn_browse = QPushButton("Buscar…")
         btn_browse.clicked.connect(self._select_map_folder)
@@ -2076,10 +2110,15 @@ class AOIControllerApp(QMainWindow):
         # Passos X/Y
         h3 = QHBoxLayout()
         h3.addWidget(QLabel("Passo X (mm):"))
-        self.map_step_x_edit = QLineEdit("10")
+        self.map_step_x_edit = QLineEdit()
+        # Carrega valores salvos
+        saved_step_x = self.config.get("map", "step_x", default=10.0)
+        self.map_step_x_edit.setText(str(saved_step_x))
         h3.addWidget(self.map_step_x_edit)
         h3.addWidget(QLabel("Passo Y (mm):"))
-        self.map_step_y_edit = QLineEdit("10")
+        self.map_step_y_edit = QLineEdit()
+        saved_step_y = self.config.get("map", "step_y", default=10.0)
+        self.map_step_y_edit.setText(str(saved_step_y))
         h3.addWidget(self.map_step_y_edit)
         layout.addLayout(h3)
 
@@ -2090,14 +2129,16 @@ class AOIControllerApp(QMainWindow):
         
         # Checkbox para ativar montagem automática
         self.chk_auto_mosaic = QCheckBox("Montar mosaico automaticamente após captura")
-        self.chk_auto_mosaic.setChecked(True)
+        saved_auto_build = self.config.get("mosaic", "auto_build", default=True)
+        self.chk_auto_mosaic.setChecked(saved_auto_build)
         mosaic_layout.addWidget(self.chk_auto_mosaic, 0, 0, 1, 4)
         
         # Margem de corte (para remover distorção de lente)
         mosaic_layout.addWidget(QLabel("Margem de corte (px):"), 1, 0)
         self.spin_mosaic_margin = QSpinBox()
         self.spin_mosaic_margin.setRange(0, 500)
-        self.spin_mosaic_margin.setValue(50)
+        saved_margin = self.config.get("mosaic", "margin", default=50)
+        self.spin_mosaic_margin.setValue(saved_margin)
         self.spin_mosaic_margin.setToolTip("Pixels a remover de cada borda para eliminar distorção de lente")
         mosaic_layout.addWidget(self.spin_mosaic_margin, 1, 1)
         
@@ -2105,7 +2146,8 @@ class AOIControllerApp(QMainWindow):
         mosaic_layout.addWidget(QLabel("Blending (px):"), 1, 2)
         self.spin_mosaic_blend = QSpinBox()
         self.spin_mosaic_blend.setRange(0, 100)
-        self.spin_mosaic_blend.setValue(20)
+        saved_blend = self.config.get("mosaic", "blend_size", default=20)
+        self.spin_mosaic_blend.setValue(saved_blend)
         self.spin_mosaic_blend.setToolTip("Tamanho da zona de transição gradual entre tiles")
         mosaic_layout.addWidget(self.spin_mosaic_blend, 1, 3)
         
@@ -2119,7 +2161,8 @@ class AOIControllerApp(QMainWindow):
         capture_layout.addWidget(QLabel("Tempo de espera antes da captura (ms):"))
         self.spin_capture_delay = QSpinBox()
         self.spin_capture_delay.setRange(50, 5000)
-        self.spin_capture_delay.setValue(200)
+        saved_delay = self.config.get("mosaic", "capture_delay_ms", default=200)
+        self.spin_capture_delay.setValue(saved_delay)
         self.spin_capture_delay.setSingleStep(50)
         self.spin_capture_delay.setToolTip(
             "Tempo de estabilização após movimento antes de capturar a imagem.\n"
@@ -2226,6 +2269,20 @@ class AOIControllerApp(QMainWindow):
         if not folder or not prog:
             QMessageBox.warning(msg_parent, "Erro", "Informe o nome do programa e a pasta de salvamento.")
             return None
+
+        # ========== SALVA CONFIGURAÇÕES PARA PRÓXIMA VEZ ==========
+        try:
+            self.config.remember_map_params(step_x, step_y, folder, prog)
+            self.config.remember_mosaic_settings(
+                auto_build=self.chk_auto_mosaic.isChecked(),
+                margin=self.spin_mosaic_margin.value(),
+                blend_size=self.spin_mosaic_blend.value(),
+                capture_delay_ms=self.spin_capture_delay.value()
+            )
+            logger.debug("Configurações de mapa/mosaico salvas")
+        except Exception as e:
+            logger.warning(f"Erro ao salvar configurações de mapa: {e}")
+        # ==========================================================
 
         return MapParams(origin, end, step_x, step_y, folder, prog)
 

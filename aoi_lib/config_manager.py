@@ -33,7 +33,7 @@ class AOIConfigManager:
         "ui": {
             "theme": "light"
         },
-        # ---------- NOVOS GRUPOS -----------
+        # ---------- CONFIGURAÇÕES DE MOVIMENTO -----------
         "movement": {                     # controles manuais
             "step_size": 10.0,            # mm
             "feed_rate": 1000.0           # mm/min
@@ -41,6 +41,37 @@ class AOIConfigManager:
         "calibration": {                  # parâmetros mecânicos
             "pulses_per_rev": 400.0,
             "fuso_pitch": 5.0             # mm / volta
+        },
+        # ---------- CONFIGURAÇÕES DE CÂMERA -----------
+        "camera": {
+            "mirror_x": False,            # Espelhar horizontalmente
+            "mirror_y": False,            # Espelhar verticalmente
+            "brightness": 128,
+            "contrast": 128,
+            "saturation": 128,
+            "exposure": -6,
+            "gain": 128,
+            "auto_exposure": True,
+            "auto_white_balance": True,
+            "calibration_file": ""        # Arquivo de calibração de distorção
+        },
+        # ---------- CONFIGURAÇÕES DE MOSAICO -----------
+        "mosaic": {
+            "auto_build": True,           # Montar mosaico automaticamente
+            "margin": 50,                 # Margem de corte (px)
+            "blend_size": 20,             # Tamanho do blending (px)
+            "use_multiband": False,       # Usar blending multiband
+            "capture_delay_ms": 200,      # Tempo de espera antes da captura
+            "delta_x": 0,                 # Ajuste horizontal entre tiles
+            "delta_y": 0,                 # Ajuste vertical entre tiles
+            "invert_rows": True,          # Origem no canto inferior-esquerdo
+            "last_folder": "",            # Última pasta usada
+            "last_program_name": ""       # Último nome de programa
+        },
+        # ---------- CONFIGURAÇÕES DE MAPA -----------
+        "map": {
+            "step_x": 50.0,               # Passo X (mm)
+            "step_y": 50.0                # Passo Y (mm)
         }
     }
 
@@ -60,6 +91,54 @@ class AOIConfigManager:
     def remember_system_type(self, sys_type: str):
         """Grava cartesian|corexy escolhido pelo usuário."""
         self.set("cnc", "system_type", value=sys_type.lower())
+
+    # -------- atalhos para configurações de câmera ---------------
+    def remember_camera_settings(self, mirror_x: bool, mirror_y: bool, 
+                                  brightness: int = 128, contrast: int = 128,
+                                  saturation: int = 128, exposure: int = -6,
+                                  gain: int = 128, auto_exp: bool = True,
+                                  auto_wb: bool = True):
+        """Grava configurações de câmera."""
+        self.set("camera", "mirror_x", value=mirror_x)
+        self.set("camera", "mirror_y", value=mirror_y)
+        self.set("camera", "brightness", value=brightness)
+        self.set("camera", "contrast", value=contrast)
+        self.set("camera", "saturation", value=saturation)
+        self.set("camera", "exposure", value=exposure)
+        self.set("camera", "gain", value=gain)
+        self.set("camera", "auto_exposure", value=auto_exp)
+        self.set("camera", "auto_white_balance", value=auto_wb)
+
+    def remember_camera_calibration(self, filepath: str):
+        """Grava caminho do arquivo de calibração de câmera."""
+        self.set("camera", "calibration_file", value=filepath)
+
+    # -------- atalhos para configurações de mosaico ---------------
+    def remember_mosaic_settings(self, auto_build: bool, margin: int, 
+                                  blend_size: int, capture_delay_ms: int,
+                                  use_multiband: bool = False):
+        """Grava configurações de mosaico."""
+        self.set("mosaic", "auto_build", value=auto_build)
+        self.set("mosaic", "margin", value=margin)
+        self.set("mosaic", "blend_size", value=blend_size)
+        self.set("mosaic", "capture_delay_ms", value=capture_delay_ms)
+        self.set("mosaic", "use_multiband", value=use_multiband)
+
+    def remember_mosaic_adjustments(self, delta_x: int, delta_y: int, invert_rows: bool):
+        """Grava ajustes de sobreposição do mosaico."""
+        self.set("mosaic", "delta_x", value=delta_x)
+        self.set("mosaic", "delta_y", value=delta_y)
+        self.set("mosaic", "invert_rows", value=invert_rows)
+
+    def remember_map_params(self, step_x: float, step_y: float, 
+                            folder: str = "", program_name: str = ""):
+        """Grava configurações de mapa."""
+        self.set("map", "step_x", value=step_x)
+        self.set("map", "step_y", value=step_y)
+        if folder:
+            self.set("mosaic", "last_folder", value=folder)
+        if program_name:
+            self.set("mosaic", "last_program_name", value=program_name)
 
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")
