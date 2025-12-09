@@ -8,15 +8,23 @@ import serial
 import serial.tools.list_ports
 import numpy as np
 import logging
-from PyQt6.QtCore import QThread, pyqtSignal, QTimer
+import os
+from pathlib import Path
+from datetime import datetime
+from PyQt6.QtCore import QThread, pyqtSignal, QTimer, Qt
 from tkinter import Toplevel, Label, Entry, Button, messagebox
 from PyQt6.QtWidgets import (
     QDialog, QGridLayout, QLabel, QLineEdit, QPushButton, QMessageBox,
-    QComboBox, QGroupBox, QFrame, QHBoxLayout, QProgressBar
+    QComboBox, QGroupBox, QFrame, QHBoxLayout, QVBoxLayout, QProgressBar,
+    QTreeWidget, QTreeWidgetItem, QSplitter, QInputDialog, QMenu, QWidget
 )
+from PyQt6.QtGui import QAction
 from aoi_lib.plc_axis_controller import PLCAxisController
 from PyQt6.QtCore import QThread, pyqtSignal
-import time, logging         
+import time, logging
+
+# Pasta para salvar rotinas de medição
+ROUTINES_FOLDER = Path(__file__).parent.parent / "tension_routines"         
 
 # Configure logging
 log = logging.getLogger(__name__)
@@ -444,17 +452,72 @@ class StencilTensionDialog(QDialog):
     def __init__(self, parent, cntrl_cnc):
         super().__init__(parent)
         self.setWindowTitle("Tensão do Stencil")
+        self.setMinimumWidth(900)
+        self.setMinimumHeight(600)
         self.cnc = cntrl_cnc
         # Inicializa gerenciador do tensiômetro
         self.tensiometer = TensiometerSerialManager()
         self.measurement_thread = None
+        # Cria pasta de rotinas se não existir
+        ROUTINES_FOLDER.mkdir(parents=True, exist_ok=True)
+        self._current_routine_path = None  # Caminho da rotina carregada
         self._build_ui()
         # Popula lista de portas disponíveis
         self._refresh_ports()
+        # Carrega lista de rotinas
+        self._refresh_routines()
 
     # --------------------------- UI ---------------------------------
     def _build_ui(self):
-        lay = QGridLayout(self)
+        # Layout principal com splitter
+        main_layout = QHBoxLayout(self)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        # ================== PAINEL ESQUERDO: ROTINAS ==================
+        routines_widget = QWidget()
+        routines_layout = QVBoxLayout(routines_widget)
+        routines_layout.setContentsMargins(0, 0, 0, 0)
+        
+        routines_group = QGroupBox("Rotinas Salvas")
+        routines_group_layout = QVBoxLayout(routines_group)
+        
+        # TreeView de rotinas
+        self.routines_tree = QTreeWidget()
+        self.routines_tree.setHeaderLabels(["Nome", "Pontos", "Data"])
+        self.routines_tree.setColumnWidth(0, 150)
+        self.routines_tree.setColumnWidth(1, 50)
+        self.routines_tree.setColumnWidth(2, 100)
+        self.routines_tree.itemDoubleClicked.connect(self._on_routine_double_clicked)
+        self.routines_tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.routines_tree.customContextMenuRequested.connect(self._on_routine_context_menu)
+        routines_group_layout.addWidget(self.routines_tree)
+        
+        # Botões de gestão de rotinas
+        routines_btn_layout = QHBoxLayout()
+        self.btn_load_routine = QPushButton("▶ Carregar")
+        self.btn_load_routine.clicked.connect(self._load_selected_routine)
+        routines_btn_layout.addWidget(self.btn_load_routine)
+        
+        self.btn_save_routine = QPushButton("💾 Salvar Como...")
+        self.btn_save_routine.clicked.connect(self._save_routine_as)
+        routines_btn_layout.addWidget(self.btn_save_routine)
+        
+        self.btn_delete_routine = QPushButton("🗑 Excluir")
+        self.btn_delete_routine.clicked.connect(self._delete_selected_routine)
+        routines_btn_layout.addWidget(self.btn_delete_routine)
+        
+        routines_group_layout.addLayout(routines_btn_layout)
+        
+        self.btn_refresh_routines = QPushButton("🔄 Atualizar Lista")
+        self.btn_refresh_routines.clicked.connect(self._refresh_routines)
+        routines_group_layout.addWidget(self.btn_refresh_routines)
+        
+        routines_layout.addWidget(routines_group)
+        splitter.addWidget(routines_widget)
+        
+        # ================== PAINEL DIREITO: CONFIGURAÇÕES ==================
+        config_widget = QWidget()
+        lay = QGridLayout(config_widget)
         r = 0
         # Grupo de Conexão do Tensiômetro
         conn_group = QGroupBox("Conexão do Tensiômetro")
@@ -587,6 +650,11 @@ class StencilTensionDialog(QDialog):
         btn_cap_end.clicked.connect(self._capture_end_xy)
         btn_cap_z.clicked.connect(self._capture_z_height)
         btn_cap_move_z.clicked.connect(self._capture_move_z_height)
+        
+        # Finaliza splitter e layout principal
+        splitter.addWidget(config_widget)
+        splitter.setSizes([250, 650])  # Tamanhos iniciais dos painéis
+        main_layout.addWidget(splitter)
 
     def _on_power_toggle(self, checked: bool):
         """
@@ -983,4 +1051,276 @@ class StencilTensionDialog(QDialog):
             
         super().closeEvent(event)
 
+    # ====================== GESTÃO DE ROTINAS ======================
+    
+    def _refresh_routines(self):
+        """Atualiza a lista de rotinas salvas na TreeView"""
+        self.routines_tree.clear()
         
+        if not ROUTINES_FOLDER.exists():
+            return
+        
+        for filepath in sorted(ROUTINES_FOLDER.glob("*.json")):
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                
+                # Extrai informações
+                name = filepath.stem
+                params = data.get("parameters", {})
+                qty = params.get("quantity", "?")
+                points = f"{qty}x{qty}"
+                
+                # Data de modificação
+                mod_time = datetime.fromtimestamp(filepath.stat().st_mtime)
+                date_str = mod_time.strftime("%Y-%m-%d %H:%M")
+                
+                # Adiciona à tree
+                item = QTreeWidgetItem([name, points, date_str])
+                item.setData(0, Qt.ItemDataRole.UserRole, str(filepath))
+                self.routines_tree.addTopLevelItem(item)
+                
+            except Exception as e:
+                log.warning(f"Erro ao carregar rotina {filepath}: {e}")
+    
+    def _save_routine_as(self):
+        """Salva a configuração atual como uma nova rotina"""
+        # Pede nome para a rotina
+        name, ok = QInputDialog.getText(
+            self, "Salvar Rotina", 
+            "Nome da rotina:",
+            text=datetime.now().strftime("Rotina_%Y%m%d_%H%M%S")
+        )
+        
+        if not ok or not name.strip():
+            return
+        
+        # Sanitiza o nome
+        safe_name = "".join(c for c in name if c.isalnum() or c in "._- ").strip()
+        if not safe_name:
+            QMessageBox.warning(self, "Erro", "Nome inválido para a rotina.")
+            return
+        
+        filepath = ROUTINES_FOLDER / f"{safe_name}.json"
+        
+        # Verifica se já existe
+        if filepath.exists():
+            result = QMessageBox.question(
+                self, "Confirmar Sobrescrita",
+                f"A rotina '{safe_name}' já existe. Deseja sobrescrever?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if result != QMessageBox.StandardButton.Yes:
+                return
+        
+        # Coleta os parâmetros atuais
+        try:
+            routine_data = {
+                "type": "stencil_tension_routine",
+                "name": safe_name,
+                "created_at": datetime.now().isoformat(),
+                "parameters": {
+                    "start": {
+                        "x": float(self.ed_sx.text() or 0),
+                        "y": float(self.ed_sy.text() or 0)
+                    },
+                    "end": {
+                        "x": float(self.ed_ex.text() or 0),
+                        "y": float(self.ed_ey.text() or 0)
+                    },
+                    "quantity": int(self.ed_n.text() or 3),
+                    "measurement_height": float(self.ed_z.text() or 2),
+                    "movement_height": float(self.ed_move_z.text() or 0),
+                    "stabilization_time": int(self.stabilization_time.text() or 500),
+                    "movement_feed": float(self.movement_feed.text() or 30)
+                },
+                "tensiometer": {
+                    "baudrate": self.baudrate_combo.currentText()
+                }
+            }
+            
+            # Salva o arquivo
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(routine_data, f, indent=4, ensure_ascii=False)
+            
+            self._current_routine_path = filepath
+            self.setWindowTitle(f"Tensão do Stencil - {safe_name}")
+            
+            QMessageBox.information(
+                self, "Sucesso", 
+                f"Rotina '{safe_name}' salva com sucesso!"
+            )
+            
+            # Atualiza a lista
+            self._refresh_routines()
+            
+        except ValueError as e:
+            QMessageBox.warning(self, "Erro", f"Valores inválidos nos campos: {e}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao salvar rotina: {e}")
+    
+    def _load_selected_routine(self):
+        """Carrega a rotina selecionada na TreeView"""
+        item = self.routines_tree.currentItem()
+        if not item:
+            QMessageBox.warning(self, "Aviso", "Selecione uma rotina para carregar.")
+            return
+        
+        filepath = Path(item.data(0, Qt.ItemDataRole.UserRole))
+        self._load_routine(filepath)
+    
+    def _load_routine(self, filepath: Path):
+        """Carrega uma rotina de um arquivo"""
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            params = data.get("parameters", {})
+            
+            # Preenche os campos
+            start = params.get("start", {})
+            end = params.get("end", {})
+            
+            self.ed_sx.setText(str(start.get("x", "")))
+            self.ed_sy.setText(str(start.get("y", "")))
+            self.ed_ex.setText(str(end.get("x", "")))
+            self.ed_ey.setText(str(end.get("y", "")))
+            self.ed_n.setText(str(params.get("quantity", 3)))
+            self.ed_z.setText(str(params.get("measurement_height", 2)))
+            self.ed_move_z.setText(str(params.get("movement_height", 0)))
+            self.stabilization_time.setText(str(params.get("stabilization_time", 500)))
+            self.movement_feed.setText(str(params.get("movement_feed", 30)))
+            
+            # Tensiometer config
+            tensio = data.get("tensiometer", {})
+            baudrate = tensio.get("baudrate", "2400")
+            idx = self.baudrate_combo.findText(baudrate)
+            if idx >= 0:
+                self.baudrate_combo.setCurrentIndex(idx)
+            
+            # Atualiza estado
+            self._current_routine_path = filepath
+            name = data.get("name", filepath.stem)
+            self.setWindowTitle(f"Tensão do Stencil - {name}")
+            
+            self.status_label.setText(f"✅ Rotina '{name}' carregada")
+            log.info(f"Rotina carregada: {filepath}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao carregar rotina: {e}")
+    
+    def _on_routine_double_clicked(self, item, column):
+        """Carrega rotina ao dar duplo-clique"""
+        filepath = Path(item.data(0, Qt.ItemDataRole.UserRole))
+        self._load_routine(filepath)
+    
+    def _on_routine_context_menu(self, position):
+        """Menu de contexto para rotinas (botão direito)"""
+        item = self.routines_tree.itemAt(position)
+        if not item:
+            return
+        
+        menu = QMenu(self)
+        
+        action_load = menu.addAction("▶ Carregar")
+        action_load.triggered.connect(self._load_selected_routine)
+        
+        action_run = menu.addAction("▶▶ Carregar e Executar")
+        action_run.triggered.connect(self._load_and_run_routine)
+        
+        menu.addSeparator()
+        
+        action_rename = menu.addAction("✏ Renomear")
+        action_rename.triggered.connect(self._rename_selected_routine)
+        
+        action_delete = menu.addAction("🗑 Excluir")
+        action_delete.triggered.connect(self._delete_selected_routine)
+        
+        menu.exec(self.routines_tree.viewport().mapToGlobal(position))
+    
+    def _delete_selected_routine(self):
+        """Exclui a rotina selecionada"""
+        item = self.routines_tree.currentItem()
+        if not item:
+            QMessageBox.warning(self, "Aviso", "Selecione uma rotina para excluir.")
+            return
+        
+        name = item.text(0)
+        filepath = Path(item.data(0, Qt.ItemDataRole.UserRole))
+        
+        result = QMessageBox.question(
+            self, "Confirmar Exclusão",
+            f"Deseja realmente excluir a rotina '{name}'?\n\nEsta ação não pode ser desfeita.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if result == QMessageBox.StandardButton.Yes:
+            try:
+                filepath.unlink()
+                self._refresh_routines()
+                
+                # Se era a rotina atual, limpa o título
+                if self._current_routine_path == filepath:
+                    self._current_routine_path = None
+                    self.setWindowTitle("Tensão do Stencil")
+                
+                self.status_label.setText(f"🗑 Rotina '{name}' excluída")
+                
+            except Exception as e:
+                QMessageBox.critical(self, "Erro", f"Falha ao excluir rotina: {e}")
+    
+    def _rename_selected_routine(self):
+        """Renomeia a rotina selecionada"""
+        item = self.routines_tree.currentItem()
+        if not item:
+            return
+        
+        old_name = item.text(0)
+        filepath = Path(item.data(0, Qt.ItemDataRole.UserRole))
+        
+        new_name, ok = QInputDialog.getText(
+            self, "Renomear Rotina",
+            "Novo nome:",
+            text=old_name
+        )
+        
+        if not ok or not new_name.strip() or new_name == old_name:
+            return
+        
+        safe_name = "".join(c for c in new_name if c.isalnum() or c in "._- ").strip()
+        new_filepath = ROUTINES_FOLDER / f"{safe_name}.json"
+        
+        if new_filepath.exists():
+            QMessageBox.warning(self, "Erro", f"Já existe uma rotina com o nome '{safe_name}'.")
+            return
+        
+        try:
+            # Atualiza o nome dentro do JSON também
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            data["name"] = safe_name
+            
+            with open(new_filepath, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=4, ensure_ascii=False)
+            
+            filepath.unlink()  # Remove o arquivo antigo
+            
+            self._refresh_routines()
+            self.status_label.setText(f"✏ Rotina renomeada: {old_name} → {safe_name}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao renomear rotina: {e}")
+    
+    def _load_and_run_routine(self):
+        """Carrega a rotina selecionada e inicia execução automaticamente"""
+        item = self.routines_tree.currentItem()
+        if not item:
+            QMessageBox.warning(self, "Aviso", "Selecione uma rotina para executar.")
+            return
+        
+        filepath = Path(item.data(0, Qt.ItemDataRole.UserRole))
+        self._load_routine(filepath)
+        
+        # Aguarda um pouco e inicia a medição
+        QTimer.singleShot(500, self._on_start)
