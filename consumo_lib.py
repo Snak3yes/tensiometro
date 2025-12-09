@@ -1692,10 +1692,21 @@ class AOIControllerApp(QMainWindow):
         definir_mapa_action.triggered.connect(self.show_definir_mapa_dialog)
         tools_menu.addAction(definir_mapa_action)
 
+        # Ação para abrir o Mosaic Builder
+        mosaic_action = QAction('Montar Mosaico de Imagens', self)
+        mosaic_action.triggered.connect(self.show_mosaic_builder)
+        tools_menu.addAction(mosaic_action)
+
+        tools_menu.addSeparator()
         
         calibration_action = QAction('Calibração CNC', self)
         calibration_action.triggered.connect(self.show_calibration_dialog)
         tools_menu.addAction(calibration_action)
+
+        # Configurações de Câmera
+        camera_settings_action = QAction('Configurações de Câmera', self)
+        camera_settings_action.triggered.connect(self.show_camera_settings_dialog)
+        tools_menu.addAction(camera_settings_action)
 
         # Preferências
         pref_action = QAction('Preferências', self)
@@ -1704,7 +1715,7 @@ class AOIControllerApp(QMainWindow):
         tools_menu.addAction(pref_action)
 
         # ---------------------------------------------------------------
-        # Item de menu “Tensão do Stencil” – abre o diálogo de medição
+        # Item de menu "Tensão do Stencil" – abre o diálogo de medição
         # ---------------------------------------------------------------
         tension_action = QAction('Tensão do Stencil', self)
         tension_action.triggered.connect(self.open_stencil_tension_dialog)
@@ -1733,6 +1744,159 @@ class AOIControllerApp(QMainWindow):
             return
         dlg = StencilTensionDialog(self, self.controller.cnc)
         dlg.exec()
+
+    def show_mosaic_builder(self):
+        """Abre a janela do Mosaic Builder para montagem de imagens"""
+        from mosaic_builder import MosaicBuilder
+        self.mosaic_window = MosaicBuilder()
+        self.mosaic_window.resize(1200, 900)
+        self.mosaic_window.show()
+
+    def show_camera_settings_dialog(self):
+        """Abre diálogo para configurações de câmera"""
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Aviso", "Conecte a câmera antes de ajustar as configurações.")
+            return
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Configurações de Câmera")
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Grupo de configurações
+        from PyQt6.QtWidgets import QSlider
+        
+        settings_group = QGroupBox("Ajustes de Imagem")
+        settings_layout = QGridLayout(settings_group)
+        
+        # Brilho
+        settings_layout.addWidget(QLabel("Brilho:"), 0, 0)
+        self.slider_brightness = QSlider(Qt.Orientation.Horizontal)
+        self.slider_brightness.setRange(0, 100)
+        self.slider_brightness.setValue(50)
+        self.lbl_brightness = QLabel("50")
+        self.slider_brightness.valueChanged.connect(
+            lambda v: [self.lbl_brightness.setText(str(v)), 
+                      self._apply_camera_setting(cv2.CAP_PROP_BRIGHTNESS, v / 100)]
+        )
+        settings_layout.addWidget(self.slider_brightness, 0, 1)
+        settings_layout.addWidget(self.lbl_brightness, 0, 2)
+        
+        # Contraste
+        settings_layout.addWidget(QLabel("Contraste:"), 1, 0)
+        self.slider_contrast = QSlider(Qt.Orientation.Horizontal)
+        self.slider_contrast.setRange(0, 100)
+        self.slider_contrast.setValue(50)
+        self.lbl_contrast = QLabel("50")
+        self.slider_contrast.valueChanged.connect(
+            lambda v: [self.lbl_contrast.setText(str(v)),
+                      self._apply_camera_setting(cv2.CAP_PROP_CONTRAST, v / 100)]
+        )
+        settings_layout.addWidget(self.slider_contrast, 1, 1)
+        settings_layout.addWidget(self.lbl_contrast, 1, 2)
+        
+        # Saturação
+        settings_layout.addWidget(QLabel("Saturação:"), 2, 0)
+        self.slider_saturation = QSlider(Qt.Orientation.Horizontal)
+        self.slider_saturation.setRange(0, 100)
+        self.slider_saturation.setValue(50)
+        self.lbl_saturation = QLabel("50")
+        self.slider_saturation.valueChanged.connect(
+            lambda v: [self.lbl_saturation.setText(str(v)),
+                      self._apply_camera_setting(cv2.CAP_PROP_SATURATION, v / 100)]
+        )
+        settings_layout.addWidget(self.slider_saturation, 2, 1)
+        settings_layout.addWidget(self.lbl_saturation, 2, 2)
+        
+        # Exposição
+        settings_layout.addWidget(QLabel("Exposição:"), 3, 0)
+        self.slider_exposure = QSlider(Qt.Orientation.Horizontal)
+        self.slider_exposure.setRange(-10, 0)
+        self.slider_exposure.setValue(-5)
+        self.lbl_exposure = QLabel("-5")
+        self.slider_exposure.valueChanged.connect(
+            lambda v: [self.lbl_exposure.setText(str(v)),
+                      self._apply_camera_setting(cv2.CAP_PROP_EXPOSURE, v)]
+        )
+        settings_layout.addWidget(self.slider_exposure, 3, 1)
+        settings_layout.addWidget(self.lbl_exposure, 3, 2)
+        
+        # Ganho
+        settings_layout.addWidget(QLabel("Ganho:"), 4, 0)
+        self.slider_gain = QSlider(Qt.Orientation.Horizontal)
+        self.slider_gain.setRange(0, 100)
+        self.slider_gain.setValue(50)
+        self.lbl_gain = QLabel("50")
+        self.slider_gain.valueChanged.connect(
+            lambda v: [self.lbl_gain.setText(str(v)),
+                      self._apply_camera_setting(cv2.CAP_PROP_GAIN, v)]
+        )
+        settings_layout.addWidget(self.slider_gain, 4, 1)
+        settings_layout.addWidget(self.lbl_gain, 4, 2)
+        
+        layout.addWidget(settings_group)
+        
+        # Checkbox para auto-exposição
+        self.chk_auto_exp = QCheckBox("Exposição Automática")
+        self.chk_auto_exp.toggled.connect(
+            lambda on: self._apply_camera_setting(cv2.CAP_PROP_AUTO_EXPOSURE, 3 if on else 1)
+        )
+        layout.addWidget(self.chk_auto_exp)
+        
+        # Botões
+        btn_layout = QHBoxLayout()
+        btn_reset = QPushButton("Restaurar Padrão")
+        btn_reset.clicked.connect(self._reset_camera_settings)
+        btn_layout.addWidget(btn_reset)
+        
+        btn_close = QPushButton("Fechar")
+        btn_close.clicked.connect(dialog.accept)
+        btn_layout.addWidget(btn_close)
+        
+        layout.addLayout(btn_layout)
+        
+        # Tenta ler valores atuais da câmera
+        self._read_camera_settings()
+        
+        dialog.exec()
+
+    def _apply_camera_setting(self, prop, value):
+        """Aplica uma configuração à câmera"""
+        try:
+            if hasattr(self.controller.camera, '_capture'):
+                self.controller.camera._capture.set(prop, value)
+            elif hasattr(self.controller.camera, 'cap'):
+                self.controller.camera.cap.set(prop, value)
+        except Exception as e:
+            logger.warning(f"Não foi possível aplicar configuração de câmera: {e}")
+
+    def _read_camera_settings(self):
+        """Lê configurações atuais da câmera"""
+        try:
+            cap = None
+            if hasattr(self.controller.camera, '_capture'):
+                cap = self.controller.camera._capture
+            elif hasattr(self.controller.camera, 'cap'):
+                cap = self.controller.camera.cap
+            
+            if cap:
+                self.slider_brightness.setValue(int(cap.get(cv2.CAP_PROP_BRIGHTNESS) * 100))
+                self.slider_contrast.setValue(int(cap.get(cv2.CAP_PROP_CONTRAST) * 100))
+                self.slider_saturation.setValue(int(cap.get(cv2.CAP_PROP_SATURATION) * 100))
+                self.slider_exposure.setValue(int(cap.get(cv2.CAP_PROP_EXPOSURE)))
+                self.slider_gain.setValue(int(cap.get(cv2.CAP_PROP_GAIN)))
+        except Exception as e:
+            logger.warning(f"Não foi possível ler configurações de câmera: {e}")
+
+    def _reset_camera_settings(self):
+        """Restaura configurações padrão da câmera"""
+        self.slider_brightness.setValue(50)
+        self.slider_contrast.setValue(50)
+        self.slider_saturation.setValue(50)
+        self.slider_exposure.setValue(-5)
+        self.slider_gain.setValue(50)
+
 
     def show_settings_dialog(self):
         dlg = SettingsDialog(self.config, self)
@@ -1890,6 +2054,26 @@ class AOIControllerApp(QMainWindow):
         layout.addWidget(mosaic_group)
         # ============== FIM OPÇÕES DE MOSAICO ==============
 
+        # ============== TEMPO DE ESPERA ANTES DA CAPTURA ==============
+        capture_group = QGroupBox("Configurações de Captura")
+        capture_layout = QHBoxLayout(capture_group)
+        
+        capture_layout.addWidget(QLabel("Tempo de espera antes da captura (ms):"))
+        self.spin_capture_delay = QSpinBox()
+        self.spin_capture_delay.setRange(50, 5000)
+        self.spin_capture_delay.setValue(200)
+        self.spin_capture_delay.setSingleStep(50)
+        self.spin_capture_delay.setToolTip(
+            "Tempo de estabilização após movimento antes de capturar a imagem.\n"
+            "Aumente se a câmera for lenta ou a imagem sair tremida."
+        )
+        capture_layout.addWidget(self.spin_capture_delay)
+        capture_layout.addWidget(QLabel("ms"))
+        capture_layout.addStretch()
+        
+        layout.addWidget(capture_group)
+        # ============== FIM CONFIGURAÇÕES DE CAPTURA ==============
+
         # Botões de definição de canto
         btn_origin = QPushButton("Definir canto inferior esquerdo")
         btn_origin.clicked.connect(lambda: self._define_map_corner('origin'))
@@ -1991,12 +2175,17 @@ class AOIControllerApp(QMainWindow):
         """
         Separa a configuração da thread e da UI/ProgressBar.
         """
+        # Obtém o tempo de espera configurado
+        capture_delay = getattr(self, 'spin_capture_delay', None)
+        delay_ms = capture_delay.value() if capture_delay else 200
+        
         # Context manager garante preview restaurado
         with _PreviewSuspender(self.camera_preview):
             self.map_thread = MapGeneratorThread(
                 self.controller, p.origin, p.end,
                 p.step_x, p.step_y, p.folder, p.program_name,
-                self._get_current_feed_rate()  # Passa velocidade configurada
+                self._get_current_feed_rate(),  # Passa velocidade configurada
+                delay_ms  # Tempo de espera antes da captura
             )
 
             # Progress dialog simples
@@ -3141,7 +3330,7 @@ class MapGeneratorThread(QThread):
     finished = pyqtSignal()
     error = pyqtSignal(str)
 
-    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000):
+    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000, capture_delay_ms=200):
         super().__init__()
         self.ctrl = controller
         self.origin = origin
@@ -3151,6 +3340,7 @@ class MapGeneratorThread(QThread):
         self.folder = folder
         self.prog_name = prog_name
         self.feed_rate = feed_rate
+        self.capture_delay_ms = capture_delay_ms
 
     def run(self):
         log = logging.getLogger("MapGeneratorThread")
@@ -3159,6 +3349,10 @@ class MapGeneratorThread(QThread):
                                              self.sx, self.sy))
             total = len(points)
             os.makedirs(self.folder, exist_ok=True)
+
+            # Converte delay de ms para segundos
+            delay_sec = self.capture_delay_ms / 1000.0
+            log.info(f"MapGeneratorThread: Delay antes da captura = {self.capture_delay_ms}ms")
 
             # -- Vai para a origem (somente se não estivermos nela) ----------
             cur = self.ctrl.cnc.get_current_position()
@@ -3179,6 +3373,9 @@ class MapGeneratorThread(QThread):
                 self.ctrl.cnc.move_to_absolute_position(x, y, feed_rate=self.feed_rate)
                 self.ctrl.cnc.wait_for_idle()
 
+                # Aguarda estabilização da câmera antes de capturar
+                time.sleep(delay_sec)
+
                 img = self.ctrl.camera.capture()
                 if img is not None:
                     fname = f"{self.prog_name}_r{r:03d}_c{col:03d}.png"
@@ -3186,7 +3383,6 @@ class MapGeneratorThread(QThread):
                     self.image_captured.emit(img)
                 captured += 1
                 self.progress.emit(captured, total)
-                time.sleep(0.05)
 
             self.finished.emit()
         except Exception as exc:
