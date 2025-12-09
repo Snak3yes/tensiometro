@@ -2145,13 +2145,19 @@ class AOIControllerApp(QMainWindow):
         h1.addWidget(self.map_program_name_edit)
         layout.addLayout(h1)
 
-        # Pasta de salvamento
+        # Pasta de salvamento (base para os projetos)
         h2 = QHBoxLayout()
         h2.addWidget(QLabel("Pasta de Salvamento:"))
         self.map_folder_edit = QLineEdit()
-        # Carrega última pasta usada
-        last_folder = self.config.get("mosaic", "last_folder", default="")
+        # Carrega última pasta usada ou usa padrão "Projetos"
+        import os
+        default_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Projetos")
+        last_folder = self.config.get("mosaic", "last_folder", default=default_folder)
         self.map_folder_edit.setText(last_folder)
+        self.map_folder_edit.setToolTip(
+            "Pasta base onde serão criadas as subpastas dos programas.\n"
+            "Estrutura: [Pasta]/[Nome do Programa]/Imagens/"
+        )
         h2.addWidget(self.map_folder_edit)
         btn_browse = QPushButton("Buscar…")
         btn_browse.clicked.connect(self._select_map_folder)
@@ -2315,15 +2321,41 @@ class AOIControllerApp(QMainWindow):
             self.map_step_x_edit.setText(f"{step_x:.3f}")
             self.map_step_y_edit.setText(f"{step_y:.3f}")
 
-        folder = self.map_folder_edit.text().strip()
-        prog   = self.map_program_name_edit.text().strip()
-        if not folder or not prog:
+        base_folder = self.map_folder_edit.text().strip()
+        prog = self.map_program_name_edit.text().strip()
+        if not base_folder or not prog:
             QMessageBox.warning(msg_parent, "Erro", "Informe o nome do programa e a pasta de salvamento.")
             return None
 
+        # ========== CRIA ESTRUTURA DE PASTAS ==========
+        # Estrutura: [Pasta Base]/[Nome do Programa]/Imagens/
+        import os
+        from pathlib import Path
+        
+        # Sanitiza o nome do programa para uso em pasta
+        safe_prog_name = "".join(c for c in prog if c.isalnum() or c in "._- ").strip()
+        if not safe_prog_name:
+            QMessageBox.warning(msg_parent, "Erro", "Nome do programa inválido para criar pasta.")
+            return None
+        
+        # Cria a estrutura de pastas
+        program_folder = Path(base_folder) / safe_prog_name
+        images_folder = program_folder / "Imagens"
+        
+        try:
+            images_folder.mkdir(parents=True, exist_ok=True)
+            logger.info(f"Estrutura de pastas criada: {images_folder}")
+        except Exception as e:
+            QMessageBox.critical(msg_parent, "Erro", f"Falha ao criar pasta:\n{images_folder}\n\nErro: {e}")
+            return None
+        
+        # A pasta de imagens é onde as capturas serão salvas
+        final_folder = str(images_folder)
+
         # ========== SALVA CONFIGURAÇÕES PARA PRÓXIMA VEZ ==========
         try:
-            self.config.remember_map_params(step_x, step_y, folder, prog)
+            # Salva a pasta BASE (não a pasta de imagens) para que o usuário possa reusar
+            self.config.remember_map_params(step_x, step_y, base_folder, prog)
             self.config.remember_mosaic_settings(
                 auto_build=self.chk_auto_mosaic.isChecked(),
                 margin=self.spin_mosaic_margin.value(),
@@ -2335,7 +2367,8 @@ class AOIControllerApp(QMainWindow):
             logger.warning(f"Erro ao salvar configurações de mapa: {e}")
         # ==========================================================
 
-        return MapParams(origin, end, step_x, step_y, folder, prog)
+        # Usa a pasta de imagens como destino final
+        return MapParams(origin, end, step_x, step_y, final_folder, prog)
 
     def _start_map_thread(self, p: MapParams, dialog):
         """
