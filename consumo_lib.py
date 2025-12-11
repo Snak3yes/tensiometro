@@ -30,6 +30,7 @@ from aoi_lib.stencil_tracker_ui import (
     StencilIdentificationWidget, StencilHistoryDialog, 
     StencilManagerDialog, StencilCreateDialog
 )
+from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -2232,6 +2233,13 @@ class AOIControllerApp(QMainWindow):
         fov_calib_action.triggered.connect(self.show_fov_calibration_dialog)
         tools_menu.addAction(fov_calib_action)
 
+        # Alinhamento de Fiduciais (para inspeção visual)
+        fiducial_action = QAction('🎯 Alinhamento de Fiduciais', self)
+        fiducial_action.setToolTip('Abre ferramenta de alinhamento Gerber ↔ Imagem usando fiduciais')
+        fiducial_action.setShortcut('Ctrl+F')
+        fiducial_action.triggered.connect(self.show_fiducial_alignment_dialog)
+        tools_menu.addAction(fiducial_action)
+
         tools_menu.addSeparator()
 
         # Preferências
@@ -2607,6 +2615,99 @@ class AOIControllerApp(QMainWindow):
                 "Agora você pode usar o clique no vídeo para mover a head\n"
                 "com precisão baseada na altura Z atual."
             )
+
+    def show_fiducial_alignment_dialog(self):
+        """
+        Abre diálogo para alinhamento de fiduciais.
+        
+        Esta ferramenta permite:
+        - Carregar arquivo Gerber e detectar fiduciais automaticamente
+        - Capturar templates de fiduciais da câmera ou mosaico
+        - Calcular transformação (translação, rotação, escala) para alinhar
+        - Ajuste fino manual da transformação
+        """
+        dialog = QDialog(self)
+        dialog.setWindowTitle("🎯 Alinhamento de Fiduciais")
+        dialog.setMinimumSize(1000, 700)
+        dialog.resize(1200, 800)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Widget principal de alinhamento
+        alignment_widget = FiducialAlignmentWidget()
+        layout.addWidget(alignment_widget)
+        
+        # Se temos um mosaico recente, usar como imagem base
+        mosaic_path = self.config.get("mosaic", "last_output_path", default=None)
+        if mosaic_path and os.path.exists(mosaic_path):
+            try:
+                import cv2
+                img = cv2.imread(mosaic_path)
+                if img is not None:
+                    alignment_widget.set_image(img)
+                    logger.info(f"Mosaico carregado para alinhamento: {mosaic_path}")
+            except Exception as e:
+                logger.warning(f"Erro ao carregar mosaico: {e}")
+        
+        # Callback para captura de frame da câmera
+        def get_camera_frame():
+            if hasattr(self, 'camera_preview') and self.controller.camera.is_connected:
+                frame = self.controller.camera.get_frame()
+                return frame
+            return None
+        
+        alignment_widget.set_frame_callback(get_camera_frame)
+        
+        # Conectar sinais
+        def on_alignment_complete(transform):
+            logger.info(f"Alinhamento calculado: tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
+                       f"angle={transform.angle:.2f}°, scale={transform.scale_x:.4f}")
+            
+            # Salvar transformação nas configurações
+            self.config.set("fiducial_alignment", "last_tx", transform.tx)
+            self.config.set("fiducial_alignment", "last_ty", transform.ty)
+            self.config.set("fiducial_alignment", "last_angle", transform.angle)
+            self.config.set("fiducial_alignment", "last_scale", transform.scale_x)
+            self.config.save()
+            
+            QMessageBox.information(
+                dialog, "Alinhamento Aplicado",
+                f"Transformação calculada:\n\n"
+                f"📍 Translação: ({transform.tx:.1f}, {transform.ty:.1f}) px\n"
+                f"🔄 Rotação: {transform.angle:.2f}°\n"
+                f"📐 Escala: {transform.scale_x:.4f}\n\n"
+                f"Os valores foram salvos nas configurações."
+            )
+            dialog.accept()
+        
+        def on_alignment_cancelled():
+            dialog.reject()
+        
+        alignment_widget.alignmentComplete.connect(on_alignment_complete)
+        alignment_widget.alignmentCancelled.connect(on_alignment_cancelled)
+        
+        # Botões de arquivo para carregar imagem
+        btn_layout = QHBoxLayout()
+        
+        btn_load_image = QPushButton("📷 Carregar Imagem/Mosaico")
+        def load_image():
+            filepath, _ = QFileDialog.getOpenFileName(
+                dialog, "Carregar Imagem",
+                "", "Imagens (*.png *.jpg *.bmp *.tiff);;All Files (*)"
+            )
+            if filepath:
+                img = cv2.imread(filepath)
+                if img is not None:
+                    alignment_widget.set_image(img)
+                    logger.info(f"Imagem carregada: {filepath}")
+        btn_load_image.clicked.connect(load_image)
+        btn_layout.addWidget(btn_load_image)
+        
+        btn_layout.addStretch()
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
+
 
     def show_camera_settings_dialog(self):
         """Abre diálogo para configurações de câmera"""

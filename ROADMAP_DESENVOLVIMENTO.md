@@ -124,7 +124,7 @@ Aplicação desktop desenvolvida em PyQt6:
 ---
 
 ### 🎯 FASE 6: Alinhamento de Fiduciais
-**Status: 🟡 Em desenvolvimento (~80%)**
+**Status: ✅ Concluído (~95%)**
 
 Sistema de alinhamento do arquivo Gerber com a imagem real do stencil:
 - [x] Captura de templates de fiduciais por clique
@@ -133,12 +133,15 @@ Sistema de alinhamento do arquivo Gerber com a imagem real do stencil:
 - [x] Interface interativa com zoom, pan e arraste
 - [x] Ajuste fino manual da transformação
 - [x] Suporte a 2+ pontos de referência
-- [ ] Integrar com parser Gerber para identificar fiduciais automaticamente
-- [ ] Testar workflow completo integrado
+- [x] Parser Gerber com detecção automática de candidatos a fiduciais
+- [x] Menu integrado em Ferramentas (Ctrl+F)
+- [ ] Testar workflow completo com stencil real
 
 **Arquivos:**
 - `aoi_lib/fiducial_alignment.py` - Core de alinhamento
 - `aoi_lib/fiducial_alignment_widget.py` - Interface PyQt6
+- `aoi_lib/gerber_parser.py` - Parser Gerber + detecção de fiduciais
+- `consumo_lib.py` - Integração via menu
 
 **Notas:** Baseado em funcionalidade da aplicação ADESIVADORA, adaptada para inspeção visual
 
@@ -204,12 +207,12 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 | 3 | Sistema de Receitas | ✅ 100% |
 | 4 | Medição de Tensão | ✅ 100% |
 | 5 | Interface Principal | ✅ 100% |
-| 6 | Alinhamento de Fiduciais | 🟡 ~80% |
+| 6 | Alinhamento de Fiduciais | ✅ ~95% |
 | 7 | Rastreabilidade | ✅ ~95% |
 | 8 | Relatórios | 🔴 Pendente |
 | 9 | Inspeção Visual Automatizada | 🔴 Pendente |
 
-**Progresso Geral: ~80%**
+**Progresso Geral: ~85%**
 
 ---
 
@@ -238,9 +241,10 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 > **Próximas prioridades:**
 > 1. ~~Integrar aba de rastreabilidade na interface principal~~ ✅
 > 2. ~~Conectar medição de tensão ao histórico do stencil~~ ✅
-> 3. Finalizar integração do alinhamento de fiduciais (Fase 6)
-> 4. Implementar geração de relatórios (Fase 8)
-> 5. Iniciar parser Gerber para inspeção visual (Fase 9)
+> 3. ~~Integrar parser Gerber com detecção de fiduciais (Fase 6)~~ ✅
+> 4. Implementar geração de relatórios PDF (Fase 8)
+> 5. Criar renderizador Gerber para overlay na inspeção visual (Fase 9)
+> 6. Implementar comparação de máscaras para detecção de defeitos (Fase 9)
 
 ---
 

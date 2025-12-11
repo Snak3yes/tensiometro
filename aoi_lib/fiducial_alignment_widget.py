@@ -37,6 +37,16 @@ from .fiducial_alignment import (
     AlignmentTransform, create_alignment_preview
 )
 
+# Parser Gerber para detecção automática de fiduciais
+try:
+    from .gerber_parser import (
+        GerberParser, ParsedGerber, FiducialCandidate, GerberBounds
+    )
+    HAS_GERBER_PARSER = True
+except ImportError:
+    HAS_GERBER_PARSER = False
+    log.warning("gerber_parser não disponível - detecção automática de fiduciais desabilitada")
+
 log = logging.getLogger(__name__)
 
 
@@ -536,6 +546,13 @@ class FiducialAlignmentWidget(QWidget):
         tab_fid_layout.addWidget(self.panel_fid_b)
         
         # Botões de ação
+        btn_load_gerber = QPushButton("📁 Carregar Gerber")
+        btn_load_gerber.clicked.connect(self._load_gerber_file)
+        if not HAS_GERBER_PARSER:
+            btn_load_gerber.setEnabled(False)
+            btn_load_gerber.setToolTip("Parser Gerber não disponível")
+        tab_fid_layout.addWidget(btn_load_gerber)
+        
         btn_search = QPushButton("🔍 Buscar Fiduciais")
         btn_search.clicked.connect(self._search_all_fiducials)
         tab_fid_layout.addWidget(btn_search)
@@ -715,6 +732,95 @@ class FiducialAlignmentWidget(QWidget):
         
         # Atualiza marcadores na view
         self._update_fiducial_markers()
+    
+    def _load_gerber_file(self):
+        """Carrega arquivo Gerber e detecta candidatos a fiduciais."""
+        if not HAS_GERBER_PARSER:
+            QMessageBox.warning(
+                self, "Erro",
+                "Parser Gerber não disponível."
+            )
+            return
+        
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Carregar Arquivo Gerber",
+            "", "Gerber Files (*.gbr *.ger);;All Files (*)"
+        )
+        
+        if not filepath:
+            return
+        
+        # Parsear arquivo
+        parser = GerberParser()
+        result = parser.parse_file(filepath)
+        
+        if result.error:
+            QMessageBox.critical(
+                self, "Erro no Parsing",
+                f"Erro ao processar arquivo Gerber:\n{result.error}"
+            )
+            return
+        
+        # Verificar candidatos
+        if not result.fiducial_candidates:
+            QMessageBox.warning(
+                self, "Nenhum Fiducial Encontrado",
+                f"O arquivo foi processado com sucesso:\n"
+                f"- {result.stats.total_objects} objetos\n"
+                f"- {result.stats.circles} círculos\n\n"
+                f"Porém nenhum candidato a fiducial foi identificado.\n"
+                f"Fiduciais típicos são círculos de 1-2mm nos cantos do stencil."
+            )
+            return
+        
+        # Obter os 2 melhores candidatos
+        suggested = parser.get_suggested_fiducials(2)
+        
+        if len(suggested) < 2:
+            QMessageBox.warning(
+                self, "Poucos Candidatos",
+                f"Apenas {len(suggested)} candidato(s) encontrado(s).\n"
+                f"São necessários pelo menos 2 fiduciais para alinhamento."
+            )
+            return
+        
+        # Configurar fiduciais A e B
+        fid_a = self.aligner.get_fiducial("Fiducial A")
+        fid_b = self.aligner.get_fiducial("Fiducial B")
+        
+        if fid_a and fid_b:
+            # Usar posições dos candidatos como coordenadas Gerber
+            fid_a.gerber_x = suggested[0].x_mm
+            fid_a.gerber_y = suggested[0].y_mm
+            fid_b.gerber_x = suggested[1].x_mm
+            fid_b.gerber_y = suggested[1].y_mm
+            
+            self.panel_fid_a.set_template(fid_a)
+            self.panel_fid_b.set_template(fid_b)
+        
+        # Guardar informações do Gerber
+        self._gerber_result = result
+        self._gerber_bounds = result.stats.bounds
+        
+        # Mostrar resumo
+        corners = []
+        for c in suggested:
+            if c.corner:
+                corners.append(c.corner.replace("_", " ").title())
+            else:
+                corners.append("Centro")
+        
+        QMessageBox.information(
+            self, "Fiduciais Detectados",
+            f"✅ Arquivo: {Path(filepath).name}\n"
+            f"📊 {result.stats.total_objects} objetos\n"
+            f"🎯 {len(result.fiducial_candidates)} candidatos a fiducial\n\n"
+            f"Fiduciais selecionados:\n"
+            f"• A: ({suggested[0].x_mm:.2f}, {suggested[0].y_mm:.2f}) mm - {corners[0]}\n"
+            f"• B: ({suggested[1].x_mm:.2f}, {suggested[1].y_mm:.2f}) mm - {corners[1]}\n\n"
+            f"Agora capture os templates clicando nos fiduciais na imagem."
+        )
+
     
     def _search_all_fiducials(self):
         """Busca todos os fiduciais."""
