@@ -22,6 +22,9 @@ from aoi_lib.utils.move_task import MoveTaskThread
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from dataclasses import dataclass
 from aoi_lib.stencil_tension import StencilTensionDialog
+from aoi_lib.fov_calibration import (
+    FOVCalibration, CameraFOVConverter, FOVCalibrationDialog, ClickableVideoLabel
+)
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -838,10 +841,30 @@ class CameraPreviewWidget(QWidget):
     def __init__(self, controller, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
         self.controller = controller
+        self.cfg = cfg
         self.current_image = None
+        self._last_frame_size = (640, 480)  # Tamanho do frame da câmera
         self.preview_timer = QTimer(self)
         self.preview_timer.timeout.connect(self.update_preview)
+        
+        # Inicializa conversor de FOV para clique no vídeo
+        self._init_fov_converter()
+        
         self.setup_ui()
+    
+    def _init_fov_converter(self):
+        """Inicializa o conversor de coordenadas pixel→pulsos"""
+        self.fov_converter = CameraFOVConverter()
+        
+        # Carrega calibração salva se existir
+        fov_data = self.cfg.get("camera", "fov_calibration", default={})
+        if fov_data:
+            self.fov_converter.set_fov_calibration(FOVCalibration.from_dict(fov_data))
+        
+        # Carrega calibração de eixos
+        pulses_per_mm = self.cfg.get("movement", "pulses_per_mm", default=100.0)
+        self.fov_converter.set_axis_calibration("X", pulses_per_mm)
+        self.fov_converter.set_axis_calibration("Y", pulses_per_mm)
         
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -850,13 +873,20 @@ class CameraPreviewWidget(QWidget):
         preview_group.setMinimumHeight(450)
         pg_layout = QVBoxLayout(preview_group)
 
-        # Área de visualização
-        self.image_label = QLabel()
+        # Área de visualização - usa ClickableVideoLabel para detectar cliques
+        self.image_label = ClickableVideoLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText("Camera Preview")
+        self.image_label.setText("Camera Preview\n(Clique para mover a head)")
         self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
         self.image_label.setMinimumSize(600, 450)
+        self.image_label.clicked.connect(self._on_video_click)
         pg_layout.addWidget(self.image_label)
+
+        # Checkbox para habilitar movimento por clique
+        self.click_move_enabled = QCheckBox("Mover head ao clicar")
+        self.click_move_enabled.setChecked(False)
+        self.click_move_enabled.setToolTip("Quando ativado, clicar no vídeo move a head para centralizar o ponto clicado")
+        pg_layout.addWidget(self.click_move_enabled)
 
         # Botões de preview dentro da mesma groupbox
         btn_layout = QHBoxLayout()
@@ -870,6 +900,55 @@ class CameraPreviewWidget(QWidget):
         pg_layout.addLayout(btn_layout)
 
         layout.addWidget(preview_group, 1)
+    
+    def _on_video_click(self, click_x: float, click_y: float):
+        """
+        Handler para clique no preview de vídeo.
+        Move a head para centralizar o ponto clicado.
+        """
+        # Verifica se movimento por clique está habilitado
+        if not self.click_move_enabled.isChecked():
+            return
+        
+        # Verifica se CLP está conectado
+        if not hasattr(self.controller, 'plc') or not self.controller.plc.connected:
+            QMessageBox.warning(
+                self, "CLP Não Conectado",
+                "O CLP não está conectado. Conecte antes de usar movimento por clique."
+            )
+            return
+        
+        try:
+            # Obtém posição Z atual para calibração correta
+            z_current = self.controller.plc.current_positions.get('Z', 0)
+            
+            # Atualiza tamanho do frame no conversor
+            self.fov_converter.set_frame_size(*self._last_frame_size)
+            
+            # Converte clique em movimento
+            dx_pulses, dy_pulses = self.fov_converter.video_click_to_movement(
+                click_x, click_y,
+                self.image_label.width(),
+                self.image_label.height(),
+                z_current,
+                axis_x="X", axis_y="Y",
+                invert_y=getattr(self.window(), '_camera_mirror_y', False)
+            )
+            
+            # Executa movimento se houver deslocamento significativo
+            if abs(dx_pulses) > 5 or abs(dy_pulses) > 5:
+                logger.info(f"Clique no vídeo: movendo ΔX={dx_pulses}, ΔY={dy_pulses} pulsos")
+                
+                if dx_pulses != 0:
+                    self.controller.plc.move_relative('X', int(dx_pulses))
+                if dy_pulses != 0:
+                    self.controller.plc.move_relative('Y', int(dy_pulses))
+            else:
+                logger.debug(f"Clique muito próximo do centro, ignorado")
+                
+        except Exception as e:
+            logger.error(f"Erro ao processar clique no vídeo: {e}")
+            QMessageBox.warning(self, "Erro", f"Erro ao mover: {e}")
         
     def start_preview(self):
         """Start camera preview"""
@@ -891,6 +970,10 @@ class CameraPreviewWidget(QWidget):
         try:
             image = self.controller.camera.capture()
             if image is not None:
+                # Salva tamanho do frame para conversão de clique
+                h, w = image.shape[:2]
+                self._last_frame_size = (w, h)
+                
                 self.display_image(image)
                 self.current_image = image
         except Exception as e:
@@ -2070,6 +2153,14 @@ class AOIControllerApp(QMainWindow):
         camera_settings_action.triggered.connect(self.show_camera_settings_dialog)
         tools_menu.addAction(camera_settings_action)
 
+        # Calibração de Campo de Visão (FOV) - para movimento por clique
+        fov_calib_action = QAction('📐 Calibração de FOV (Campo de Visão)', self)
+        fov_calib_action.setToolTip('Configura a relação pixel↔mm para movimento por clique no vídeo')
+        fov_calib_action.triggered.connect(self.show_fov_calibration_dialog)
+        tools_menu.addAction(fov_calib_action)
+
+        tools_menu.addSeparator()
+
         # Preferências
         pref_action = QAction('Preferências', self)
         pref_action.setShortcut('Ctrl+,')
@@ -2245,6 +2336,46 @@ class AOIControllerApp(QMainWindow):
         self.camera_calib_dialog = CameraCalibrationDialog(self.controller.camera, self)
         self.camera_calib_dialog.resize(900, 750)
         self.camera_calib_dialog.show()
+
+    def show_fov_calibration_dialog(self):
+        """
+        Abre diálogo para calibração de Campo de Visão (FOV).
+        
+        Esta calibração define a relação entre pixels da câmera e dimensões físicas (mm)
+        em diferentes alturas Z, permitindo conversão precisa de clique no vídeo para
+        movimento da head.
+        """
+        # Cria adaptador para o ConfigManager para usar o formato esperado pelo diálogo
+        class ConfigAdapter:
+            def __init__(self, cfg):
+                self._cfg = cfg
+            
+            def get_config(self, key, default=None):
+                if key == "camera_fov":
+                    return self._cfg.get("camera", "fov_calibration", default=default or {})
+                return default
+            
+            def set_config(self, key, value):
+                if key == "camera_fov":
+                    self._cfg.set("camera", "fov_calibration", value)
+                    self._cfg.save()
+        
+        adapter = ConfigAdapter(self.config)
+        
+        dialog = FOVCalibrationDialog(adapter, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Atualiza o conversor FOV do CameraPreviewWidget
+            if hasattr(self, 'camera_preview') and hasattr(self.camera_preview, 'fov_converter'):
+                fov = dialog.get_calibration()
+                self.camera_preview.fov_converter.set_fov_calibration(fov)
+                logger.info(f"Calibração de FOV atualizada: {fov}")
+            
+            QMessageBox.information(
+                self, "Calibração Salva",
+                "A calibração de campo de visão foi salva.\n\n"
+                "Agora você pode usar o clique no vídeo para mover a head\n"
+                "com precisão baseada na altura Z atual."
+            )
 
     def show_camera_settings_dialog(self):
         """Abre diálogo para configurações de câmera"""

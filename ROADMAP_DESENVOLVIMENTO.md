@@ -69,10 +69,12 @@ Sistema de captura e processamento de imagem com OpenCV:
 - [x] Base para geração de mosaico (stitching)
 - [x] **Calibração de Campo de Visão (FOV)** - Diálogo para configurar relação pixel↔mm em diferentes alturas Z
 - [x] **Movimento por clique no vídeo** - Clique no preview da câmera move a head para centralizar o ponto
+- [x] **Integração na interface** - Menu Ferramentas → Calibração de FOV, checkbox para habilitar clique
 
 **Arquivos:**
 - `aoi_lib/camera_controller.py` - Controle de câmera
 - `aoi_lib/fov_calibration.py` - Calibração FOV e conversão pixel→pulsos (baseado em ADESIVADORA)
+- `consumo_lib.py` - Integração no CameraPreviewWidget e menu
 
 ---
 
