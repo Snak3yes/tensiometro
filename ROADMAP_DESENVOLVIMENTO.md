@@ -176,13 +176,27 @@ Controle individualizado de cada stencil físico:
 ---
 
 ### 📄 FASE 8: Relatórios
-**Status: 🔴 Pendente**
+**Status: ✅ Concluído (~90%)**
 
 Geração de relatórios para documentação e rastreabilidade:
-- [ ] Relatório individual de medição (heatmap + tabela)
-- [ ] Relatório de inspeção visual (imagem anotada)
-- [ ] Histórico consolidado por stencil
-- [ ] Exportação PDF e CSV
+- [x] Relatório individual de medição de tensão (mapa + tabela)
+- [x] Relatório de histórico do stencil com gráfico de tendência
+- [x] Consulta por período com filtros
+- [x] Exportação PDF (reportlab + matplotlib)
+- [x] Exportação CSV de consultas
+- [x] Configuração personalizável (logo, nome empresa, cores)
+- [x] Menu integrado: Relatórios → (Tensão, Stencil, Período, Configurações)
+- [ ] Relatório de inspeção visual (após Fase 9)
+
+**Arquivos:**
+- `aoi_lib/report_generator.py` - Gerador de PDF com reportlab
+- `aoi_lib/report_settings_dialog.py` - Diálogo de configuração
+- `consumo_lib.py` - Integração de menu e handlers
+
+**Notas:**
+- Configurações persistidas em `aoi_config.json`
+- Relatórios salvos em `reports/tension/` e `reports/stencil/`
+- Suporte a logo personalizado por cliente
 
 ---
 
@@ -209,10 +223,10 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 | 5 | Interface Principal | ✅ 100% |
 | 6 | Alinhamento de Fiduciais | ✅ ~95% |
 | 7 | Rastreabilidade | ✅ ~95% |
-| 8 | Relatórios | 🔴 Pendente |
+| 8 | Relatórios | ✅ ~90% |
 | 9 | Inspeção Visual Automatizada | 🔴 Pendente |
 
-**Progresso Geral: ~85%**
+**Progresso Geral: ~90%**
 
 ---
 
@@ -242,9 +256,10 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 > 1. ~~Integrar aba de rastreabilidade na interface principal~~ ✅
 > 2. ~~Conectar medição de tensão ao histórico do stencil~~ ✅
 > 3. ~~Integrar parser Gerber com detecção de fiduciais (Fase 6)~~ ✅
-> 4. Implementar geração de relatórios PDF (Fase 8)
+> 4. ~~Implementar geração de relatórios PDF (Fase 8)~~ ✅
 > 5. Criar renderizador Gerber para overlay na inspeção visual (Fase 9)
 > 6. Implementar comparação de máscaras para detecção de defeitos (Fase 9)
+> 7. Adicionar relatório de inspeção visual nos PDFs (Fase 8+9)
 
 ---
 

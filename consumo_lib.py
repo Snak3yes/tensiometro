@@ -31,6 +31,8 @@ from aoi_lib.stencil_tracker_ui import (
     StencilManagerDialog, StencilCreateDialog
 )
 from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
+from aoi_lib.report_generator import ReportGenerator, ReportConfig
+from aoi_lib.report_settings_dialog import ReportSettingsDialog
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -1756,6 +1758,9 @@ class AOIControllerApp(QMainWindow):
         self.current_stencil = None  # Stencil atualmente selecionado
         logger.info(f"StencilTracker inicializado. Diretório: {self.stencil_tracker.data_dir}")
         
+        # =========== SISTEMA DE RELATÓRIOS ===========
+        self._init_report_generator()
+        
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
 
@@ -2197,6 +2202,36 @@ class AOIControllerApp(QMainWindow):
         self.current_stencil_action = QAction('(Nenhum stencil selecionado)', self)
         self.current_stencil_action.setEnabled(False)
         stencils_menu.addAction(self.current_stencil_action)
+        
+        # =========== MENU DE RELATÓRIOS ===========
+        reports_menu = menubar.addMenu('&Relatórios')
+        
+        # Gerar Relatório de Tensão
+        tension_report_action = QAction('📄 Relatório de Tensão...', self)
+        tension_report_action.setShortcut('Ctrl+P')
+        tension_report_action.setToolTip('Gera relatório PDF da última medição de tensão')
+        tension_report_action.triggered.connect(self.show_tension_report_dialog)
+        reports_menu.addAction(tension_report_action)
+        
+        # Relatório do Stencil
+        stencil_report_action = QAction('📋 Relatório do Stencil...', self)
+        stencil_report_action.setToolTip('Gera relatório PDF do histórico do stencil selecionado')
+        stencil_report_action.triggered.connect(self.show_stencil_report_dialog)
+        reports_menu.addAction(stencil_report_action)
+        
+        reports_menu.addSeparator()
+        
+        # Consultar por Período
+        period_report_action = QAction('📅 Consultar por Período...', self)
+        period_report_action.triggered.connect(self.show_period_query_dialog)
+        reports_menu.addAction(period_report_action)
+        
+        reports_menu.addSeparator()
+        
+        # Configurações de Relatório
+        report_settings_action = QAction('⚙️ Configurações de Relatório...', self)
+        report_settings_action.triggered.connect(self.show_report_settings)
+        reports_menu.addAction(report_settings_action)
         
         # Menu de Ferramentas
         tools_menu = menubar.addMenu('&Ferramentas')
@@ -2704,6 +2739,276 @@ class AOIControllerApp(QMainWindow):
         btn_layout.addWidget(btn_load_image)
         
         btn_layout.addStretch()
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
+
+    # =========================================================================
+    #  SISTEMA DE RELATÓRIOS
+    # =========================================================================
+    
+    def _init_report_generator(self):
+        """Inicializa o gerador de relatórios com configurações salvas."""
+        # Carregar configuração de relatórios
+        report_config_data = self.config.get("reports", "config", default=None)
+        
+        if report_config_data:
+            try:
+                self.report_config = ReportConfig.from_dict(report_config_data)
+                logger.info("Configuração de relatórios carregada")
+            except Exception as e:
+                logger.warning(f"Erro ao carregar config de relatórios: {e}")
+                self.report_config = ReportConfig()
+        else:
+            self.report_config = ReportConfig()
+        
+        self.report_generator = ReportGenerator(self.report_config)
+        logger.info(f"ReportGenerator inicializado. Diretório: {self.report_config.output_dir}")
+    
+    def show_report_settings(self):
+        """Abre diálogo de configurações de relatório."""
+        dialog = ReportSettingsDialog(self.report_config, self)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.report_config = dialog.get_config()
+            self.report_generator = ReportGenerator(self.report_config)
+            
+            # Salvar configuração
+            self.config.set("reports", "config", self.report_config.to_dict())
+            self.config.save()
+            
+            logger.info("Configuração de relatórios atualizada e salva")
+            self.statusBar().showMessage("Configurações de relatório salvas", 3000)
+    
+    def show_tension_report_dialog(self):
+        """Gera relatório de tensão da última medição."""
+        # Tentar carregar última medição
+        tension_file = Path("stencil_tension_measurements.json")
+        
+        if not tension_file.exists():
+            QMessageBox.warning(
+                self, "Sem Dados",
+                "Nenhuma medição de tensão disponível.\n\n"
+                "Execute uma medição de tensão primeiro."
+            )
+            return
+        
+        try:
+            with open(tension_file, 'r', encoding='utf-8') as f:
+                tension_data = json.load(f)
+            
+            # Obter informações do stencil atual
+            stencil_code = None
+            stencil_desc = None
+            if self.current_stencil:
+                stencil_code = self.current_stencil.code
+                stencil_desc = self.current_stencil.description
+            
+            # Obter nome da receita
+            recipe_name = None
+            if self.current_recipe:
+                recipe_name = self.current_recipe.get('name')
+            
+            # Gerar relatório
+            output_path = self.report_generator.generate_tension_report(
+                tension_data=tension_data,
+                stencil_code=stencil_code,
+                stencil_description=stencil_desc,
+                recipe_name=recipe_name,
+                operator=None  # TODO: Implementar campo de operador
+            )
+            
+            # Perguntar se quer abrir o PDF
+            reply = QMessageBox.question(
+                self, "Relatório Gerado",
+                f"Relatório gerado com sucesso:\n{output_path}\n\n"
+                f"Deseja abrir o arquivo?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                import subprocess
+                subprocess.Popen([output_path], shell=True)
+                
+        except Exception as e:
+            logger.exception("Erro ao gerar relatório de tensão")
+            QMessageBox.critical(
+                self, "Erro",
+                f"Erro ao gerar relatório:\n{str(e)}"
+            )
+    
+    def show_stencil_report_dialog(self):
+        """Gera relatório de histórico do stencil selecionado."""
+        if not self.current_stencil:
+            QMessageBox.warning(
+                self, "Stencil Não Selecionado",
+                "Selecione um stencil primeiro usando a aba de Rastreabilidade."
+            )
+            return
+        
+        try:
+            # Obter histórico do stencil
+            history = self.stencil_tracker.get_tension_history(self.current_stencil.code)
+            
+            if not history:
+                QMessageBox.warning(
+                    self, "Sem Histórico",
+                    f"O stencil {self.current_stencil.code} não possui histórico de medições."
+                )
+                return
+            
+            # Converter Stencil para dict
+            from dataclasses import asdict
+            stencil_dict = asdict(self.current_stencil)
+            
+            # Converter TensionRecords para dicts
+            history_dicts = []
+            for record in history:
+                if hasattr(record, '__dict__'):
+                    history_dicts.append(record.__dict__ if not hasattr(record, 'to_dict') else record.to_dict())
+                else:
+                    history_dicts.append(record)
+            
+            # Gerar relatório
+            output_path = self.report_generator.generate_stencil_history_report(
+                stencil=stencil_dict,
+                history=history_dicts
+            )
+            
+            # Perguntar se quer abrir
+            reply = QMessageBox.question(
+                self, "Relatório Gerado",
+                f"Relatório de histórico gerado:\n{output_path}\n\n"
+                f"Deseja abrir o arquivo?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply == QMessageBox.StandardButton.Yes:
+                import subprocess
+                subprocess.Popen([output_path], shell=True)
+                
+        except Exception as e:
+            logger.exception("Erro ao gerar relatório de stencil")
+            QMessageBox.critical(
+                self, "Erro",
+                f"Erro ao gerar relatório:\n{str(e)}"
+            )
+    
+    def show_period_query_dialog(self):
+        """Abre diálogo para consultar medições por período."""
+        from PyQt6.QtWidgets import QDateEdit
+        from PyQt6.QtCore import QDate
+        
+        dialog = QDialog(self)
+        dialog.setWindowTitle("📅 Consultar por Período")
+        dialog.setMinimumWidth(400)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Seleção de período
+        period_group = QGroupBox("Período de Consulta")
+        period_layout = QFormLayout(period_group)
+        
+        date_start = QDateEdit()
+        date_start.setDate(QDate.currentDate().addMonths(-1))
+        date_start.setCalendarPopup(True)
+        period_layout.addRow("Data Inicial:", date_start)
+        
+        date_end = QDateEdit()
+        date_end.setDate(QDate.currentDate())
+        date_end.setCalendarPopup(True)
+        period_layout.addRow("Data Final:", date_end)
+        
+        layout.addWidget(period_group)
+        
+        # Opções
+        options_group = QGroupBox("Opções")
+        options_layout = QVBoxLayout(options_group)
+        
+        chk_all_stencils = QCheckBox("Todos os stencils")
+        chk_all_stencils.setChecked(True)
+        options_layout.addWidget(chk_all_stencils)
+        
+        layout.addWidget(options_group)
+        
+        # Lista de resultados
+        from PyQt6.QtWidgets import QTableWidget
+        result_table = QTableWidget()
+        result_table.setColumnCount(5)
+        result_table.setHorizontalHeaderLabels(["Data", "Stencil", "Média", "Resultado", "Operador"])
+        result_table.setMinimumHeight(200)
+        layout.addWidget(result_table)
+        
+        # Botões
+        btn_layout = QHBoxLayout()
+        
+        btn_search = QPushButton("🔍 Buscar")
+        def do_search():
+            # Converter datas
+            start = date_start.date().toPyDate()
+            end = date_end.date().toPyDate()
+            
+            # Buscar em todos os stencils
+            all_records = []
+            stencils = self.stencil_tracker.list_stencils()
+            
+            for stencil in stencils:
+                history = self.stencil_tracker.get_tension_history(stencil.code)
+                for record in history:
+                    try:
+                        ts = record.timestamp if hasattr(record, 'timestamp') else record.get('timestamp', '')
+                        from datetime import datetime
+                        dt = datetime.fromisoformat(ts).date()
+                        if start <= dt <= end:
+                            all_records.append((stencil.code, record))
+                    except:
+                        pass
+            
+            # Preencher tabela
+            result_table.setRowCount(len(all_records))
+            for i, (code, record) in enumerate(all_records):
+                ts = record.timestamp if hasattr(record, 'timestamp') else record.get('timestamp', '')
+                avg = record.average_tension if hasattr(record, 'average_tension') else record.get('average_tension', 0)
+                result_field = record.result if hasattr(record, 'result') else record.get('result', 'OK')
+                op = record.operator if hasattr(record, 'operator') else record.get('operator', '-')
+                
+                result_table.setItem(i, 0, QTableWidgetItem(ts[:16]))
+                result_table.setItem(i, 1, QTableWidgetItem(code))
+                result_table.setItem(i, 2, QTableWidgetItem(f"{avg:.2f}"))
+                result_table.setItem(i, 3, QTableWidgetItem(result_field))
+                result_table.setItem(i, 4, QTableWidgetItem(op or "-"))
+            
+            self.statusBar().showMessage(f"{len(all_records)} registros encontrados", 3000)
+        
+        btn_search.clicked.connect(do_search)
+        btn_layout.addWidget(btn_search)
+        
+        btn_export = QPushButton("📄 Exportar CSV")
+        def do_export():
+            if result_table.rowCount() == 0:
+                QMessageBox.warning(dialog, "Sem Dados", "Execute uma busca primeiro.")
+                return
+            
+            filepath, _ = QFileDialog.getSaveFileName(
+                dialog, "Exportar CSV", "", "CSV (*.csv)"
+            )
+            if filepath:
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    f.write("Data,Stencil,Média,Resultado,Operador\n")
+                    for row in range(result_table.rowCount()):
+                        cols = [result_table.item(row, c).text() for c in range(5)]
+                        f.write(",".join(cols) + "\n")
+                QMessageBox.information(dialog, "Exportado", f"Dados exportados para:\n{filepath}")
+        
+        btn_export.clicked.connect(do_export)
+        btn_layout.addWidget(btn_export)
+        
+        btn_layout.addStretch()
+        
+        btn_close = QPushButton("Fechar")
+        btn_close.clicked.connect(dialog.accept)
+        btn_layout.addWidget(btn_close)
+        
         layout.addLayout(btn_layout)
         
         dialog.exec()
