@@ -58,9 +58,22 @@ class PLCAxisController:
             'pos_reg':        3400     # D3400_Z
         }
     }
+    
+    # Endereço da saída Y0.7 para controle do backlight
+    # Na série Delta AS, saídas Y são mapeadas a partir do endereço 0x0500 (1280 decimal)
+    # Y0.7 = base + 7 = 1287 (ou pode ser configurado diferente no CLP)
+    BACKLIGHT_COIL = 0x0507  # Y0.7 - Ajustar se necessário conforme configuração do CLP
 
-    def __init__(self, host: str='192.168.1.5', port: int=502):
-        """Conecta ao CLP via Modbus TCP."""
+    def __init__(self, host: str='192.168.1.5', port: int=502, auto_connect: bool=True):
+        """
+        Inicializa o controlador do CLP via Modbus TCP.
+        
+        Args:
+            host: Endereço IP do CLP
+            port: Porta Modbus TCP (padrão 502)
+            auto_connect: Se True, tenta conectar imediatamente. Se False, a conexão
+                          deve ser feita manualmente via connect().
+        """
         # guarda os parâmetros de conexão
         self.host = host
         self.port = port
@@ -68,7 +81,7 @@ class PLCAxisController:
         self.is_connected = False
         # estado inicial da máquina
         self.machine_status = "Disconnected"
-        # cria o cliente Modbus e tenta conectar imediatamente
+        # cria o cliente Modbus (sem conectar ainda)
         self.client = ModbusTcpClient(host, port=port)
         # limites de feed (compatível com MovementControlWidget)
         self.max_feed = {'x': float('inf'),
@@ -76,12 +89,37 @@ class PLCAxisController:
                          'z': float('inf')}
         # fator de conversão pulses → mm
         self.pulses_per_mm = 1.0
-        # tenta abrir a conexão; levanta erro se falhar
-        connected = self.client.connect()
-        if not connected:
-            raise ConnectionError(f"Falha ao conectar ao CLP em {host}:{port}")
-        self.is_connected = True
-        self.machine_status = "Idle"
+        # estado do backlight (iluminação inferior)
+        self.backlight_on = False
+        
+        # Conecta automaticamente se solicitado
+        if auto_connect:
+            self.connect()
+    
+    def connect(self) -> bool:
+        """
+        Tenta conectar ao CLP via Modbus TCP.
+        
+        Returns:
+            True se a conexão foi bem-sucedida, False caso contrário.
+            
+        Raises:
+            ConnectionError: Se a conexão falhar.
+        """
+        if self.is_connected:
+            return True
+            
+        try:
+            connected = self.client.connect()
+            if not connected:
+                raise ConnectionError(f"Falha ao conectar ao CLP em {self.host}:{self.port}")
+            self.is_connected = True
+            self.machine_status = "Idle"
+            return True
+        except Exception as e:
+            self.is_connected = False
+            self.machine_status = "Disconnected"
+            raise ConnectionError(f"Falha ao conectar ao CLP em {self.host}:{self.port}: {e}")
     
     
 
@@ -346,6 +384,53 @@ class PLCAxisController:
         # homing X e Y em paralelo
         self._pulse_coil(self.ADDRESSES['X']['zero'])
         self._pulse_coil(self.ADDRESSES['Y']['zero'])
+
+    # =========================================================================
+    # CONTROLE DE ILUMINAÇÃO (BACKLIGHT)
+    # =========================================================================
+    
+    def backlight_set(self, on: bool) -> bool:
+        """
+        Liga ou desliga o backlight (iluminação inferior do stencil).
+        
+        Args:
+            on: True para ligar, False para desligar
+            
+        Returns:
+            True se o comando foi executado com sucesso
+        """
+        if not self.client or not self.is_connected:
+            logging.warning("PLC não conectado - não é possível controlar backlight")
+            return False
+        
+        try:
+            result = self.client.write_coil(self.BACKLIGHT_COIL, on)
+            if result.isError():
+                logging.error(f"Erro ao {'ligar' if on else 'desligar'} backlight: {result}")
+                return False
+            
+            self.backlight_on = on
+            logging.info(f"Backlight {'LIGADO' if on else 'DESLIGADO'} (Y0.7)")
+            return True
+        except Exception as e:
+            logging.error(f"Exceção ao controlar backlight: {e}")
+            return False
+    
+    def backlight_turn_on(self) -> bool:
+        """Liga o backlight."""
+        return self.backlight_set(True)
+    
+    def backlight_turn_off(self) -> bool:
+        """Desliga o backlight."""
+        return self.backlight_set(False)
+    
+    def backlight_toggle(self) -> bool:
+        """Alterna o estado do backlight."""
+        return self.backlight_set(not self.backlight_on)
+    
+    def backlight_is_on(self) -> bool:
+        """Retorna o estado atual do backlight."""
+        return self.backlight_on
 
 
 if __name__ == "__main__":

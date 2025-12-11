@@ -24,7 +24,9 @@
     "last_cnc_port": "COM22",
     "auto_connect_cnc": true,
     "last_camera_id": 2,
-    "auto_connect_camera": true
+    "auto_connect_camera": true,
+    "plc_host": "192.168.0.5",
+    "plc_port": 502
   },
   "ui": {
     "theme": "light"
@@ -36,5 +38,29 @@
   "movement": {
     "step_size": 1.0,
     "feed_rate": 50.0
+  },
+  "map": {
+    "step_x": 10.0,
+    "step_y": 10.0
+  },
+  "mosaic": {
+    "last_folder": "c:\\Users\\sense\\PycharmProjects\\Tensiometro\\Projetos",
+    "last_program_name": "qweqwe",
+    "auto_build": false,
+    "margin": 50,
+    "blend_size": 20,
+    "capture_delay_ms": 100,
+    "use_multiband": false
+  },
+  "camera": {
+    "mirror_x": false,
+    "mirror_y": true,
+    "brightness": 0,
+    "contrast": 2,
+    "saturation": 61,
+    "exposure": -6,
+    "gain": 128,
+    "auto_exposure": false,
+    "auto_white_balance": true
   }
 }

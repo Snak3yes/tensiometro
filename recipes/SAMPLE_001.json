@@ -1,0 +1,64 @@
+{
+  "version": "1.0",
+  "recipe_id": "SAMPLE_001",
+  "name": "Stencil Exemplo PCB",
+  "created_at": "2025-12-10T16:04:47.629431",
+  "modified_at": "2025-12-10T16:04:47.629431",
+  "created_by": "",
+  "stencil": {
+    "width_mm": 400,
+    "height_mm": 300,
+    "thickness_mm": 0.12,
+    "material": "Inox 304",
+    "notes": "Stencil de exemplo para testes"
+  },
+  "tension_config": {
+    "enabled": true,
+    "grid": {
+      "rows": 5,
+      "cols": 5
+    },
+    "start_point": {
+      "x": 50,
+      "y": 50
+    },
+    "end_point": {
+      "x": 350,
+      "y": 250
+    },
+    "z_params": {
+      "start_z": 0,
+      "end_z": -5,
+      "speed": 100
+    },
+    "acceptance": {
+      "min_tension": 25.0,
+      "max_tension": 45.0,
+      "warning_low": 28.0,
+      "warning_high": 42.0
+    }
+  },
+  "capture_config": {
+    "origin": {
+      "x": 0,
+      "y": 0
+    },
+    "end": {
+      "x": 400,
+      "y": 300
+    },
+    "step_x": 50,
+    "step_y": 50,
+    "feed_rate": 2000,
+    "capture_delay_ms": 200,
+    "backlight_enabled": true
+  },
+  "inspection_config": {
+    "enabled": false,
+    "gerber_file": null,
+    "masks": [],
+    "default_threshold": 128,
+    "default_min_percent": 95.0,
+    "target_color": "white"
+  }
+}

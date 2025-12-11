@@ -22,7 +22,8 @@ class CNCAOIController:
     def __init__(self,
                  camera_interface=None,
                  plc_host='192.168.1.5',
-                 plc_port=502):
+                 plc_port=502,
+                 auto_connect=True):
         """
         Inicializa o controlador AOI.
         
@@ -30,9 +31,11 @@ class CNCAOIController:
             camera_interface: Interface para a câmera (opcional)
             plc_host: Endereço IP do CLP (padrão: 192.168.1.5)
             plc_port: Porta Modbus TCP (padrão: 502)
+            auto_connect: Se True, conecta automaticamente ao CLP. Se False,
+                          a conexão deve ser feita manualmente.
         """
         # Backend de movimento via CLP (Modbus TCP)
-        self.cnc = PLCAxisController(host=plc_host, port=plc_port)
+        self.cnc = PLCAxisController(host=plc_host, port=plc_port, auto_connect=auto_connect)
         
         # Carrega calibração mecânica do config
         from .config_manager import AOIConfigManager

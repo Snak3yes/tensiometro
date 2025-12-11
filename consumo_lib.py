@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
                              QSplitter, QFrame, QTableWidget, QTableWidgetItem, 
                              QHeaderView, QDialog, QInputDialog,
-                             QProgressDialog)
+                             QProgressDialog, QDoubleSpinBox, QSpinBox)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF
 from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator, 
                          QPainter, QColor, QPen, QBrush)
@@ -37,14 +37,23 @@ if not logger.handlers:
     logger.addHandler(ch)
 
 class TensionVisualizationWidget(QWidget):
-    """Widget para visualizar os resultados de medição de tensão do stencil"""
+    """
+    Widget para visualizar os resultados de medição de tensão do stencil.
+    
+    Suporta critérios de aceitação (OK/WARNING/NOK) vindos de receitas.
+    """
     
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setup_ui()
+        
+        # Inicializa atributos ANTES de setup_ui() para evitar erros
         self.measurements_data = None
         self.canvas_margin = 50
         self.point_radius = 15
+        self.acceptance_criteria = None  # TensionAcceptance object
+        
+        # Agora inicializa a UI
+        self.setup_ui()
         
     def setup_ui(self):
         layout = QVBoxLayout(self)
@@ -59,11 +68,11 @@ class TensionVisualizationWidget(QWidget):
         title_label.setFont(title_font)
         
         # Botão para carregar arquivo
-        self.load_file_btn = QPushButton("Carregar Arquivo JSON")
+        self.load_file_btn = QPushButton("📂 Carregar JSON")
         self.load_file_btn.clicked.connect(self.load_tension_file)
         
         # Botão para recarregar último arquivo
-        self.reload_btn = QPushButton("Recarregar")
+        self.reload_btn = QPushButton("🔄 Recarregar")
         self.reload_btn.clicked.connect(self.reload_last_file)
         self.reload_btn.setEnabled(False)
         
@@ -74,6 +83,50 @@ class TensionVisualizationWidget(QWidget):
         
         layout.addLayout(title_layout)
         
+        # ============ CRITÉRIOS DE ACEITAÇÃO ============
+        criteria_group = QGroupBox("📊 Critérios de Aceitação (N/cm²)")
+        criteria_layout = QGridLayout(criteria_group)
+        
+        # Tensão mínima
+        criteria_layout.addWidget(QLabel("Mínimo:"), 0, 0)
+        self.spin_min = QDoubleSpinBox()
+        self.spin_min.setRange(0, 100)
+        self.spin_min.setValue(25.0)
+        self.spin_min.valueChanged.connect(self._on_criteria_changed)
+        criteria_layout.addWidget(self.spin_min, 0, 1)
+        
+        # Warning baixo
+        criteria_layout.addWidget(QLabel("Warning↓:"), 0, 2)
+        self.spin_warn_low = QDoubleSpinBox()
+        self.spin_warn_low.setRange(0, 100)
+        self.spin_warn_low.setValue(28.0)
+        self.spin_warn_low.valueChanged.connect(self._on_criteria_changed)
+        criteria_layout.addWidget(self.spin_warn_low, 0, 3)
+        
+        # Warning alto
+        criteria_layout.addWidget(QLabel("Warning↑:"), 0, 4)
+        self.spin_warn_high = QDoubleSpinBox()
+        self.spin_warn_high.setRange(0, 100)
+        self.spin_warn_high.setValue(42.0)
+        self.spin_warn_high.valueChanged.connect(self._on_criteria_changed)
+        criteria_layout.addWidget(self.spin_warn_high, 0, 5)
+        
+        # Tensão máxima
+        criteria_layout.addWidget(QLabel("Máximo:"), 0, 6)
+        self.spin_max = QDoubleSpinBox()
+        self.spin_max.setRange(0, 100)
+        self.spin_max.setValue(45.0)
+        self.spin_max.valueChanged.connect(self._on_criteria_changed)
+        criteria_layout.addWidget(self.spin_max, 0, 7)
+        
+        # Carregar da receita
+        self.btn_load_recipe = QPushButton("📋 Usar Receita")
+        self.btn_load_recipe.setToolTip("Carrega critérios da receita atual")
+        self.btn_load_recipe.clicked.connect(self.load_criteria_from_recipe)
+        criteria_layout.addWidget(self.btn_load_recipe, 0, 8)
+        
+        layout.addWidget(criteria_group)
+        
         # Informações do arquivo carregado
         self.info_label = QLabel("Nenhum arquivo carregado")
         self.info_label.setStyleSheet("color: #666; font-style: italic;")
@@ -83,11 +136,40 @@ class TensionVisualizationWidget(QWidget):
         self.canvas = TensionCanvas()
         layout.addWidget(self.canvas, 1)  # Proporção 1 para expandir
         
+        # ============ ESTATÍSTICAS DE RESULTADO ============
+        self.stats_frame = QFrame()
+        self.stats_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        self.stats_frame.setStyleSheet("background-color: #f8f8f8; padding: 5px;")
+        stats_layout = QHBoxLayout(self.stats_frame)
+        stats_layout.setContentsMargins(10, 5, 10, 5)
+        
+        self.stats_label = QLabel("Carregue um arquivo para ver estatísticas")
+        self.stats_label.setStyleSheet("font-size: 12px;")
+        stats_layout.addWidget(self.stats_label)
+        
+        stats_layout.addStretch()
+        
+        # Indicador visual
+        self.result_indicator = QLabel("---")
+        self.result_indicator.setStyleSheet("""
+            font-size: 14px; 
+            font-weight: bold; 
+            padding: 5px 15px;
+            border-radius: 5px;
+            background-color: #ccc;
+        """)
+        stats_layout.addWidget(self.result_indicator)
+        
+        layout.addWidget(self.stats_frame)
+        
         # Legenda
         self.legend_label = QLabel("")
         layout.addWidget(self.legend_label)
         
         self.last_file_path = None
+        
+        # Inicializa TensionAcceptance
+        self._on_criteria_changed()
         
     def load_tension_file(self):
         """Carrega arquivo JSON com dados de tensão"""
@@ -162,7 +244,7 @@ class TensionVisualizationWidget(QWidget):
         self.info_label.setStyleSheet("color: #333; font-weight: bold;")
         
     def update_legend(self):
-        """Atualiza legenda com informações dos valores"""
+        """Atualiza legenda com informações dos valores e classificação"""
         if not self.measurements_data:
             return
             
@@ -170,31 +252,143 @@ class TensionVisualizationWidget(QWidget):
         if not measurements:
             return
             
-        # Calcula estatísticas
+        # Calcula estatísticas básicas
         tensions = [float(m.get('tension', 0)) for m in measurements]
         min_tension = min(tensions)
         max_tension = max(tensions)
         avg_tension = sum(tensions) / len(tensions)
         
+        # Classifica cada medição
+        counts = {'OK': 0, 'WARNING': 0, 'NOK': 0}
+        if self.acceptance_criteria:
+            for t in tensions:
+                result = self.acceptance_criteria.classify(t)
+                counts[result] = counts.get(result, 0) + 1
+        
+        total = len(tensions)
+        ok_percent = (counts['OK'] / total * 100) if total > 0 else 0
+        warn_percent = (counts['WARNING'] / total * 100) if total > 0 else 0
+        nok_percent = (counts['NOK'] / total * 100) if total > 0 else 0
+        
+        # Atualiza legenda
         legend_text = (
-            f"Tensão: Mín: {min_tension:.2f} N/cm² | "
-            f"Máx: {max_tension:.2f} N/cm² | "
-            f"Média: {avg_tension:.2f} N/cm² | "
-            f"🟢 Baixa | 🟡 Média | 🔴 Alta"
+            f"Tensão: Mín: {min_tension:.2f} | Máx: {max_tension:.2f} | Média: {avg_tension:.2f} N/cm² | "
+            f"🟢 OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()}) | "
+            f"🟡 WARNING | "
+            f"🔴 NOK (<{self.spin_min.value()} ou >{self.spin_max.value()})"
+        )
+        self.legend_label.setText(legend_text)
+        
+        # Atualiza estatísticas
+        self.stats_label.setText(
+            f"🟢 OK: {counts['OK']} ({ok_percent:.1f}%) | "
+            f"🟡 WARNING: {counts['WARNING']} ({warn_percent:.1f}%) | "
+            f"🔴 NOK: {counts['NOK']} ({nok_percent:.1f}%) | "
+            f"Total: {total} pontos"
         )
         
-        self.legend_label.setText(legend_text)
+        # Atualiza indicador de resultado
+        if nok_percent > 0:
+            self.result_indicator.setText("❌ REPROVADO")
+            self.result_indicator.setStyleSheet("""
+                font-size: 14px; font-weight: bold; padding: 5px 15px;
+                border-radius: 5px; background-color: #FF6B6B; color: white;
+            """)
+        elif warn_percent > 20:  # Mais de 20% warning
+            self.result_indicator.setText("⚠️ ATENÇÃO")
+            self.result_indicator.setStyleSheet("""
+                font-size: 14px; font-weight: bold; padding: 5px 15px;
+                border-radius: 5px; background-color: #FFE66D; color: #333;
+            """)
+        else:
+            self.result_indicator.setText("✅ APROVADO")
+            self.result_indicator.setStyleSheet("""
+                font-size: 14px; font-weight: bold; padding: 5px 15px;
+                border-radius: 5px; background-color: #4ECDC4; color: white;
+            """)
+        
+        # Passa critérios para o canvas
+        self.canvas.set_acceptance_criteria(self.acceptance_criteria)
+    
+    def _on_criteria_changed(self, value=None):
+        """Callback quando os critérios de aceitação são alterados"""
+        from aoi_lib.recipe_manager import TensionAcceptance
+        
+        self.acceptance_criteria = TensionAcceptance(
+            min_tension=self.spin_min.value(),
+            max_tension=self.spin_max.value(),
+            warning_low=self.spin_warn_low.value(),
+            warning_high=self.spin_warn_high.value()
+        )
+        
+        # Atualiza se houver dados carregados
+        if self.measurements_data:
+            self.canvas.set_acceptance_criteria(self.acceptance_criteria)
+            self.canvas.update()
+            self.update_legend()
+    
+    def load_criteria_from_recipe(self):
+        """Carrega critérios da receita atualmente selecionada"""
+        # Tenta obter a receita do pai (AOIControllerApp)
+        parent = self.parent()
+        while parent and not hasattr(parent, 'current_recipe'):
+            parent = parent.parent()
+        
+        if parent and hasattr(parent, 'current_recipe') and parent.current_recipe:
+            recipe = parent.current_recipe
+            acc = recipe.tension.acceptance
+            
+            # Bloqueia sinais para evitar múltiplas atualizações
+            self.spin_min.blockSignals(True)
+            self.spin_max.blockSignals(True)
+            self.spin_warn_low.blockSignals(True)
+            self.spin_warn_high.blockSignals(True)
+            
+            self.spin_min.setValue(acc.min_tension)
+            self.spin_max.setValue(acc.max_tension)
+            self.spin_warn_low.setValue(acc.warning_low)
+            self.spin_warn_high.setValue(acc.warning_high)
+            
+            self.spin_min.blockSignals(False)
+            self.spin_max.blockSignals(False)
+            self.spin_warn_low.blockSignals(False)
+            self.spin_warn_high.blockSignals(False)
+            
+            # Atualiza manualmente
+            self._on_criteria_changed()
+            
+            QMessageBox.information(
+                self, "Critérios Carregados",
+                f"Critérios da receita '{recipe.name}' aplicados:\n\n"
+                f"Mínimo: {acc.min_tension} N/cm²\n"
+                f"Máximo: {acc.max_tension} N/cm²\n"
+                f"Warning ↓: {acc.warning_low} N/cm²\n"
+                f"Warning ↑: {acc.warning_high} N/cm²"
+            )
+        else:
+            QMessageBox.warning(
+                self, "Receita Não Encontrada",
+                "Nenhuma receita está carregada.\n\n"
+                "Acesse 'Receitas → Gerenciar Receitas' para carregar uma."
+            )
+
 class TensionCanvas(QWidget):
-    """Canvas personalizado para desenhar os pontos de tensão"""
+    """Canvas personalizado para desenhar os pontos de tensão com classificação OK/WARNING/NOK"""
     
     def __init__(self, parent=None):
         super().__init__(parent)
         self.measurements = None
+        self.acceptance_criteria = None  # TensionAcceptance para classificação
         self.setMinimumSize(400, 400)
         
     def set_measurements(self, data):
         """Define os dados de medição"""
         self.measurements = data
+        self.update()  # Força redesenho
+    
+    def set_acceptance_criteria(self, criteria):
+        """Define os critérios de aceitação para colorização"""
+        self.acceptance_criteria = criteria
         self.update()  # Força redesenho
         
     def paintEvent(self, event):
@@ -364,7 +558,23 @@ class TensionCanvas(QWidget):
         painter.drawText(QPointF(coord_x, coord_y), coord_text)
         
     def _get_tension_color(self, tension, min_tension, tension_range):
-        """Retorna cor baseada no valor da tensão"""
+        """
+        Retorna cor baseada no valor da tensão.
+        
+        Se há critérios de aceitação definidos, usa classificação OK/WARNING/NOK.
+        Caso contrário, usa gradiente baseado no intervalo dos dados.
+        """
+        # Usa classificação se disponível
+        if self.acceptance_criteria:
+            result = self.acceptance_criteria.classify(tension)
+            if result == 'OK':
+                return QColor(76, 205, 196)  # Verde-azulado (#4ECDC4)
+            elif result == 'WARNING':
+                return QColor(255, 230, 109)  # Amarelo (#FFE66D)
+            else:  # NOK
+                return QColor(255, 107, 107)  # Vermelho (#FF6B6B)
+        
+        # Fallback: gradiente baseado nos dados
         if tension_range == 0:
             return QColor(100, 200, 100)  # Verde padrão
             
@@ -892,6 +1102,18 @@ class MovementControlWidget(QWidget):
         self.keyboard_control_checkbox.setChecked(False)
         movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
         
+        # ========== BOTÃO DE BACKLIGHT ==========
+        # Controla a iluminação inferior (Y0.7) para inspeção de stencil
+        self.backlight_button = QPushButton("💡 Backlight OFF")
+        self.backlight_button.setCheckable(True)
+        self.backlight_button.setMinimumHeight(35)
+        self.backlight_button.setStyleSheet("""
+            QPushButton { background-color: #444; color: white; border-radius: 5px; }
+            QPushButton:checked { background-color: #FFD700; color: black; font-weight: bold; }
+        """)
+        self.backlight_button.toggled.connect(self._on_backlight_toggle)
+        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 4)  # Ocupa toda a largura
+        
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
         self.mode_absolute = QPushButton("Passo")
@@ -920,6 +1142,44 @@ class MovementControlWidget(QWidget):
         except ValueError:
             # silencioso – validação já existe
             return
+    
+    def _on_backlight_toggle(self, checked: bool):
+        """
+        Controla o backlight (iluminação inferior do stencil).
+        Liga/desliga a saída Y0.7 do CLP.
+        """
+        if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
+            # Bloqueia sinais para evitar loop infinito ao reverter o estado
+            self.backlight_button.blockSignals(True)
+            self.backlight_button.setChecked(not checked)
+            self.backlight_button.blockSignals(False)
+            QMessageBox.warning(self, "Erro", "CLP não conectado")
+            return
+        
+        # Verifica se o controlador tem suporte a backlight
+        if not hasattr(self.controller.cnc, 'backlight_set'):
+            self.backlight_button.blockSignals(True)
+            self.backlight_button.setChecked(not checked)
+            self.backlight_button.blockSignals(False)
+            QMessageBox.warning(self, "Erro", "Controlador não suporta backlight")
+            return
+        
+        # Aciona o backlight
+        success = self.controller.cnc.backlight_set(checked)
+        
+        if success:
+            if checked:
+                self.backlight_button.setText("💡 Backlight ON")
+                logger.info("ILUMINAÇÃO: Backlight ligado (Y0.7 = HIGH)")
+            else:
+                self.backlight_button.setText("💡 Backlight OFF")
+                logger.info("ILUMINAÇÃO: Backlight desligado (Y0.7 = LOW)")
+        else:
+            # Bloqueia sinais para evitar loop infinito ao reverter o estado
+            self.backlight_button.blockSignals(True)
+            self.backlight_button.setChecked(not checked)
+            self.backlight_button.blockSignals(False)
+            QMessageBox.warning(self, "Erro", "Falha ao controlar backlight")
         
     def _on_direction_press(self, axis: str, direction: int):
         """
@@ -1381,19 +1641,26 @@ class AOIControllerApp(QMainWindow):
         self.config = AOIConfigManager()
         
         # Inicializa o controlador AOI usando CLP (Modbus TCP),
-        # mas não trava a aplicação se a conexão falhar
+        # mas sem conectar automaticamente (conexão será tentada depois)
         plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
         plc_port = self.config.get("connections", "plc_port", default=502)
         # Inicializa o controlador com PLC mas sem conectar automaticamente
         logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
         self.controller = CNCAOIController(
             plc_host=plc_host,
-            plc_port=plc_port
+            plc_port=plc_port,
+            auto_connect=False  # Não conecta automaticamente - permite que a app inicie sem CLP
         )
         logger.debug("CNCAOIController inicializado; backend = %s",
                      type(self.controller.cnc).__name__)
         self.current_sequence = None
         self.is_running_sequence = False
+        
+        # =========== SISTEMA DE RECEITAS ===========
+        from aoi_lib.recipe_manager import RecipeManager
+        self.recipe_manager = RecipeManager()
+        self.current_recipe = None  # Receita atualmente carregada
+        logger.info(f"RecipeManager inicializado. Diretório: {self.recipe_manager.recipes_dir}")
         
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
@@ -1457,8 +1724,8 @@ class AOIControllerApp(QMainWindow):
         # ========== CONEXÃO AUTOMÁTICA AO PLC ==========
         if isinstance(self.controller.cnc, PLCAxisController):
             plc = self.controller.cnc
-            plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
-            plc_port = self.config.get("connections", "plc_port", default=502)
+            plc_host = plc.host
+            plc_port = plc.port
             
             self.statusBar().showMessage(f"Tentando conexão automática ao PLC em {plc_host}:{plc_port}...")
             QApplication.processEvents()  # Atualiza a UI
@@ -1466,14 +1733,8 @@ class AOIControllerApp(QMainWindow):
             logger.info(f"Iniciando conexão automática ao PLC em {plc_host}:{plc_port}")
             
             try:
-                # Tenta criar conexão com o PLC
-                new_plc = PLCAxisController(host=plc_host, port=plc_port)
-                
-                # Substitui o controller e aplica calibração
-                self.controller.cnc = new_plc
-                ppr   = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
-                pitch = float(self.config.get("calibration", "fuso_pitch", default=1.0))
-                new_plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+                # Tenta conectar usando o controller existente
+                plc.connect()
                 
                 # Atualiza UI
                 self.connect_cnc_btn.setText("Desconectar PLC")
@@ -1481,16 +1742,12 @@ class AOIControllerApp(QMainWindow):
                 self.statusBar().showMessage(f"✅ PLC conectado automaticamente em {plc_host}:{plc_port}")
                 logger.info(f"PLC conectado automaticamente com sucesso em {plc_host}:{plc_port}")
                 
-                # Habilita abas de controle
-                self.right_panel.setTabEnabled(0, True)
-                self.right_panel.setTabEnabled(1, True)
-                
             except Exception as e:
                 # Conexão falhou - exibe mensagem para o usuário
                 error_msg = str(e)
                 self.connect_cnc_btn.setText("Conectar PLC")
                 self.cnc_status.setText("Desconectado")
-                self.statusBar().showMessage(f"⚠️ Falha na conexão automática ao PLC - Use menu Conexões para conectar manualmente")
+                self.statusBar().showMessage(f"⚠️ CLP não conectado - A aplicação funcionará sem controle de movimento")
                 logger.warning(f"Falha na conexão automática ao PLC em {plc_host}:{plc_port}: {e}")
                 
                 # Exibe mensagem informativa (não-bloqueante)
@@ -1506,17 +1763,19 @@ class AOIControllerApp(QMainWindow):
 
     def _show_plc_connection_error(self, host: str, port: int, error: str):
         """Exibe mensagem de erro de conexão ao PLC."""
-        QMessageBox.warning(
+        QMessageBox.information(
             self,
-            "Conexão Automática ao PLC",
-            f"Não foi possível conectar automaticamente ao PLC.\n\n"
-            f"Endereço: {host}:{port}\n"
-            f"Erro: {error}\n\n"
-            f"Verifique se:\n"
-            f"• O PLC está ligado e na mesma rede\n"
-            f"• O endereço IP está correto (Configurações → Preferências)\n"
-            f"• Não há firewall bloqueando a porta {port}\n\n"
-            f"Você pode conectar manualmente através do menu 'Conexões'."
+            "CLP Não Conectado",
+            f"O CLP (Controlador Lógico Programável) não está conectado.\n\n"
+            f"A aplicação iniciará normalmente, porém as funções de controle de movimento "
+            f"estarão indisponíveis até que o CLP seja conectado.\n\n"
+            f"Detalhes da tentativa de conexão:\n"
+            f"• Endereço: {host}:{port}\n"
+            f"• Erro: {error}\n\n"
+            f"Para conectar o CLP:\n"
+            f"1. Verifique se o CLP está ligado e na mesma rede\n"
+            f"2. Confirme o endereço IP em 'Ferramentas → Preferências'\n"
+            f"3. Use 'Ferramentas → Conexões' para conectar manualmente"
         )
 
     def eventFilter(self, source, event):
@@ -1722,9 +1981,12 @@ class AOIControllerApp(QMainWindow):
         # Aba de Visualização de Tensão
         self.tension_visualization = TensionVisualizationWidget()
         right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
-        # desabilita abas até o CLP conectar
-        self.right_panel.setTabEnabled(0, False)
-        self.right_panel.setTabEnabled(1, False)
+        # ===================================================================
+        # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
+        # O bloqueio agora é feito apenas nas ações que requerem movimento
+        # (ex: _precheck_connected, _on_generate_map, etc.)
+        # Isso permite usar câmera, receitas e visualização sem CLP
+        # ===================================================================
         
         # Adiciona painéis ao splitter
         splitter.addWidget(left_panel)
@@ -1747,6 +2009,37 @@ class AOIControllerApp(QMainWindow):
         exit_action.setShortcut('Ctrl+Q')
         exit_action.triggered.connect(self.close)
         file_menu.addAction(exit_action)
+        
+        # =========== MENU DE RECEITAS ===========
+        recipes_menu = menubar.addMenu('&Receitas')
+        
+        # Gerenciador de Receitas
+        manage_recipes_action = QAction('📋 Gerenciar Receitas...', self)
+        manage_recipes_action.setShortcut('Ctrl+R')
+        manage_recipes_action.triggered.connect(self.show_recipe_manager)
+        recipes_menu.addAction(manage_recipes_action)
+        
+        # Nova Receita
+        new_recipe_action = QAction('➕ Nova Receita...', self)
+        new_recipe_action.triggered.connect(self.show_new_recipe_dialog)
+        recipes_menu.addAction(new_recipe_action)
+        
+        recipes_menu.addSeparator()
+        
+        # Receita Atual
+        self.current_recipe_action = QAction('(Nenhuma receita carregada)', self)
+        self.current_recipe_action.setEnabled(False)
+        recipes_menu.addAction(self.current_recipe_action)
+        
+        # Aplicar à Captura
+        apply_to_capture_action = QAction('🔄 Aplicar Receita à Captura', self)
+        apply_to_capture_action.triggered.connect(self.apply_recipe_to_capture)
+        recipes_menu.addAction(apply_to_capture_action)
+        
+        # Aplicar à Tensão
+        apply_to_tension_action = QAction('🔄 Aplicar Receita à Tensão', self)
+        apply_to_tension_action.triggered.connect(self.apply_recipe_to_tension)
+        recipes_menu.addAction(apply_to_tension_action)
         
         # Menu de Ferramentas
         tools_menu = menubar.addMenu('&Ferramentas')
@@ -1813,6 +2106,127 @@ class AOIControllerApp(QMainWindow):
             return
         dlg = StencilTensionDialog(self, self.controller.cnc)
         dlg.exec()
+
+    # =========================================================================
+    # GERENCIAMENTO DE RECEITAS
+    # =========================================================================
+    
+    def show_recipe_manager(self):
+        """Abre o diálogo de gerenciamento de receitas."""
+        from aoi_lib.recipe_dialog import RecipeManagerDialog
+        
+        dialog = RecipeManagerDialog(self.recipe_manager, self)
+        dialog.recipe_loaded.connect(self._on_recipe_loaded)
+        dialog.exec()
+    
+    def show_new_recipe_dialog(self):
+        """Abre o diálogo para criar uma nova receita."""
+        from aoi_lib.recipe_dialog import RecipeEditorDialog
+        from aoi_lib.recipe_manager import Recipe
+        
+        dialog = RecipeEditorDialog(parent=self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            recipe = dialog.recipe
+            if self.recipe_manager.save_recipe(recipe):
+                QMessageBox.information(
+                    self, "Sucesso",
+                    f"Receita '{recipe.name}' criada com sucesso!\n\n"
+                    "Acesse Receitas > Gerenciar Receitas para carregar."
+                )
+    
+    def _on_recipe_loaded(self, recipe):
+        """Callback quando uma receita é carregada."""
+        self.current_recipe = recipe
+        self.recipe_manager.set_current_recipe(recipe)
+        
+        # Atualiza o menu
+        if hasattr(self, 'current_recipe_action'):
+            self.current_recipe_action.setText(f"📋 {recipe.name}")
+            self.current_recipe_action.setEnabled(True)
+        
+        # Mostra na barra de status
+        self.statusBar().showMessage(f"Receita carregada: {recipe.name}")
+        logger.info(f"Receita carregada: {recipe.name} ({recipe.recipe_id})")
+    
+    def apply_recipe_to_capture(self):
+        """Aplica as configurações de captura da receita atual ao diálogo de mapa."""
+        if self.current_recipe is None:
+            QMessageBox.warning(
+                self, "Aviso",
+                "Nenhuma receita carregada.\n\n"
+                "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
+            )
+            return
+        
+        r = self.current_recipe
+        
+        # Verifica se os atributos de mapa existem
+        if not hasattr(self, 'map_origin'):
+            self.map_origin = {}
+        if not hasattr(self, 'map_end'):
+            self.map_end = {}
+        
+        # Aplica configurações de captura
+        self.map_origin = {'x': r.capture.origin.x, 'y': r.capture.origin.y}
+        self.map_end = {'x': r.capture.end.x, 'y': r.capture.end.y}
+        
+        # Tenta atualizar os widgets se existirem
+        if hasattr(self, 'step_x_spin'):
+            self.step_x_spin.setValue(r.capture.step_x)
+        if hasattr(self, 'step_y_spin'):
+            self.step_y_spin.setValue(r.capture.step_y)
+        if hasattr(self, 'spin_capture_delay'):
+            self.spin_capture_delay.setValue(r.capture.capture_delay_ms)
+        
+        QMessageBox.information(
+            self, "Receita Aplicada",
+            f"Configurações de captura aplicadas:\n\n"
+            f"• Origem: ({r.capture.origin.x}, {r.capture.origin.y})\n"
+            f"• Final: ({r.capture.end.x}, {r.capture.end.y})\n"
+            f"• Step X: {r.capture.step_x} mm\n"
+            f"• Step Y: {r.capture.step_y} mm\n"
+            f"• Delay: {r.capture.capture_delay_ms} ms\n"
+            f"• Backlight: {'Sim' if r.capture.backlight_enabled else 'Não'}\n\n"
+            "Abra 'Definir Mapa' para verificar ou ajustar."
+        )
+        logger.info(f"Configurações de captura da receita '{r.name}' aplicadas")
+    
+    def apply_recipe_to_tension(self):
+        """Aplica as configurações de tensão da receita atual ao diálogo de medição."""
+        if self.current_recipe is None:
+            QMessageBox.warning(
+                self, "Aviso",
+                "Nenhuma receita carregada.\n\n"
+                "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
+            )
+            return
+        
+        r = self.current_recipe
+        
+        if not r.tension.enabled:
+            QMessageBox.information(
+                self, "Aviso",
+                f"A medição de tensão está desabilitada nesta receita.\n\n"
+                "Edite a receita para habilitar."
+            )
+            return
+        
+        # Mostra informações dos critérios de aceitação
+        acc = r.tension.acceptance
+        QMessageBox.information(
+            self, "Receita de Tensão",
+            f"Configurações de tensão da receita '{r.name}':\n\n"
+            f"📐 Grid: {r.tension.grid_rows} x {r.tension.grid_cols}\n"
+            f"📍 Área: ({r.tension.start_point.x}, {r.tension.start_point.y}) → "
+            f"({r.tension.end_point.x}, {r.tension.end_point.y})\n\n"
+            f"📊 Critérios de Aceitação:\n"
+            f"  • Mínimo: {acc.min_tension} N/cm²\n"
+            f"  • Máximo: {acc.max_tension} N/cm²\n"
+            f"  • Warning baixo: {acc.warning_low} N/cm²\n"
+            f"  • Warning alto: {acc.warning_high} N/cm²\n\n"
+            "ℹ️ Estes critérios serão usados para classificar as medições."
+        )
+        logger.info(f"Configurações de tensão da receita '{r.name}' exibidas")
 
     def show_mosaic_builder(self):
         """Abre a janela do Mosaic Builder para montagem de imagens"""
@@ -2270,6 +2684,17 @@ class AOIControllerApp(QMainWindow):
             )
 
     def _on_generate_map(self, dialog):
+        # Verifica conexão CNC - bloqueia APENAS a geração, não o diálogo
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(
+                dialog, "CNC Não Conectado",
+                "A geração do mapa requer conexão com o CLP para movimentar a máquina.\n\n"
+                "Você pode:\n"
+                "• Conectar o CLP e tentar novamente\n"
+                "• Configurar e salvar os parâmetros na receita para uso posterior\n\n"
+                "As demais funcionalidades (câmera, receitas) continuam disponíveis."
+            )
+            return
                 
         # Passo 1 – coletar e validar parâmetros ---------------------
         params = self._collect_map_params(dialog)
@@ -2423,6 +2848,9 @@ class AOIControllerApp(QMainWindow):
         # Isso evita conflito com WindowStaysOnTopHint
         dialog.accept()
         
+        # ========== SINCRONIZA BOTÃO DE BACKLIGHT ==========
+        self._sync_backlight_button()
+        
         # Obtém parâmetros da pasta e opções de mosaico
         folder = getattr(self, 'map_folder_edit', None)
         folder_path = folder.text().strip() if folder else ""
@@ -2477,7 +2905,40 @@ class AOIControllerApp(QMainWindow):
 
     def _on_map_error(self, msg: str):
         self.map_progress.close()
+        # Sincroniza botão de backlight após erro
+        self._sync_backlight_button()
         QMessageBox.critical(self, "Erro", msg)
+    
+    def _sync_backlight_button(self):
+        """
+        Sincroniza o estado visual do botão de backlight com o estado real do CLP.
+        Chamado após operações que podem alterar o backlight programaticamente.
+        """
+        try:
+            # Verifica se o widget de movimento existe
+            if not hasattr(self, 'movement_widget'):
+                return
+            
+            # Verifica se o controlador está conectado e tem suporte a backlight
+            if (not hasattr(self.controller, 'cnc') or 
+                not self.controller.cnc.is_connected or
+                not hasattr(self.controller.cnc, 'backlight_on')):
+                return
+            
+            # Obtém estado atual do backlight
+            is_on = self.controller.cnc.backlight_on
+            
+            # Atualiza o botão sem disparar o sinal toggled
+            self.movement_widget.backlight_button.blockSignals(True)
+            self.movement_widget.backlight_button.setChecked(is_on)
+            self.movement_widget.backlight_button.setText(
+                "💡 Backlight ON" if is_on else "💡 Backlight OFF"
+            )
+            self.movement_widget.backlight_button.blockSignals(False)
+            
+            logger.debug(f"Backlight sincronizado: {'ON' if is_on else 'OFF'}")
+        except Exception as e:
+            logger.error(f"Erro ao sincronizar botão de backlight: {e}")
 
     def save_gcode(self):
         """Salva a sequência atual como arquivo G-CODE"""
@@ -2905,14 +3366,13 @@ class AOIControllerApp(QMainWindow):
                 self.cnc_status.setText("Desconectado")
                 self.statusBar().showMessage("PLC desconectado")
                 logger.info("PLC desconectado pelo usuário")
-                # ao desconectar PLC, volta a desabilitar as abas
-                self.right_panel.setTabEnabled(0, False)
-                self.right_panel.setTabEnabled(1, False)
+                # NOTA: Abas permanecem habilitadas para permitir
+                # uso de câmera, receitas e outras funcionalidades
             else:
-                # recria e conecta via construtor
+                # Tenta conectar usando o controller existente
                 logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
                 try:
-                    new_plc = PLCAxisController(host=plc.host, port=plc.port)
+                    plc.connect()
                 except Exception as e:
                     QMessageBox.warning(
                         self,
@@ -2921,19 +3381,10 @@ class AOIControllerApp(QMainWindow):
                     )
                     logger.error(f"Falha ao conectar ao PLC em {plc.host}:{plc.port}: {e}")
                 else:
-                    # substitui o controller e reaplica calibração
-                    self.controller.cnc = new_plc
-                    ppr   = float(self.config.get("calibration", "pulses_per_rev", default=1.0))
-                    pitch = float(self.config.get("calibration", "fuso_pitch",     default=1.0))
-                    new_plc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
-
                     self.connect_cnc_btn.setText("Desconectar PLC")
                     self.cnc_status.setText("Conectado")
-                    self.statusBar().showMessage(f"PLC conectado em {new_plc.host}:{new_plc.port}")
-                    logger.info(f"PLC conectado com sucesso em {new_plc.host}:{new_plc.port}")
-                    # ao conectar PLC com sucesso, habilita as abas
-                    self.right_panel.setTabEnabled(0, True)
-                    self.right_panel.setTabEnabled(1, True)
+                    self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
+                    logger.info(f"PLC conectado com sucesso em {plc.host}:{plc.port}")
             return
         # Senão, cai no fluxo original GRBL…
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
@@ -3552,6 +4003,8 @@ class MapGeneratorThread(QThread):
 
     def run(self):
         log = logging.getLogger("MapGeneratorThread")
+        backlight_was_on = False  # Para restaurar estado original ao final
+        
         try:
             points = list(self.ctrl._grid_points(self.origin, self.end,
                                              self.sx, self.sy))
@@ -3561,6 +4014,20 @@ class MapGeneratorThread(QThread):
             # Converte delay de ms para segundos
             delay_sec = self.capture_delay_ms / 1000.0
             log.info(f"MapGeneratorThread: Delay={self.capture_delay_ms}ms, FeedRate={self.feed_rate}mm/min, Total={total} pontos")
+
+            # ========== CONTROLE DO BACKLIGHT - INÍCIO ==========
+            # Liga o backlight 2 segundos antes de iniciar as capturas
+            if hasattr(self.ctrl.cnc, 'backlight_set'):
+                # Salva estado anterior para restaurar depois
+                backlight_was_on = getattr(self.ctrl.cnc, 'backlight_on', False)
+                
+                log.info("MapGeneratorThread: Ligando backlight (Y0.7)")
+                self.ctrl.cnc.backlight_turn_on()
+                
+                # Aguarda 2 segundos para estabilização da iluminação
+                log.info("MapGeneratorThread: Aguardando 2s para estabilização do backlight")
+                time.sleep(2.0)
+            # ========== CONTROLE DO BACKLIGHT - FIM ==========
 
             # Descarta frames antigos do buffer da câmera antes de iniciar
             for _ in range(3):
@@ -3572,6 +4039,8 @@ class MapGeneratorThread(QThread):
             for r, col, x, y in points:
                 if self.isInterruptionRequested():
                     log.warning("Mapa cancelado pelo usuário")
+                    # Desliga backlight antes de sair
+                    self._turn_off_backlight(log, backlight_was_on)
                     self.error.emit("Operação cancelada")
                     return
                 
@@ -3601,10 +4070,43 @@ class MapGeneratorThread(QThread):
                 self.progress.emit(captured, total)
 
             log.info(f"MapGeneratorThread: Finalizado - {captured} imagens capturadas")
+            
+            # ========== DESLIGA BACKLIGHT APÓS 2 SEGUNDOS ==========
+            self._turn_off_backlight(log, backlight_was_on)
+            
             self.finished.emit()
         except Exception as exc:
             log.exception("Erro na geração do mapa")
+            # Garante que o backlight seja desligado em caso de erro
+            self._turn_off_backlight(log, backlight_was_on)
             self.error.emit(str(exc))
+    
+    def _turn_off_backlight(self, log, restore_previous_state: bool):
+        """
+        Desliga o backlight após aguardar 2 segundos.
+        
+        Args:
+            log: Logger para registrar mensagens
+            restore_previous_state: Se True, restaura o estado anterior do backlight
+        """
+        if not hasattr(self.ctrl.cnc, 'backlight_set'):
+            return
+        
+        try:
+            # Aguarda 2 segundos antes de desligar
+            log.info("MapGeneratorThread: Aguardando 2s antes de desligar backlight")
+            time.sleep(2.0)
+            
+            if restore_previous_state:
+                # Restaura estado anterior
+                log.info(f"MapGeneratorThread: Restaurando backlight para estado anterior: {'ON' if restore_previous_state else 'OFF'}")
+                self.ctrl.cnc.backlight_set(restore_previous_state)
+            else:
+                # Desliga
+                log.info("MapGeneratorThread: Desligando backlight (Y0.7)")
+                self.ctrl.cnc.backlight_turn_off()
+        except Exception as e:
+            log.error(f"MapGeneratorThread: Erro ao controlar backlight: {e}")
 
 
 if __name__ == "__main__":
