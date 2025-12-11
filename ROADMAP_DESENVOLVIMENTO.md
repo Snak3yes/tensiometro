@@ -145,15 +145,28 @@ Sistema de alinhamento do arquivo Gerber com a imagem real do stencil:
 ---
 
 ### 🏷️ FASE 7: Rastreabilidade de Stencils
-**Status: 🔴 Pendente**
+**Status: 🟡 Em desenvolvimento (~60%)**
 
 Controle individualizado de cada stencil físico:
-- [ ] Modelo de dados `Stencil` (código, receita, datas, status)
-- [ ] Entrada manual de código de barras pelo operador
-- [ ] Histórico de medições de tensão por stencil
-- [ ] Histórico de inspeções visuais
-- [ ] Análise de tendência de degradação
-- [ ] Alertas de manutenção/reposição
+- [x] Modelo de dados `Stencil` (código, descrição, receita, datas, status)
+- [x] Modelo de dados `TensionRecord` para histórico de medições
+- [x] `StencilTracker` - CRUD de stencils + persistência JSON
+- [x] Entrada de código de barras (manual ou leitor USB)
+- [x] Histórico de medições de tensão por stencil
+- [x] Análise de tendência (média móvel, variação %)
+- [x] Alertas de degradação automáticos
+- [x] Widgets de UI: Identificação, Histórico, Edição, Gerenciamento
+- [ ] Integrar aba dedicada no `consumo_lib.py`
+- [ ] Conectar com medição de tensão (salvar resultado no histórico)
+- [ ] Histórico de inspeções visuais (após Fase 9)
+
+**Arquivos:**
+- `aoi_lib/stencil_tracker.py` - Modelos e lógica de negócio
+- `aoi_lib/stencil_tracker_ui.py` - Widgets PyQt6
+
+**Notas:** 
+- Persistência em JSON (ver nota de evolução futura para BD)
+- Suporte a leitor USB de código de barras via campo de texto
 
 ---
 
@@ -190,11 +203,11 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 | 4 | Medição de Tensão | ✅ 100% |
 | 5 | Interface Principal | ✅ 100% |
 | 6 | Alinhamento de Fiduciais | 🟡 ~80% |
-| 7 | Rastreabilidade | 🔴 Pendente |
+| 7 | Rastreabilidade | 🟡 ~60% |
 | 8 | Relatórios | 🔴 Pendente |
 | 9 | Inspeção Visual Automatizada | 🔴 Pendente |
 
-**Progresso Geral: ~60%**
+**Progresso Geral: ~70%**
 
 ---
 
@@ -221,6 +234,17 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 ---
 
 > **Próximas prioridades:**
-> 1. Finalizar integração do alinhamento de fiduciais
-> 2. Implementar rastreabilidade de stencils
-> 3. Desenvolver geração de relatórios
+> 1. Integrar aba de rastreabilidade na interface principal
+> 2. Conectar medição de tensão ao histórico do stencil
+> 3. Finalizar integração do alinhamento de fiduciais
+
+---
+
+## 🔮 Melhorias Futuras
+
+| Item | Descrição | Prioridade |
+|------|-----------|------------|
+| **Banco de Dados** | Migrar persistência de JSON para SQLite para melhor performance com grande volume de dados | Média |
+| **Relatórios PDF** | Geração automática de relatórios em PDF com gráficos e imagens | Alta |
+| **API REST** | Expor dados de inspeção via API para integração com sistemas MES/ERP | Baixa |
+| **Backup Automático** | Sistema de backup incremental dos dados de stencils | Média |
