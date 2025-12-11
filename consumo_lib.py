@@ -25,6 +25,11 @@ from aoi_lib.stencil_tension import StencilTensionDialog
 from aoi_lib.fov_calibration import (
     FOVCalibration, CameraFOVConverter, FOVCalibrationDialog, ClickableVideoLabel
 )
+from aoi_lib.stencil_tracker import StencilTracker, Stencil, TensionRecord
+from aoi_lib.stencil_tracker_ui import (
+    StencilIdentificationWidget, StencilHistoryDialog, 
+    StencilManagerDialog, StencilCreateDialog
+)
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -1745,6 +1750,11 @@ class AOIControllerApp(QMainWindow):
         self.current_recipe = None  # Receita atualmente carregada
         logger.info(f"RecipeManager inicializado. Diretório: {self.recipe_manager.recipes_dir}")
         
+        # =========== SISTEMA DE RASTREABILIDADE ===========
+        self.stencil_tracker = StencilTracker()  # Usa diretório padrão: data/stencils
+        self.current_stencil = None  # Stencil atualmente selecionado
+        logger.info(f"StencilTracker inicializado. Diretório: {self.stencil_tracker.data_dir}")
+        
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
 
@@ -2064,6 +2074,48 @@ class AOIControllerApp(QMainWindow):
         # Aba de Visualização de Tensão
         self.tension_visualization = TensionVisualizationWidget()
         right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
+        
+        # ================== ABA DE RASTREABILIDADE ==================
+        stencil_tab = QWidget()
+        stencil_layout = QVBoxLayout(stencil_tab)
+        
+        # Widget de identificação de stencil
+        self.stencil_identification = StencilIdentificationWidget(
+            self.stencil_tracker, 
+            parent=self
+        )
+        # Conecta sinais
+        self.stencil_identification.stencil_selected.connect(self._on_stencil_selected)
+        self.stencil_identification.stencil_cleared.connect(self._on_stencil_cleared)
+        self.stencil_identification.recipe_requested.connect(self._on_recipe_requested)
+        
+        stencil_layout.addWidget(self.stencil_identification)
+        
+        # Botões de ação rápida
+        action_group = QGroupBox("⚡ Ações Rápidas")
+        action_layout = QHBoxLayout(action_group)
+        
+        self.btn_run_tension = QPushButton("📐 Medir Tensão")
+        self.btn_run_tension.setEnabled(False)
+        self.btn_run_tension.clicked.connect(self._run_tension_measurement)
+        self.btn_run_tension.setToolTip("Executa medição de tensão e salva no histórico do stencil")
+        action_layout.addWidget(self.btn_run_tension)
+        
+        self.btn_manage_stencils = QPushButton("📋 Gerenciar Stencils")
+        self.btn_manage_stencils.clicked.connect(self.show_stencil_manager)
+        action_layout.addWidget(self.btn_manage_stencils)
+        
+        self.btn_new_stencil = QPushButton("➕ Novo Stencil")
+        self.btn_new_stencil.clicked.connect(self.show_new_stencil_dialog)
+        action_layout.addWidget(self.btn_new_stencil)
+        
+        stencil_layout.addWidget(action_group)
+        
+        # Espaço para futuras expansões (inspeção visual, etc.)
+        stencil_layout.addStretch()
+        
+        right_panel.addTab(stencil_tab, "🏷️ Rastreabilidade")
+        
         # ===================================================================
         # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
         # O bloqueio agora é feito apenas nas ações que requerem movimento
@@ -2123,6 +2175,27 @@ class AOIControllerApp(QMainWindow):
         apply_to_tension_action = QAction('🔄 Aplicar Receita à Tensão', self)
         apply_to_tension_action.triggered.connect(self.apply_recipe_to_tension)
         recipes_menu.addAction(apply_to_tension_action)
+        
+        # =========== MENU DE STENCILS ===========
+        stencils_menu = menubar.addMenu('&Stencils')
+        
+        # Gerenciador de Stencils
+        manage_stencils_action = QAction('📋 Gerenciar Stencils...', self)
+        manage_stencils_action.setShortcut('Ctrl+T')
+        manage_stencils_action.triggered.connect(self.show_stencil_manager)
+        stencils_menu.addAction(manage_stencils_action)
+        
+        # Novo Stencil
+        new_stencil_action = QAction('➕ Novo Stencil...', self)
+        new_stencil_action.triggered.connect(self.show_new_stencil_dialog)
+        stencils_menu.addAction(new_stencil_action)
+        
+        stencils_menu.addSeparator()
+        
+        # Stencil Atual
+        self.current_stencil_action = QAction('(Nenhum stencil selecionado)', self)
+        self.current_stencil_action.setEnabled(False)
+        stencils_menu.addAction(self.current_stencil_action)
         
         # Menu de Ferramentas
         tools_menu = menubar.addMenu('&Ferramentas')
@@ -2318,6 +2391,164 @@ class AOIControllerApp(QMainWindow):
             "ℹ️ Estes critérios serão usados para classificar as medições."
         )
         logger.info(f"Configurações de tensão da receita '{r.name}' exibidas")
+
+    # =========================================================================
+    # GERENCIAMENTO DE STENCILS (RASTREABILIDADE)
+    # =========================================================================
+    
+    def _on_stencil_selected(self, stencil: Stencil):
+        """Handler quando um stencil é selecionado."""
+        self.current_stencil = stencil
+        self.btn_run_tension.setEnabled(True)
+        
+        # Atualiza barra de status
+        self.statusBar().showMessage(
+            f"Stencil selecionado: {stencil.code} | "
+            f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
+            f"Inspeções: {stencil.inspection_count}"
+        )
+        
+        # Atualiza menu
+        self.current_stencil_action.setText(f"Stencil: {stencil.code}")
+        
+        logger.info(f"Stencil selecionado: {stencil.code}")
+    
+    def _on_stencil_cleared(self):
+        """Handler quando a seleção de stencil é limpa."""
+        self.current_stencil = None
+        self.btn_run_tension.setEnabled(False)
+        self.statusBar().showMessage("Pronto")
+        
+        # Atualiza menu
+        self.current_stencil_action.setText("(Nenhum stencil selecionado)")
+        
+        logger.info("Seleção de stencil limpa")
+    
+    def _on_recipe_requested(self, recipe_name: str):
+        """Handler quando o stencil solicita carregamento de receita."""
+        recipe = self.recipe_manager.load_recipe(recipe_name)
+        if recipe:
+            self._on_recipe_loaded(recipe)
+            logger.info(f"Receita '{recipe_name}' carregada automaticamente para stencil")
+        else:
+            logger.warning(f"Receita '{recipe_name}' não encontrada")
+    
+    def show_stencil_manager(self):
+        """Abre o diálogo de gerenciamento de stencils."""
+        dialog = StencilManagerDialog(self.stencil_tracker, self)
+        dialog.exec()
+    
+    def show_new_stencil_dialog(self):
+        """Abre o diálogo para criar um novo stencil."""
+        dialog = StencilCreateDialog(self.stencil_tracker, parent=self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            stencil = dialog.get_created_stencil()
+            if stencil:
+                QMessageBox.information(
+                    self, "Sucesso",
+                    f"Stencil '{stencil.code}' cadastrado com sucesso!\n\n"
+                    "Escaneie ou digite o código para selecioná-lo."
+                )
+    
+    def _run_tension_measurement(self):
+        """Executa medição de tensão para o stencil selecionado."""
+        if not self.current_stencil:
+            QMessageBox.warning(
+                self, "Stencil Não Selecionado",
+                "Selecione um stencil antes de medir a tensão."
+            )
+            return
+        
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(
+                self, "CLP Não Conectado",
+                "Conecte o CLP antes de medir a tensão."
+            )
+            return
+        
+        # Abre diálogo de medição de tensão
+        dlg = StencilTensionDialog(self, self.controller.cnc)
+        
+        # Se houver receita, pré-configura o diálogo
+        if self.current_recipe and self.current_recipe.tension.enabled:
+            # TODO: Passar parâmetros da receita para o diálogo
+            pass
+        
+        result = dlg.exec()
+        
+        # Se medição foi concluída, salva no histórico
+        if result == QDialog.DialogCode.Accepted:
+            self._save_tension_to_history(dlg)
+    
+    def _save_tension_to_history(self, tension_dialog):
+        """
+        Salva resultado da medição de tensão no histórico do stencil.
+        
+        Args:
+            tension_dialog: Diálogo de tensão com os dados da medição
+        """
+        if not self.current_stencil:
+            return
+        
+        try:
+            # Tenta obter dados da medição do diálogo ou do último arquivo salvo
+            measurements_file = "stencil_tension_measurements.json"
+            
+            if os.path.exists(measurements_file):
+                with open(measurements_file, "r", encoding="utf-8") as f:
+                    tension_data = json.load(f)
+                
+                # Cria registro de tensão
+                record = TensionRecord.from_tension_data(
+                    tension_data,
+                    recipe_name=self.current_recipe.name if self.current_recipe else None,
+                    operator=None  # TODO: Implementar campo de operador
+                )
+                
+                # Salva no histórico
+                self.stencil_tracker.add_tension_record(
+                    self.current_stencil.code, 
+                    record
+                )
+                
+                # Verifica alerta de degradação
+                if self.current_recipe and self.current_recipe.tension.acceptance:
+                    alert = self.stencil_tracker.check_degradation_alert(
+                        self.current_stencil.code,
+                        warning_low=self.current_recipe.tension.acceptance.warning_low
+                    )
+                    if alert:
+                        QMessageBox.warning(
+                            self, "⚠️ Alerta de Degradação",
+                            f"Stencil: {self.current_stencil.code}\n\n{alert}"
+                        )
+                
+                logger.info(
+                    f"Medição de tensão salva no histórico do stencil "
+                    f"'{self.current_stencil.code}': {record.result}"
+                )
+                
+                QMessageBox.information(
+                    self, "Medição Salva",
+                    f"Resultado da medição salvo no histórico.\n\n"
+                    f"Stencil: {self.current_stencil.code}\n"
+                    f"Resultado: {record.result}\n"
+                    f"Média: {record.average_tension:.2f} N/cm²"
+                )
+                
+                # Atualiza widget de identificação para refletir nova inspeção
+                stencil = self.stencil_tracker.get_stencil(self.current_stencil.code)
+                if stencil:
+                    self.stencil_identification._select_stencil(stencil)
+            else:
+                logger.warning("Arquivo de medições não encontrado")
+                
+        except Exception as e:
+            logger.error(f"Erro ao salvar medição no histórico: {e}")
+            QMessageBox.warning(
+                self, "Erro",
+                f"Erro ao salvar no histórico:\n{str(e)}"
+            )
 
     def show_mosaic_builder(self):
         """Abre a janela do Mosaic Builder para montagem de imagens"""

@@ -145,7 +145,7 @@ Sistema de alinhamento do arquivo Gerber com a imagem real do stencil:
 ---
 
 ### 🏷️ FASE 7: Rastreabilidade de Stencils
-**Status: 🟡 Em desenvolvimento (~60%)**
+**Status: ✅ Concluído (~95%)**
 
 Controle individualizado de cada stencil físico:
 - [x] Modelo de dados `Stencil` (código, descrição, receita, datas, status)
@@ -156,13 +156,15 @@ Controle individualizado de cada stencil físico:
 - [x] Análise de tendência (média móvel, variação %)
 - [x] Alertas de degradação automáticos
 - [x] Widgets de UI: Identificação, Histórico, Edição, Gerenciamento
-- [ ] Integrar aba dedicada no `consumo_lib.py`
-- [ ] Conectar com medição de tensão (salvar resultado no histórico)
+- [x] Aba dedicada "🏷️ Rastreabilidade" no consumo_lib.py
+- [x] Menu "Stencils" com gerenciamento e cadastro
+- [x] Conexão com medição de tensão (salva resultado no histórico)
 - [ ] Histórico de inspeções visuais (após Fase 9)
 
 **Arquivos:**
 - `aoi_lib/stencil_tracker.py` - Modelos e lógica de negócio
 - `aoi_lib/stencil_tracker_ui.py` - Widgets PyQt6
+- `consumo_lib.py` - Integração de aba, menu e handlers
 
 **Notas:** 
 - Persistência em JSON (ver nota de evolução futura para BD)
@@ -203,11 +205,11 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 | 4 | Medição de Tensão | ✅ 100% |
 | 5 | Interface Principal | ✅ 100% |
 | 6 | Alinhamento de Fiduciais | 🟡 ~80% |
-| 7 | Rastreabilidade | 🟡 ~60% |
+| 7 | Rastreabilidade | ✅ ~95% |
 | 8 | Relatórios | 🔴 Pendente |
 | 9 | Inspeção Visual Automatizada | 🔴 Pendente |
 
-**Progresso Geral: ~70%**
+**Progresso Geral: ~80%**
 
 ---
 
@@ -234,9 +236,11 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 ---
 
 > **Próximas prioridades:**
-> 1. Integrar aba de rastreabilidade na interface principal
-> 2. Conectar medição de tensão ao histórico do stencil
-> 3. Finalizar integração do alinhamento de fiduciais
+> 1. ~~Integrar aba de rastreabilidade na interface principal~~ ✅
+> 2. ~~Conectar medição de tensão ao histórico do stencil~~ ✅
+> 3. Finalizar integração do alinhamento de fiduciais (Fase 6)
+> 4. Implementar geração de relatórios (Fase 8)
+> 5. Iniciar parser Gerber para inspeção visual (Fase 9)
 
 ---
 
