@@ -952,20 +952,20 @@ class CameraPreviewWidget(QWidget):
                 logger.info(f"Clique no vídeo: movendo ΔX={dx_pulses}, ΔY={dy_pulses} pulsos")
                 
                 # Converte pulsos para mm
-            dx_mm = dx_pulses / self.controller.cnc.pulses_per_mm if dx_pulses != 0 else None
-            dy_mm = dy_pulses / self.controller.cnc.pulses_per_mm if dy_pulses != 0 else None
-            
-            # Usa mesma velocidade configurada no widget de movimento (mm/min)
-            main_window = self.window()
-            if hasattr(main_window, 'movement_widget'):
-                feed_rate = main_window.movement_widget.get_current_feed_rate()
+                dx_mm = dx_pulses / self.controller.cnc.pulses_per_mm if dx_pulses != 0 else None
+                dy_mm = dy_pulses / self.controller.cnc.pulses_per_mm if dy_pulses != 0 else None
+                
+                # Usa mesma velocidade configurada no widget de movimento (mm/min)
+                main_window = self.window()
+                if hasattr(main_window, 'movement_widget'):
+                    feed_rate = main_window.movement_widget.get_current_feed_rate()
+                else:
+                    feed_rate = 1000  # Fallback padrão
+                
+                # Usa move_relative do PLCAxisController (espera mm e mm/min)
+                self.controller.cnc.move_relative(x=dx_mm, y=dy_mm, feed_rate=feed_rate)
             else:
-                feed_rate = 1000  # Fallback padrão
-            
-            # Usa move_relative do PLCAxisController (espera mm e mm/min)
-            self.controller.cnc.move_relative(x=dx_mm, y=dy_mm, feed_rate=feed_rate)
-        else:
-            logger.debug(f"Clique muito próximo do centro, ignorado")
+                logger.debug(f"Clique muito próximo do centro, ignorado")
                 
         except Exception as e:
             logger.error(f"Erro ao processar clique no vídeo: {e}")
