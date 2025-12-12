@@ -923,7 +923,7 @@ class CameraPreviewWidget(QWidget):
             return
         
         # Verifica se CLP está conectado
-        if not hasattr(self.controller, 'plc') or not self.controller.plc.connected:
+        if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
             QMessageBox.warning(
                 self, "CLP Não Conectado",
                 "O CLP não está conectado. Conecte antes de usar movimento por clique."
@@ -932,12 +932,12 @@ class CameraPreviewWidget(QWidget):
         
         try:
             # Obtém posição Z atual para calibração correta
-            z_current = self.controller.plc.current_positions.get('Z', 0)
+            z_current = self.controller.cnc.get_current_position().get('z', 0)
             
             # Atualiza tamanho do frame no conversor
             self.fov_converter.set_frame_size(*self._last_frame_size)
             
-            # Converte clique em movimento
+            # Converte clique em movimento (retorna pulsos)
             dx_pulses, dy_pulses = self.fov_converter.video_click_to_movement(
                 click_x, click_y,
                 self.image_label.width(),
@@ -951,10 +951,12 @@ class CameraPreviewWidget(QWidget):
             if abs(dx_pulses) > 5 or abs(dy_pulses) > 5:
                 logger.info(f"Clique no vídeo: movendo ΔX={dx_pulses}, ΔY={dy_pulses} pulsos")
                 
-                if dx_pulses != 0:
-                    self.controller.plc.move_relative('X', int(dx_pulses))
-                if dy_pulses != 0:
-                    self.controller.plc.move_relative('Y', int(dy_pulses))
+                # Converte pulsos para mm
+                dx_mm = dx_pulses / self.controller.cnc.pulses_per_mm if dx_pulses != 0 else None
+                dy_mm = dy_pulses / self.controller.cnc.pulses_per_mm if dy_pulses != 0 else None
+                
+                # Usa move_relative do PLCAxisController (espera mm, não pulsos)
+                self.controller.cnc.move_relative(x=dx_mm, y=dy_mm)
             else:
                 logger.debug(f"Clique muito próximo do centro, ignorado")
                 
