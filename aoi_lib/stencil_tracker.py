@@ -183,6 +183,125 @@ class TensionRecord:
 
 
 @dataclass
+class InspectionRecord:
+    """
+    Registro de uma inspeção visual.
+    
+    Attributes:
+        timestamp: Data/hora da inspeção
+        total_apertures: Total de aberturas inspecionadas
+        ok_count: Quantidade de aberturas OK
+        partial_count: Quantidade de aberturas com obstrução parcial
+        blocked_count: Quantidade de aberturas bloqueadas
+        result: Resultado geral ("PASS", "FAIL")
+        pass_rate: Percentual de aprovação (0-100)
+        gerber_file: Arquivo Gerber utilizado
+        operator: Nome do operador (opcional)
+        recipe_name: Nome da receita usada
+        report_path: Caminho do relatório PDF gerado
+        defects: Lista de defeitos encontrados [{aperture_id, x, y, status, fill_pct}, ...]
+        notes: Observações adicionais
+    """
+    timestamp: str  # ISO format
+    total_apertures: int = 0
+    ok_count: int = 0
+    partial_count: int = 0
+    blocked_count: int = 0
+    result: str = "PASS"  # "PASS" or "FAIL"
+    pass_rate: float = 100.0
+    gerber_file: Optional[str] = None
+    operator: Optional[str] = None
+    recipe_name: Optional[str] = None
+    report_path: Optional[str] = None
+    defects: List[Dict[str, Any]] = field(default_factory=list)
+    notes: str = ""
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "InspectionRecord":
+        return cls(
+            timestamp=data.get("timestamp", ""),
+            total_apertures=data.get("total_apertures", 0),
+            ok_count=data.get("ok_count", 0),
+            partial_count=data.get("partial_count", 0),
+            blocked_count=data.get("blocked_count", 0),
+            result=data.get("result", "PASS"),
+            pass_rate=data.get("pass_rate", 100.0),
+            gerber_file=data.get("gerber_file"),
+            operator=data.get("operator"),
+            recipe_name=data.get("recipe_name"),
+            report_path=data.get("report_path"),
+            defects=data.get("defects", []),
+            notes=data.get("notes", ""),
+        )
+    
+    @classmethod
+    def from_inspection_result(cls, result: Dict[str, Any],
+                                gerber_file: str = None,
+                                recipe_name: str = None,
+                                operator: str = None,
+                                report_path: str = None) -> "InspectionRecord":
+        """
+        Cria InspectionRecord a partir dos resultados do stencil_inspector.
+        
+        Args:
+            result: Dicionário com resultados da inspeção
+            gerber_file: Caminho do arquivo Gerber usado
+            recipe_name: Nome da receita
+            operator: Nome do operador
+            report_path: Caminho do relatório PDF gerado
+        """
+        summary = result.get("summary", {})
+        
+        total = summary.get("total_apertures", 0)
+        ok = summary.get("ok", 0)
+        partial = summary.get("partial", 0)
+        blocked = summary.get("blocked", 0)
+        
+        # Calcula taxa de aprovação (OK = 100%, Partial = 50%, Blocked = 0%)
+        if total > 0:
+            pass_rate = ((ok * 100) + (partial * 50)) / total
+        else:
+            pass_rate = 100.0
+        
+        # Determina resultado geral
+        # FAIL se houver qualquer abertura bloqueada ou mais de 10% parciais
+        if blocked > 0 or (total > 0 and partial / total > 0.10):
+            overall_result = "FAIL"
+        else:
+            overall_result = "PASS"
+        
+        # Lista de defeitos (apenas os não-OK)
+        defects = []
+        for aperture in result.get("apertures", []):
+            if aperture.get("status") != "OK":
+                defects.append({
+                    "aperture_id": aperture.get("id"),
+                    "x": aperture.get("center", [0, 0])[0],
+                    "y": aperture.get("center", [0, 0])[1],
+                    "status": aperture.get("status"),
+                    "fill_pct": aperture.get("fill_percentage", 0),
+                })
+        
+        return cls(
+            timestamp=datetime.now().isoformat(),
+            total_apertures=total,
+            ok_count=ok,
+            partial_count=partial,
+            blocked_count=blocked,
+            result=overall_result,
+            pass_rate=pass_rate,
+            gerber_file=gerber_file,
+            operator=operator,
+            recipe_name=recipe_name,
+            report_path=report_path,
+            defects=defects,
+        )
+
+
+@dataclass
 class TrendAnalysis:
     """Resultado da análise de tendência de um stencil."""
     stencil_code: str
@@ -582,3 +701,148 @@ class StencilTracker:
         """
         analysis = self.get_trend_analysis(code, warning_low)
         return analysis.alert
+    
+    # -------------------------------------------------------------------------
+    #  HISTÓRICO DE INSPEÇÕES VISUAIS
+    # -------------------------------------------------------------------------
+    
+    def add_inspection_record(self, code: str, record: "InspectionRecord") -> None:
+        """
+        Adiciona registro de inspeção visual ao histórico.
+        
+        Args:
+            code: Código do stencil
+            record: Registro de inspeção
+        """
+        stencil = self.get_stencil(code)
+        if not stencil:
+            raise ValueError(f"Stencil '{code}' não encontrado")
+        
+        # Cria diretório de histórico se não existir
+        history_dir = self._get_history_dir(code)
+        history_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Nome do arquivo: YYYY-MM-DD_HHMMSS_inspection.json
+        timestamp = datetime.fromisoformat(record.timestamp)
+        filename = timestamp.strftime("%Y-%m-%d_%H%M%S_inspection.json")
+        filepath = history_dir / filename
+        
+        # Salva registro
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(record.to_dict(), f, indent=2, ensure_ascii=False)
+        
+        # Atualiza stencil
+        stencil.last_inspection = record.timestamp
+        stencil.inspection_count += 1
+        
+        # Atualiza status baseado no resultado
+        if record.result == "FAIL":
+            stencil.status = "warning"
+        
+        self._save_stencil(stencil)
+        
+        log.info(f"Registro de inspeção visual adicionado para {code}: {record.result}")
+    
+    def get_inspection_history(self, code: str, limit: int = 50) -> List["InspectionRecord"]:
+        """
+        Obtém histórico de inspeções visuais.
+        
+        Args:
+            code: Código do stencil
+            limit: Número máximo de registros (mais recentes primeiro)
+            
+        Returns:
+            Lista de registros de inspeção
+        """
+        history_dir = self._get_history_dir(code)
+        
+        if not history_dir.exists():
+            return []
+        
+        records = []
+        
+        # Lista arquivos de inspeção
+        files = sorted(
+            [f for f in history_dir.glob("*_inspection.json")],
+            reverse=True  # Mais recente primeiro
+        )
+        
+        for filepath in files[:limit]:
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                records.append(InspectionRecord.from_dict(data))
+            except Exception as e:
+                log.warning(f"Erro ao carregar {filepath}: {e}")
+        
+        return records
+    
+    def get_combined_history(self, code: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """
+        Obtém histórico combinado de tensão e inspeção visual.
+        
+        Args:
+            code: Código do stencil
+            limit: Número máximo de registros total
+            
+        Returns:
+            Lista ordenada por timestamp (mais recente primeiro)
+            Cada item tem: type ("tension" ou "inspection"), timestamp, record
+        """
+        combined = []
+        
+        # Busca histórico de tensão
+        for record in self.get_tension_history(code, limit=limit):
+            combined.append({
+                "type": "tension",
+                "timestamp": record.timestamp,
+                "record": record,
+            })
+        
+        # Busca histórico de inspeção
+        for record in self.get_inspection_history(code, limit=limit):
+            combined.append({
+                "type": "inspection",
+                "timestamp": record.timestamp,
+                "record": record,
+            })
+        
+        # Ordena por timestamp (mais recente primeiro)
+        combined.sort(key=lambda x: x["timestamp"], reverse=True)
+        
+        return combined[:limit]
+    
+    def get_inspection_stats(self, code: str) -> Dict[str, Any]:
+        """
+        Obtém estatísticas de inspeções visuais de um stencil.
+        
+        Args:
+            code: Código do stencil
+            
+        Returns:
+            Dicionário com estatísticas
+        """
+        history = self.get_inspection_history(code, limit=100)
+        
+        if not history:
+            return {
+                "total_inspections": 0,
+                "pass_count": 0,
+                "fail_count": 0,
+                "pass_rate": 0.0,
+                "avg_pass_rate": 0.0,
+                "last_result": None,
+            }
+        
+        pass_count = sum(1 for r in history if r.result == "PASS")
+        fail_count = len(history) - pass_count
+        avg_pass_rate = sum(r.pass_rate for r in history) / len(history)
+        
+        return {
+            "total_inspections": len(history),
+            "pass_count": pass_count,
+            "fail_count": fail_count,
+            "pass_rate": (pass_count / len(history)) * 100 if history else 0,
+            "avg_pass_rate": avg_pass_rate,
+            "last_result": history[0].result if history else None,
+        }

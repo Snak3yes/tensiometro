@@ -28,7 +28,9 @@ class AOIConfigManager:
             "plc_port": 502,            # Porta padrão Modbus TCP
             "auto_connect_cnc": True,
             "last_camera_id": 0,
-            "auto_connect_camera": True
+            "last_camera_id": 0,
+            "auto_connect_camera": True,
+            "backlight_coil": 1       # Endereço coil backlight (padrão 1 = M1)
         },
         "ui": {
             "theme": "light"
@@ -209,6 +211,11 @@ class AOIConfigManager:
         if pitch > 0 and hasattr(cnc, 'pulses_per_mm'):
             cnc.pulses_per_mm = ppr / pitch
         
+        # Aplica endereço do backlight
+        bl_addr = self.get("connections", "backlight_coil", default=1)
+        if hasattr(cnc, 'backlight_coil_address'):
+            cnc.backlight_coil_address = bl_addr
+        
         self.log.info(f"Configurações aplicadas ao PLC: max_feed={maxf}, pulses_per_mm={ppr/pitch if pitch > 0 else 'N/A'}")
 
 
@@ -249,6 +256,12 @@ class SettingsDialog(QDialog):
         self.spin_plc_port.setRange(1, 65535)
         self.spin_plc_port.setValue(cfg.get("connections", "plc_port", default=502))
         plc_layout.addRow("Porta Modbus:", self.spin_plc_port)
+        
+        self.spin_bl_coil = QSpinBox()
+        self.spin_bl_coil.setRange(0, 65535)
+        self.spin_bl_coil.setValue(cfg.get("connections", "backlight_coil", default=1))
+        self.spin_bl_coil.setToolTip("Endereço Modbus do Coil de Backlight (Padrão: 1 para M1 -> Y0.7)")
+        plc_layout.addRow("Endereço Coil Backlight:", self.spin_bl_coil)
         
         conn_layout.addRow(plc_group)
         
@@ -370,7 +383,9 @@ class SettingsDialog(QDialog):
         self.cfg.set("connections", "plc_host", value=self.edit_plc_host.text().strip())
         self.cfg.set("connections", "plc_port", value=self.spin_plc_port.value())
         self.cfg.set("connections", "last_camera_id", value=self.spin_camera_id.value())
+        self.cfg.set("connections", "last_camera_id", value=self.spin_camera_id.value())
         self.cfg.set("connections", "auto_connect_camera", value=self.chk_auto_camera.isChecked())
+        self.cfg.set("connections", "backlight_coil", value=self.spin_bl_coil.value())
         
         # Velocidades
         self.cfg.set("cnc", "max_feed", "x", value=self.spin_f_x.value())

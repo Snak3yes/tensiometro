@@ -5,7 +5,7 @@ import time
 import numpy as np
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QGroupBox, 
-                             QGridLayout, QLineEdit, 
+                             QGridLayout, QLineEdit, QFormLayout,
                              QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
                              QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
                              QSplitter, QFrame, QTableWidget, QTableWidgetItem, 
@@ -33,6 +33,10 @@ from aoi_lib.stencil_tracker_ui import (
 from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
 from aoi_lib.report_generator import ReportGenerator, ReportConfig
 from aoi_lib.report_settings_dialog import ReportSettingsDialog
+from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, InspectionResult
+from aoi_lib.inspection_settings_dialog import InspectionSettingsDialog
+from aoi_lib.inspection_result_viewer import InspectionResultWidget
+from aoi_lib.gerber_renderer import GerberRenderer
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -1239,8 +1243,11 @@ class MovementControlWidget(QWidget):
         Controla o backlight (iluminação inferior do stencil).
         Liga/desliga a saída Y0.7 do CLP.
         """
+        logger.debug(f"🔍 DEBUG: _on_backlight_toggle chamado com checked={checked}")
+        
         if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
             # Bloqueia sinais para evitar loop infinito ao reverter o estado
+            logger.debug(f"🔍 DEBUG: CLP não conectado, revertendo botão")
             self.backlight_button.blockSignals(True)
             self.backlight_button.setChecked(not checked)
             self.backlight_button.blockSignals(False)
@@ -1249,6 +1256,7 @@ class MovementControlWidget(QWidget):
         
         # Verifica se o controlador tem suporte a backlight
         if not hasattr(self.controller.cnc, 'backlight_set'):
+            logger.debug(f"🔍 DEBUG: Controlador não suporta backlight, revertendo botão")
             self.backlight_button.blockSignals(True)
             self.backlight_button.setChecked(not checked)
             self.backlight_button.blockSignals(False)
@@ -1256,7 +1264,9 @@ class MovementControlWidget(QWidget):
             return
         
         # Aciona o backlight
+        logger.debug(f"🔍 DEBUG: Chamando backlight_set({checked})")
         success = self.controller.cnc.backlight_set(checked)
+        logger.debug(f"🔍 DEBUG: backlight_set retornou success={success}")
         
         if success:
             if checked:
@@ -1267,6 +1277,7 @@ class MovementControlWidget(QWidget):
                 logger.info("ILUMINAÇÃO: Backlight desligado (Y0.7 = LOW)")
         else:
             # Bloqueia sinais para evitar loop infinito ao reverter o estado
+            logger.debug(f"🔍 DEBUG: backlight_set falhou, revertendo botão de {checked} para {not checked}")
             self.backlight_button.blockSignals(True)
             self.backlight_button.setChecked(not checked)
             self.backlight_button.blockSignals(False)
@@ -1760,6 +1771,9 @@ class AOIControllerApp(QMainWindow):
         
         # =========== SISTEMA DE RELATÓRIOS ===========
         self._init_report_generator()
+        
+        # =========== SISTEMA DE INSPEÇÃO VISUAL ===========
+        self._init_inspection_system()
         
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
@@ -2290,6 +2304,28 @@ class AOIControllerApp(QMainWindow):
         tension_action.triggered.connect(self.open_stencil_tension_dialog)
         menubar.addAction(tension_action)
 
+        # =========== MENU DE INSPEÇÃO VISUAL ===========
+        inspection_menu = menubar.addMenu('&Inspeção Visual')
+        
+        # Executar Inspeção
+        run_inspection_action = QAction('🔬 Executar Inspeção...', self)
+        run_inspection_action.setShortcut('Ctrl+I')
+        run_inspection_action.setToolTip('Executa inspeção visual comparando mosaico com Gerber')
+        run_inspection_action.triggered.connect(self.show_inspection_dialog)
+        inspection_menu.addAction(run_inspection_action)
+        
+        # Visualizar Último Resultado
+        view_result_action = QAction('📊 Visualizar Último Resultado', self)
+        view_result_action.triggered.connect(self.show_last_inspection_result)
+        inspection_menu.addAction(view_result_action)
+        
+        inspection_menu.addSeparator()
+        
+        # Configurações de Inspeção
+        inspection_settings_action = QAction('⚙️ Parâmetros de Inspeção...', self)
+        inspection_settings_action.triggered.connect(self.show_inspection_settings)
+        inspection_menu.addAction(inspection_settings_action)
+
         # --------  painel de conexões -----------------
         conn_panel = QAction('Conexões…', self)
         conn_panel.setCheckable(True)
@@ -2676,7 +2712,6 @@ class AOIControllerApp(QMainWindow):
         mosaic_path = self.config.get("mosaic", "last_output_path", default=None)
         if mosaic_path and os.path.exists(mosaic_path):
             try:
-                import cv2
                 img = cv2.imread(mosaic_path)
                 if img is not None:
                     alignment_widget.set_image(img)
@@ -3012,6 +3047,393 @@ class AOIControllerApp(QMainWindow):
         layout.addLayout(btn_layout)
         
         dialog.exec()
+
+    # =========================================================================
+    #  SISTEMA DE INSPEÇÃO VISUAL
+    # =========================================================================
+    
+    def _init_inspection_system(self):
+        """Inicializa o sistema de inspeção visual."""
+        # Carregar thresholds de inspeção
+        thresholds_data = self.config.get("inspection", "thresholds", default=None)
+        
+        if thresholds_data:
+            try:
+                self.inspection_thresholds = InspectionThresholds.from_dict(thresholds_data)
+                logger.info("Thresholds de inspeção carregados")
+            except Exception as e:
+                logger.warning(f"Erro ao carregar thresholds de inspeção: {e}")
+                self.inspection_thresholds = InspectionThresholds()
+        else:
+            self.inspection_thresholds = InspectionThresholds()
+        
+        self.stencil_inspector = StencilInspector(self.inspection_thresholds)
+        self._last_inspection_result: Optional[InspectionResult] = None
+        self._last_inspection_overlay: Optional[np.ndarray] = None
+        
+        logger.info("Sistema de inspeção visual inicializado")
+    
+    def show_inspection_settings(self):
+        """Abre diálogo de configuração dos parâmetros de inspeção."""
+        dialog = InspectionSettingsDialog(self.inspection_thresholds, self)
+        
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            self.inspection_thresholds = dialog.get_thresholds()
+            self.stencil_inspector = StencilInspector(self.inspection_thresholds)
+            
+            # Salvar configuração
+            self.config.set("inspection", "thresholds", self.inspection_thresholds.to_dict())
+            self.config.save()
+            
+            logger.info("Parâmetros de inspeção atualizados e salvos")
+            self.statusBar().showMessage("Parâmetros de inspeção salvos", 3000)
+    
+    def show_inspection_dialog(self):
+        """Abre diálogo para executar inspeção visual."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle("🔬 Inspeção Visual de Stencil")
+        dialog.setMinimumWidth(600)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Grupo: Arquivos
+        files_group = QGroupBox("📁 Arquivos de Entrada")
+        files_layout = QFormLayout(files_group)
+        
+        # Gerber
+        gerber_layout = QHBoxLayout()
+        self._insp_gerber_path = QLineEdit()
+        self._insp_gerber_path.setPlaceholderText("Selecione o arquivo Gerber...")
+        gerber_layout.addWidget(self._insp_gerber_path)
+        btn_browse_gerber = QPushButton("📁")
+        btn_browse_gerber.clicked.connect(self._browse_inspection_gerber)
+        gerber_layout.addWidget(btn_browse_gerber)
+        files_layout.addRow("Arquivo Gerber:", gerber_layout)
+        
+        # Mosaico
+        mosaic_layout = QHBoxLayout()
+        self._insp_mosaic_path = QLineEdit()
+        self._insp_mosaic_path.setPlaceholderText("Selecione a imagem do mosaico...")
+        
+        # Auto-preencher com último mosaico
+        last_mosaic = self.config.get("mosaic", "last_output_path", default="")
+        if last_mosaic and os.path.exists(last_mosaic):
+            self._insp_mosaic_path.setText(last_mosaic)
+        
+        mosaic_layout.addWidget(self._insp_mosaic_path)
+        btn_browse_mosaic = QPushButton("📁")
+        btn_browse_mosaic.clicked.connect(self._browse_inspection_mosaic)
+        mosaic_layout.addWidget(btn_browse_mosaic)
+        files_layout.addRow("Imagem Mosaico:", mosaic_layout)
+        
+        layout.addWidget(files_group)
+        
+        # Grupo: Informações
+        info_group = QGroupBox("ℹ️ Informações")
+        info_layout = QFormLayout(info_group)
+        
+        self._insp_stencil_label = QLabel(
+            self.current_stencil.code if self.current_stencil else "(nenhum stencil selecionado)"
+        )
+        info_layout.addRow("Stencil:", self._insp_stencil_label)
+        
+        thresholds_text = (
+            f"OK ≥ {self.inspection_thresholds.ok_threshold}%, "
+            f"PARTIAL ≥ {self.inspection_thresholds.partial_threshold}%"
+        )
+        info_layout.addRow("Thresholds:", QLabel(thresholds_text))
+        
+        layout.addWidget(info_group)
+        
+        # Grupo: Alinhamento
+        align_group = QGroupBox("🎯 Alinhamento Gerber ↔ Imagem")
+        align_layout = QVBoxLayout(align_group)
+        
+        # Checkbox para usar alinhamento existente
+        self._insp_use_alignment = QCheckBox("Usar transformação de alinhamento (fiduciais)")
+        
+        # Verificar se existe transformação salva
+        saved_tx = self.config.get("fiducial_alignment", "last_tx", default=None)
+        has_alignment = saved_tx is not None
+        
+        self._insp_use_alignment.setChecked(has_alignment)
+        self._insp_use_alignment.setEnabled(has_alignment)
+        
+        if has_alignment:
+            tx = self.config.get("fiducial_alignment", "last_tx", default=0)
+            ty = self.config.get("fiducial_alignment", "last_ty", default=0)
+            angle = self.config.get("fiducial_alignment", "last_angle", default=0)
+            scale = self.config.get("fiducial_alignment", "last_scale", default=1)
+            self._insp_use_alignment.setText(
+                f"Usar transformação de alinhamento "
+                f"(tx={tx:.0f}, ty={ty:.0f}, rot={angle:.1f}°, escala={scale:.3f})"
+            )
+        else:
+            self._insp_use_alignment.setText(
+                "Usar transformação de alinhamento (nenhuma configurada)"
+            )
+        
+        align_layout.addWidget(self._insp_use_alignment)
+        
+        # Botão para configurar alinhamento
+        btn_align = QPushButton("🎯 Configurar Alinhamento de Fiduciais...")
+        btn_align.clicked.connect(lambda: self._open_fiducial_alignment_from_inspection(dialog))
+        align_layout.addWidget(btn_align)
+        
+        layout.addWidget(align_group)
+        
+        # Status
+        self._insp_status = QLabel("")
+        layout.addWidget(self._insp_status)
+        
+        # Barra de progresso
+        from PyQt6.QtWidgets import QProgressBar
+        self._insp_progress = QProgressBar()
+        self._insp_progress.setVisible(False)
+        layout.addWidget(self._insp_progress)
+        
+        layout.addStretch()
+        
+        # Botões
+        btn_layout = QHBoxLayout()
+        
+        btn_settings = QPushButton("⚙️ Parâmetros")
+        btn_settings.clicked.connect(self.show_inspection_settings)
+        btn_layout.addWidget(btn_settings)
+        
+        btn_layout.addStretch()
+        
+        btn_cancel = QPushButton("Cancelar")
+        btn_cancel.clicked.connect(dialog.reject)
+        btn_layout.addWidget(btn_cancel)
+        
+        btn_run = QPushButton("▶️ Executar Inspeção")
+        btn_run.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        btn_run.clicked.connect(lambda: self._run_inspection(dialog))
+        btn_layout.addWidget(btn_run)
+        
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
+    
+    def _browse_inspection_gerber(self):
+        """Seleciona arquivo Gerber para inspeção."""
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Selecionar Arquivo Gerber",
+            "", "Gerber (*.gbr *.ger);;Todos (*)"
+        )
+        if filepath:
+            self._insp_gerber_path.setText(filepath)
+    
+    def _browse_inspection_mosaic(self):
+        """Seleciona imagem do mosaico para inspeção."""
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Selecionar Imagem do Mosaico",
+            "", "Imagens (*.png *.jpg *.bmp *.tiff);;Todos (*)"
+        )
+        if filepath:
+            self._insp_mosaic_path.setText(filepath)
+    
+    def _run_inspection(self, dialog: QDialog):
+        """Executa a inspeção visual."""
+        gerber_path = self._insp_gerber_path.text()
+        mosaic_path = self._insp_mosaic_path.text()
+        
+        # Validar
+        if not gerber_path or not os.path.exists(gerber_path):
+            QMessageBox.warning(dialog, "Erro", "Selecione um arquivo Gerber válido.")
+            return
+        
+        if not mosaic_path or not os.path.exists(mosaic_path):
+            QMessageBox.warning(dialog, "Erro", "Selecione uma imagem de mosaico válida.")
+            return
+        
+        try:
+            self._insp_status.setText("🔄 Carregando Gerber...")
+            self._insp_progress.setVisible(True)
+            self._insp_progress.setValue(10)
+            QApplication.processEvents()
+            
+            # Carregar Gerber
+            self.stencil_inspector.load_gerber(gerber_path)
+            
+            self._insp_status.setText("🔄 Carregando mosaico...")
+            self._insp_progress.setValue(30)
+            QApplication.processEvents()
+            
+            # Carregar mosaico
+            mosaic = cv2.imread(mosaic_path)
+            if mosaic is None:
+                raise ValueError(f"Não foi possível carregar: {mosaic_path}")
+            
+            self.stencil_inspector.set_mosaic(mosaic)
+            
+            # Carregar transformação de alinhamento se selecionada
+            transform = None
+            if self._insp_use_alignment.isChecked():
+                from aoi_lib.gerber_renderer import AlignmentTransform
+                tx = self.config.get("fiducial_alignment", "last_tx", default=0)
+                ty = self.config.get("fiducial_alignment", "last_ty", default=0)
+                angle = self.config.get("fiducial_alignment", "last_angle", default=0)
+                scale = self.config.get("fiducial_alignment", "last_scale", default=1)
+                
+                transform = AlignmentTransform(
+                    tx=tx, ty=ty, angle=angle,
+                    scale_x=scale, scale_y=scale
+                )
+                self.stencil_inspector.set_alignment(transform)
+                self._insp_status.setText("🔄 Aplicando alinhamento...")
+                QApplication.processEvents()
+            
+            self._insp_status.setText("🔄 Executando inspeção...")
+            self._insp_progress.setValue(50)
+            QApplication.processEvents()
+            
+            # Executar inspeção
+            result = self.stencil_inspector.inspect()
+            
+            self._insp_progress.setValue(80)
+            QApplication.processEvents()
+            
+            # Gerar overlay
+            overlay = self.stencil_inspector.get_result_overlay(show_all=True)
+            
+            self._insp_progress.setValue(100)
+            
+            # Salvar resultados
+            self._last_inspection_result = result
+            self._last_inspection_overlay = overlay
+            result.gerber_file = gerber_path
+            result.mosaic_file = mosaic_path
+            result.stencil_code = self.current_stencil.code if self.current_stencil else None
+            
+            # Fechar diálogo e mostrar resultado
+            dialog.accept()
+            
+            # Mostrar resultado
+            self._show_inspection_result(result, overlay)
+            
+        except Exception as e:
+            logger.exception("Erro na inspeção visual")
+            self._insp_progress.setVisible(False)
+            QMessageBox.critical(
+                dialog, "Erro",
+                f"Erro ao executar inspeção:\n{str(e)}"
+            )
+    
+    def _open_fiducial_alignment_from_inspection(self, parent_dialog: QDialog):
+        """Abre o alinhamento de fiduciais a partir do diálogo de inspeção."""
+        parent_dialog.hide()  # Esconder temporariamente
+        
+        self.show_fiducial_alignment_dialog()
+        
+        # Verificar se agora temos alinhamento
+        saved_tx = self.config.get("fiducial_alignment", "last_tx", default=None)
+        has_alignment = saved_tx is not None
+        
+        if has_alignment:
+            tx = self.config.get("fiducial_alignment", "last_tx", default=0)
+            ty = self.config.get("fiducial_alignment", "last_ty", default=0)
+            angle = self.config.get("fiducial_alignment", "last_angle", default=0)
+            scale = self.config.get("fiducial_alignment", "last_scale", default=1)
+            self._insp_use_alignment.setText(
+                f"Usar transformação de alinhamento "
+                f"(tx={tx:.0f}, ty={ty:.0f}, rot={angle:.1f}°, escala={scale:.3f})"
+            )
+            self._insp_use_alignment.setChecked(True)
+            self._insp_use_alignment.setEnabled(True)
+        
+        parent_dialog.show()  # Mostrar novamente
+    
+    def _show_inspection_result(self, result: InspectionResult, overlay: np.ndarray):
+        """Exibe resultado da inspeção em uma janela."""
+        dialog = QDialog(self)
+        dialog.setWindowTitle(f"📊 Resultado da Inspeção - {result.overall_status}")
+        dialog.resize(1200, 800)
+        
+        layout = QVBoxLayout(dialog)
+        
+        # Widget de resultado
+        result_widget = InspectionResultWidget()
+        result_widget.set_result(result, overlay)
+        
+        # Conectar exportação
+        def export_pdf():
+            try:
+                import tempfile
+                from pathlib import Path
+                
+                # Salvar overlay em arquivo temporário
+                temp_dir = Path(tempfile.gettempdir())
+                overlay_path = str(temp_dir / "inspection_overlay_temp.png")
+                cv2.imwrite(overlay_path, overlay)
+                
+                # Preparar dados da inspeção
+                result_dict = result.to_dict() if hasattr(result, 'to_dict') else {
+                    'total_apertures': result.total_apertures,
+                    'ok_count': result.ok_count,
+                    'partial_count': result.partial_count,
+                    'blocked_count': result.blocked_count,
+                    'overall_status': result.overall_status,
+                    'approval_rate': result.approval_rate,
+                    'defects': [d.to_dict() if hasattr(d, 'to_dict') else d for d in result.defects]
+                }
+                
+                stencil_code = self.current_stencil.code if self.current_stencil else None
+                
+                # Gerar PDF
+                pdf_path = self.report_generator.generate_inspection_report(
+                    inspection_result=result_dict,
+                    overlay_image_path=overlay_path,
+                    stencil_code=stencil_code,
+                    operator=self.config.get("user", "name", default="Operador")
+                )
+                
+                QMessageBox.information(
+                    dialog, "Relatório Gerado",
+                    f"Relatório de inspeção visual salvo em:\n\n{pdf_path}"
+                )
+                
+                # Abrir PDF
+                os.startfile(pdf_path)
+                
+            except Exception as e:
+                logger.exception("Erro ao gerar relatório de inspeção")
+                QMessageBox.critical(
+                    dialog, "Erro",
+                    f"Erro ao gerar relatório:\n{str(e)}"
+                )
+        
+        result_widget.exportRequested.connect(export_pdf)
+        
+        layout.addWidget(result_widget)
+        
+        # Botões
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        
+        btn_close = QPushButton("Fechar")
+        btn_close.clicked.connect(dialog.accept)
+        btn_layout.addWidget(btn_close)
+        
+        layout.addLayout(btn_layout)
+        
+        dialog.exec()
+    
+    def show_last_inspection_result(self):
+        """Mostra o último resultado de inspeção."""
+        if self._last_inspection_result is None:
+            QMessageBox.information(
+                self, "Sem Resultado",
+                "Nenhuma inspeção foi executada ainda.\n\n"
+                "Use 'Inspeção Visual' → 'Executar Inspeção' para realizar uma inspeção."
+            )
+            return
+        
+        self._show_inspection_result(
+            self._last_inspection_result, 
+            self._last_inspection_overlay
+        )
 
 
     def show_camera_settings_dialog(self):

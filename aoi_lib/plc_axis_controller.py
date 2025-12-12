@@ -59,11 +59,6 @@ class PLCAxisController:
         }
     }
     
-    # Endereço da saída Y0.7 para controle do backlight
-    # Na série Delta AS, saídas Y são mapeadas a partir do endereço 0x0500 (1280 decimal)
-    # Y0.7 = base + 7 = 1287 (ou pode ser configurado diferente no CLP)
-    BACKLIGHT_COIL = 0x0507  # Y0.7 - Ajustar se necessário conforme configuração do CLP
-
     def __init__(self, host: str='192.168.1.5', port: int=502, auto_connect: bool=True):
         """
         Inicializa o controlador do CLP via Modbus TCP.
@@ -91,6 +86,8 @@ class PLCAxisController:
         self.pulses_per_mm = 1.0
         # estado do backlight (iluminação inferior)
         self.backlight_on = False
+        # Endereço da saída Y0.7 para controle do backlight (padrão 1 = M1 -> Y0.7)
+        self.backlight_coil_address = 1
         
         # Conecta automaticamente se solicitado
         if auto_connect:
@@ -399,21 +396,28 @@ class PLCAxisController:
         Returns:
             True se o comando foi executado com sucesso
         """
+        logging.debug(f"🔍 DEBUG PLC: backlight_set chamado com on={on}, address={self.backlight_coil_address}")
+        
         if not self.client or not self.is_connected:
             logging.warning("PLC não conectado - não é possível controlar backlight")
             return False
         
         try:
-            result = self.client.write_coil(self.BACKLIGHT_COIL, on)
+            logging.debug(f"🔍 DEBUG PLC: Executando write_coil(address={self.backlight_coil_address}, value={on})")
+            result = self.client.write_coil(self.backlight_coil_address, on)
+            logging.debug(f"🔍 DEBUG PLC: write_coil retornou result={result}, isError={result.isError() if hasattr(result, 'isError') else 'N/A'}")
+            
             if result.isError():
                 logging.error(f"Erro ao {'ligar' if on else 'desligar'} backlight: {result}")
                 return False
             
             self.backlight_on = on
             logging.info(f"Backlight {'LIGADO' if on else 'DESLIGADO'} (Y0.7)")
+            logging.debug(f"🔍 DEBUG PLC: backlight_set retornando True")
             return True
         except Exception as e:
             logging.error(f"Exceção ao controlar backlight: {e}")
+            logging.debug(f"🔍 DEBUG PLC: backlight_set retornando False devido a exceção")
             return False
     
     def backlight_turn_on(self) -> bool:

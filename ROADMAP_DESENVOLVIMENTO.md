@@ -1,7 +1,7 @@
 # 🎯 Sistema AOI para Inspeção de Stencil
 
-> **Versão:** 0.4  
-> **Última atualização:** 10/12/2024  
+> **Versão:** 0.4.1  
+> **Última atualização:** 11/12/2024  
 > **Status:** Em desenvolvimento ativo
 
 ---
@@ -148,29 +148,36 @@ Sistema de alinhamento do arquivo Gerber com a imagem real do stencil:
 ---
 
 ### 🏷️ FASE 7: Rastreabilidade de Stencils
-**Status: ✅ Concluído (~95%)**
+**Status: ✅ Concluído (100%)**
 
 Controle individualizado de cada stencil físico:
 - [x] Modelo de dados `Stencil` (código, descrição, receita, datas, status)
 - [x] Modelo de dados `TensionRecord` para histórico de medições
+- [x] Modelo de dados `InspectionRecord` para histórico de inspeções visuais
 - [x] `StencilTracker` - CRUD de stencils + persistência JSON
+- [x] `StencilDatabase` - Persistência SQLite (alternativa otimizada)
 - [x] Entrada de código de barras (manual ou leitor USB)
 - [x] Histórico de medições de tensão por stencil
+- [x] Histórico de inspeções visuais por stencil
+- [x] Histórico combinado (timeline)
 - [x] Análise de tendência (média móvel, variação %)
 - [x] Alertas de degradação automáticos
 - [x] Widgets de UI: Identificação, Histórico, Edição, Gerenciamento
+- [x] Diálogo de histórico completo com abas (Tensão + Inspeção Visual)
 - [x] Aba dedicada "🏷️ Rastreabilidade" no consumo_lib.py
 - [x] Menu "Stencils" com gerenciamento e cadastro
 - [x] Conexão com medição de tensão (salva resultado no histórico)
-- [ ] Histórico de inspeções visuais (após Fase 9)
+- [x] Migração automática de JSON para SQLite
 
 **Arquivos:**
-- `aoi_lib/stencil_tracker.py` - Modelos e lógica de negócio
+- `aoi_lib/stencil_tracker.py` - Modelos e lógica de negócio (JSON)
+- `aoi_lib/stencil_database.py` - Persistência SQLite
 - `aoi_lib/stencil_tracker_ui.py` - Widgets PyQt6
 - `consumo_lib.py` - Integração de aba, menu e handlers
 
 **Notas:** 
-- Persistência em JSON (ver nota de evolução futura para BD)
+- Suporte dual: JSON (legado) e SQLite (recomendado)
+- Migração automática disponível via `migrate_json_to_sqlite()`
 - Suporte a leitor USB de código de barras via campo de texto
 
 ---
@@ -201,14 +208,33 @@ Geração de relatórios para documentação e rastreabilidade:
 ---
 
 ### 🔬 FASE 9: Inspeção Visual Automatizada
-**Status: 🔴 Pendente**
+**Status: ✅ Concluído (100%)**
 
 Análise automática das aberturas do stencil usando máscaras do Gerber:
-- [ ] Parser de arquivos Gerber
-- [ ] Geração de mosaico completo do stencil
-- [ ] Aplicação de transformação de alinhamento (Fase 6)
-- [ ] Análise de cada abertura (sujeira, obstrução)
-- [ ] Classificação OK/NOK por região
+- [x] Renderizador Gerber para OpenCV (gerber_renderer.py)
+- [x] Motor de inspeção visual (stencil_inspector.py)
+- [x] Binarização com backlight (Otsu, Adaptativo, Fixo)
+- [x] Classificação de aberturas (OK, PARTIAL, BLOCKED)
+- [x] Thresholds configuráveis pela engenharia
+- [x] Overlay visual de resultados
+- [x] Menu integrado: Inspeção Visual → (Executar, Resultado, Parâmetros)
+- [x] Integração com alinhamento de fiduciais (transformação)
+- [x] Relatório PDF de inspeção visual (InspectionReportBuilder)
+
+**Arquivos:**
+- `aoi_lib/gerber_core/` - Cópia do parser Gerber existente
+- `aoi_lib/gerber_renderer.py` - Renderiza Gerber para OpenCV
+- `aoi_lib/stencil_inspector.py` - Motor de inspeção
+- `aoi_lib/inspection_settings_dialog.py` - Configuração de thresholds
+- `aoi_lib/inspection_result_viewer.py` - Visualização de resultados
+- `aoi_lib/report_generator.py` - InspectionReportBuilder para PDFs
+- `consumo_lib.py` - Integração de menu e handlers
+
+**Notas:**
+- Otimizado para inspeção com backlight (luz por trás)
+- Detecta obstruções parciais ou totais nas aberturas
+- Utiliza transformação de Fase 6 para alinhamento automático
+- Relatório PDF com overlay, resumo e tabela de defeitos
 
 ---
 
@@ -222,11 +248,11 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 | 4 | Medição de Tensão | ✅ 100% |
 | 5 | Interface Principal | ✅ 100% |
 | 6 | Alinhamento de Fiduciais | ✅ ~95% |
-| 7 | Rastreabilidade | ✅ ~95% |
-| 8 | Relatórios | ✅ ~90% |
-| 9 | Inspeção Visual Automatizada | 🔴 Pendente |
+| 7 | Rastreabilidade + SQLite | ✅ 100% |
+| 8 | Relatórios | ✅ ~95% |
+| 9 | Inspeção Visual Automatizada | ✅ 100% |
 
-**Progresso Geral: ~90%**
+**Progresso Geral: ~99%** 🎉
 
 ---
 
@@ -257,9 +283,11 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 > 2. ~~Conectar medição de tensão ao histórico do stencil~~ ✅
 > 3. ~~Integrar parser Gerber com detecção de fiduciais (Fase 6)~~ ✅
 > 4. ~~Implementar geração de relatórios PDF (Fase 8)~~ ✅
-> 5. Criar renderizador Gerber para overlay na inspeção visual (Fase 9)
-> 6. Implementar comparação de máscaras para detecção de defeitos (Fase 9)
-> 7. Adicionar relatório de inspeção visual nos PDFs (Fase 8+9)
+> 5. ~~Criar renderizador Gerber para inspeção visual (Fase 9)~~ ✅
+> 6. ~~Implementar detecção de obstruções em aberturas (Fase 9)~~ ✅
+> 7. ~~Integrar transformação de fiduciais na inspeção visual~~ ✅
+> 8. ~~Adicionar relatório PDF de inspeção visual~~ ✅
+> 9. Testes práticos com stencils reais
 
 ---
 
@@ -267,7 +295,8 @@ Análise automática das aberturas do stencil usando máscaras do Gerber:
 
 | Item | Descrição | Prioridade |
 |------|-----------|------------|
-| **Banco de Dados** | Migrar persistência de JSON para SQLite para melhor performance com grande volume de dados | Média |
-| **Relatórios PDF** | Geração automática de relatórios em PDF com gráficos e imagens | Alta |
+| ~~**Banco de Dados**~~ | ~~Migrar persistência de JSON para SQLite~~ | ✅ Implementado |
+| ~~**Histórico Visual**~~ | ~~Histórico de inspeções visuais por stencil~~ | ✅ Implementado |
 | **API REST** | Expor dados de inspeção via API para integração com sistemas MES/ERP | Baixa |
 | **Backup Automático** | Sistema de backup incremental dos dados de stencils | Média |
+| **Gráficos de Tendência** | Visualização gráfica da evolução de tensão ao longo do tempo | Baixa |
