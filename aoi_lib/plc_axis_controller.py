@@ -92,7 +92,19 @@ class PLCAxisController:
         # Conecta automaticamente se solicitado
         if auto_connect:
             self.connect()
-    
+
+    def set_connection_params(self, host: str, port: int):
+        """
+        Atualiza host/porta do CLP e recria o cliente Modbus.
+        Fecha a conexão atual, se existir.
+        """
+        if self.is_connected:
+            self.close()
+        self.host = host
+        self.port = int(port)
+        self.client = ModbusTcpClient(host, port=int(port))
+        self.machine_status = "Disconnected"
+
     def connect(self) -> bool:
         """
         Tenta conectar ao CLP via Modbus TCP.

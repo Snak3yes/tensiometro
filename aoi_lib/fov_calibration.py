@@ -6,17 +6,15 @@ Calibração de Campo de Visão (FOV) e conversão de coordenadas.
 Este módulo permite:
 - Calibrar a relação entre pixels da câmera e dimensões físicas (mm)
 - Converter clique no vídeo em movimento da head
-- A calibração considera a variação do FOV com a altura Z
 
 Conceito:
-- Em Z=Z0 (mais alto), a câmera vê uma área maior (largura W0 x altura H0)
-- Em Z=Z1 (mais baixo), a câmera vê uma área menor (largura W1 x altura H1)
-- A relação é linear: FOV(Z) = a*Z + b
+- TENSIÔMETRO: A câmera é FIXA no eixo Z, então o FOV é constante
+- ADESIVADORA: A câmera se move com o eixo Z, então o FOV varia linearmente
 
-Uso típico:
-1. Calibrar em dois pontos de Z (ex: Z=0 e Z=200 pulsos)
-2. O sistema calcula os coeficientes a e b para largura e altura
-3. Para qualquer Z, calcula-se mm/pixel e converte clique em movimento
+Uso típico (Tensiômetro):
+1. Calibrar em um único ponto (ex: coloque régua no plano focal)
+2. O sistema usa este FOV fixo para todas as alturas Z
+3. Para qualquer clique, converte pixel em movimento considerando o FOV calibrado
 """
 
 import math
@@ -34,32 +32,40 @@ log = logging.getLogger(__name__)
 @dataclass
 class FOVCalibration:
     """
-    Dados de calibração do campo de visão em dois pontos de Z.
+    Dados de calibração do campo de visão.
     
-    A relação FOV(Z) = a*Z + b é calculada por interpolação linear:
-    - Em z0_z_pulses: largura = z0_width_mm, altura = z0_height_mm
-    - Em z1_z_pulses: largura = z1_width_mm, altura = z1_height_mm
+    NOTA: Para o tensiômetro, a câmera é FIXA no eixo Z, então o FOV
+    não varia com a altura. Mantemos z0 e z1 por compatibilidade, mas
+    na prática apenas z0 é usado (câmera fixa vs. móvel na adesivadora).
     """
+    # Ponto único de calibração (câmera fixa)
     z0_z_pulses: int = 0
     z0_width_mm: float = 50.0
     z0_height_mm: float = 37.5
     
-    z1_z_pulses: int = 200
-    z1_width_mm: float = 30.0
-    z1_height_mm: float = 22.5
+    # Mantido por compatibilidade (não usado para câmera fixa)
+    z1_z_pulses: int = 0  # Mesmo valor que z0
+    z1_width_mm: float = 50.0  # Mesmo valor que z0
+    z1_height_mm: float = 37.5  # Mesmo valor que z0
     
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "FOVCalibration":
+        # Para câmera fixa, força z1 = z0
+        z0_width = data.get("z0_width_mm", 50.0)
+        z0_height = data.get("z0_height_mm", 37.5)
+        z0_pulses = data.get("z0_z_pulses", 0)
+        
         return cls(
-            z0_z_pulses=data.get("z0_z_pulses", 0),
-            z0_width_mm=data.get("z0_width_mm", 50.0),
-            z0_height_mm=data.get("z0_height_mm", 37.5),
-            z1_z_pulses=data.get("z1_z_pulses", 200),
-            z1_width_mm=data.get("z1_width_mm", 30.0),
-            z1_height_mm=data.get("z1_height_mm", 22.5),
+            z0_z_pulses=z0_pulses,
+            z0_width_mm=z0_width,
+            z0_height_mm=z0_height,
+            # Força z1 = z0 (câmera fixa)
+            z1_z_pulses=z0_pulses,
+            z1_width_mm=z0_width,
+            z1_height_mm=z0_height,
         )
 
 
@@ -239,14 +245,15 @@ class CameraFOVConverter:
         Esta função considera:
         - Escala do display (QLabel pode ter tamanho diferente do frame)
         - Posição relativa ao centro (clique no centro = sem movimento)
-        - Calibração de FOV para a altura Z atual
+        - Calibração de FOV (câmera fixa: FOV constante independente de Z)
+        - Inversão Y padrão (coordenadas de imagem vs. CNC)
         
         Args:
             click_x, click_y: Coordenadas do clique no QLabel
             display_width, display_height: Tamanho do QLabel de vídeo
-            z_pulses: Posição Z atual
+            z_pulses: Posição Z atual (não afeta FOV para câmera fixa)
             axis_x, axis_y: Nomes dos eixos
-            invert_y: Se True, inverte direção Y (câmera espelhada)
+            invert_y: Se True, inverte o comportamento padrão do Y (para câmera espelhada)
             
         Returns:
             (dx_pulses, dy_pulses) - Movimento necessário para centralizar o ponto clicado
@@ -275,8 +282,12 @@ class CameraFOVConverter:
         dx_pixels = (click_x - offset_x - pix_w / 2) / scale
         dy_pixels = (click_y - offset_y - pix_h / 2) / scale
         
-        # Inversão de Y se necessário (câmera invertida)
-        if invert_y:
+        # CORREÇÃO DA INVERSÃO Y:
+        # - Em coordenadas de imagem: Y cresce para BAIXO (click abaixo = dy > 0)
+        # - Para centralizar: se clicou abaixo, câmera tem que DESCER
+        # - Movimento CNC para DESCER: dy NEGATIVO
+        # - Portanto: SEMPRE negamos dy, exceto se invert_y=True (câmera já invertida)
+        if not invert_y:
             dy_pixels = -dy_pixels
         
         # Converte para pulsos
@@ -312,11 +323,8 @@ if _PYQT_AVAILABLE:
         """
         Diálogo para calibração do campo de visão da câmera.
         
-        O usuário define:
-        - Dois pontos de Z (altura)
-        - Largura e altura visível da câmera em cada ponto
-        
-        O sistema interpola linearmente para qualquer Z.
+        Para o tensiômetro, a câmera é FIXA no eixo Z, então o FOV
+        não varia com a altura. Apenas um ponto de calibração é necessário.
         """
         
         def __init__(self, config_manager=None, parent=None):
@@ -341,71 +349,43 @@ if _PYQT_AVAILABLE:
             
             # Instruções
             info = QLabel(
-                "Configure o campo de visão da câmera em dois pontos de altura Z.\n"
-                "Isso permite converter cliques no vídeo em movimentos precisos."
+                "Configure o campo de visão da câmera.\n"
+                "\n"
+                "NOTA: A câmera do tensiômetro é FIXA no eixo Z, então\n"
+                "o campo de visão é constante (não varia com a altura)."
             )
             info.setWordWrap(True)
             info.setStyleSheet("color: #666; margin-bottom: 10px;")
             layout.addWidget(info)
             
             # Grupo de calibração
-            group = QGroupBox("Pontos de Calibração")
+            group = QGroupBox("Calibração do Campo de Visão")
             grid = QGridLayout(group)
             
-            # Cabeçalhos
-            grid.addWidget(QLabel("Parâmetro"), 0, 0)
-            grid.addWidget(QLabel("Ponto 1 (Z alto)"), 0, 1)
-            grid.addWidget(QLabel("Ponto 2 (Z baixo)"), 0, 2)
-            
-            # Linha 1: Z pulsos
-            grid.addWidget(QLabel("Posição Z (pulsos):"), 1, 0)
-            
-            self.sp_z0 = QSpinBox()
-            self.sp_z0.setRange(-999999, 999999)
-            self.sp_z0.setValue(self._fov.z0_z_pulses)
-            grid.addWidget(self.sp_z0, 1, 1)
-            
-            self.sp_z1 = QSpinBox()
-            self.sp_z1.setRange(-999999, 999999)
-            self.sp_z1.setValue(self._fov.z1_z_pulses)
-            grid.addWidget(self.sp_z1, 1, 2)
-            
-            # Linha 2: Largura visível
-            grid.addWidget(QLabel("Largura visível (mm):"), 2, 0)
+            # Linha 1: Largura visível
+            grid.addWidget(QLabel("Largura visível (mm):"), 0, 0)
             
             self.sp_w0 = QDoubleSpinBox()
             self.sp_w0.setRange(1, 1000)
             self.sp_w0.setDecimals(2)
             self.sp_w0.setValue(self._fov.z0_width_mm)
-            grid.addWidget(self.sp_w0, 2, 1)
+            grid.addWidget(self.sp_w0, 0, 1)
             
-            self.sp_w1 = QDoubleSpinBox()
-            self.sp_w1.setRange(1, 1000)
-            self.sp_w1.setDecimals(2)
-            self.sp_w1.setValue(self._fov.z1_width_mm)
-            grid.addWidget(self.sp_w1, 2, 2)
-            
-            # Linha 3: Altura visível
-            grid.addWidget(QLabel("Altura visível (mm):"), 3, 0)
+            # Linha 2: Altura visível
+            grid.addWidget(QLabel("Altura visível (mm):"), 1, 0)
             
             self.sp_h0 = QDoubleSpinBox()
             self.sp_h0.setRange(1, 1000)
             self.sp_h0.setDecimals(2)
             self.sp_h0.setValue(self._fov.z0_height_mm)
-            grid.addWidget(self.sp_h0, 3, 1)
-            
-            self.sp_h1 = QDoubleSpinBox()
-            self.sp_h1.setRange(1, 1000)
-            self.sp_h1.setDecimals(2)
-            self.sp_h1.setValue(self._fov.z1_height_mm)
-            grid.addWidget(self.sp_h1, 3, 2)
+            grid.addWidget(self.sp_h0, 1, 1)
             
             layout.addWidget(group)
             
             # Dica
             tip = QLabel(
-                "💡 Dica: Para calibrar, posicione uma régua no plano focal, "
-                "ajuste Z e meça a largura/altura visível no vídeo."
+                "💡 Dica: Para calibrar, posicione uma régua ou objeto de dimensões \n"
+                "conhecidas no plano focal e meça a largura/altura visível no vídeo."
             )
             tip.setWordWrap(True)
             tip.setStyleSheet("color: #888; font-size: 11px; margin-top: 10px;")
@@ -427,13 +407,11 @@ if _PYQT_AVAILABLE:
         
         def _save(self):
             """Salva calibração no config_manager."""
+            # Para câmera fixa, z1 = z0 (FOVCalibration força isso)
             fov = FOVCalibration(
-                z0_z_pulses=self.sp_z0.value(),
+                z0_z_pulses=0,
                 z0_width_mm=self.sp_w0.value(),
                 z0_height_mm=self.sp_h0.value(),
-                z1_z_pulses=self.sp_z1.value(),
-                z1_width_mm=self.sp_w1.value(),
-                z1_height_mm=self.sp_h1.value(),
             )
             
             if self._config_manager:

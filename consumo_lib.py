@@ -2,9 +2,11 @@ import sys
 import cv2
 import os
 import time
+from pathlib import Path
+from typing import Optional
 import numpy as np
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QGroupBox, 
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                             QHBoxLayout, QPushButton, QLabel, QGroupBox,
                              QGridLayout, QLineEdit, QFormLayout,
                              QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
                              QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
@@ -27,7 +29,7 @@ from aoi_lib.fov_calibration import (
 )
 from aoi_lib.stencil_tracker import StencilTracker, Stencil, TensionRecord
 from aoi_lib.stencil_tracker_ui import (
-    StencilIdentificationWidget, StencilHistoryDialog, 
+    StencilIdentificationWidget,
     StencilManagerDialog, StencilCreateDialog
 )
 from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
@@ -36,7 +38,6 @@ from aoi_lib.report_settings_dialog import ReportSettingsDialog
 from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, InspectionResult
 from aoi_lib.inspection_settings_dialog import InspectionSettingsDialog
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
-from aoi_lib.gerber_renderer import GerberRenderer
 import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
@@ -938,6 +939,10 @@ class CameraPreviewWidget(QWidget):
             self.fov_converter.set_frame_size(*self._last_frame_size)
             
             # Converte clique em movimento (retorna pulsos)
+            # NOTA: Sistema de coordenadas de imagem (Y para baixo) vs CNC
+            # A função video_click_to_movement já aplica a inversão necessária:
+            # - Por padrão (invert_y=False): Y é negado para corrigir orientação
+            # - Se _camera_mirror_y=True: imagem está espelhada, passa invert_y=True para cancelar a negação
             dx_pulses, dy_pulses = self.fov_converter.video_click_to_movement(
                 click_x, click_y,
                 self.image_label.width(),
@@ -965,7 +970,7 @@ class CameraPreviewWidget(QWidget):
                 # Usa move_relative do PLCAxisController (espera mm e mm/min)
                 self.controller.cnc.move_relative(x=dx_mm, y=dy_mm, feed_rate=feed_rate)
             else:
-                logger.debug(f"Clique muito próximo do centro, ignorado")
+                logger.debug("Clique muito próximo do centro, ignorado")
                 
         except Exception as e:
             logger.error(f"Erro ao processar clique no vídeo: {e}")
@@ -1037,14 +1042,21 @@ class CameraPreviewWidget(QWidget):
         if hasattr(main_window, '_camera_mirror_y') and main_window._camera_mirror_y:
             display_img = cv2.flip(display_img, 0)  # Flip vertical
         
-        # Desenhar a cruz vermelha no centro
+        # Desenhar a cruz de centralização no centro
         h, w = display_img.shape[:2]
         center_x, center_y = w // 2, h // 2
         
+        # Busca configurações da cruz do config manager
+        crosshair_cfg = self.cfg.get("camera", "crosshair", default={})
+        color_b = crosshair_cfg.get("color_b", 255)
+        color_g = crosshair_cfg.get("color_g", 0)
+        color_r = crosshair_cfg.get("color_r", 0)
+        thickness = crosshair_cfg.get("thickness", 2)
+        length_percent = crosshair_cfg.get("length_percent", 5)
+        
         # Parâmetros da cruz
-        color = (0, 0, 255)  # Vermelho em BGR
-        thickness = 2
-        length = min(w, h) // 20  # 5% do tamanho da dimensão menor
+        color = (color_b, color_g, color_r)  # BGR format for OpenCV
+        length = min(w, h) * length_percent // 100  # Comprimento baseado em percentual
         
         # Desenhar a cruz
         # Linha horizontal
@@ -1060,7 +1072,6 @@ class CameraPreviewWidget(QWidget):
                 
         # Converter a imagem OpenCV para QPixmap
         h, w = display_img.shape[:2]
-        c = display_img.shape[2] if len(display_img.shape) == 3 else 1
         bytes_per_line = 3 * w
         q_img = QImage(display_img.data, w, h, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
         pixmap = QPixmap.fromImage(q_img)
@@ -1162,9 +1173,14 @@ class MovementControlWidget(QWidget):
         step_layout.addWidget(QLabel("Step Size:"))
         # ---------- STEP SIZE ---------------
         default_step = self.cfg.get("movement", "step_size", default=10.0)
-        self.step_size = QLineEdit(f"{default_step}")
-        # ▸ VALIDAÇÃO numérica (>=0)
-        self.step_size.setValidator(QDoubleValidator(0.0001, 100000.0, 4, self))
+        self.step_size = QLineEdit(f"{default_step:.2f}")  # Formata com 2 decimais
+        # ▸ VALIDAÇÃO numérica (0.01 a 100000 mm, com 2 decimais)
+        step_validator = QDoubleValidator(0.01, 100000.0, 2, self)
+        step_validator.setNotation(QDoubleValidator.Notation.StandardNotation)  # Evita notação científica
+        # CRÍTICO: Define locale para usar ponto (.) como separador decimal
+        from PyQt6.QtCore import QLocale
+        step_validator.setLocale(QLocale(QLocale.Language.C))  # Locale C = ponto decimal
+        self.step_size.setValidator(step_validator)
         step_layout.addWidget(self.step_size)
         step_layout.addWidget(QLabel("mm"))
         
@@ -1253,19 +1269,19 @@ class MovementControlWidget(QWidget):
         Liga/desliga a saída Y0.7 do CLP.
         """
         logger.debug(f"🔍 DEBUG: _on_backlight_toggle chamado com checked={checked}")
-        
+
         if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
             # Bloqueia sinais para evitar loop infinito ao reverter o estado
-            logger.debug(f"🔍 DEBUG: CLP não conectado, revertendo botão")
+            logger.debug("🔍 DEBUG: CLP não conectado, revertendo botão")
             self.backlight_button.blockSignals(True)
             self.backlight_button.setChecked(not checked)
             self.backlight_button.blockSignals(False)
             QMessageBox.warning(self, "Erro", "CLP não conectado")
             return
-        
+
         # Verifica se o controlador tem suporte a backlight
         if not hasattr(self.controller.cnc, 'backlight_set'):
-            logger.debug(f"🔍 DEBUG: Controlador não suporta backlight, revertendo botão")
+            logger.debug("🔍 DEBUG: Controlador não suporta backlight, revertendo botão")
             self.backlight_button.blockSignals(True)
             self.backlight_button.setChecked(not checked)
             self.backlight_button.blockSignals(False)
@@ -1500,7 +1516,6 @@ class MovementControlWidget(QWidget):
     def go_to_position(self, x, y):
         """Realiza movimento para a posição absoluta de trabalho (WPos)."""
         from PyQt6.QtWidgets import QMessageBox
-        from PyQt6.QtCore import QTimer
 
         # 1. Verifica se há conexão
         if not self.controller.cnc.is_connected:
@@ -1512,9 +1527,6 @@ class MovementControlWidget(QWidget):
         if status in ("Alarm", "Run", "Jog"):
             QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
             return
-
-        # 3. Guarda modo de distância atual (G90 ou G91)
-        prev_mode = "G90" if self.mode_absolute.isChecked() else "G91"
 
         # 4. Obtém feed rate
         try:
@@ -1753,7 +1765,7 @@ class AOIControllerApp(QMainWindow):
         
         # Inicializa o controlador AOI usando CLP (Modbus TCP),
         # mas sem conectar automaticamente (conexão será tentada depois)
-        plc_host = self.config.get("connections", "plc_host", default="192.168.0.5")
+        plc_host = self.config.get("connections", "plc_host", default="192.168.1.5")
         plc_port = self.config.get("connections", "plc_port", default=502)
         # Inicializa o controlador com PLC mas sem conectar automaticamente
         logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
@@ -1869,7 +1881,7 @@ class AOIControllerApp(QMainWindow):
                 error_msg = str(e)
                 self.connect_cnc_btn.setText("Conectar PLC")
                 self.cnc_status.setText("Desconectado")
-                self.statusBar().showMessage(f"⚠️ CLP não conectado - A aplicação funcionará sem controle de movimento")
+                self.statusBar().showMessage("⚠️ CLP não conectado - A aplicação funcionará sem controle de movimento")
                 logger.warning(f"Falha na conexão automática ao PLC em {plc_host}:{plc_port}: {e}")
                 
                 # Exibe mensagem informativa (não-bloqueante)
@@ -1960,37 +1972,50 @@ class AOIControllerApp(QMainWindow):
         # Grupo de conexão (oculto por padrão; mostrado via menu)
         self.connection_group = QGroupBox("Conexão")
         connection_layout = QGridLayout()
-        
-        # CNC Connection
-        connection_layout.addWidget(QLabel("Porta CNC:"), 0, 0)
+
+        # PLC (Modbus TCP)
+        connection_layout.addWidget(QLabel("IP PLC:"), 0, 0)
+        self.plc_host_input = QLineEdit(self.config.get("connections", "plc_host", default="192.168.1.5"))
+        connection_layout.addWidget(self.plc_host_input, 0, 1)
+
+        connection_layout.addWidget(QLabel("Porta:"), 0, 2)
+        self.plc_port_input = QSpinBox()
+        self.plc_port_input.setRange(1, 65535)
+        self.plc_port_input.setValue(self.config.get("connections", "plc_port", default=502))
+        self.plc_port_input.setFixedWidth(100)
+        connection_layout.addWidget(self.plc_port_input, 0, 3)
+
+        btn_label = "Conectar PLC" if isinstance(self.controller.cnc, PLCAxisController) else "Conectar CNC"
+        self.connect_cnc_btn = QPushButton(btn_label)
+        self.connect_cnc_btn.clicked.connect(self.connect_cnc)
+        connection_layout.addWidget(self.connect_cnc_btn, 0, 4)
+
+        # CNC Connection (serial legacy)
+        connection_layout.addWidget(QLabel("Porta CNC:"), 1, 0)
         self.cnc_port_combo = QComboBox()
         self.refresh_ports()
-        connection_layout.addWidget(self.cnc_port_combo, 0, 1)
-        
-        self.connect_cnc_btn = QPushButton("Conectar CNC")
-        self.connect_cnc_btn.clicked.connect(self.connect_cnc)
-        connection_layout.addWidget(self.connect_cnc_btn, 0, 2)
-        
+        connection_layout.addWidget(self.cnc_port_combo, 1, 1)
+
         # Camera connection
-        connection_layout.addWidget(QLabel("Câmera ID:"), 1, 0)
+        connection_layout.addWidget(QLabel("Câmera ID:"), 2, 0)
         self.camera_id_combo = QComboBox()
         self.camera_id_combo.addItems(["0", "1", "2", "3"])
-        connection_layout.addWidget(self.camera_id_combo, 1, 1)
-        
+        connection_layout.addWidget(self.camera_id_combo, 2, 1)
+
         self.connect_camera_btn = QPushButton("Conectar Câmera")
         self.connect_camera_btn.clicked.connect(self.connect_camera)
-        connection_layout.addWidget(self.connect_camera_btn, 1, 2)
-        
+        connection_layout.addWidget(self.connect_camera_btn, 2, 2)
+
         # Refresh ports button
         self.refresh_ports_btn = QPushButton("Atualizar Portas")
         self.refresh_ports_btn.clicked.connect(self.refresh_ports)
-        connection_layout.addWidget(self.refresh_ports_btn, 0, 3)
-        
+        connection_layout.addWidget(self.refresh_ports_btn, 1, 3)
+
         # Test camera button
         self.test_camera_btn = QPushButton("Testar Câmera")
         self.test_camera_btn.clicked.connect(self.test_camera)
-        connection_layout.addWidget(self.test_camera_btn, 1, 3)
-        
+        connection_layout.addWidget(self.test_camera_btn, 2, 3)
+
         self.connection_group.setLayout(connection_layout)
         main_layout.addWidget(self.connection_group)
 
@@ -2291,6 +2316,12 @@ class AOIControllerApp(QMainWindow):
         fov_calib_action.triggered.connect(self.show_fov_calibration_dialog)
         tools_menu.addAction(fov_calib_action)
 
+        # Configurações da Cruz de Centralização
+        crosshair_action = QAction('✛ Configurar Cruz de Centralização', self)
+        crosshair_action.setToolTip('Ajusta cor, espessura e comprimento da cruz central')
+        crosshair_action.triggered.connect(self.show_crosshair_settings_dialog)
+        tools_menu.addAction(crosshair_action)
+
         # Alinhamento de Fiduciais (para inspeção visual)
         fiducial_action = QAction('🎯 Alinhamento de Fiduciais', self)
         fiducial_action.setToolTip('Abre ferramenta de alinhamento Gerber ↔ Imagem usando fiduciais')
@@ -2374,8 +2405,7 @@ class AOIControllerApp(QMainWindow):
     def show_new_recipe_dialog(self):
         """Abre o diálogo para criar uma nova receita."""
         from aoi_lib.recipe_dialog import RecipeEditorDialog
-        from aoi_lib.recipe_manager import Recipe
-        
+
         dialog = RecipeEditorDialog(parent=self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             recipe = dialog.recipe
@@ -2458,7 +2488,7 @@ class AOIControllerApp(QMainWindow):
         if not r.tension.enabled:
             QMessageBox.information(
                 self, "Aviso",
-                f"A medição de tensão está desabilitada nesta receita.\n\n"
+                "A medição de tensão está desabilitada nesta receita.\n\n"
                 "Edite a receita para habilitar."
             )
             return
@@ -2676,7 +2706,7 @@ class AOIControllerApp(QMainWindow):
             
             def set_config(self, key, value):
                 if key == "camera_fov":
-                    self._cfg.set("camera", "fov_calibration", value)
+                    self._cfg.set("camera", "fov_calibration", value=value)
                     self._cfg.save()
         
         adapter = ConfigAdapter(self.config)
@@ -2694,6 +2724,25 @@ class AOIControllerApp(QMainWindow):
                 "A calibração de campo de visão foi salva.\n\n"
                 "Agora você pode usar o clique no vídeo para mover a head\n"
                 "com precisão baseada na altura Z atual."
+            )
+
+    def show_crosshair_settings_dialog(self):
+        """
+        Abre diálogo para configurar a cruz de centralização da câmera.
+        
+        Permite ajustar:
+        - Cor da linha (seletor de cor visual)
+        - Espessura da linha (1-10 pixels)
+        - Comprimento da linha (1-50% da menor dimensão)
+        """
+        from aoi_lib.crosshair_settings import CrosshairSettingsDialog
+        
+        dialog = CrosshairSettingsDialog(self.config, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            QMessageBox.information(
+                self, "Configurações Salvas",
+                "As configurações da cruz foram salvas.\n\n"
+                "As mudanças serão aplicadas na próxima atualização do preview."
             )
 
     def show_fiducial_alignment_dialog(self):
@@ -3654,6 +3703,11 @@ class AOIControllerApp(QMainWindow):
             # Se o usuário modificou algo, re-aplica (se a CNC já estiver conectada)
             if self.controller.cnc.is_connected:
                 self.config.apply_to_cnc(self.controller.cnc)
+            # Atualiza campos rápidos de conexão do PLC
+            if hasattr(self, "plc_host_input"):
+                self.plc_host_input.setText(self.config.get("connections", "plc_host", default="192.168.1.5"))
+            if hasattr(self, "plc_port_input"):
+                self.plc_port_input.setValue(self.config.get("connections", "plc_port", default=502))
             self.statusBar().showMessage("Preferências salvas")
 
     def show_calibration_dialog(self):
@@ -3953,9 +4007,6 @@ class AOIControllerApp(QMainWindow):
 
         # ========== CRIA ESTRUTURA DE PASTAS ==========
         # Estrutura: [Pasta Base]/[Nome do Programa]/Imagens/
-        import os
-        from pathlib import Path
-        
         # Sanitiza o nome do programa para uso em pasta
         safe_prog_name = "".join(c for c in prog if c.isalnum() or c in "._- ").strip()
         if not safe_prog_name:
@@ -4088,9 +4139,9 @@ class AOIControllerApp(QMainWindow):
                     self.statusBar().showMessage(f"Mosaico salvo: {mosaic_path}")
                 else:
                     QMessageBox.information(
-                        self, "Concluído", 
-                        f"Mapa gerado com sucesso.\n\n"
-                        f"⚠️ Falha ao montar mosaico (sem imagens válidas encontradas)."
+                        self, "Concluído",
+                        "Mapa gerado com sucesso.\n\n"
+                        "⚠️ Falha ao montar mosaico (sem imagens válidas encontradas)."
                     )
             except Exception as e:
                 logger.error(f"Erro ao montar mosaico: {e}")
@@ -4321,10 +4372,8 @@ class AOIControllerApp(QMainWindow):
         try:
             # Captura posição inicial
             initial_position = self.controller.cnc.get_current_position()
-            
+
             # Prepara o comando
-            axis_name = "X" if axis == 0 else "Y"
-            
             # Define o modo absoluto para garantir precisão
             self.controller.cnc.grbl.send_immediately("G90")
             
@@ -4538,7 +4587,7 @@ class AOIControllerApp(QMainWindow):
     def refresh_ports(self):
         """Atualiza a lista de portas seriais disponíveis"""
         import serial.tools.list_ports
-        
+
         self.cnc_port_combo.clear()
         ports = [port.device for port in serial.tools.list_ports.comports()]
         
@@ -4552,15 +4601,41 @@ class AOIControllerApp(QMainWindow):
                 self.statusBar().showMessage("Porta COM9 detectada")
         else:
             self.statusBar().showMessage("Nenhuma porta serial encontrada")
-            
-    def connect_cnc(self): 
-        """Conecta à máquina CNC usando a biblioteca grbl-streamer""" 
+
+    def _apply_plc_ui_settings(self):
+        """Atualiza IP/porta do PLC vindos da UI e persiste no config."""
+        if not isinstance(self.controller.cnc, PLCAxisController):
+            return
+
+        host = (self.plc_host_input.text() or "").strip() or "192.168.1.5"
+        port = int(self.plc_port_input.value())
+        current_host = getattr(self.controller.cnc, "host", None)
+        current_port = getattr(self.controller.cnc, "port", None)
+        current_port_int = int(current_port) if current_port is not None else None
+
+        # Persistência no arquivo de config
+        self.config.set("connections", "plc_host", value=host)
+        self.config.set("connections", "plc_port", value=port)
+
+        if host == current_host and current_port_int == port:
+            return
+
+        try:
+            self.controller.cnc.set_connection_params(host, port)
+        except Exception as e:
+            logger.error("Falha ao aplicar IP/porta do PLC: %s", e)
+        else:
+            self.statusBar().showMessage(f"Configurações do PLC atualizadas para {host}:{port}")
+
+    def connect_cnc(self):
+        """Conecta à máquina CNC usando a biblioteca grbl-streamer"""
         # Se for PLCAxisController, alterna Modbus connect/disconnect
         if isinstance(self.controller.cnc, PLCAxisController):
             plc = self.controller.cnc
             if plc.is_connected:
                 # desconectar
                 plc.close()
+                self._apply_plc_ui_settings()
                 self.connect_cnc_btn.setText("Conectar PLC")
                 self.cnc_status.setText("Desconectado")
                 self.statusBar().showMessage("PLC desconectado")
@@ -4568,6 +4643,7 @@ class AOIControllerApp(QMainWindow):
                 # NOTA: Abas permanecem habilitadas para permitir
                 # uso de câmera, receitas e outras funcionalidades
             else:
+                self._apply_plc_ui_settings()
                 # Tenta conectar usando o controller existente
                 logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
                 try:
@@ -4660,8 +4736,7 @@ class AOIControllerApp(QMainWindow):
                             # O índice 1 contém o WCS ativo (ex: "54", "55", etc.)
                             # O índice 0 contém o modo de movimento (ex: "1" para G1)
                             # O índice 4 contém o modo de distância (ex: "90" para G90)
-                            new_active_wcs = f"G{parser_state[1]}" 
-                            new_motion_mode = f"G{parser_state[0]}"
+                            new_active_wcs = f"G{parser_state[1]}"
                             new_distance_mode = f"G{parser_state[4]}"
 
                             if new_active_wcs != self.active_wcs:

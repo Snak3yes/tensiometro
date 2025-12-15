@@ -24,7 +24,7 @@ class AOIConfigManager:
         },
         "connections": {
             "last_cnc_port": "",
-            "plc_host": "192.168.0.5",  # IP padrão do PLC
+            "plc_host": "192.168.1.5",  # IP padrão do PLC
             "plc_port": 502,            # Porta padrão Modbus TCP
             "auto_connect_cnc": True,
             "last_camera_id": 0,
@@ -55,7 +55,15 @@ class AOIConfigManager:
             "gain": 128,
             "auto_exposure": True,
             "auto_white_balance": True,
-            "calibration_file": ""        # Arquivo de calibração de distorção
+            "calibration_file": "",       # Arquivo de calibração de distorção
+            # Configurações da cruz de centralização
+            "crosshair": {
+                "color_r": 0,             # Componente R (0-255)
+                "color_g": 0,             # Componente G (0-255)
+                "color_b": 255,           # Componente B (0-255) - padrão vermelho
+                "thickness": 2,           # Espessura da linha (px)
+                "length_percent": 5       # Comprimento como % da menor dimensão (1-50)
+            }
         },
         # ---------- CONFIGURAÇÕES DE MOSAICO -----------
         "mosaic": {
@@ -249,7 +257,7 @@ class SettingsDialog(QDialog):
         plc_layout = QFormLayout(plc_group)
         
         self.edit_plc_host = QLineEdit()
-        self.edit_plc_host.setText(cfg.get("connections", "plc_host", default="192.168.0.5"))
+        self.edit_plc_host.setText(cfg.get("connections", "plc_host", default="192.168.1.5"))
         plc_layout.addRow("Endereço IP:", self.edit_plc_host)
         
         self.spin_plc_port = QSpinBox()
@@ -341,7 +349,8 @@ class SettingsDialog(QDialog):
         default_layout = QFormLayout(default_group)
         
         self.spin_step = QDoubleSpinBox()
-        self.spin_step.setRange(0.1, 1000)
+        self.spin_step.setRange(0.01, 1000)  # Permite passos desde 0.01mm
+        self.spin_step.setDecimals(2)  # 2 casas decimais para precisão
         self.spin_step.setValue(cfg.get("movement", "step_size", default=10))
         default_layout.addRow("Tamanho do passo (mm):", self.spin_step)
         
