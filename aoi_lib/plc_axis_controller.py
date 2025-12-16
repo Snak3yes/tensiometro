@@ -395,9 +395,120 @@ class PLCAxisController:
         self._pulse_coil(self.ADDRESSES['Y']['zero'])
 
     # =========================================================================
+    # PARADA DE EMERGÊNCIA / RESET
+    # =========================================================================
+    def send_soft_reset(self) -> bool:
+        """
+        Interrompe movimentos e sinaliza estado de alarme.
+
+        Retorna True quando o pedido foi aceito; False em caso de falha ou PLC
+        desconectado.
+        """
+        if not self.is_connected or not self.client:
+            logging.warning("Soft reset ignorado: PLC não conectado")
+            return False
+
+        try:
+            # Garante que qualquer jog contínuo seja interrompido
+            self.jog_stop()
+            # Marca estado interno para bloquear novos comandos na UI
+            self.machine_status = "Alarm"
+            logging.info("PLC em estado de ALARM (soft reset solicitado)")
+            return True
+        except Exception as e:
+            logging.error(f"Falha ao executar soft reset no PLC: {e}")
+            return False
+
+    def unlock(self) -> bool:
+        """
+        Libera a máquina após um soft reset, voltando ao estado Idle.
+        """
+        if not self.is_connected:
+            logging.warning("Unlock ignorado: PLC não conectado")
+            return False
+
+        self.machine_status = "Idle"
+        logging.info("PLC liberado após soft reset")
+        return True
+
+    # =========================================================================
+    # MONITORAMENTO / EDIÇÃO DE REGISTROS
+    # =========================================================================
+    def read_coil(self, coil: int) -> bool:
+        """Lê o estado de um coil (bit)."""
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+        res = self.client.read_coils(coil, count=1)
+        if res.isError():
+            raise IOError(f"Falha na leitura do coil {coil}: {res}")
+        return bool(res.bits[0])
+
+    def write_coil(self, coil: int, value: bool) -> bool:
+        """Escreve um coil (bool)."""
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+        res = self.client.write_coil(coil, bool(value))
+        if res.isError():
+            raise IOError(f"Falha na escrita do coil {coil}: {res}")
+        return True
+
+    def pulse_coil(self, coil: int, duration_ms: int = 20) -> bool:
+        """Pulsa um coil por `duration_ms` ms."""
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+        self._pulse_coil(coil, duration_ms)
+        return True
+
+    def read_register(self, address: int) -> int:
+        """Lê um registrador double-word (32 bits)."""
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+        return self._read_dword(address)
+
+    def write_register(self, address: int, value: int) -> bool:
+        """Escreve um registrador double-word (32 bits)."""
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+        self._write_dword(address, int(value))
+        return True
+
+    def snapshot_registers(self) -> dict:
+        """
+        Retorna um snapshot dos principais registradores e coils por eixo.
+        Usado para depuração/monitoramento na UI.
+        """
+        if not self.is_connected:
+            raise IOError("PLC não conectado")
+
+        snap = {
+            "machine_status": self.machine_status,
+            "pulses_per_mm": self.pulses_per_mm,
+            "backlight_on": self.backlight_on,
+            "axes": {}
+        }
+
+        for axis, cfg in self.ADDRESSES.items():
+            axis_data = {}
+            # registradores
+            axis_data["pos_input"] = self._read_dword(cfg["pos_input"])
+            axis_data["pos_reg"] = self._read_dword(cfg["pos_reg"])
+            axis_data["speed"] = self._read_dword(cfg["speed"])
+            # coils
+            axis_data["zero"] = self.read_coil(cfg["zero"])
+            axis_data["move_abs"] = self.read_coil(cfg["move_abs"])
+            axis_data["jog_plus"] = self.read_coil(cfg["jog_plus"])
+            axis_data["jog_minus"] = self.read_coil(cfg["jog_minus"])
+            axis_data["jog_stop_plus"] = self.read_coil(cfg["jog_stop_plus"])
+            axis_data["jog_stop_minus"] = self.read_coil(cfg["jog_stop_minus"])
+
+            snap["axes"][axis] = axis_data
+
+        return snap
+
+    # =========================================================================
     # CONTROLE DE ILUMINAÇÃO (BACKLIGHT)
     # =========================================================================
-    
+
     def backlight_set(self, on: bool) -> bool:
         """
         Liga ou desliga o backlight (iluminação inferior do stencil).
