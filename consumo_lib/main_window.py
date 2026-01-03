@@ -55,7 +55,7 @@ from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.threads.sequence_runner import SequenceRunnerThread
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
-from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -114,11 +114,19 @@ class AOIControllerApp(QMainWindow):
         # Propriedade para compatibilidade com código existente
         self.recipe_manager = self.recipe_manager_wrapper.recipe_manager
         self.current_recipe = None  # Receita atualmente carregada
-        
+
         # =========== SISTEMA DE RASTREABILIDADE ===========
-        self.stencil_tracker = StencilTracker()  # Usa diretório padrão: data/stencils
+        self.stencil_manager_wrapper = StencilManagerWrapper(parent=self)
+        # Conectar signals do StencilManagerWrapper
+        self.stencil_manager_wrapper.stencil_selected.connect(self._on_stencil_selected)
+        self.stencil_manager_wrapper.stencil_cleared.connect(self._on_stencil_cleared)
+        self.stencil_manager_wrapper.tension_record_added.connect(self._on_tension_record_added)
+        self.stencil_manager_wrapper.degradation_alert.connect(self._on_degradation_alert)
+        self.stencil_manager_wrapper.stencil_error.connect(self._on_stencil_error)
+        # Propriedade para compatibilidade com código existente
+        self.stencil_tracker = self.stencil_manager_wrapper.stencil_tracker
         self.current_stencil = None  # Stencil atualmente selecionado
-        logger.info(f"StencilTracker inicializado. Diretório: {self.stencil_tracker.data_dir}")
+
         
         # =========== SISTEMA DE RELATÓRIOS ===========
         self._init_report_generator()
@@ -889,23 +897,62 @@ class AOIControllerApp(QMainWindow):
         logger.error(f"Erro de receita: {error}")
         # O método que chamou já tratou o erro com QMessageBox
 
-    
+    # =========================================================================
+    # HANDLERS DO STENCILMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_tension_record_added(self, stencil_code: str, record: TensionRecord):
+        """Handler chamado quando registro de tensão é adicionado."""
+        logger.info(
+            f"Medição de tensão salva no histórico do stencil "
+            f"'{stencil_code}': {record.result}"
+        )
+
+        QMessageBox.information(
+            self, "Medição Salva",
+            f"Resultado da medição salvo no histórico.\n\n"
+            f"Stencil: {stencil_code}\n"
+            f"Resultado: {record.result}\n"
+            f"Média: {record.average_tension:.2f} N/cm²"
+        )
+
+        # Atualiza widget de identificação para refletir nova inspeção
+        stencil = self.stencil_manager_wrapper.get_stencil(stencil_code)
+        if stencil:
+            self.stencil_identification._select_stencil(stencil)
+
+    def _on_degradation_alert(self, alert: str):
+        """Handler chamado quando há alerta de degradação."""
+        QMessageBox.warning(
+            self, "⚠️ Alerta de Degradação",
+            f"Stencil: {self.current_stencil.code}\n\n{alert}"
+        )
+
+    def _on_stencil_error(self, error: str):
+        """Handler chamado quando ocorre um erro com stencils."""
+        logger.error(f"Erro de stencil: {error}")
+        # Mostra erro ao usuário se necessário
+        QMessageBox.critical(
+            self, "Erro de Stencil",
+            f"Ocorreu um erro:\n{error}"
+        )
+
+
+
     def show_stencil_manager(self):
         """Abre o diálogo de gerenciamento de stencils."""
-        dialog = StencilManagerDialog(self.stencil_tracker, self)
-        dialog.exec()
-    
+        self.stencil_manager_wrapper.show_manager(self)
+
     def show_new_stencil_dialog(self):
         """Abre o diálogo para criar um novo stencil."""
-        dialog = StencilCreateDialog(self.stencil_tracker, parent=self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            stencil = dialog.get_created_stencil()
-            if stencil:
-                QMessageBox.information(
-                    self, "Sucesso",
-                    f"Stencil '{stencil.code}' cadastrado com sucesso!\n\n"
-                    "Escaneie ou digite o código para selecioná-lo."
-                )
+        stencil = self.stencil_manager_wrapper.create_new(self)
+        if stencil:
+            QMessageBox.information(
+                self, "Sucesso",
+                f"Stencil '{stencil.code}' cadastrado com sucesso!\n\n"
+                "Escaneie ou digite o código para selecioná-lo."
+            )
+
     
     def _run_tension_measurement(self):
         """Executa medição de tensão para o stencil selecionado."""
@@ -936,67 +983,46 @@ class AOIControllerApp(QMainWindow):
         # Se medição foi concluída, salva no histórico
         if result == QDialog.DialogCode.Accepted:
             self._save_tension_to_history(dlg)
-    
+
     def _save_tension_to_history(self, tension_dialog):
         """
         Salva resultado da medição de tensão no histórico do stencil.
-        
+
         Args:
             tension_dialog: Diálogo de tensão com os dados da medição
         """
         if not self.current_stencil:
             return
-        
+
         try:
             # Tenta obter dados da medição do diálogo ou do último arquivo salvo
             measurements_file = "stencil_tension_measurements.json"
-            
+
             if os.path.exists(measurements_file):
                 with open(measurements_file, "r", encoding="utf-8") as f:
                     tension_data = json.load(f)
-                
+
                 # Cria registro de tensão
                 record = TensionRecord.from_tension_data(
                     tension_data,
                     recipe_name=self.current_recipe.name if self.current_recipe else None,
                     operator=None  # TODO: Implementar campo de operador
                 )
-                
-                # Salva no histórico
-                self.stencil_tracker.add_tension_record(
-                    self.current_stencil.code, 
-                    record
-                )
-                
-                # Verifica alerta de degradação
+
+                # Salva no histórico usando o wrapper
+                recipe_acceptance = None
                 if self.current_recipe and self.current_recipe.tension.acceptance:
-                    alert = self.stencil_tracker.check_degradation_alert(
-                        self.current_stencil.code,
-                        warning_low=self.current_recipe.tension.acceptance.warning_low
-                    )
-                    if alert:
-                        QMessageBox.warning(
-                            self, "⚠️ Alerta de Degradação",
-                            f"Stencil: {self.current_stencil.code}\n\n{alert}"
-                        )
-                
-                logger.info(
-                    f"Medição de tensão salva no histórico do stencil "
-                    f"'{self.current_stencil.code}': {record.result}"
+                    recipe_acceptance = self.current_recipe.tension.acceptance
+
+                self.stencil_manager_wrapper.add_tension_record(
+                    self.current_stencil.code,
+                    record,
+                    recipe_acceptance=recipe_acceptance
                 )
-                
-                QMessageBox.information(
-                    self, "Medição Salva",
-                    f"Resultado da medição salvo no histórico.\n\n"
-                    f"Stencil: {self.current_stencil.code}\n"
-                    f"Resultado: {record.result}\n"
-                    f"Média: {record.average_tension:.2f} N/cm²"
-                )
-                
-                # Atualiza widget de identificação para refletir nova inspeção
-                stencil = self.stencil_tracker.get_stencil(self.current_stencil.code)
-                if stencil:
-                    self.stencil_identification._select_stencil(stencil)
+
+                # O resto é tratado pelos handlers conectados aos signals
+                # (_on_tension_record_added, _on_degradation_alert)
+
             else:
                 logger.warning("Arquivo de medições não encontrado")
                 
