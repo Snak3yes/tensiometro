@@ -34,9 +34,14 @@ from aoi_lib.stencil_tracker_ui import (
 )
 from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
 from aoi_lib.report_generator import ReportGenerator, ReportConfig
-from aoi_lib.report_settings_dialog import ReportSettingsDialog
+from consumo_lib.dialogs import (
+    ReportSettingsDialog,
+    InspectionSettingsDialog,
+    FOVCalibrationDialog,
+    CrosshairSettingsDialog,
+    AboutDialog
+)
 from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, InspectionResult
-from aoi_lib.inspection_settings_dialog import InspectionSettingsDialog
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
 import logging
 import json
@@ -1175,14 +1180,12 @@ class AOIControllerApp(QMainWindow):
     def show_crosshair_settings_dialog(self):
         """
         Abre diálogo para configurar a cruz de centralização da câmera.
-        
+
         Permite ajustar:
         - Cor da linha (seletor de cor visual)
         - Espessura da linha (1-10 pixels)
         - Comprimento da linha (1-50% da menor dimensão)
         """
-        from aoi_lib.crosshair_settings import CrosshairSettingsDialog
-        
         dialog = CrosshairSettingsDialog(self.config, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             QMessageBox.information(
@@ -2372,11 +2375,7 @@ class AOIControllerApp(QMainWindow):
 
     def show_about_dialog(self):
         """Mostra informações sobre o aplicativo"""
-        QMessageBox.about(self, "Sobre HesaiVision", 
-                        "HesaiVision v1.0\n\n"
-                        "Sistema de Inspeção Óptica Automatizada\n"
-                        "Desenvolvido para controle de CNC com GRBL\n\n"
-                        "© 2025 HesaiVision")
+        AboutDialog.show_about(self)
         
     def show_definir_mapa_dialog(self):
         """Abre diálogo para definir cantos e gerar mapa (modeless, sempre no topo)."""
