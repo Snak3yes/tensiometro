@@ -55,7 +55,7 @@ from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.threads.sequence_runner import SequenceRunnerThread
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
-from consumo_lib.managers import ConnectionManager
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -104,10 +104,16 @@ class AOIControllerApp(QMainWindow):
         self.is_running_sequence = False
         
         # =========== SISTEMA DE RECEITAS ===========
-        from aoi_lib.recipe_manager import RecipeManager
-        self.recipe_manager = RecipeManager()
+        self.recipe_manager_wrapper = RecipeManagerWrapper(parent=self)
+        # Conectar signals do RecipeManagerWrapper
+        self.recipe_manager_wrapper.recipe_loaded.connect(self._on_recipe_loaded)
+        self.recipe_manager_wrapper.recipe_created.connect(self._on_recipe_created)
+        self.recipe_manager_wrapper.recipe_applied_to_capture.connect(self._on_recipe_applied_to_capture)
+        self.recipe_manager_wrapper.recipe_applied_to_tension.connect(self._on_recipe_applied_to_tension)
+        self.recipe_manager_wrapper.recipe_error.connect(self._on_recipe_error)
+        # Propriedade para compatibilidade com código existente
+        self.recipe_manager = self.recipe_manager_wrapper.recipe_manager
         self.current_recipe = None  # Receita atualmente carregada
-        logger.info(f"RecipeManager inicializado. Diretório: {self.recipe_manager.recipes_dir}")
         
         # =========== SISTEMA DE RASTREABILIDADE ===========
         self.stencil_tracker = StencilTracker()  # Usa diretório padrão: data/stencils
@@ -718,29 +724,21 @@ class AOIControllerApp(QMainWindow):
     # =========================================================================
     # GERENCIAMENTO DE RECEITAS
     # =========================================================================
-    
+
     def show_recipe_manager(self):
         """Abre o diálogo de gerenciamento de receitas."""
-        from aoi_lib.recipe_dialog import RecipeManagerDialog
-        
-        dialog = RecipeManagerDialog(self.recipe_manager, self)
-        dialog.recipe_loaded.connect(self._on_recipe_loaded)
-        dialog.exec()
-    
+        self.recipe_manager_wrapper.show_manager(self)
+
     def show_new_recipe_dialog(self):
         """Abre o diálogo para criar uma nova receita."""
-        from aoi_lib.recipe_dialog import RecipeEditorDialog
+        success = self.recipe_manager_wrapper.create_new(self)
+        if success:
+            QMessageBox.information(
+                self, "Sucesso",
+                "Receita criada com sucesso!\n\n"
+                "Acesse Receitas > Gerenciar Receitas para carregar."
+            )
 
-        dialog = RecipeEditorDialog(parent=self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            recipe = dialog.recipe
-            if self.recipe_manager.save_recipe(recipe):
-                QMessageBox.information(
-                    self, "Sucesso",
-                    f"Receita '{recipe.name}' criada com sucesso!\n\n"
-                    "Acesse Receitas > Gerenciar Receitas para carregar."
-                )
-    
     def _on_recipe_loaded(self, recipe):
         """Callback quando uma receita é carregada."""
         self.current_recipe = recipe
@@ -757,86 +755,31 @@ class AOIControllerApp(QMainWindow):
     
     def apply_recipe_to_capture(self):
         """Aplica as configurações de captura da receita atual ao diálogo de mapa."""
-        if self.current_recipe is None:
+        settings = self.recipe_manager_wrapper.apply_to_capture()
+        if settings is None:
             QMessageBox.warning(
                 self, "Aviso",
                 "Nenhuma receita carregada.\n\n"
                 "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
             )
             return
-        
-        r = self.current_recipe
-        
-        # Verifica se os atributos de mapa existem
-        if not hasattr(self, 'map_origin'):
-            self.map_origin = {}
-        if not hasattr(self, 'map_end'):
-            self.map_end = {}
-        
-        # Aplica configurações de captura
-        self.map_origin = {'x': r.capture.origin.x, 'y': r.capture.origin.y}
-        self.map_end = {'x': r.capture.end.x, 'y': r.capture.end.y}
-        
-        # Tenta atualizar os widgets se existirem
-        if hasattr(self, 'map_step_x_edit'):
-            self.map_step_x_edit.setText(str(r.capture.step_x))
-        if hasattr(self, 'map_step_y_edit'):
-            self.map_step_y_edit.setText(str(r.capture.step_y))
-        if hasattr(self, 'spin_capture_delay'):
-            self.spin_capture_delay.setValue(r.capture.capture_delay_ms)
-        
-        # Atualiza painel de informações calculadas
-        self._update_adjusted_step_info()
-        
-        QMessageBox.information(
-            self, "Receita Aplicada",
-            f"Configurações de captura aplicadas:\n\n"
-            f"• Origem: ({r.capture.origin.x}, {r.capture.origin.y})\n"
-            f"• Final: ({r.capture.end.x}, {r.capture.end.y})\n"
-            f"• Step X: {r.capture.step_x} mm\n"
-            f"• Step Y: {r.capture.step_y} mm\n"
-            f"• Delay: {r.capture.capture_delay_ms} ms\n"
-            f"• Backlight: {'Sim' if r.capture.backlight_enabled else 'Não'}\n\n"
-            "Abra 'Definir Mapa' para verificar ou ajustar."
-        )
-        logger.info(f"Configurações de captura da receita '{r.name}' aplicadas")
-    
+
+        # O resto será feito pelo handler _on_recipe_applied_to_capture
+        # Mas o método público precisa existir para compatibilidade
+
     def apply_recipe_to_tension(self):
         """Aplica as configurações de tensão da receita atual ao diálogo de medição."""
-        if self.current_recipe is None:
+        settings = self.recipe_manager_wrapper.apply_to_tension()
+        if settings is None:
             QMessageBox.warning(
                 self, "Aviso",
                 "Nenhuma receita carregada.\n\n"
                 "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
             )
             return
-        
-        r = self.current_recipe
-        
-        if not r.tension.enabled:
-            QMessageBox.information(
-                self, "Aviso",
-                "A medição de tensão está desabilitada nesta receita.\n\n"
-                "Edite a receita para habilitar."
-            )
-            return
-        
-        # Mostra informações dos critérios de aceitação
-        acc = r.tension.acceptance
-        QMessageBox.information(
-            self, "Receita de Tensão",
-            f"Configurações de tensão da receita '{r.name}':\n\n"
-            f"📐 Grid: {r.tension.grid_rows} x {r.tension.grid_cols}\n"
-            f"📍 Área: ({r.tension.start_point.x}, {r.tension.start_point.y}) → "
-            f"({r.tension.end_point.x}, {r.tension.end_point.y})\n\n"
-            f"📊 Critérios de Aceitação:\n"
-            f"  • Mínimo: {acc.min_tension} N/cm²\n"
-            f"  • Máximo: {acc.max_tension} N/cm²\n"
-            f"  • Warning baixo: {acc.warning_low} N/cm²\n"
-            f"  • Warning alto: {acc.warning_high} N/cm²\n\n"
-            "ℹ️ Estes critérios serão usados para classificar as medições."
-        )
-        logger.info(f"Configurações de tensão da receita '{r.name}' exibidas")
+
+        # O resto será feito pelo handler _on_recipe_applied_to_tension
+        # Mas o método público precisa existir para compatibilidade
 
     # =========================================================================
     # GERENCIAMENTO DE STENCILS (RASTREABILIDADE)
@@ -872,12 +815,80 @@ class AOIControllerApp(QMainWindow):
     
     def _on_recipe_requested(self, recipe_name: str):
         """Handler quando o stencil solicita carregamento de receita."""
-        recipe = self.recipe_manager.load_recipe(recipe_name)
-        if recipe:
-            self._on_recipe_loaded(recipe)
-            logger.info(f"Receita '{recipe_name}' carregada automaticamente para stencil")
-        else:
-            logger.warning(f"Receita '{recipe_name}' não encontrada")
+        self.recipe_manager_wrapper.load_recipe(recipe_name)
+        # O restante é tratado pelo handler _on_recipe_loaded conectado ao signal
+
+    # =========================================================================
+    # HANDLERS DO RECIPEMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_recipe_created(self, recipe_name: str):
+        """Handler chamado quando nova receita é criada."""
+        logger.info(f"Nova receita criada: {recipe_name}")
+        # O método create_new() já mostrou QMessageBox
+
+    def _on_recipe_applied_to_capture(self, settings: dict):
+        """Handler chamado quando configurações de captura são aplicadas."""
+        # Verifica se os atributos de mapa existem
+        if not hasattr(self, 'map_origin'):
+            self.map_origin = {}
+        if not hasattr(self, 'map_end'):
+            self.map_end = {}
+
+        # Aplica configurações de captura
+        self.map_origin = settings['origin']
+        self.map_end = settings['end']
+
+        # Tenta atualizar os widgets se existirem
+        if hasattr(self, 'map_step_x_edit'):
+            self.map_step_x_edit.setText(str(settings['step_x']))
+        if hasattr(self, 'map_step_y_edit'):
+            self.map_step_y_edit.setText(str(settings['step_y']))
+        if hasattr(self, 'spin_capture_delay'):
+            self.spin_capture_delay.setValue(settings['capture_delay_ms'])
+
+        # Atualiza painel de informações calculadas
+        self._update_adjusted_step_info()
+
+        # Mostra confirmação
+        r = self.current_recipe
+        QMessageBox.information(
+            self, "Receita Aplicada",
+            f"Configurações de captura aplicadas:\n\n"
+            f"• Origem: ({settings['origin']['x']}, {settings['origin']['y']})\n"
+            f"• Final: ({settings['end']['x']}, {settings['end']['y']})\n"
+            f"• Step X: {settings['step_x']} mm\n"
+            f"• Step Y: {settings['step_y']} mm\n"
+            f"• Delay: {settings['capture_delay_ms']} ms\n"
+            f"• Backlight: {'Sim' if settings['backlight_enabled'] else 'Não'}\n\n"
+            "Abra 'Definir Mapa' para verificar ou ajustar."
+        )
+
+    def _on_recipe_applied_to_tension(self, settings: dict):
+        """Handler chamado quando configurações de tensão são aplicadas."""
+        r = self.current_recipe
+
+        # Mostra informações dos critérios de aceitação
+        acc = settings['acceptance']
+        QMessageBox.information(
+            self, "Receita de Tensão",
+            f"Configurações de tensão da receita '{r.name}':\n\n"
+            f"📐 Grid: {settings['grid_rows']} x {settings['grid_cols']}\n"
+            f"📍 Área: ({settings['start_point']['x']}, {settings['start_point']['y']}) → "
+            f"({settings['end_point']['x']}, {settings['end_point']['y']})\n\n"
+            f"📊 Critérios de Aceitação:\n"
+            f"  • Mínimo: {acc['min_tension']} N/cm²\n"
+            f"  • Máximo: {acc['max_tension']} N/cm²\n"
+            f"  • Warning baixo: {acc['warning_low']} N/cm²\n"
+            f"  • Warning alto: {acc['warning_high']} N/cm²\n\n"
+            "ℹ️ Estes critérios serão usados para classificar as medições."
+        )
+
+    def _on_recipe_error(self, error: str):
+        """Handler chamado quando ocorre um erro com receitas."""
+        logger.error(f"Erro de receita: {error}")
+        # O método que chamou já tratou o erro com QMessageBox
+
     
     def show_stencil_manager(self):
         """Abre o diálogo de gerenciamento de stencils."""
