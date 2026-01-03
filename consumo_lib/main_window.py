@@ -55,7 +55,7 @@ from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.threads.sequence_runner import SequenceRunnerThread
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
-from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -129,7 +129,15 @@ class AOIControllerApp(QMainWindow):
 
 
         # =========== SISTEMA DE RELATÓRIOS ===========
-        self._init_report_generator()
+        self.report_manager_wrapper = ReportManagerWrapper(self.config, parent=self)
+        # Conectar signals do ReportManagerWrapper
+        self.report_manager_wrapper.report_generated.connect(self._on_report_generated)
+        self.report_manager_wrapper.report_failed.connect(self._on_report_failed)
+        self.report_manager_wrapper.config_changed.connect(self._on_report_config_changed)
+        # Propriedades para compatibilidade com código existente
+        self.report_config = self.report_manager_wrapper.get_config()
+        self.report_generator = self.report_manager_wrapper.get_generator()
+
 
         # =========== SISTEMA DE INSPEÇÃO VISUAL ===========
         self.inspection_manager = InspectionManager(self.config, parent=self)
@@ -978,6 +986,37 @@ class AOIControllerApp(QMainWindow):
         self.inspection_thresholds = thresholds
         self.stencil_inspector = self.inspection_manager.get_inspector()
 
+    # =========================================================================
+    # HANDLERS DO REPORTMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_report_generated(self, report_type: str, output_path: str):
+        """Handler chamado quando relatório é gerado com sucesso."""
+        logger.info(f"Relatório '{report_type}' gerado: {output_path}")
+
+        QMessageBox.information(
+            self, "Relatório Gerado",
+            f"Relatório de {report_type} gerado com sucesso!\n\n"
+            f"Arquivo: {output_path}"
+        )
+
+    def _on_report_failed(self, report_type: str, error: str):
+        """Handler chamado quando geração de relatório falha."""
+        logger.error(f"Falha ao gerar relatório '{report_type}': {error}")
+
+        QMessageBox.critical(
+            self, "Erro no Relatório",
+            f"Falha ao gerar relatório de {report_type}:\n{error}"
+        )
+
+    def _on_report_config_changed(self, config):
+        """Handler chamado quando configuração de relatório muda."""
+        logger.info("Configuração de relatório alterada")
+        # Atualiza referência local
+        self.report_config = config
+        self.report_generator = self.report_manager_wrapper.get_generator()
+
+
 
 
 
@@ -1247,44 +1286,24 @@ class AOIControllerApp(QMainWindow):
     #  SISTEMA DE RELATÓRIOS
     # =========================================================================
     
-    def _init_report_generator(self):
-        """Inicializa o gerador de relatórios com configurações salvas."""
-        # Carregar configuração de relatórios
-        report_config_data = self.config.get("reports", "config", default=None)
-        
-        if report_config_data:
-            try:
-                self.report_config = ReportConfig.from_dict(report_config_data)
-                logger.info("Configuração de relatórios carregada")
-            except Exception as e:
-                logger.warning(f"Erro ao carregar config de relatórios: {e}")
-                self.report_config = ReportConfig()
-        else:
-            self.report_config = ReportConfig()
-        
-        self.report_generator = ReportGenerator(self.report_config)
-        logger.info(f"ReportGenerator inicializado. Diretório: {self.report_config.output_dir}")
-    
     def show_report_settings(self):
         """Abre diálogo de configurações de relatório."""
         dialog = ReportSettingsDialog(self.report_config, self)
-        
+
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.report_config = dialog.get_config()
-            self.report_generator = ReportGenerator(self.report_config)
-            
-            # Salvar configuração
-            self.config.set("reports", "config", self.report_config.to_dict())
-            self.config.save()
-            
+            new_config = dialog.get_config()
+            self.report_manager_wrapper.update_config(new_config, save=True)
+            self.report_config = new_config  # Atualiza referência local
+
             logger.info("Configuração de relatórios atualizada e salva")
             self.statusBar().showMessage("Configurações de relatório salvas", 3000)
+
     
     def show_tension_report_dialog(self):
         """Gera relatório de tensão da última medição."""
         # Tentar carregar última medição
         tension_file = Path("stencil_tension_measurements.json")
-        
+
         if not tension_file.exists():
             QMessageBox.warning(
                 self, "Sem Dados",
@@ -1292,43 +1311,36 @@ class AOIControllerApp(QMainWindow):
                 "Execute uma medição de tensão primeiro."
             )
             return
-        
+
         try:
             with open(tension_file, 'r', encoding='utf-8') as f:
                 tension_data = json.load(f)
-            
+
             # Obter informações do stencil atual
             stencil_code = None
-            stencil_desc = None
             if self.current_stencil:
                 stencil_code = self.current_stencil.code
-                stencil_desc = self.current_stencil.description
-            
-            # Obter nome da receita
-            recipe_name = None
-            if self.current_recipe:
-                recipe_name = self.current_recipe.get('name')
-            
-            # Gerar relatório
-            output_path = self.report_generator.generate_tension_report(
+
+            # Gerar relatório via manager
+            output_path = self.report_manager_wrapper.generate_tension_report(
                 tension_data=tension_data,
                 stencil_code=stencil_code,
-                stencil_description=stencil_desc,
-                recipe_name=recipe_name,
                 operator=None  # TODO: Implementar campo de operador
             )
-            
-            # Perguntar se quer abrir o PDF
-            reply = QMessageBox.question(
-                self, "Relatório Gerado",
-                f"Relatório gerado com sucesso:\n{output_path}\n\n"
-                f"Deseja abrir o arquivo?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            
-            if reply == QMessageBox.StandardButton.Yes:
-                import subprocess
-                subprocess.Popen([output_path], shell=True)
+
+            if output_path:
+                # Perguntar se quer abrir o PDF
+                reply = QMessageBox.question(
+                    self, "Relatório Gerado",
+                    f"Relatório gerado com sucesso:\n{output_path}\n\n"
+                    f"Deseja abrir o arquivo?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                )
+
+                if reply == QMessageBox.StandardButton.Yes:
+                    import subprocess
+                    subprocess.Popen([output_path], shell=True)
+
                 
         except Exception as e:
             logger.exception("Erro ao gerar relatório de tensão")
@@ -1345,54 +1357,45 @@ class AOIControllerApp(QMainWindow):
                 "Selecione um stencil primeiro usando a aba de Rastreabilidade."
             )
             return
-        
+
+        # Obter histórico do stencil via manager
+        history = self.stencil_manager_wrapper.get_tension_history(self.current_stencil.code)
+
+        if not history:
+            QMessageBox.warning(
+                self, "Sem Histórico",
+                f"O stencil {self.current_stencil.code} não possui histórico de medições."
+            )
+            return
+
         try:
-            # Obter histórico do stencil
-            history = self.stencil_tracker.get_tension_history(self.current_stencil.code)
-            
-            if not history:
-                QMessageBox.warning(
-                    self, "Sem Histórico",
-                    f"O stencil {self.current_stencil.code} não possui histórico de medições."
+            # Gerar relatório via manager
+            output_path = self.report_manager_wrapper.generate_stencil_history_report(
+                stencil_code=self.current_stencil.code,
+                include_tension=True,
+                include_inspections=True
+            )
+
+            if output_path:
+                # Perguntar se quer abrir
+                reply = QMessageBox.question(
+                    self, "Relatório Gerado",
+                    f"Relatório de histórico gerado:\n{output_path}\n\n"
+                    f"Deseja abrir o arquivo?",
+                    QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
                 )
-                return
-            
-            # Converter Stencil para dict
-            from dataclasses import asdict
-            stencil_dict = asdict(self.current_stencil)
-            
-            # Converter TensionRecords para dicts
-            history_dicts = []
-            for record in history:
-                if hasattr(record, '__dict__'):
-                    history_dicts.append(record.__dict__ if not hasattr(record, 'to_dict') else record.to_dict())
-                else:
-                    history_dicts.append(record)
-            
-            # Gerar relatório
-            output_path = self.report_generator.generate_stencil_history_report(
-                stencil=stencil_dict,
-                history=history_dicts
-            )
-            
-            # Perguntar se quer abrir
-            reply = QMessageBox.question(
-                self, "Relatório Gerado",
-                f"Relatório de histórico gerado:\n{output_path}\n\n"
-                f"Deseja abrir o arquivo?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-            )
-            
-            if reply == QMessageBox.StandardButton.Yes:
-                import subprocess
-                subprocess.Popen([output_path], shell=True)
-                
+
+                if reply == QMessageBox.StandardButton.Yes:
+                    import subprocess
+                    subprocess.Popen([output_path], shell=True)
+
         except Exception as e:
             logger.exception("Erro ao gerar relatório de stencil")
             QMessageBox.critical(
                 self, "Erro",
                 f"Erro ao gerar relatório:\n{str(e)}"
             )
+
     
     def show_period_query_dialog(self):
         """Abre diálogo para consultar medições por período."""
