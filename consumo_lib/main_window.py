@@ -55,7 +55,7 @@ from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.threads.sequence_runner import SequenceRunnerThread
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
-from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -127,13 +127,22 @@ class AOIControllerApp(QMainWindow):
         self.stencil_tracker = self.stencil_manager_wrapper.stencil_tracker
         self.current_stencil = None  # Stencil atualmente selecionado
 
-        
+
         # =========== SISTEMA DE RELATÓRIOS ===========
         self._init_report_generator()
-        
+
         # =========== SISTEMA DE INSPEÇÃO VISUAL ===========
-        self._init_inspection_system()
-        
+        self.inspection_manager = InspectionManager(self.config, parent=self)
+        # Conectar signals do InspectionManager
+        self.inspection_manager.inspection_completed.connect(self._on_inspection_completed)
+        self.inspection_manager.inspection_failed.connect(self._on_inspection_failed)
+        self.inspection_manager.thresholds_changed.connect(self._on_thresholds_changed)
+        # Propriedades para compatibilidade com código existente
+        self.inspection_thresholds = self.inspection_manager.get_thresholds()
+        self.stencil_inspector = self.inspection_manager.get_inspector()
+        self._last_inspection_result = None
+        self._last_inspection_overlay = None
+
         # Variável para armazenar o último valor de posição (para comparação)
         self.last_logged_position = None
 
@@ -937,6 +946,39 @@ class AOIControllerApp(QMainWindow):
             f"Ocorreu um erro:\n{error}"
         )
 
+    # =========================================================================
+    # HANDLERS DO INSPECTIONMANAGER
+    # =========================================================================
+
+    def _on_inspection_completed(self, result, overlay):
+        """Handler chamado quando inspeção é completada com sucesso."""
+        import numpy as np
+
+        # Salvar referências
+        self._last_inspection_result = result
+        self._last_inspection_overlay = overlay
+
+        logger.info(f"Inspeção completada: {result.summary}")
+
+        # Mostrar resultado
+        self._show_inspection_result(result, overlay)
+
+    def _on_inspection_failed(self, error: str):
+        """Handler chamado quando inspeção falha."""
+        logger.error(f"Inspeção falhou: {error}")
+        QMessageBox.critical(
+            self, "Erro na Inspeção",
+            f"A inspeção falhou:\n{error}"
+        )
+
+    def _on_thresholds_changed(self, thresholds):
+        """Handler chamado quando thresholds de inspeção mudam."""
+        logger.info("Thresholds de inspeção alterados")
+        # Atualiza referência local
+        self.inspection_thresholds = thresholds
+        self.stencil_inspector = self.inspection_manager.get_inspector()
+
+
 
 
     def show_stencil_manager(self):
@@ -1475,39 +1517,15 @@ class AOIControllerApp(QMainWindow):
     #  SISTEMA DE INSPEÇÃO VISUAL
     # =========================================================================
     
-    def _init_inspection_system(self):
-        """Inicializa o sistema de inspeção visual."""
-        # Carregar thresholds de inspeção
-        thresholds_data = self.config.get("inspection", "thresholds", default=None)
-        
-        if thresholds_data:
-            try:
-                self.inspection_thresholds = InspectionThresholds.from_dict(thresholds_data)
-                logger.info("Thresholds de inspeção carregados")
-            except Exception as e:
-                logger.warning(f"Erro ao carregar thresholds de inspeção: {e}")
-                self.inspection_thresholds = InspectionThresholds()
-        else:
-            self.inspection_thresholds = InspectionThresholds()
-        
-        self.stencil_inspector = StencilInspector(self.inspection_thresholds)
-        self._last_inspection_result: Optional[InspectionResult] = None
-        self._last_inspection_overlay: Optional[np.ndarray] = None
-        
-        logger.info("Sistema de inspeção visual inicializado")
-    
     def show_inspection_settings(self):
         """Abre diálogo de configuração dos parâmetros de inspeção."""
         dialog = InspectionSettingsDialog(self.inspection_thresholds, self)
-        
+
         if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.inspection_thresholds = dialog.get_thresholds()
-            self.stencil_inspector = StencilInspector(self.inspection_thresholds)
-            
-            # Salvar configuração
-            self.config.set("inspection", "thresholds", self.inspection_thresholds.to_dict())
-            self.config.save()
-            
+            new_thresholds = dialog.get_thresholds()
+            self.inspection_manager.update_thresholds(new_thresholds, save=True)
+            self.inspection_thresholds = new_thresholds  # Atualiza referência local
+
             logger.info("Parâmetros de inspeção atualizados e salvos")
             self.statusBar().showMessage("Parâmetros de inspeção salvos", 3000)
     
@@ -1661,69 +1679,68 @@ class AOIControllerApp(QMainWindow):
         """Executa a inspeção visual."""
         gerber_path = self._insp_gerber_path.text()
         mosaic_path = self._insp_mosaic_path.text()
-        
+
         # Validar
         if not gerber_path or not os.path.exists(gerber_path):
             QMessageBox.warning(dialog, "Erro", "Selecione um arquivo Gerber válido.")
             return
-        
+
         if not mosaic_path or not os.path.exists(mosaic_path):
             QMessageBox.warning(dialog, "Erro", "Selecione uma imagem de mosaico válida.")
             return
-        
+
         try:
             self._insp_status.setText("🔄 Carregando Gerber...")
             self._insp_progress.setVisible(True)
             self._insp_progress.setValue(10)
             QApplication.processEvents()
-            
+
             # Carregar Gerber
-            self.stencil_inspector.load_gerber(gerber_path)
-            
+            if not self.inspection_manager.load_gerber(gerber_path):
+                return
+
             self._insp_status.setText("🔄 Carregando mosaico...")
             self._insp_progress.setValue(30)
             QApplication.processEvents()
-            
+
             # Carregar mosaico
             mosaic = cv2.imread(mosaic_path)
             if mosaic is None:
                 raise ValueError(f"Não foi possível carregar: {mosaic_path}")
-            
-            self.stencil_inspector.set_mosaic(mosaic)
-            
+
+            self.inspection_manager.set_mosaic(mosaic)
+
             # Carregar transformação de alinhamento se selecionada
-            transform = None
             if self._insp_use_alignment.isChecked():
                 from aoi_lib.gerber_renderer import AlignmentTransform
                 tx = self.config.get("fiducial_alignment", "last_tx", default=0)
                 ty = self.config.get("fiducial_alignment", "last_ty", default=0)
                 angle = self.config.get("fiducial_alignment", "last_angle", default=0)
                 scale = self.config.get("fiducial_alignment", "last_scale", default=1)
-                
+
                 transform = AlignmentTransform(
                     tx=tx, ty=ty, angle=angle,
                     scale_x=scale, scale_y=scale
                 )
-                self.stencil_inspector.set_alignment(transform)
+                self.inspection_manager.set_alignment(transform)
                 self._insp_status.setText("🔄 Aplicando alinhamento...")
                 QApplication.processEvents()
-            
+
             self._insp_status.setText("🔄 Executando inspeção...")
             self._insp_progress.setValue(50)
             QApplication.processEvents()
-            
-            # Executar inspeção
-            result = self.stencil_inspector.inspect()
-            
-            self._insp_progress.setValue(80)
-            QApplication.processEvents()
-            
-            # Gerar overlay
-            overlay = self.stencil_inspector.get_result_overlay(show_all=True)
-            
+
+            # Executar inspeção via manager (o resultado será tratado pelo signal)
+            result, overlay = self.inspection_manager.run_inspection()
+
+            if result is None:
+                # Erro já tratado pelo signal inspection_failed
+                return
+
             self._insp_progress.setValue(100)
-            
+
             # Salvar resultados
+
             self._last_inspection_result = result
             self._last_inspection_overlay = overlay
             result.gerber_file = gerber_path
