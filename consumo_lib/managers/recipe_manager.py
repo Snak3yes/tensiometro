@@ -43,7 +43,7 @@ class RecipeManagerWrapper(QObject):
         Args:
             parent_widget: Widget pai para o diálogo
         """
-        from aoi_lib.recipe_dialog import RecipeManagerDialog
+        from consumo_lib.dialogs import RecipeManagerDialog
 
         dialog = RecipeManagerDialog(self.recipe_manager, parent_widget)
         # Conectar signal recipe_loaded do diálogo ao nosso método
@@ -60,7 +60,7 @@ class RecipeManagerWrapper(QObject):
         Returns:
             bool: True se criou com sucesso, False caso contrário
         """
-        from aoi_lib.recipe_dialog import RecipeEditorDialog
+        from consumo_lib.dialogs import RecipeEditorDialog
         from PyQt6.QtWidgets import QDialog
 
         dialog = RecipeEditorDialog(parent=parent_widget)
