@@ -62,6 +62,15 @@ from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
 from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
 
+# Imports das novas abas semânticas
+from consumo_lib.tabs import (
+    CNCControlTab,
+    TensionTab,
+    TrackingTab,
+    InspectionTab,
+    MapTab
+)
+
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
 # Se necessário, adicione um handler:
@@ -453,83 +462,54 @@ class AOIControllerApp(QMainWindow):
         )
         left_layout.addWidget(self.results_table)
         
-        # Painel direito: aba para Câmera & Movimento e Visualização de Tensão
+        # Painel direito: abas semânticas
         right_panel = QTabWidget()
         # guardamos para habilitar/desabilitar abas depois
         self.right_panel = right_panel
-        
-        # MOVER PARA AQUI: Adicionar a aba de Câmera & Movimento (após definir right_panel)
-        # Tab para Camera & Movement
-        camera_movement_tab = QWidget()
-        camera_movement_layout = QHBoxLayout(camera_movement_tab)
-        
-        # Left side: controls and position registry
-        cm_left_panel = QWidget()
-        cm_left_layout = QVBoxLayout(cm_left_panel)
-        
-        # Movement controls 
-        self.movement_widget = MovementControlWidget(self.controller, self.config)
-        cm_left_layout.addWidget(self.movement_widget)
-        
-        # Right side: camera preview
-        self.camera_preview = CameraPreviewWidget(self.controller, self.config)
-        self.camera_preview.image_captured.connect(self.on_image_captured)
-        
-        # Inverter colunas: preview à esquerda (mais espaço) e controles à direita
-        camera_movement_layout.addWidget(self.camera_preview, 3)      # Proporção 3 (preview)
-        camera_movement_layout.addWidget(cm_left_panel, 1)            # Proporção 1 (controles)
-        
-        # Agora é seguro adicionar a nova aba ao right_panel que já foi definido
-        right_panel.addTab(camera_movement_tab, "Câmera & Movimento")
 
-        # Aba de monitoramento do CLP (endereços Modbus)
+        # Aba 1: Câmera & Movimento
+        self.cnc_control_tab = CNCControlTab(self.controller, self.config, parent=self)
+        self.cnc_control_tab.image_captured.connect(self.on_image_captured)
+        # Expose widgets internos para compatibilidade
+        self.camera_preview = self.cnc_control_tab.camera_preview
+        self.movement_widget = self.cnc_control_tab.movement_widget
+        right_panel.addTab(self.cnc_control_tab, "Câmera & Movimento")
+
+        # Aba 2: Monitor CLP (mantida como estava)
         self.plc_monitor = PLCMonitorWidget(self.controller)
         right_panel.addTab(self.plc_monitor, "Monitor CLP")
 
-        # Aba de Visualização de Tensão
-        self.tension_visualization = TensionVisualizationWidget()
+        # Aba 3: Visualização de Tensão
+        self.tension_visualization = TensionTab(parent=self)
+        # Expose widget interno para compatibilidade
+        self.tension_viz_widget = self.tension_visualization.visualization
         right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
-        
-        # ================== ABA DE RASTREABILIDADE ==================
-        stencil_tab = QWidget()
-        stencil_layout = QVBoxLayout(stencil_tab)
-        
-        # Widget de identificação de stencil
-        self.stencil_identification = StencilIdentificationWidget(
-            self.stencil_tracker, 
-            parent=self
-        )
+
+        # Aba 4: Rastreabilidade
+        self.tracking_tab = TrackingTab(self.stencil_tracker, parent=self)
         # Conecta sinais
-        self.stencil_identification.stencil_selected.connect(self._on_stencil_selected)
-        self.stencil_identification.stencil_cleared.connect(self._on_stencil_cleared)
-        self.stencil_identification.recipe_requested.connect(self._on_recipe_requested)
-        
-        stencil_layout.addWidget(self.stencil_identification)
-        
-        # Botões de ação rápida
-        action_group = QGroupBox("⚡ Ações Rápidas")
-        action_layout = QHBoxLayout(action_group)
-        
-        self.btn_run_tension = QPushButton("📐 Medir Tensão")
-        self.btn_run_tension.setEnabled(False)
-        self.btn_run_tension.clicked.connect(self._run_tension_measurement)
-        self.btn_run_tension.setToolTip("Executa medição de tensão e salva no histórico do stencil")
-        action_layout.addWidget(self.btn_run_tension)
-        
-        self.btn_manage_stencils = QPushButton("📋 Gerenciar Stencils")
-        self.btn_manage_stencils.clicked.connect(self.show_stencil_manager)
-        action_layout.addWidget(self.btn_manage_stencils)
-        
-        self.btn_new_stencil = QPushButton("➕ Novo Stencil")
-        self.btn_new_stencil.clicked.connect(self.show_new_stencil_dialog)
-        action_layout.addWidget(self.btn_new_stencil)
-        
-        stencil_layout.addWidget(action_group)
-        
-        # Espaço para futuras expansões (inspeção visual, etc.)
-        stencil_layout.addStretch()
-        
-        right_panel.addTab(stencil_tab, "🏷️ Rastreabilidade")
+        self.tracking_tab.stencil_selected.connect(self._on_stencil_selected)
+        self.tracking_tab.stencil_cleared.connect(self._on_stencil_cleared)
+        self.tracking_tab.recipe_requested.connect(self._on_recipe_requested)
+        self.tracking_tab.tension_measurement_requested.connect(self._run_tension_measurement)
+        self.tracking_tab.stencil_management_requested.connect(self.show_stencil_manager)
+        self.tracking_tab.new_stencil_requested.connect(self.show_new_stencil_dialog)
+        # Expose widget interno para compatibilidade
+        self.stencil_identification = self.tracking_tab.stencil_identification
+        self.btn_run_tension = self.tracking_tab.btn_run_tension
+        right_panel.addTab(self.tracking_tab, "🏷️ Rastreabilidade")
+
+        # Aba 5: Inspeção Visual (placeholder)
+        self.inspection_tab = InspectionTab(parent=self)
+        self.inspection_tab.settings_requested.connect(self.show_inspection_settings)
+        self.inspection_tab.inspection_requested.connect(self._on_inspection_requested)
+        right_panel.addTab(self.inspection_tab, "🔍 Inspeção")
+
+        # Aba 6: Programação de Mapa (placeholder)
+        self.map_tab = MapTab(parent=self)
+        self.map_tab.map_definition_requested.connect(self.show_definir_mapa_dialog)
+        self.map_tab.mosaic_builder_requested.connect(self.show_mosaic_builder)
+        right_panel.addTab(self.map_tab, "🗺️ Mapa")
         
         # ===================================================================
         # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
