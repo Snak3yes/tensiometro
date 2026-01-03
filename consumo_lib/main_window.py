@@ -55,6 +55,7 @@ from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.threads.sequence_runner import SequenceRunnerThread
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.utils.map_params import MapParams
+from consumo_lib.managers import ConnectionManager
 
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
@@ -91,6 +92,14 @@ class AOIControllerApp(QMainWindow):
         )
         logger.debug("CNCAOIController inicializado; backend = %s",
                      type(self.controller.cnc).__name__)
+
+        # =========== GERENCIADOR DE CONEXÕES ===========
+        self.connection_mgr = ConnectionManager(self.controller, self.config)
+        # Conectar signals do ConnectionManager
+        self.connection_mgr.plc_connected.connect(self._on_plc_connected)
+        self.connection_mgr.plc_disconnected.connect(self._on_plc_disconnected)
+        self.connection_mgr.plc_connection_error.connect(self._on_plc_error)
+
         self.current_sequence = None
         self.is_running_sequence = False
         
@@ -169,38 +178,16 @@ class AOIControllerApp(QMainWindow):
     #   Auto-connect com base no JSON de prefs
     def _attempt_auto_connect(self):
         """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""
-        
+
         # ========== CONEXÃO AUTOMÁTICA AO PLC ==========
+        # Delega para ConnectionManager
         if isinstance(self.controller.cnc, PLCAxisController):
             plc = self.controller.cnc
-            plc_host = plc.host
-            plc_port = plc.port
-            
-            self.statusBar().showMessage(f"Tentando conexão automática ao PLC em {plc_host}:{plc_port}...")
+            self.statusBar().showMessage(f"Tentando conexão automática ao PLC em {plc.host}:{plc.port}...")
             QApplication.processEvents()  # Atualiza a UI
-            
-            logger.info(f"Iniciando conexão automática ao PLC em {plc_host}:{plc_port}")
-            
-            try:
-                # Tenta conectar usando o controller existente
-                plc.connect()
-                
-                # Atualiza UI
-                self.connect_cnc_btn.setText("Desconectar PLC")
-                self.cnc_status.setText("Conectado")
-                self.statusBar().showMessage(f"✅ PLC conectado automaticamente em {plc_host}:{plc_port}")
-                logger.info(f"PLC conectado automaticamente com sucesso em {plc_host}:{plc_port}")
-                
-            except Exception as e:
-                # Conexão falhou - exibe mensagem para o usuário
-                error_msg = str(e)
-                self.connect_cnc_btn.setText("Conectar PLC")
-                self.cnc_status.setText("Desconectado")
-                self.statusBar().showMessage("⚠️ CLP não conectado - A aplicação funcionará sem controle de movimento")
-                logger.warning(f"Falha na conexão automática ao PLC em {plc_host}:{plc_port}: {e}")
-                
-                # Exibe mensagem informativa (não-bloqueante)
-                QTimer.singleShot(1000, lambda: self._show_plc_connection_error(plc_host, plc_port, error_msg))
+
+            # Tenta conexão automática se configurado
+            self.connection_mgr.attempt_auto_connect()
         
         # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
         # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
@@ -319,7 +306,7 @@ class AOIControllerApp(QMainWindow):
 
         btn_label = "Conectar PLC" if isinstance(self.controller.cnc, PLCAxisController) else "Conectar CNC"
         self.connect_cnc_btn = QPushButton(btn_label)
-        self.connect_cnc_btn.clicked.connect(self.connect_cnc)
+        self.connect_cnc_btn.clicked.connect(self._on_connect_btn_clicked)
         connection_layout.addWidget(self.connect_cnc_btn, 0, 4)
 
         # CNC Connection (serial legacy)
@@ -3604,38 +3591,15 @@ class AOIControllerApp(QMainWindow):
             self.statusBar().showMessage(f"Configurações do PLC atualizadas para {host}:{port}")
 
     def connect_cnc(self):
-        """Conecta à máquina CNC usando a biblioteca grbl-streamer"""
-        # Se for PLCAxisController, alterna Modbus connect/disconnect
+        """
+        Conecta/desconecta à máquina CNC.
+
+        NOTA: Para PLC, este método delega para ConnectionManager.
+        Para GRBL, mantém a implementação original.
+        """
+        # Se for PLCAxisController, delega para ConnectionManager
         if isinstance(self.controller.cnc, PLCAxisController):
-            plc = self.controller.cnc
-            if plc.is_connected:
-                # desconectar
-                plc.close()
-                self._apply_plc_ui_settings()
-                self.connect_cnc_btn.setText("Conectar PLC")
-                self.cnc_status.setText("Desconectado")
-                self.statusBar().showMessage("PLC desconectado")
-                logger.info("PLC desconectado pelo usuário")
-                # NOTA: Abas permanecem habilitadas para permitir
-                # uso de câmera, receitas e outras funcionalidades
-            else:
-                self._apply_plc_ui_settings()
-                # Tenta conectar usando o controller existente
-                logger.info(f"Tentando conectar ao PLC em {plc.host}:{plc.port}")
-                try:
-                    plc.connect()
-                except Exception as e:
-                    QMessageBox.warning(
-                        self,
-                        "Erro de Conexão",
-                        f"Falha ao conectar ao PLC em {plc.host}:{plc.port}:\n{e}"
-                    )
-                    logger.error(f"Falha ao conectar ao PLC em {plc.host}:{plc.port}: {e}")
-                else:
-                    self.connect_cnc_btn.setText("Desconectar PLC")
-                    self.cnc_status.setText("Conectado")
-                    self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
-                    logger.info(f"PLC conectado com sucesso em {plc.host}:{plc.port}")
+            self.connection_mgr.toggle_plc()
             return
         # Senão, cai no fluxo original GRBL…
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
@@ -3903,7 +3867,77 @@ class AOIControllerApp(QMainWindow):
                 self.controller.cnc.machine_status = "Erro Conexão"
                 self.connect_cnc_btn.setText("Conectar CNC")
                 self.cnc_status.setText("Erro Conexão")
-                
+
+    # =========================================================================
+    # HANDLERS DO CONNECTIONMANAGER
+    # =========================================================================
+
+    def _on_connect_btn_clicked(self):
+        """
+        Botão conectar/desconectar clicado.
+
+        Delega para ConnectionManager quando for PLC.
+        Para GRBL, chama o método connect_cnc() original.
+        """
+        if isinstance(self.controller.cnc, PLCAxisController):
+            # Delega para ConnectionManager
+            self.connection_mgr.toggle_plc()
+        else:
+            # Usa implementação original para GRBL
+            self.connect_cnc()
+
+    def _on_plc_connected(self):
+        """
+        Handler para quando PLC conecta com sucesso.
+
+        Atualiza:
+            - Botão de conexão
+            - Label de status
+            - Status bar
+
+        Signal origin:
+            ConnectionManager.plc_connected
+        """
+        plc = self.controller.cnc
+        self.connect_cnc_btn.setText("Desconectar PLC")
+        self.cnc_status.setText("Conectado")
+        self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
+        logger.info(f"PLC conectado em {plc.host}:{plc.port}")
+
+    def _on_plc_disconnected(self):
+        """
+        Handler para quando PLC desconecta.
+
+        Atualiza:
+            - Botão de conexão
+            - Label de status
+
+        Signal origin:
+            ConnectionManager.plc_disconnected
+        """
+        self.connect_cnc_btn.setText("Conectar PLC")
+        self.cnc_status.setText("Desconectado")
+        logger.info("PLC desconectado")
+
+    def _on_plc_error(self, error: str):
+        """
+        Handler para erros de conexão PLC.
+
+        Atualiza:
+            - Label de status
+            - Mostra QMessageBox ao usuário
+
+        Signal origin:
+            ConnectionManager.plc_connection_error
+        """
+        self.cnc_status.setText("Erro")
+        QMessageBox.warning(
+            self,
+            "Erro de Conexão",
+            f"Não foi possível conectar ao PLC:\n{error}"
+        )
+        logger.error(f"Erro de conexão PLC: {error}")
+
     def connect_camera(self):
         """Conecta à câmera"""
         if hasattr(self.controller.camera, 'is_connected') and self.controller.camera.is_connected:
