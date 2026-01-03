@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QSplitter, QFrame, QTableWidget, QTableWidgetItem, 
                              QHeaderView, QDialog, QInputDialog,
                              QProgressDialog, QDoubleSpinBox, QSpinBox)
-from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF, QSignalBlocker
 from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator,
                          QPainter, QColor, QPen, QBrush, QIntValidator)
 
@@ -42,6 +42,20 @@ import logging
 import json
 from mosaic_builder import compose_mosaic_from_folder
 
+# Imports de widgets movidos para o pacote consumo_lib
+from consumo_lib.widgets.tension_viz import TensionVisualizationWidget, TensionCanvas
+from consumo_lib.widgets.image_viewer import ImageViewerWidget
+from consumo_lib.widgets.position_list import PositionListWidget
+from consumo_lib.widgets.sequence_control import SequenceControlWidget
+from consumo_lib.widgets.position_registry import PositionRegistryWidget
+from consumo_lib.widgets.camera_preview import CameraPreviewWidget
+from consumo_lib.widgets.movement_control import MovementControlWidget
+from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
+from consumo_lib.widgets.preview_suspender import _PreviewSuspender
+from consumo_lib.threads.sequence_runner import SequenceRunnerThread
+from consumo_lib.threads.map_generator import MapGeneratorThread
+from consumo_lib.utils.map_params import MapParams
+
 logger = logging.getLogger("consumo_lib")
 logger.setLevel(logging.DEBUG)
 # Se necessário, adicione um handler:
@@ -52,1889 +66,8 @@ if not logger.handlers:
     ch.setFormatter(formatter)
     logger.addHandler(ch)
 
-class TensionVisualizationWidget(QWidget):
-    """
-    Widget para visualizar os resultados de medição de tensão do stencil.
-    
-    Suporta critérios de aceitação (OK/WARNING/NOK) vindos de receitas.
-    """
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        
-        # Inicializa atributos ANTES de setup_ui() para evitar erros
-        self.measurements_data = None
-        self.canvas_margin = 50
-        self.point_radius = 15
-        self.acceptance_criteria = None  # TensionAcceptance object
-        
-        # Agora inicializa a UI
-        self.setup_ui()
-        
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # Título e controles
-        title_layout = QHBoxLayout()
-        
-        title_label = QLabel("Visualização de Tensão do Stencil")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_font.setPointSize(14)
-        title_label.setFont(title_font)
-        
-        # Botão para carregar arquivo
-        self.load_file_btn = QPushButton("📂 Carregar JSON")
-        self.load_file_btn.clicked.connect(self.load_tension_file)
-        
-        # Botão para recarregar último arquivo
-        self.reload_btn = QPushButton("🔄 Recarregar")
-        self.reload_btn.clicked.connect(self.reload_last_file)
-        self.reload_btn.setEnabled(False)
-        
-        title_layout.addWidget(title_label)
-        title_layout.addStretch()
-        title_layout.addWidget(self.load_file_btn)
-        title_layout.addWidget(self.reload_btn)
-        
-        layout.addLayout(title_layout)
-        
-        # ============ CRITÉRIOS DE ACEITAÇÃO ============
-        criteria_group = QGroupBox("📊 Critérios de Aceitação (N/cm²)")
-        criteria_layout = QGridLayout(criteria_group)
-        
-        # Tensão mínima
-        criteria_layout.addWidget(QLabel("Mínimo:"), 0, 0)
-        self.spin_min = QDoubleSpinBox()
-        self.spin_min.setRange(0, 100)
-        self.spin_min.setValue(25.0)
-        self.spin_min.valueChanged.connect(self._on_criteria_changed)
-        criteria_layout.addWidget(self.spin_min, 0, 1)
-        
-        # Warning baixo
-        criteria_layout.addWidget(QLabel("Warning↓:"), 0, 2)
-        self.spin_warn_low = QDoubleSpinBox()
-        self.spin_warn_low.setRange(0, 100)
-        self.spin_warn_low.setValue(28.0)
-        self.spin_warn_low.valueChanged.connect(self._on_criteria_changed)
-        criteria_layout.addWidget(self.spin_warn_low, 0, 3)
-        
-        # Warning alto
-        criteria_layout.addWidget(QLabel("Warning↑:"), 0, 4)
-        self.spin_warn_high = QDoubleSpinBox()
-        self.spin_warn_high.setRange(0, 100)
-        self.spin_warn_high.setValue(42.0)
-        self.spin_warn_high.valueChanged.connect(self._on_criteria_changed)
-        criteria_layout.addWidget(self.spin_warn_high, 0, 5)
-        
-        # Tensão máxima
-        criteria_layout.addWidget(QLabel("Máximo:"), 0, 6)
-        self.spin_max = QDoubleSpinBox()
-        self.spin_max.setRange(0, 100)
-        self.spin_max.setValue(45.0)
-        self.spin_max.valueChanged.connect(self._on_criteria_changed)
-        criteria_layout.addWidget(self.spin_max, 0, 7)
-        
-        # Carregar da receita
-        self.btn_load_recipe = QPushButton("📋 Usar Receita")
-        self.btn_load_recipe.setToolTip("Carrega critérios da receita atual")
-        self.btn_load_recipe.clicked.connect(self.load_criteria_from_recipe)
-        criteria_layout.addWidget(self.btn_load_recipe, 0, 8)
-        
-        layout.addWidget(criteria_group)
-        
-        # Informações do arquivo carregado
-        self.info_label = QLabel("Nenhum arquivo carregado")
-        self.info_label.setStyleSheet("color: #666; font-style: italic;")
-        layout.addWidget(self.info_label)
-        
-        # Canvas de visualização
-        self.canvas = TensionCanvas()
-        layout.addWidget(self.canvas, 1)  # Proporção 1 para expandir
-        
-        # ============ ESTATÍSTICAS DE RESULTADO ============
-        self.stats_frame = QFrame()
-        self.stats_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.stats_frame.setStyleSheet("background-color: #f8f8f8; padding: 5px;")
-        stats_layout = QHBoxLayout(self.stats_frame)
-        stats_layout.setContentsMargins(10, 5, 10, 5)
-        
-        self.stats_label = QLabel("Carregue um arquivo para ver estatísticas")
-        self.stats_label.setStyleSheet("font-size: 12px;")
-        stats_layout.addWidget(self.stats_label)
-        
-        stats_layout.addStretch()
-        
-        # Indicador visual
-        self.result_indicator = QLabel("---")
-        self.result_indicator.setStyleSheet("""
-            font-size: 14px; 
-            font-weight: bold; 
-            padding: 5px 15px;
-            border-radius: 5px;
-            background-color: #ccc;
-        """)
-        stats_layout.addWidget(self.result_indicator)
-        
-        layout.addWidget(self.stats_frame)
-        
-        # Legenda
-        self.legend_label = QLabel("")
-        layout.addWidget(self.legend_label)
-        
-        self.last_file_path = None
-        
-        # Inicializa TensionAcceptance
-        self._on_criteria_changed()
-        
-    def load_tension_file(self):
-        """Carrega arquivo JSON com dados de tensão"""
-        file_path, _ = QFileDialog.getOpenFileName(
-            self, 
-            "Carregar Dados de Tensão",
-            "",
-            "Arquivos JSON (*.json);;Todos os arquivos (*)"
-        )
-        
-        if file_path:
-            self.load_file(file_path)
-            
-    def load_file(self, file_path):
-        """Carrega arquivo específico"""
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                data = json.load(f)
-                
-            # Valida se é um arquivo de tensão válido
-            if data.get('type') != 'stencil_tension':
-                QMessageBox.warning(
-                    self, "Arquivo Inválido", 
-                    "Este não é um arquivo de medição de tensão válido."
-                )
-                return
-                
-            self.measurements_data = data
-            self.last_file_path = file_path
-            self.reload_btn.setEnabled(True)
-            
-            # Atualiza informações
-            self.update_info_display()
-            
-            # Atualiza canvas
-            self.canvas.set_measurements(data)
-            
-            # Atualiza legenda
-            self.update_legend()
-            
-        except Exception as e:
-            QMessageBox.critical(
-                self, "Erro", 
-                f"Erro ao carregar arquivo:\n{str(e)}"
-            )
-            
-    def reload_last_file(self):
-        """Recarrega o último arquivo carregado"""
-        if self.last_file_path:
-            self.load_file(self.last_file_path)
-            
-    def update_info_display(self):
-        """Atualiza informações do arquivo carregado"""
-        if not self.measurements_data:
-            return
-            
-        params = self.measurements_data.get('parameters', {})
-        measurements = self.measurements_data.get('measurements', [])
-        
-        start = params.get('start', {})
-        end = params.get('end', {})
-        quantity = params.get('quantity', 0)
-        
-        info_text = (
-            f"Arquivo carregado: {len(measurements)} pontos medidos | "
-            f"Grid: {quantity}x{quantity} | "
-            f"Área: X({start.get('x', 0):.1f} a {end.get('x', 0):.1f}) "
-            f"Y({start.get('y', 0):.1f} a {end.get('y', 0):.1f})"
-        )
-        
-        self.info_label.setText(info_text)
-        self.info_label.setStyleSheet("color: #333; font-weight: bold;")
-        
-    def update_legend(self):
-        """Atualiza legenda com informações dos valores e classificação"""
-        if not self.measurements_data:
-            return
-            
-        measurements = self.measurements_data.get('measurements', [])
-        if not measurements:
-            return
-            
-        # Calcula estatísticas básicas
-        tensions = [float(m.get('tension', 0)) for m in measurements]
-        min_tension = min(tensions)
-        max_tension = max(tensions)
-        avg_tension = sum(tensions) / len(tensions)
-        
-        # Classifica cada medição
-        counts = {'OK': 0, 'WARNING': 0, 'NOK': 0}
-        if self.acceptance_criteria:
-            for t in tensions:
-                result = self.acceptance_criteria.classify(t)
-                counts[result] = counts.get(result, 0) + 1
-        
-        total = len(tensions)
-        ok_percent = (counts['OK'] / total * 100) if total > 0 else 0
-        warn_percent = (counts['WARNING'] / total * 100) if total > 0 else 0
-        nok_percent = (counts['NOK'] / total * 100) if total > 0 else 0
-        
-        # Atualiza legenda
-        legend_text = (
-            f"Tensão: Mín: {min_tension:.2f} | Máx: {max_tension:.2f} | Média: {avg_tension:.2f} N/cm² | "
-            f"🟢 OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()}) | "
-            f"🟡 WARNING | "
-            f"🔴 NOK (<{self.spin_min.value()} ou >{self.spin_max.value()})"
-        )
-        self.legend_label.setText(legend_text)
-        
-        # Atualiza estatísticas
-        self.stats_label.setText(
-            f"🟢 OK: {counts['OK']} ({ok_percent:.1f}%) | "
-            f"🟡 WARNING: {counts['WARNING']} ({warn_percent:.1f}%) | "
-            f"🔴 NOK: {counts['NOK']} ({nok_percent:.1f}%) | "
-            f"Total: {total} pontos"
-        )
-        
-        # Atualiza indicador de resultado
-        if nok_percent > 0:
-            self.result_indicator.setText("❌ REPROVADO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #FF6B6B; color: white;
-            """)
-        elif warn_percent > 20:  # Mais de 20% warning
-            self.result_indicator.setText("⚠️ ATENÇÃO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #FFE66D; color: #333;
-            """)
-        else:
-            self.result_indicator.setText("✅ APROVADO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #4ECDC4; color: white;
-            """)
-        
-        # Passa critérios para o canvas
-        self.canvas.set_acceptance_criteria(self.acceptance_criteria)
-    
-    def _on_criteria_changed(self, value=None):
-        """Callback quando os critérios de aceitação são alterados"""
-        from aoi_lib.recipe_manager import TensionAcceptance
-        
-        self.acceptance_criteria = TensionAcceptance(
-            min_tension=self.spin_min.value(),
-            max_tension=self.spin_max.value(),
-            warning_low=self.spin_warn_low.value(),
-            warning_high=self.spin_warn_high.value()
-        )
-        
-        # Atualiza se houver dados carregados
-        if self.measurements_data:
-            self.canvas.set_acceptance_criteria(self.acceptance_criteria)
-            self.canvas.update()
-            self.update_legend()
-    
-    def load_criteria_from_recipe(self):
-        """Carrega critérios da receita atualmente selecionada"""
-        # Tenta obter a receita do pai (AOIControllerApp)
-        parent = self.parent()
-        while parent and not hasattr(parent, 'current_recipe'):
-            parent = parent.parent()
-        
-        if parent and hasattr(parent, 'current_recipe') and parent.current_recipe:
-            recipe = parent.current_recipe
-            acc = recipe.tension.acceptance
-            
-            # Bloqueia sinais para evitar múltiplas atualizações
-            self.spin_min.blockSignals(True)
-            self.spin_max.blockSignals(True)
-            self.spin_warn_low.blockSignals(True)
-            self.spin_warn_high.blockSignals(True)
-            
-            self.spin_min.setValue(acc.min_tension)
-            self.spin_max.setValue(acc.max_tension)
-            self.spin_warn_low.setValue(acc.warning_low)
-            self.spin_warn_high.setValue(acc.warning_high)
-            
-            self.spin_min.blockSignals(False)
-            self.spin_max.blockSignals(False)
-            self.spin_warn_low.blockSignals(False)
-            self.spin_warn_high.blockSignals(False)
-            
-            # Atualiza manualmente
-            self._on_criteria_changed()
-            
-            QMessageBox.information(
-                self, "Critérios Carregados",
-                f"Critérios da receita '{recipe.name}' aplicados:\n\n"
-                f"Mínimo: {acc.min_tension} N/cm²\n"
-                f"Máximo: {acc.max_tension} N/cm²\n"
-                f"Warning ↓: {acc.warning_low} N/cm²\n"
-                f"Warning ↑: {acc.warning_high} N/cm²"
-            )
-        else:
-            QMessageBox.warning(
-                self, "Receita Não Encontrada",
-                "Nenhuma receita está carregada.\n\n"
-                "Acesse 'Receitas → Gerenciar Receitas' para carregar uma."
-            )
-
-class TensionCanvas(QWidget):
-    """Canvas personalizado para desenhar os pontos de tensão com classificação OK/WARNING/NOK"""
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.measurements = None
-        self.acceptance_criteria = None  # TensionAcceptance para classificação
-        self.setMinimumSize(400, 400)
-        
-    def set_measurements(self, data):
-        """Define os dados de medição"""
-        self.measurements = data
-        self.update()  # Força redesenho
-    
-    def set_acceptance_criteria(self, criteria):
-        """Define os critérios de aceitação para colorização"""
-        self.acceptance_criteria = criteria
-        self.update()  # Força redesenho
-        
-    def paintEvent(self, event):
-        """Desenha o canvas com os pontos de tensão"""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        
-        # Fundo branco
-        painter.fillRect(self.rect(), QColor(255, 255, 255))
-        
-        if not self.measurements:
-            # Desenha mensagem quando não há dados
-            painter.setPen(QColor(128, 128, 128))
-            painter.drawText(
-                self.rect(), 
-                Qt.AlignmentFlag.AlignCenter,
-                "Carregue um arquivo JSON para visualizar os dados"
-            )
-            return
-            
-        self._draw_measurements(painter)
-        
-    def _draw_measurements(self, painter):
-        """Desenha as medições no canvas"""
-        measurements_list = self.measurements.get('measurements', [])
-        params = self.measurements.get('parameters', {})
-        
-        if not measurements_list:
-            return
-            
-        # Calcula limites da área
-        start = params.get('start', {'x': 0, 'y': 0})
-        end = params.get('end', {'x': 100, 'y': 100})
-        
-        # Dimensões da área de trabalho
-        work_width = abs(end['x'] - start['x'])
-        work_height = abs(end['y'] - start['y'])
-        
-        # Dimensões do canvas (com margem)
-        margin = 50
-        canvas_width = self.width() - 2 * margin
-        canvas_height = self.height() - 2 * margin
-        
-        # Usa o menor lado para manter proporção quadrada
-        canvas_size = min(canvas_width, canvas_height)
-        
-        # Calcula escala
-        scale_x = canvas_size / work_width if work_width > 0 else 1
-        scale_y = canvas_size / work_height if work_height > 0 else 1
-        scale = min(scale_x, scale_y)
-        
-        # Centro do canvas
-        center_x = self.width() / 2
-        center_y = self.height() / 2
-        
-        # Desenha bordas da área de trabalho
-        self._draw_work_area_border(painter, center_x, center_y, work_width, work_height, scale)
-        
-        # Calcula estatísticas para coloração
-        tensions = [float(m.get('tension', 0)) for m in measurements_list]
-        min_tension = min(tensions) if tensions else 0
-        max_tension = max(tensions) if tensions else 100
-        tension_range = max_tension - min_tension if max_tension != min_tension else 1
-        
-        # Desenha cada ponto
-        for measurement in measurements_list:
-            self._draw_measurement_point(
-                painter, measurement, start, center_x, center_y, 
-                scale, min_tension, tension_range
-            )
-            
-    def _draw_work_area_border(self, painter, center_x, center_y, work_width, work_height, scale):
-        """Desenha a borda da área de trabalho"""
-        # Calcula posição do retângulo da área de trabalho
-        rect_width = work_width * scale
-        rect_height = work_height * scale
-        
-        rect_x = center_x - rect_width / 2
-        rect_y = center_y - rect_height / 2
-        
-        # Desenha borda
-        painter.setPen(QPen(QColor(200, 200, 200), 2))
-        painter.setBrush(QBrush())  # Sem preenchimento
-        painter.drawRect(QRectF(rect_x, rect_y, rect_width, rect_height))
-        
-        # Desenha grid de referência (opcional)
-        painter.setPen(QPen(QColor(240, 240, 240), 1))
-        
-        # Linhas verticais
-        for i in range(1, 3):  # Assume grid 3x3
-            x = rect_x + (rect_width * i / 3)
-            painter.drawLine(QPointF(x, rect_y), QPointF(x, rect_y + rect_height))
-            
-        # Linhas horizontais  
-        for i in range(1, 3):
-            y = rect_y + (rect_height * i / 3)
-            painter.drawLine(QPointF(rect_x, y), QPointF(rect_x + rect_width, y))
-            
-    def _draw_measurement_point(self, painter, measurement, start, center_x, center_y, 
-                              scale, min_tension, tension_range):
-        """Desenha um ponto de medição individual"""
-        x = measurement.get('x', 0)
-        y = measurement.get('y', 0)
-        tension = float(measurement.get('tension', 0))
-        
-        # Calcula dimensões da área de trabalho
-        params = self.measurements.get('parameters', {})
-        end = params.get('end', {'x': 100, 'y': 100})
-        
-        work_width = abs(end['x'] - start['x'])
-        work_height = abs(end['y'] - start['y'])
-        
-        # Dimensões do retângulo de trabalho no canvas
-        margin = 50
-        canvas_size = min(self.width() - 2 * margin, self.height() - 2 * margin)
-        scale = min(canvas_size / work_width, canvas_size / work_height) if work_width > 0 and work_height > 0 else 1
-        
-        rect_width = work_width * scale
-        rect_height = work_height * scale
-        
-        # Posição do retângulo da área de trabalho (centralizado)
-        rect_x = center_x - rect_width / 2
-        rect_y = center_y - rect_height / 2
-        
-        # Normaliza a posição do ponto dentro da área de trabalho (0 a 1)
-        norm_x = (x - start['x']) / work_width if work_width > 0 else 0
-        norm_y = (y - start['y']) / work_height if work_height > 0 else 0
-        
-        # Mapeia para coordenadas do canvas
-        # Nota: no canvas, Y cresce para baixo, então invertemos norm_y
-        canvas_x = rect_x + (norm_x * rect_width)
-        canvas_y = rect_y + ((1 - norm_y) * rect_height)  # Inverte Y para visualização correta
-        # Determina cor baseada na tensão
-        color = self._get_tension_color(tension, min_tension, tension_range)
-        
-        # Desenha círculo
-        point_radius = 20
-        painter.setPen(QPen(QColor(100, 100, 100), 2))
-        painter.setBrush(QBrush(color))
-        
-        painter.drawEllipse(
-            QPointF(canvas_x, canvas_y), 
-            point_radius, point_radius
-        )
-        
-        # Desenha texto com valor
-        painter.setPen(QColor(0, 0, 0))
-        painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
-        
-        # Texto centralizado no círculo
-        text = f"{tension:.1f}"
-        text_rect = painter.fontMetrics().boundingRect(text)
-        text_x = canvas_x - text_rect.width() / 2
-        text_y = canvas_y + text_rect.height() / 4
-        
-        painter.drawText(QPointF(text_x, text_y), text)
-        
-        # Desenha coordenadas menores abaixo
-        coord_text = f"({x:.1f},{y:.1f})"
-        painter.setFont(QFont("Arial", 6))
-        painter.setPen(QColor(80, 80, 80))
-        
-        coord_rect = painter.fontMetrics().boundingRect(coord_text)
-        coord_x = canvas_x - coord_rect.width() / 2
-        coord_y = canvas_y + point_radius + 15
-        
-        painter.drawText(QPointF(coord_x, coord_y), coord_text)
-        
-    def _get_tension_color(self, tension, min_tension, tension_range):
-        """
-        Retorna cor baseada no valor da tensão.
-        
-        Se há critérios de aceitação definidos, usa classificação OK/WARNING/NOK.
-        Caso contrário, usa gradiente baseado no intervalo dos dados.
-        """
-        # Usa classificação se disponível
-        if self.acceptance_criteria:
-            result = self.acceptance_criteria.classify(tension)
-            if result == 'OK':
-                return QColor(76, 205, 196)  # Verde-azulado (#4ECDC4)
-            elif result == 'WARNING':
-                return QColor(255, 230, 109)  # Amarelo (#FFE66D)
-            else:  # NOK
-                return QColor(255, 107, 107)  # Vermelho (#FF6B6B)
-        
-        # Fallback: gradiente baseado nos dados
-        if tension_range == 0:
-            return QColor(100, 200, 100)  # Verde padrão
-            
-        # Normaliza tensão (0-1)
-        normalized = (tension - min_tension) / tension_range
-        
-        # Mapeia para cores: Verde (baixo) -> Amarelo (médio) -> Vermelho (alto)
-        if normalized < 0.33:
-            # Verde para amarelo
-            ratio = normalized * 3
-            return QColor(int(100 + 155 * ratio), 200, int(100 * (1 - ratio)))
-        elif normalized < 0.66:
-            # Amarelo para laranja
-            ratio = (normalized - 0.33) * 3
-            return QColor(255, int(200 - 50 * ratio), 0)
-        else:
-            # Laranja para vermelho
-            ratio = (normalized - 0.66) * 3
-            return QColor(255, int(150 * (1 - ratio)), 0)
-
-class ImageViewerWidget(QWidget):
-    """Widget para exibir imagens capturadas pela câmera"""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.layout = QVBoxLayout(self)
-        
-        # Label para exibir a imagemgit
-        self.image_label = QLabel()
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText("Nenhuma imagem capturada")
-        self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
-        self.image_label.setMinimumSize(400, 300)
-        
-        # Informações da imagem
-        self.info_label = QLabel("Informações da imagem:")
-        
-        self.layout.addWidget(self.image_label)
-        self.layout.addWidget(self.info_label)
-        
-    def display_image(self, image, info_text=None):
-        """Mostra uma imagem no widget"""
-        if image is None:
-            self.image_label.setText("Imagem inválida")
-            return
-            
-        # Converte imagem OpenCV para QPixmap
-        h, w, c = image.shape
-        bytes_per_line = 3 * w
-        q_img = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
-        pixmap = QPixmap.fromImage(q_img)
-        
-        # Redimensiona se for muito grande
-        if pixmap.width() > 800 or pixmap.height() > 600:
-            pixmap = pixmap.scaled(800, 600, Qt.AspectRatioMode.KeepAspectRatio)
-            
-        self.image_label.setPixmap(pixmap)
-        
-        # Atualiza informações
-        if info_text:
-            self.info_label.setText(info_text)
-        else:
-            self.info_label.setText(f"Imagem: {w}x{h}px")
-
-class PositionListWidget(QWidget):
-    """Widget para gerenciar lista de posições"""
-    position_selected = pyqtSignal(object)  # Emite a posição selecionada
-    
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.layout = QVBoxLayout(self)
-        
-        # Título
-        title_label = QLabel("Posições de Inspeção")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        
-        # Lista de posições
-        self.positions_list = QListWidget()
-        self.positions_list.currentItemChanged.connect(self.on_position_selected)
-        
-        # Botões
-        buttons_layout = QHBoxLayout()
-        self.add_position_btn = QPushButton("Adicionar Posição Atual")
-        self.remove_position_btn = QPushButton("Remover")
-        buttons_layout.addWidget(self.add_position_btn)
-        buttons_layout.addWidget(self.remove_position_btn)
-        
-        self.layout.addWidget(title_label)
-        self.layout.addWidget(self.positions_list)
-        self.layout.addLayout(buttons_layout)
-        
-        # Mapeia id(QListWidgetItem) ➜ InspectionPosition.
-        # QListWidgetItem NÃO é hashable, portanto usamos id(item).
-        self.positions: dict[int, InspectionPosition] = {}
-        
-    def add_position(self, position: InspectionPosition):
-        """Adiciona uma posição à lista"""
-        item_text = f"{position.name} ({position.x:.2f}, {position.y:.2f}, {getattr(position,'z',0.0):.2f})"
-        item = QListWidgetItem(item_text)
-        self.positions_list.addItem(item)
-        self.positions[id(item)] = position
-        
-    def remove_selected_position(self):
-        """Remove a posição selecionada"""
-        current_item = self.positions_list.currentItem()
-        if current_item:
-            position = self.positions.pop(id(current_item))
-            row = self.positions_list.row(current_item)
-            self.positions_list.takeItem(row)
-            return position
-        return None
-        
-    def clear_positions(self):
-        """Limpa todas as posições"""
-        self.positions_list.clear()
-        self.positions = {}
-        
-    def get_all_positions(self):
-        """Retorna todas as posições"""
-        return list(self.positions.values())
-        
-    def on_position_selected(self, current, previous):
-        """Manipula evento de seleção de posição"""
-        if current:
-            pos = self.positions.get(id(current))
-            if pos:
-                self.position_selected.emit(pos)
-
-class SequenceControlWidget(QWidget):
-    """Widget para controlar a execução da sequência"""
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.layout = QVBoxLayout(self)
-        
-        # Grupo de sequência
-        sequence_group = QGroupBox("Controle de Sequência")
-        sequence_layout = QGridLayout()
-        
-        # Nome da sequência
-        sequence_layout.addWidget(QLabel("Nome:"), 0, 0)
-        self.sequence_name = QLineEdit("Sequência PCB")
-        sequence_layout.addWidget(self.sequence_name, 0, 1)
-        
-        # Botões de controle
-        self.create_sequence_btn = QPushButton("Criar Sequência")
-        self.run_sequence_btn = QPushButton("Executar Sequência")
-        self.stop_sequence_btn = QPushButton("Parar")
-        self.stop_sequence_btn.setEnabled(False)
-        
-        sequence_layout.addWidget(self.create_sequence_btn, 1, 0)
-        sequence_layout.addWidget(self.run_sequence_btn, 1, 1)
-        sequence_layout.addWidget(self.stop_sequence_btn, 2, 0, 1, 2)
-        
-        # Status
-        sequence_layout.addWidget(QLabel("Status:"), 3, 0)
-        self.sequence_status = QLabel("Pronto")
-        sequence_layout.addWidget(self.sequence_status, 3, 1)
-        
-        sequence_group.setLayout(sequence_layout)
-        
-        # Grupo de arquivo
-        file_group = QGroupBox("Salvar/Carregar")
-        file_layout = QVBoxLayout()
-        self.save_btn = QPushButton("Salvar Programa (JSON)")
-        self.load_btn = QPushButton("Carregar Programa (JSON)")
-        self.save_gcode_btn = QPushButton("Exportar para G-CODE")
-        self.load_gcode_btn = QPushButton("Importar de G-CODE")
-        file_layout.addWidget(self.save_btn)
-        file_layout.addWidget(self.load_btn)
-        file_layout.addWidget(self.save_gcode_btn)
-        file_layout.addWidget(self.load_gcode_btn)
-        
-        file_group.setLayout(file_layout)
-        
-        self.layout.addWidget(sequence_group)
-        self.layout.addWidget(file_group)
-        self.layout.addStretch()
-
-class PositionRegistryWidget(QWidget):
-    """Widget for showing registered positions"""
-    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
-        super().__init__(parent)
-        self.controller = controller
-        self.cfg        = cfg
-        self.cfg        = cfg
-        self.positions  = []
-        self.setup_ui()
-        
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # Title
-        title_label = QLabel("Registered Positions")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        layout.addWidget(title_label)
-        
-        # Registered positions table
-        self.positions_table = QTableWidget(0, 3)
-        self.positions_table.setHorizontalHeaderLabels(["Name", "X (mm)", "Y (mm)"])
-        self.positions_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        layout.addWidget(self.positions_table)
-        
-        # Buttons
-        buttons_layout = QHBoxLayout()
-        
-        self.delete_button = QPushButton("Delete Selected")
-        self.delete_button.clicked.connect(self.delete_position)
-        
-        self.create_sequence_btn = QPushButton("Create Sequence")
-        
-        buttons_layout.addWidget(self.delete_button)
-        buttons_layout.addWidget(self.create_sequence_btn)
-        
-        layout.addLayout(buttons_layout)
-        
-    def add_position(self, name, x, y, z=0.0, image=None):
-        """Add a position to the registry"""
-        # Create position object
-        position = {
-            'name': name,
-            'x': x,
-            'y': y,
-            'z': z,
-            'image': image,
-        }
-        
-        # Add to internal list
-        self.positions.append(position)
-        
-        # Add to table
-        row = self.positions_table.rowCount()
-        self.positions_table.insertRow(row)
-        self.positions_table.setItem(row, 0, QTableWidgetItem(name))
-        self.positions_table.setItem(row, 1, QTableWidgetItem(f"{x:.3f}"))
-        self.positions_table.setItem(row, 2, QTableWidgetItem(f"{y:.3f}"))
-        
-    def delete_position(self):
-        """Delete selected position"""
-        selected_rows = self.positions_table.selectedItems()
-        if not selected_rows:
-            return
-            
-        row = selected_rows[0].row()
-        if row >= 0 and row < len(self.positions):
-            del self.positions[row]
-            self.positions_table.removeRow(row)
-            
-    def clear_positions(self):
-        """Clear all positions"""
-        self.positions.clear()
-        while self.positions_table.rowCount() > 0:
-            self.positions_table.removeRow(0)
-
-class CameraPreviewWidget(QWidget):
-    """Widget for displaying camera preview and capturing images"""
-    image_captured = pyqtSignal(object, str)  # Emits the captured image and position name
-    
-    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
-        super().__init__(parent)
-        self.controller = controller
-        self.cfg = cfg
-        self.current_image = None
-        self._last_frame_size = (640, 480)  # Tamanho do frame da câmera
-        self.preview_timer = QTimer(self)
-        self.preview_timer.timeout.connect(self.update_preview)
-        
-        # Inicializa conversor de FOV para clique no vídeo
-        self._init_fov_converter()
-        
-        self.setup_ui()
-    
-    def _init_fov_converter(self):
-        """Inicializa o conversor de coordenadas pixel→pulsos"""
-        self.fov_converter = CameraFOVConverter()
-        
-        # Carrega calibração salva se existir
-        fov_data = self.cfg.get("camera", "fov_calibration", default={})
-        if fov_data:
-            self.fov_converter.set_fov_calibration(FOVCalibration.from_dict(fov_data))
-        
-        # Carrega calibração de eixos
-        pulses_per_mm = self.cfg.get("movement", "pulses_per_mm", default=100.0)
-        self.fov_converter.set_axis_calibration("X", pulses_per_mm)
-        self.fov_converter.set_axis_calibration("Y", pulses_per_mm)
-        
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-        # GroupBox para preview da câmera (inclui botões de controle)
-        preview_group = QGroupBox("Camera Preview")
-        preview_group.setMinimumHeight(450)
-        pg_layout = QVBoxLayout(preview_group)
-
-        # Área de visualização - usa ClickableVideoLabel para detectar cliques
-        self.image_label = ClickableVideoLabel()
-        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.image_label.setText("Camera Preview\n(Clique para mover a head)")
-        self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
-        self.image_label.setMinimumSize(600, 450)
-        self.image_label.clicked.connect(self._on_video_click)
-        pg_layout.addWidget(self.image_label)
-
-        # Checkbox para habilitar movimento por clique
-        self.click_move_enabled = QCheckBox("Mover head ao clicar")
-        self.click_move_enabled.setChecked(False)
-        self.click_move_enabled.setToolTip("Quando ativado, clicar no vídeo move a head para centralizar o ponto clicado")
-        pg_layout.addWidget(self.click_move_enabled)
-
-        # Botões de preview dentro da mesma groupbox
-        btn_layout = QHBoxLayout()
-        self.start_preview_btn = QPushButton("Start Preview")
-        self.start_preview_btn.clicked.connect(self.start_preview)
-        self.stop_preview_btn = QPushButton("Stop Preview")
-        self.stop_preview_btn.clicked.connect(self.stop_preview)
-        self.stop_preview_btn.setEnabled(False)
-        btn_layout.addWidget(self.start_preview_btn)
-        btn_layout.addWidget(self.stop_preview_btn)
-        pg_layout.addLayout(btn_layout)
-
-        layout.addWidget(preview_group, 1)
-    
-    def _on_video_click(self, click_x: float, click_y: float):
-        """
-        Handler para clique no preview de vídeo.
-        Move a head para centralizar o ponto clicado.
-        """
-        # Verifica se movimento por clique está habilitado
-        if not self.click_move_enabled.isChecked():
-            return
-        
-        # Verifica se CLP está conectado
-        if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
-            QMessageBox.warning(
-                self, "CLP Não Conectado",
-                "O CLP não está conectado. Conecte antes de usar movimento por clique."
-            )
-            return
-        
-        try:
-            # Obtém posição Z atual para calibração correta
-            z_current = self.controller.cnc.get_current_position().get('z', 0)
-            
-            # Atualiza tamanho do frame no conversor
-            self.fov_converter.set_frame_size(*self._last_frame_size)
-            
-            # Converte clique em movimento (retorna pulsos)
-            # NOTA: Sistema de coordenadas de imagem (Y para baixo) vs CNC
-            # A função video_click_to_movement já aplica a inversão necessária:
-            # - Por padrão (invert_y=False): Y é negado para corrigir orientação
-            # - Se _camera_mirror_y=True: imagem está espelhada, passa invert_y=True para cancelar a negação
-            dx_pulses, dy_pulses = self.fov_converter.video_click_to_movement(
-                click_x, click_y,
-                self.image_label.width(),
-                self.image_label.height(),
-                z_current,
-                axis_x="X", axis_y="Y",
-                invert_y=getattr(self.window(), '_camera_mirror_y', False)
-            )
-            
-            # Executa movimento se houver deslocamento significativo
-            if abs(dx_pulses) > 5 or abs(dy_pulses) > 5:
-                logger.info(f"Clique no vídeo: movendo ΔX={dx_pulses}, ΔY={dy_pulses} pulsos")
-                
-                # Converte pulsos para mm
-                dx_mm = dx_pulses / self.controller.cnc.pulses_per_mm if dx_pulses != 0 else None
-                dy_mm = dy_pulses / self.controller.cnc.pulses_per_mm if dy_pulses != 0 else None
-                
-                # Usa mesma velocidade configurada no widget de movimento (mm/min)
-                main_window = self.window()
-                if hasattr(main_window, 'movement_widget'):
-                    feed_rate = main_window.movement_widget.get_current_feed_rate()
-                else:
-                    feed_rate = 1000  # Fallback padrão
-                
-                # Usa move_relative do PLCAxisController (espera mm e mm/min)
-                self.controller.cnc.move_relative(x=dx_mm, y=dy_mm, feed_rate=feed_rate)
-            else:
-                logger.debug("Clique muito próximo do centro, ignorado")
-                
-        except Exception as e:
-            logger.error(f"Erro ao processar clique no vídeo: {e}")
-            QMessageBox.warning(self, "Erro", f"Erro ao mover: {e}")
-        
-    def start_preview(self):
-        """Start camera preview"""
-        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
-            QMessageBox.warning(self, "Error", "Camera not connected")
-            return
-        self.preview_timer.start(100)  # Update every 100ms
-        self.start_preview_btn.setEnabled(False)
-        self.stop_preview_btn.setEnabled(True)
-        
-    def stop_preview(self):
-        """Stop camera preview"""
-        self.preview_timer.stop()
-        self.start_preview_btn.setEnabled(True)
-        self.stop_preview_btn.setEnabled(False)
-        
-    def update_preview(self):
-        """Update the camera preview"""
-        try:
-            image = self.controller.camera.capture()
-            if image is not None:
-                # Salva tamanho do frame para conversão de clique
-                h, w = image.shape[:2]
-                self._last_frame_size = (w, h)
-                
-                self.display_image(image)
-                self.current_image = image
-        except Exception as e:
-            print(f"Error updating preview: {e}")
-            self.stop_preview()
-            
-    def capture_image(self):
-        """Capture an image and emit signal with position name"""
-        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
-            QMessageBox.warning(self, "Error", "Camera not connected")
-            return
-        position_name = self.position_name.text()
-        if not position_name:
-            QMessageBox.warning(self, "Error", "Please enter a position name")
-            return
-        try:
-            image = self.controller.camera.capture()
-            if image is not None:
-                self.display_image(image)
-                self.current_image = image
-                self.image_captured.emit(image, position_name)
-                self.position_name.clear()
-            else:
-                QMessageBox.warning(self, "Error", "Failed to capture image")
-        except Exception as e:
-            QMessageBox.warning(self, "Error", f"Capture error: {e}")
-            
-    def display_image(self, image):
-        """Display an image in the preview area with a crosshair in the center"""
-        if image is None:
-            return
-            
-        # Criar uma cópia da imagem para não modificar a original
-        display_img = image.copy()
-        
-        # Aplicar espelhamento se configurado na janela principal
-        main_window = self.window()
-        if hasattr(main_window, '_camera_mirror_x') and main_window._camera_mirror_x:
-            display_img = cv2.flip(display_img, 1)  # Flip horizontal
-        if hasattr(main_window, '_camera_mirror_y') and main_window._camera_mirror_y:
-            display_img = cv2.flip(display_img, 0)  # Flip vertical
-        
-        # Desenhar a cruz de centralização no centro
-        h, w = display_img.shape[:2]
-        center_x, center_y = w // 2, h // 2
-        
-        # Busca configurações da cruz do config manager
-        crosshair_cfg = self.cfg.get("camera", "crosshair", default={})
-        color_b = crosshair_cfg.get("color_b", 255)
-        color_g = crosshair_cfg.get("color_g", 0)
-        color_r = crosshair_cfg.get("color_r", 0)
-        thickness = crosshair_cfg.get("thickness", 2)
-        length_percent = crosshair_cfg.get("length_percent", 5)
-        
-        # Parâmetros da cruz
-        color = (color_b, color_g, color_r)  # BGR format for OpenCV
-        length = min(w, h) * length_percent // 100  # Comprimento baseado em percentual
-        
-        # Desenhar a cruz
-        # Linha horizontal
-        cv2.line(display_img, 
-                (center_x - length, center_y), 
-                (center_x + length, center_y), 
-                color, thickness)
-        # Linha vertical
-        cv2.line(display_img, 
-                (center_x, center_y - length), 
-                (center_x, center_y + length), 
-                color, thickness)
-                
-        # Converter a imagem OpenCV para QPixmap
-        h, w = display_img.shape[:2]
-        bytes_per_line = 3 * w
-        q_img = QImage(display_img.data, w, h, bytes_per_line, QImage.Format.Format_RGB888).rgbSwapped()
-        pixmap = QPixmap.fromImage(q_img)
-        
-        # Obter tamanho do widget de exibição
-        label_width = self.image_label.width()
-        label_height = self.image_label.height()
-        
-        # Redimensionar a imagem para caber no espaço disponível mantendo proporções
-        pixmap = pixmap.scaled(label_width, label_height, 
-                           Qt.AspectRatioMode.KeepAspectRatio, 
-                           Qt.TransformationMode.SmoothTransformation)
-                           
-        self.image_label.setPixmap(pixmap)
-        
-    def resizeEvent(self, event):
-        """Override do evento de redimensionamento para ajustar a imagem quando o widget for redimensionado"""
-        super().resizeEvent(event)
-        if self.current_image is not None:
-            self.display_image(self.current_image)
-
-class MovementControlWidget(QWidget):
-    """Widget for controlling CNC movement (jog)"""
-    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
-        super().__init__(parent)
-        self.controller = controller
-        self.cfg        = cfg 
-        self.setup_ui()
-        
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
-        
-        # Group box for movement controls
-        movement_group = QGroupBox("Movement Controls")
-        # Vertical size fixed to its contents (no stretch)
-        movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
-        movement_layout = QGridLayout()
-        
-        # Directional control buttons
-        self.up_button = QPushButton("↑")
-        self.down_button = QPushButton("↓")
-        self.left_button = QPushButton("←")
-        self.right_button = QPushButton("→")
-        
-        # Style the buttons
-        for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
-            btn.setMinimumSize(50, 50)
-            font = QFont()
-            font.setBold(True)
-            font.setPointSize(16)
-            btn.setFont(font)
-        
-        # Connect press/release events for continuous movement
-        self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  -1))
-        self.up_button.released.connect(self._on_direction_release)
-        self.down_button.pressed.connect(lambda: self._on_direction_press("Y", 1))
-        self.down_button.released.connect(self._on_direction_release)
-        self.left_button.pressed.connect(lambda: self._on_direction_press("X", -1))
-        self.left_button.released.connect(self._on_direction_release)
-        self.right_button.pressed.connect(lambda: self._on_direction_press("X", 1))
-        self.right_button.released.connect(self._on_direction_release)
-
-        # --------- NOVOS BOTÕES Z -----------------
-        self.z_up_button   = QPushButton("Z+")
-        self.z_down_button = QPushButton("Z-")
-        for zbtn in (self.z_up_button, self.z_down_button):
-            zbtn.setMinimumSize(50, 30)
-        self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  -1))
-        self.z_up_button.released.connect(self._on_direction_release)
-        self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", 1))
-        self.z_down_button.released.connect(self._on_direction_release)
-        
-        # Add buttons to grid
-        movement_layout.addWidget(self.up_button, 0, 1)
-        movement_layout.addWidget(self.left_button, 1, 0)
-        movement_layout.addWidget(self.right_button, 1, 2)
-        movement_layout.addWidget(self.down_button, 2, 1)
-
-        # Coloca Z+ acima de STOP e Z- abaixo
-        movement_layout.addWidget(self.z_up_button,   0, 3)
-        movement_layout.addWidget(self.z_down_button, 2, 3)
-
-        # Botão de Emergency Stop / Reset
-        self.emergency_stop_button = QPushButton("STOP")
-        self.emergency_stop_button.setCheckable(True) # Torna o botão toggle
-        self.emergency_stop_button.setMinimumSize(100, 40)
-        font_stop = QFont()
-        font_stop.setBold(True)
-        self.emergency_stop_button.setFont(font_stop)
-        # Estilo inicial (vermelho)
-        self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
-        self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle) # Conecta ao handler
-
-        # Adiciona o botão ao layout, centralizado abaixo dos direcionais
-        movement_layout.addWidget(self.emergency_stop_button, 1, 1, Qt.AlignmentFlag.AlignCenter) # Coloca no centro (linha 1, coluna 1)
-        
-        # Step size and feed rate controls
-        step_layout = QHBoxLayout()
-        step_layout.addWidget(QLabel("Step Size:"))
-        # ---------- STEP SIZE ---------------
-        default_step = self.cfg.get("movement", "step_size", default=10.0)
-        self.step_size = QLineEdit(f"{default_step:.2f}")  # Formata com 2 decimais
-        # ▸ VALIDAÇÃO numérica (0.01 a 100000 mm, com 2 decimais)
-        step_validator = QDoubleValidator(0.01, 100000.0, 2, self)
-        step_validator.setNotation(QDoubleValidator.Notation.StandardNotation)  # Evita notação científica
-        # CRÍTICO: Define locale para usar ponto (.) como separador decimal
-        from PyQt6.QtCore import QLocale
-        step_validator.setLocale(QLocale(QLocale.Language.C))  # Locale C = ponto decimal
-        self.step_size.setValidator(step_validator)
-        step_layout.addWidget(self.step_size)
-        step_layout.addWidget(QLabel("mm"))
-        
-        feed_layout = QHBoxLayout()
-        feed_layout.addWidget(QLabel("Feed Rate:"))
-
-        # ---------- FEED RATE ---------------
-        default_feed = self.cfg.get("movement", "feed_rate", default=1000.0)
-        self.feed_rate = QLineEdit(f"{default_feed}")
-        # ▸ feed entre 1 e 30000 mm/min
-        self.feed_rate.setValidator(QDoubleValidator(1.0, 30000.0, 0, self))
-        feed_layout.addWidget(self.feed_rate)
-        feed_layout.addWidget(QLabel("mm/min"))
-        
-        # Add step and feed rate controls
-        movement_layout.addLayout(step_layout, 3, 0, 1, 3)
-        movement_layout.addLayout(feed_layout, 4, 0, 1, 3)
-
-        # ---- grava no JSON quando o usuário termina de editar -----
-        self.step_size.editingFinished.connect(self._save_step_feed)
-        self.feed_rate.editingFinished.connect(self._save_step_feed)
-
-        self.go_to_zero_btn = QPushButton("Go to Zero")
-        self.go_to_zero_btn.clicked.connect(self.go_to_zero)
-        self.go_to_zero_btn.setMinimumHeight(40)  # Altura mínima para facilitar o clique
-        font = QFont()
-        font.setBold(True)
-        self.go_to_zero_btn.setFont(font)
-        movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)  # Posiciona abaixo dos controles existentes
-
-        # Botão para deslocar a head para posição de trabalho definida pelo usuário (WPos)
-        self.go_to_position_btn = QPushButton("Go to Position")
-        self.go_to_position_btn.setToolTip("Ir para posição de trabalho específica (WPos)")
-        self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
-        movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
-
-        # Checkbox "Enable Keyboard Control" agora na linha 8 (posição anterior do Test Motor Hold)
-        self.keyboard_control_checkbox = QCheckBox("Enable Keyboard Control")
-        self.keyboard_control_checkbox.setChecked(False)
-        movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
-        
-        # ========== BOTÃO DE BACKLIGHT ==========
-        # Controla a iluminação inferior (Y0.7) para inspeção de stencil
-        self.backlight_button = QPushButton("💡 Backlight OFF")
-        self.backlight_button.setCheckable(True)
-        self.backlight_button.setMinimumHeight(35)
-        self.backlight_button.setStyleSheet("""
-            QPushButton { background-color: #444; color: white; border-radius: 5px; }
-            QPushButton:checked { background-color: #FFD700; color: black; font-weight: bold; }
-        """)
-        self.backlight_button.toggled.connect(self._on_backlight_toggle)
-        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 4)  # Ocupa toda a largura
-        
-        # Movement mode (G90/G91)
-        mode_layout = QHBoxLayout()
-        self.mode_absolute = QPushButton("Passo")
-        self.mode_absolute.setCheckable(True)
-        self.mode_absolute.clicked.connect(lambda: self.set_motion_mode("G90"))
-        
-        self.mode_relative = QPushButton("Contínuo")
-        self.mode_relative.setCheckable(True)
-        self.mode_relative.setChecked(True)  # Default to relative mode
-        self.mode_relative.clicked.connect(lambda: self.set_motion_mode("G91"))
-        
-        mode_layout.addWidget(self.mode_absolute)
-        mode_layout.addWidget(self.mode_relative)
-        movement_layout.addLayout(mode_layout, 5, 0, 1, 3)
-        
-        movement_group.setLayout(movement_layout)
-        layout.addWidget(movement_group)
-        # Keep the groupbox at top without stretching
-        layout.setAlignment(movement_group, Qt.AlignmentFlag.AlignTop)
-
-    def _save_step_feed(self):
-        try:
-            step = float(self.step_size.text())
-            feed = float(self.feed_rate.text())
-            self.cfg.remember_step_feed(step, feed)
-        except ValueError:
-            # silencioso – validação já existe
-            return
-    
-    def _on_backlight_toggle(self, checked: bool):
-        """
-        Controla o backlight (iluminação inferior do stencil).
-        Liga/desliga a saída Y0.7 do CLP.
-        """
-        logger.debug(f"🔍 DEBUG: _on_backlight_toggle chamado com checked={checked}")
-
-        if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
-            # Bloqueia sinais para evitar loop infinito ao reverter o estado
-            logger.debug("🔍 DEBUG: CLP não conectado, revertendo botão")
-            self.backlight_button.blockSignals(True)
-            self.backlight_button.setChecked(not checked)
-            self.backlight_button.blockSignals(False)
-            QMessageBox.warning(self, "Erro", "CLP não conectado")
-            return
-
-        # Verifica se o controlador tem suporte a backlight
-        if not hasattr(self.controller.cnc, 'backlight_set'):
-            logger.debug("🔍 DEBUG: Controlador não suporta backlight, revertendo botão")
-            self.backlight_button.blockSignals(True)
-            self.backlight_button.setChecked(not checked)
-            self.backlight_button.blockSignals(False)
-            QMessageBox.warning(self, "Erro", "Controlador não suporta backlight")
-            return
-        
-        # Aciona o backlight
-        logger.debug(f"🔍 DEBUG: Chamando backlight_set({checked})")
-        success = self.controller.cnc.backlight_set(checked)
-        logger.debug(f"🔍 DEBUG: backlight_set retornou success={success}")
-        
-        if success:
-            if checked:
-                self.backlight_button.setText("💡 Backlight ON")
-                logger.info("ILUMINAÇÃO: Backlight ligado (Y0.7 = HIGH)")
-            else:
-                self.backlight_button.setText("💡 Backlight OFF")
-                logger.info("ILUMINAÇÃO: Backlight desligado (Y0.7 = LOW)")
-        else:
-            # Bloqueia sinais para evitar loop infinito ao reverter o estado
-            logger.debug(f"🔍 DEBUG: backlight_set falhou, revertendo botão de {checked} para {not checked}")
-            self.backlight_button.blockSignals(True)
-            self.backlight_button.setChecked(not checked)
-            self.backlight_button.blockSignals(False)
-            QMessageBox.warning(self, "Erro", "Falha ao controlar backlight")
-        
-    def _on_direction_press(self, axis: str, direction: int):
-        """
-        Chamada quando o usuário pressiona um botão (ou tecla).
-        Decide entre STEP ou JOG e delega ao GRBLCNCController.
-        """
-        if not self._precheck_connected():
-            return
-
-        feed = self._get_feed_rate()
-        step = self._get_step_size()
-        if feed is None or step is None:
-            return
-        
-        # --- grava imediatamente no JSON ---
-        self.cfg.remember_step_feed(step, feed)
-
-        # “Passo-a-passo” = botão G90 selecionado  ➜  usa step_move
-        if self.mode_absolute.isChecked():
-            self.controller.cnc.step_move(axis, step * direction, feed)
-        # “Contínuo” = G91 selecionado  ➜  jog
-        else:
-            self.controller.cnc.jog_start(axis, direction, feed)
-
-    def _on_direction_release(self):
-        """Interrompe jog se estivermos em modo contínuo."""
-        if not self._precheck_connected():
-            return
-        if self.mode_relative.isChecked():      # só há jog se G91
-            self.controller.cnc.jog_stop()
-
-    def start_movement(self, axis: str, direction: int):
-        """
-        Mantido apenas para chamadas vindas de eventFilter (atalhos de
-        teclado). Encaminha para _on_direction_press.
-        """
-        self._on_direction_press(axis, direction)
-
-    def _get_feed_rate(self) -> float | None:
-        """Lê o feed-rate; devolve None e avisa em caso de erro."""
-        try:
-            val = float(self.feed_rate.text())
-
-            if self.controller.cnc.is_connected:
-                max_lim = max(self.controller.cnc.max_feed.values())
-                if val > max_lim + 1e-3:
-                    resp = QMessageBox.question(
-                        self, "Feed acima do limite",
-                        (f"O valor F={val:.0f} mm/min excede o limite atual "
-                         f"(≤ {max_lim:.0f}).\n\n"
-                         "Deseja atualizar $110 e $111 para permitir essa "
-                         "velocidade em X e Y?"),
-                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-                    )
-                    if resp == QMessageBox.StandardButton.Yes:
-                        # novo limite com folga de 10 %
-                        new_lim = int(val * 1.1)                 # 10 % de folga
-                        new_acc = int((new_lim / 60) * 5)        # ≈5 s para atingir Vmáx
-
-                        cmds = [
-                            f"$110={new_lim}", f"$111={new_lim}",
-                            f"$120={new_acc}", f"$121={new_acc}"
-                        ]
-                        for c in cmds:
-                            self.controller.cnc.send_command(c, priority=True)
-
-                        # actualiza cache interno
-                        self.controller.cnc.max_feed['x'] = new_lim
-                        self.controller.cnc.max_feed['y'] = new_lim
-                        self.controller.cnc.max_acc ['x'] = new_acc
-                        self.controller.cnc.max_acc ['y'] = new_acc
-                        # desabilita avisos futuros de clamp
-                        self.controller.cnc._feed_clamp_warned = True
-                        QMessageBox.information(
-                            self, "Limites actualizados",
-                            (f"Feed-máx X/Y = {new_lim} mm/min\n"
-                             f"Aceleração X/Y = {new_acc} mm/s²")
-                        )
-                    else:
-                        # clampará ao valor máximo existente
-                        QMessageBox.information(self, "Feed ajustado",
-                                                f"A velocidade será limitada a {max_lim} mm/min.")
-                        val = max_lim
-            return val
-        except ValueError:
-            QMessageBox.warning(self, "Erro", "Feed-rate inválido")
-            return None
-
-    def _get_step_size(self) -> float | None:
-        """Lê o step-size; devolve None e avisa em caso de erro."""
-        try:
-            return float(self.step_size.text())
-        except ValueError:
-            QMessageBox.warning(self, "Erro", "Step size inválido")
-            return None
-
-    def _precheck_connected(self) -> bool:
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Erro", "CNC não conectada")
-            return False
-        status = getattr(self.controller.cnc, "machine_status", "")
-        if isinstance(status, str) and status.lower().startswith("alarm"):
-            QMessageBox.warning(self, "Aviso", "Máquina em parada de emergência")
-            return False
-        return True
-
-    def go_to_zero(self):
-        """
-        Dispara homing no CLP: envia pulso de 100 ms em cada coil de sensor:
-          - M1350 → eixo X
-          - M850  → eixo Y
-          - M185  → eixo Z
-        """
-        if not self._precheck_connected():
-            return
-        # PLC backend → pulso de 100 ms em cada coil de homing
-        if isinstance(self.controller.cnc, PLCAxisController):
-            status = self.controller.cnc.machine_status
-            if status in ("Run", "Jog", "Alarm"):
-                QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
-                return
-            # Endereços dos coils de homing
-            homing_coils = {
-                'X': 1350,  # M1350_X
-                'Y': 850,   # M850_Y
-                'Z': 1850    # M185_Z
-            }
-            for axis, coil in homing_coils.items():
-                try:
-                    # sobe borda
-                    self.controller.cnc.client.write_coil(coil, True)
-                    time.sleep(0.1)
-                    # desce borda
-                    self.controller.cnc.client.write_coil(coil, False)
-                except Exception as e:
-                    logger.error(f"Homing CLP: falha no pulso de {axis} (coil {coil}): {e}")
-            # aguarda término de todos os eixos
-            self.controller.cnc.wait_for_idle()
-            # atualiza interface
-            self.window().update_position_display()
-            self.window().statusBar().showMessage("Homing CLP concluído")
-            return
-        # GRBL or other → fallback ao “go to zero” por movimento absoluto
-        # evita travar se já em movimento/alarm
-        status = self.controller.cnc.machine_status
-        if status in ("Run", "Jog", "Alarm"):
-            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
-            return
-        feed = self._get_feed_rate()
-        if feed is None:
-            return
-        self._start_move_thread(x=0, y=0, z=0, feed=feed,
-                                status_msg="Movendo para posição zero")
-    
-    def get_current_feed_rate(self):
-        """Método público para outras classes acessarem a velocidade configurada"""
-        try:
-            return float(self.feed_rate.text())
-        except ValueError:
-            return 1000.0  # fallback
-
-    def stop_movement(self):
-        self._on_direction_release()
-
-    def show_go_to_dialog(self):
-        """Exibe diálogo para coletar coordenadas de destino (WPos)."""
-        from PyQt6.QtWidgets import QDialog, QLabel, QLineEdit, QHBoxLayout, QPushButton, QMessageBox
-        from PyQt6.QtGui import QDoubleValidator
-
-        dialog = QDialog(self)
-        dialog.setWindowTitle("Go to Position")
-        dialog.setModal(True)
-        layout = QGridLayout(dialog)
-
-        # Captura a posição de trabalho atual (WPos) para pré‑preencher os campos
-        try:
-            current = self.controller.cnc.get_current_position()
-        except Exception:
-            current = {'x': 0.0, 'y': 0.0}
-
-        layout.addWidget(QLabel("X (mm):"), 0, 0)
-        x_input = QLineEdit()
-        x_input.setValidator(QDoubleValidator(-10000.0, 10000.0, 4, x_input))
-        x_input.setText(f"{current.get('x', 0.0):.3f}")
-        layout.addWidget(x_input, 0, 1)
-
-        layout.addWidget(QLabel("Y (mm):"), 1, 0)
-        y_input = QLineEdit()
-        y_input.setValidator(QDoubleValidator(-10000.0, 10000.0, 4, y_input))
-        y_input.setText(f"{current.get('y', 0.0):.3f}")
-        layout.addWidget(y_input, 1, 1)
-
-        btn_layout = QHBoxLayout()
-        ok_btn = QPushButton("OK")
-        cancel_btn = QPushButton("Cancel")
-        btn_layout.addWidget(ok_btn)
-        btn_layout.addWidget(cancel_btn)
-        layout.addLayout(btn_layout, 2, 0, 1, 2)
-
-        ok_btn.clicked.connect(dialog.accept)
-        cancel_btn.clicked.connect(dialog.reject)
-
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            try:
-                x = float(x_input.text())
-                y = float(y_input.text())
-                self.go_to_position(x, y)
-            except ValueError:
-                QMessageBox.warning(self, "Erro", "Valores inválidos para X ou Y")
-
-    def go_to_position(self, x, y):
-        """Realiza movimento para a posição absoluta de trabalho (WPos)."""
-        from PyQt6.QtWidgets import QMessageBox
-
-        # 1. Verifica se há conexão
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Erro", "CNC não conectada")
-            return
-
-        # 2. Verifica se a máquina está livre
-        status = self.controller.cnc.machine_status
-        if status in ("Alarm", "Run", "Jog"):
-            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
-            return
-
-        # 4. Obtém feed rate
-        try:
-            feed_rate = float(self.feed_rate.text())
-        except:
-            feed_rate = 1000
-
-        # 5. Deslocamento assíncrono
-        self._start_move_thread(x, y, feed_rate,
-                                status_msg=f"Movendo para X:{x:.3f}, Y:{y:.3f}")
-
-    def _start_move_thread(self, x=None, y=None, z=None,
-                           feed=1000, status_msg="Movendo…"):
-        stbar = self.window().statusBar()
-        stbar.showMessage(status_msg)
-
-        self._move_thread = MoveTaskThread(
-                                self.controller.cnc, x, y, z, feed
-                            )
-
-        def _on_done(xx, yy, zz):
-            stbar.showMessage(f"Head em X:{xx:.3f}, Y:{yy:.3f}, Z:{zz:.3f}")
-            # força atualização UI
-            QTimer.singleShot(50, self.window().update_position_display)
-
-        def _on_err(msg):
-            QMessageBox.critical(self, "Erro", msg)
-            stbar.showMessage("Falha no deslocamento")
-
-        self._move_thread.finished.connect(_on_done)
-        self._move_thread.error.connect(_on_err)
-        self._move_thread.start()
-
-    def _execute_resume_and_update(self):
-        """Executa o resumo após parada e força atualização de posição em sequência"""
-        try:
-            # Primeiro envia o comando para retomar após hold
-            self.controller.cnc.grbl.send_immediately("~")
-            logger.debug("MOVIMENTO: Enviado comando de retomada (~)")
-
-            # --- INÍCIO DA MODIFICAÇÃO ---
-            # REMOVIDO: Chamada para _force_position_update. A atualização agora
-            # dependerá do polling regular iniciado em connect_cnc.
-            # QTimer.singleShot(150, lambda: self._force_position_update(1))
-            logger.debug("MOVIMENTO: Atualização de posição dependerá do polling regular.")
-            # --- FIM DA MODIFICAÇÃO ---
-
-        except Exception as e:
-            logger.error(f"MOVIMENTO: Erro ao executar sequência de retomada: {e}")
-            
-    # A função _force_position_update pode ser mantida, mas não será mais chamada
-    # a partir de _execute_resume_and_update.
-    def _force_position_update(self, attempt=1):
-        """Força múltiplas atualizações de posição para garantir precisão
-
-        Args:
-            attempt: Número da tentativa atual (para limitar tentativas)
-        """
-        if not hasattr(self.controller.cnc, 'grbl') or not self.controller.cnc.is_connected:
-            return
-
-        try:
-            # Envia comando de status para obter posição atualizada
-            # --- INÍCIO DA MODIFICAÇÃO ---
-            # logger.debug(f"MOVIMENTO: Forçando atualização de posição - tentativa {attempt}") # REMOVIDO/COMENTADO
-            # --- FIM DA MODIFICAÇÃO ---
-            self.controller.cnc.grbl.send_immediately("?")
-
-            # Se ainda estamos dentro do limite de tentativas, agenda outra verificação
-            if attempt < 3:
-                # Aumento progressivo do tempo entre tentativas (150ms, 200ms, 250ms)
-                delay = 150 + (attempt * 50)
-                # A chamada recursiva ainda existe, mas o log dentro dela foi removido
-                QTimer.singleShot(delay, lambda: self._force_position_update(attempt + 1))
-
-        except Exception as e:
-            # Manter o log de erro
-            logger.error(f"MOVIMENTO: Erro ao forçar atualização de posição: {e}")
-            
-    def set_motion_mode(self, mode):
-        """Set the motion mode (G90/G91)"""
-        # Se for PLC, não existe GRBL: apenas atualiza UI e guarda modo internamente
-        
-        if isinstance(self.controller.cnc, PLCAxisController):
-            if mode == "G90":
-                self.mode_absolute.setChecked(True)
-                self.mode_relative.setChecked(False)
-            else:
-                self.mode_absolute.setChecked(False)
-                self.mode_relative.setChecked(True)
-            # opcional: armazenar no controller para referência futura
-            self.controller.cnc.current_motion_mode = mode
-            logger.info(f"MOVIMENTO (PLC): modo de movimento definido para {mode}")
-            return
-
-        # Se não estiver conectado (nem PLC, nem GRBL), só atualiza UI e volta
-        if not self.controller.cnc.is_connected:
-            if mode == "G90":
-                self.mode_absolute.setChecked(True)
-                self.mode_relative.setChecked(False)
-            else:
-                self.mode_absolute.setChecked(False)
-                self.mode_relative.setChecked(True)
-            logger.warning(f"MOVIMENTO: CNC não conectada, modo {mode} definido apenas na UI.")
-            return
-
-        # Atualiza a UI (GRBL)
-        if mode == "G90":
-            self.mode_absolute.setChecked(True)
-            self.mode_relative.setChecked(False)
-        else:  # G91
-            self.mode_absolute.setChecked(False)
-            self.mode_relative.setChecked(True)
-        # Envia o comando G90/G91 para o GRBL
-        try:
-            logger.debug(f"MOVIMENTO: Definindo modo de movimento para {mode}")
-            self.controller.cnc.grbl.send_immediately(mode)
-        except Exception as e:
-            logger.error(f"MOVIMENTO: Erro ao definir modo de movimento: {e}")
-            QMessageBox.warning(self, "Error", f"Error setting motion mode: {e}")
-
-    def on_emergency_stop_toggle(self, checked):
-        """
-        Manipula o clique no botão Emergency Stop/Reset.
-        """
-        is_plc = isinstance(self.controller.cnc, PLCAxisController)
-
-        if not hasattr(self.controller.cnc, 'is_connected') or not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Erro", "CNC não conectada")
-            self.emergency_stop_button.setChecked(not checked)
-            return
-
-        if checked:
-            # Botão foi pressionado para entrar no modo RESET
-            logger.info("EMERGENCY STOP: Botão pressionado. Enviando Soft Reset.")
-            if self.controller.cnc.send_soft_reset():
-                # Configura visual do botão para Reset
-                self.emergency_stop_button.setText("Reset")
-                self.emergency_stop_button.setStyleSheet("background-color: orange; color: black;")
-
-                # Atualiza status
-                main_window = self.window()
-                if hasattr(main_window, 'statusBar'):
-                    main_window.statusBar().showMessage("Máquina parada. Clique em Reset para desbloquear.")
-            else:
-                # Soft reset falhou, reverte o botão
-                logger.error("EMERGENCY STOP: Falha ao enviar Soft Reset")
-                QMessageBox.critical(self, "Erro", "Falha ao enviar comando de parada")
-                self.emergency_stop_button.setChecked(False)
-        else:
-            # Botão foi pressionado para sair do modo RESET
-            logger.info(
-                "RESET: Botão pressionado para desbloquear.%s",
-                " Enviando $X." if not is_plc else " Liberando PLC."
-            )
-            if self.controller.cnc.unlock():
-                # Configura visual do botão para STOP
-                self.emergency_stop_button.setText("STOP")
-                self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
-
-                # Atualiza status
-                main_window = self.window()
-                if hasattr(main_window, 'statusBar'):
-                    main_window.statusBar().showMessage("Máquina desbloqueada e pronta.")
-
-                # Solicita atualização de status para verificar nova condição (apenas GRBL)
-                if hasattr(self.controller.cnc, "grbl") and getattr(self.controller.cnc, "grbl", None):
-                    QTimer.singleShot(200, lambda: self.controller.cnc.grbl.send_immediately("?"))
-            else:
-                # Desbloqueio falhou, reverte o botão
-                logger.error("RESET: Falha ao enviar comando de desbloqueio")
-                QMessageBox.critical(self, "Erro", "Falha ao desbloquear a máquina")
-                self.emergency_stop_button.setChecked(True)
-
-    def _auto_unlock_after_reset(self):
-        """Executa sequência automática de desbloqueio após reset de emergência"""
-        logger.info("AUTO UNLOCK: Iniciando sequência de desbloqueio automático após reset")
-        
-        try:
-            # 1. Envia comando de desbloqueio
-            self.controller.cnc.grbl.send_immediately("$X")
-            logger.info("AUTO UNLOCK: Comando $X enviado")
-            
-            # 2. Pequena pausa
-            QTimer.singleShot(200, lambda: self._check_if_unlocked())
-        except Exception as e:
-            logger.error(f"AUTO UNLOCK: Erro ao enviar comando de desbloqueio: {e}")
-            main_window = self.window()
-            if hasattr(main_window, 'statusBar'):
-                main_window.statusBar().showMessage(f"Erro no desbloqueio automático: {e}")
-
-    def _check_if_unlocked(self):
-        """Verifica se o desbloqueio foi bem-sucedido e restaura configurações se necessário"""
-        try:
-            # Solicita status para conferir se saiu do alarme
-            self.controller.cnc.grbl.send_immediately("?")
-
-            # Exibe mensagem de sucesso
-            main_window = self.window()
-            if hasattr(main_window, 'statusBar'):
-                main_window.statusBar().showMessage("Sistema parado e desbloqueado automaticamente.")
-
-            logger.info("AUTO UNLOCK: Sequência de desbloqueio automático concluída")
-        except Exception as e:
-            logger.error(f"AUTO UNLOCK: Erro ao verificar status após desbloqueio: {e}")
-
-
-class PLCMonitorWidget(QWidget):
-    """
-    Monitor de registradores e coils do CLP (inspirado na aba de debug da Adesivadora).
-    Mostra valores lidos e permite gravar holdings ou pulsar coils.
-    """
-
-    def __init__(self, controller, parent=None):
-        super().__init__(parent)
-        self.controller = controller
-        self.rows = self._build_rows()
-
-        layout = QVBoxLayout(self)
-
-        # Barra superior com atualização e status
-        header_layout = QHBoxLayout()
-        self.refresh_btn = QPushButton("Atualizar valores")
-        self.refresh_btn.clicked.connect(self.refresh_values)
-        header_layout.addWidget(self.refresh_btn)
-        header_layout.addStretch()
-        self.status_label = QLabel("Conecte o PLC e clique em Atualizar.")
-        header_layout.addWidget(self.status_label)
-        layout.addLayout(header_layout)
-
-        # Tabela principal
-        self.table = QTableWidget(len(self.rows), 4)
-        self.table.setHorizontalHeaderLabels(["Variável", "Endereço", "Tipo", "Valor"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        self.table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-        self.table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-        self.table.verticalHeader().setVisible(False)
-        self.table.currentCellChanged.connect(self._on_row_changed)
-        self._populate_static_columns()
-        layout.addWidget(self.table)
-
-        # Controles de escrita/pulso
-        form_layout = QHBoxLayout()
-        form_layout.addWidget(QLabel("Novo valor:"))
-        self.value_input = QLineEdit()
-        self.value_input.setValidator(QIntValidator(-2147483648, 2147483647, self))
-        self.value_input.setPlaceholderText("Inteiro (holding D...)")
-        form_layout.addWidget(self.value_input)
-
-        self.write_btn = QPushButton("Gravar valor")
-        self.write_btn.clicked.connect(self.write_selected_value)
-        form_layout.addWidget(self.write_btn)
-
-        self.pulse_btn = QPushButton("Pulso coil")
-        self.pulse_btn.clicked.connect(self.pulse_selected_coil)
-        form_layout.addWidget(self.pulse_btn)
-
-        layout.addLayout(form_layout)
-
-        # Configura estado inicial dos botões
-        self._on_row_changed(0, 0, 0, 0)
-
-    def _build_rows(self):
-        """Lista os registradores/coils relevantes já mapeados no controlador."""
-        rows = []
-        for axis, cfg in PLCAxisController.ADDRESSES.items():
-            rows.extend([
-                {"name": f"{axis} alvo (D{cfg['pos_input']})", "type": "holding", "address": cfg["pos_input"]},
-                {"name": f"{axis} posição atual (D{cfg['pos_reg']})", "type": "holding", "address": cfg["pos_reg"]},
-                {"name": f"{axis} velocidade (D{cfg['speed']})", "type": "holding", "address": cfg["speed"]},
-                {"name": f"{axis} Jog + (M{cfg['jog_plus']})", "type": "coil", "address": cfg["jog_plus"]},
-                {"name": f"{axis} Jog - (M{cfg['jog_minus']})", "type": "coil", "address": cfg["jog_minus"]},
-                {"name": f"{axis} Move abs (M{cfg['move_abs']})", "type": "coil", "address": cfg["move_abs"]},
-                {"name": f"{axis} Zero (M{cfg['zero']})", "type": "coil", "address": cfg["zero"]},
-                {"name": f"{axis} Jog stop + (M{cfg['jog_stop_plus']})", "type": "coil", "address": cfg["jog_stop_plus"]},
-                {"name": f"{axis} Jog stop - (M{cfg['jog_stop_minus']})", "type": "coil", "address": cfg["jog_stop_minus"]},
-            ])
-        return rows
-
-    def _populate_static_columns(self):
-        for row_idx, row in enumerate(self.rows):
-            self.table.setItem(row_idx, 0, QTableWidgetItem(row["name"]))
-            self.table.setItem(row_idx, 1, QTableWidgetItem(str(row["address"])))
-            type_label = "Holding 32b" if row["type"] == "holding" else "Coil"
-            self.table.setItem(row_idx, 2, QTableWidgetItem(type_label))
-
-    def _get_plc(self) -> PLCAxisController | None:
-        plc = getattr(self.controller, "cnc", None)
-        if not isinstance(plc, PLCAxisController):
-            QMessageBox.warning(self, "Erro", "Backend atual não é PLC (Modbus).")
-            return None
-        if not plc.is_connected:
-            QMessageBox.warning(self, "Erro", "PLC não conectado.")
-            return None
-        return plc
-
-    def refresh_values(self):
-        plc = self._get_plc()
-        if not plc:
-            return
-
-        for row_idx, row in enumerate(self.rows):
-            try:
-                if row["type"] == "holding":
-                    val = plc.read_register(row["address"])
-                else:
-                    val = plc.read_coil(row["address"])
-                row["last"] = val
-            except Exception as e:
-                val = f"Erro: {e}"
-            self.table.setItem(row_idx, 3, QTableWidgetItem(str(val)))
-
-        self.status_label.setText("Valores atualizados do CLP.")
-
-    def write_selected_value(self):
-        plc = self._get_plc()
-        if not plc:
-            return
-
-        row_idx = self.table.currentRow()
-        if row_idx < 0:
-            QMessageBox.information(self, "Seleção", "Selecione uma linha de holding.")
-            return
-
-        row = self.rows[row_idx]
-        if row["type"] != "holding":
-            QMessageBox.warning(self, "Tipo inválido", "Somente holdings (D...) aceitam gravação.")
-            return
-
-        try:
-            value = int(self.value_input.text())
-        except ValueError:
-            QMessageBox.warning(self, "Valor inválido", "Informe um inteiro para gravar no registrador.")
-            return
-
-        try:
-            plc.write_register(row["address"], value)
-            self.status_label.setText(f"D{row['address']} gravado com sucesso.")
-            self.refresh_values()
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Falha ao gravar D{row['address']}: {e}")
-
-    def pulse_selected_coil(self):
-        plc = self._get_plc()
-        if not plc:
-            return
-
-        row_idx = self.table.currentRow()
-        if row_idx < 0:
-            QMessageBox.information(self, "Seleção", "Selecione uma linha de coil.")
-            return
-
-        row = self.rows[row_idx]
-        if row["type"] != "coil":
-            QMessageBox.warning(self, "Tipo inválido", "Selecione um coil (M...) para pulsar.")
-            return
-
-        try:
-            plc.pulse_coil(row["address"], duration_ms=50)
-            self.status_label.setText(f"Pulso enviado para M{row['address']}.")
-            self.refresh_values()
-        except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Falha ao pulsar M{row['address']}: {e}")
-
-    def _on_row_changed(self, currentRow, currentColumn, previousRow, previousColumn):
-        """Habilita/desabilita botões de acordo com o tipo selecionado."""
-        row_idx = self.table.currentRow()
-        if row_idx < 0:
-            self.write_btn.setEnabled(False)
-            self.value_input.setEnabled(False)
-            self.pulse_btn.setEnabled(False)
-            return
-
-        row = self.rows[row_idx]
-        is_holding = row["type"] == "holding"
-        self.write_btn.setEnabled(is_holding)
-        self.value_input.setEnabled(is_holding)
-        self.pulse_btn.setEnabled(row["type"] == "coil")
-@dataclass
-class MapParams:
-    origin: dict
-    end: dict
-    step_x: float
-    step_y: float
-    folder: str
-    program_name: str
-
-
-class _PreviewSuspender:
-    """
-    Context-manager que pausa o preview da câmera e garante reativação
-    mesmo em caso de exceções.
-    """
-    def __init__(self, preview_widget):
-        self.preview_widget = preview_widget
-        self.was_running   = preview_widget and preview_widget.preview_timer.isActive()
-
-    def __enter__(self):
-        if self.was_running:
-            self.preview_widget.stop_preview()
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.was_running:
-            self.preview_widget.start_preview()
+# Pasta padrão para programas de captura de mapa
+MAP_PROGRAMS_FOLDER = Path(__file__).parent / "map_programs"
 
 class AOIControllerApp(QMainWindow):
     def __init__(self):
@@ -2070,11 +203,28 @@ class AOIControllerApp(QMainWindow):
                 QTimer.singleShot(1000, lambda: self._show_plc_connection_error(plc_host, plc_port, error_msg))
         
         # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
+        # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
         if self.config.get("connections", "auto_connect_camera", default=False):
-            cam_id = int(self.config.get("connections", "last_camera_id", default=0))
-            idx = self.camera_id_combo.findText(str(cam_id))
+            # Obtém ID salvo (pode ser int ou string URL)
+            raw_id = self.config.get("connections", "last_camera_id", default=0)
+            
+            # Tenta converter para int se possível (para câmera USB padrão)
+            try:
+                cam_id = int(raw_id)
+                cam_str = str(cam_id)
+            except ValueError:
+                # É uma URL/String
+                cam_id = str(raw_id)
+                cam_str = cam_id
+            
+            # Tenta achar na lista
+            idx = self.camera_id_combo.findText(cam_str)
             if idx >= 0:
                 self.camera_id_combo.setCurrentIndex(idx)
+            else:
+                # Se não achou (ex: é uma URL customizada), define o texto diretamente
+                self.camera_id_combo.setCurrentText(cam_str)
+                
             QTimer.singleShot(500, self.connect_camera)
 
     def _show_plc_connection_error(self, host: str, port: int, error: str):
@@ -2179,8 +329,10 @@ class AOIControllerApp(QMainWindow):
         connection_layout.addWidget(self.cnc_port_combo, 1, 1)
 
         # Camera connection
-        connection_layout.addWidget(QLabel("Câmera ID:"), 2, 0)
+        connection_layout.addWidget(QLabel("Câmera ID/URL:"), 2, 0)
         self.camera_id_combo = QComboBox()
+        self.camera_id_combo.setEditable(True)
+        self.camera_id_combo.setToolTip("Selecione ID (0,1...) ou digite URL (http://...)")
         self.camera_id_combo.addItems(["0", "1", "2", "3"])
         connection_layout.addWidget(self.camera_id_combo, 2, 1)
 
@@ -2639,12 +791,15 @@ class AOIControllerApp(QMainWindow):
         self.map_end = {'x': r.capture.end.x, 'y': r.capture.end.y}
         
         # Tenta atualizar os widgets se existirem
-        if hasattr(self, 'step_x_spin'):
-            self.step_x_spin.setValue(r.capture.step_x)
-        if hasattr(self, 'step_y_spin'):
-            self.step_y_spin.setValue(r.capture.step_y)
+        if hasattr(self, 'map_step_x_edit'):
+            self.map_step_x_edit.setText(str(r.capture.step_x))
+        if hasattr(self, 'map_step_y_edit'):
+            self.map_step_y_edit.setText(str(r.capture.step_y))
         if hasattr(self, 'spin_capture_delay'):
             self.spin_capture_delay.setValue(r.capture.capture_delay_ms)
+        
+        # Atualiza painel de informações calculadas
+        self._update_adjusted_step_info()
         
         QMessageBox.information(
             self, "Receita Aplicada",
@@ -3699,6 +1854,14 @@ class AOIControllerApp(QMainWindow):
         layout = QVBoxLayout(dialog)
         
         from PyQt6.QtWidgets import QSlider
+        from PyQt6.QtWidgets import QLineEdit, QGroupBox as QGB
+        from PyQt6.QtWidgets import QHBoxLayout as QHL, QVBoxLayout as QVL
+        from PyQt6.QtWidgets import QPushButton as QPB
+        # guarda referência ao cap para aplicar em bloco
+        self._camera_cap_ref = cap
+        # Valores salvos para foco
+        saved_focus = self.config.get("camera", "focus", default=0)
+        saved_auto_focus = self.config.get("camera", "auto_focus", default=True)
         
         # ============== ESPELHAMENTO ==============
         mirror_group = QGroupBox("Espelhamento da Imagem")
@@ -3773,6 +1936,18 @@ class AOIControllerApp(QMainWindow):
         
         # Ganho (0-255)
         self.slider_gain = create_slider_row(4, "Ganho", cv2.CAP_PROP_GAIN, 0, 255, 128, 1.0)
+
+        # Foco (0-255)
+        self.slider_focus = create_slider_row(5, "Foco", cv2.CAP_PROP_FOCUS, 0, 255, saved_focus, 1.0)
+        def _on_focus_change(v):
+            # Se usuário mexeu no foco, desliga auto-foco e fixa o valor
+            if hasattr(self, "chk_auto_focus") and self.chk_auto_focus.isChecked():
+                self.chk_auto_focus.blockSignals(True)
+                self.chk_auto_focus.setChecked(False)
+                self.chk_auto_focus.blockSignals(False)
+                self._apply_focus_mode(cap, False)
+            self._apply_camera_prop(cap, cv2.CAP_PROP_FOCUS, v)
+        self.slider_focus.valueChanged.connect(_on_focus_change)
         
         layout.addWidget(settings_group)
         
@@ -3801,8 +1976,58 @@ class AOIControllerApp(QMainWindow):
             lambda on: self._apply_camera_prop(cap, cv2.CAP_PROP_AUTO_WB, 1 if on else 0)
         )
         auto_layout.addWidget(self.chk_auto_wb)
+
+        # Foco automático
+        self.chk_auto_focus = QCheckBox("Foco Automático")
+        try:
+            af_val = cap.get(cv2.CAP_PROP_AUTOFOCUS)
+            auto_focus_on = (af_val == 1)
+        except Exception:
+            auto_focus_on = saved_auto_focus
+        self.chk_auto_focus.setChecked(auto_focus_on)
+        self.chk_auto_focus.toggled.connect(lambda on: self._apply_focus_mode(cap, on))
+        auto_layout.addWidget(self.chk_auto_focus)
+        # Ajusta estado inicial (habilita/desabilita slider)
+        self._apply_focus_mode(cap, auto_focus_on)
         
         layout.addWidget(auto_group)
+
+        # ============== PERFIS DE CÂMERA ==============
+        presets_grp = QGB("Perfis de Câmera")
+        presets_layout = QVL(presets_grp)
+
+        # Seleção de preset
+        sel_row = QHL()
+        sel_row.addWidget(QLabel("Perfil:"))
+        self.combo_cam_presets = QComboBox()
+        self._load_camera_presets_into_combo()
+        sel_row.addWidget(self.combo_cam_presets, 1)
+        btn_load_preset = QPB("Carregar")
+        btn_load_preset.clicked.connect(self._load_selected_camera_preset)
+        sel_row.addWidget(btn_load_preset)
+        presets_layout.addLayout(sel_row)
+
+        # Salvar/atualizar preset
+        save_row = QHL()
+        save_row.addWidget(QLabel("Nome:"))
+        self.edit_preset_name = QLineEdit()
+        save_row.addWidget(self.edit_preset_name, 1)
+        btn_save_preset = QPB("Salvar/Atualizar")
+        btn_save_preset.clicked.connect(self._save_current_camera_preset)
+        save_row.addWidget(btn_save_preset)
+        presets_layout.addLayout(save_row)
+
+        # Aplicar e exportar
+        action_row = QHL()
+        btn_apply_now = QPB("Aplicar Ajustes")
+        btn_apply_now.clicked.connect(lambda: self._apply_current_camera_settings(cap))
+        action_row.addWidget(btn_apply_now)
+        btn_export_preset = QPB("Exportar JSON")
+        btn_export_preset.clicked.connect(self._export_current_camera_settings)
+        action_row.addWidget(btn_export_preset)
+        presets_layout.addLayout(action_row)
+
+        layout.addWidget(presets_grp)
         
         # ============== BOTÕES ==============
         btn_layout = QHBoxLayout()
@@ -3814,6 +2039,10 @@ class AOIControllerApp(QMainWindow):
         btn_apply = QPushButton("Aplicar Espelhamento")
         btn_apply.clicked.connect(self._apply_mirror_settings)
         btn_layout.addWidget(btn_apply)
+
+        btn_apply_all = QPushButton("Aplicar Ajustes (Câmera)")
+        btn_apply_all.clicked.connect(lambda: self._apply_current_camera_settings(cap))
+        btn_layout.addWidget(btn_apply_all)
         
         btn_close = QPushButton("Fechar")
         btn_close.clicked.connect(dialog.accept)
@@ -3843,6 +2072,61 @@ class AOIControllerApp(QMainWindow):
         except Exception as e:
             logger.warning(f"Erro ao aplicar configuração de câmera: {e}")
 
+    def _gather_camera_settings(self) -> dict:
+        """Coleta valores atuais da UI de câmera em um dicionário."""
+        return {
+            "mirror_x": self.chk_mirror_x.isChecked(),
+            "mirror_y": self.chk_mirror_y.isChecked(),
+            "brightness": self.slider_brightness.value(),
+            "contrast": self.slider_contrast.value(),
+            "saturation": self.slider_saturation.value(),
+            "exposure": self.slider_exposure.value(),
+            "gain": self.slider_gain.value(),
+            "focus": self.slider_focus.value() if hasattr(self, "slider_focus") else 0,
+            "auto_exposure": self.chk_auto_exp.isChecked(),
+            "auto_white_balance": self.chk_auto_wb.isChecked(),
+            "auto_focus": self.chk_auto_focus.isChecked() if hasattr(self, "chk_auto_focus") else True,
+        }
+
+    def _apply_current_camera_settings(self, cap):
+        """Aplica ao dispositivo de câmera todos os ajustes atuais da UI."""
+        try:
+            settings = self._gather_camera_settings()
+            # Automáticos
+            self._apply_camera_prop(cap, cv2.CAP_PROP_AUTO_EXPOSURE, 3 if settings["auto_exposure"] else 1)
+            self._apply_camera_prop(cap, cv2.CAP_PROP_AUTO_WB, 1 if settings["auto_white_balance"] else 0)
+            self._apply_focus_mode(cap, settings["auto_focus"])
+            # Valores manuais
+            self._apply_camera_prop(cap, cv2.CAP_PROP_BRIGHTNESS, settings["brightness"])
+            self._apply_camera_prop(cap, cv2.CAP_PROP_CONTRAST, settings["contrast"])
+            self._apply_camera_prop(cap, cv2.CAP_PROP_SATURATION, settings["saturation"])
+            self._apply_camera_prop(cap, cv2.CAP_PROP_EXPOSURE, settings["exposure"])
+            self._apply_camera_prop(cap, cv2.CAP_PROP_GAIN, settings["gain"])
+            if not settings["auto_focus"]:
+                self._apply_camera_prop(cap, cv2.CAP_PROP_FOCUS, settings["focus"])
+            self.statusBar().showMessage("Ajustes de câmera aplicados.")
+        except Exception as e:
+            logger.warning(f"Falha ao aplicar ajustes de câmera: {e}")
+
+    def _apply_focus_mode(self, cap, auto_on: bool):
+        """
+        Liga/desliga auto-foco e ajusta UI de foco.
+        """
+        try:
+            self._apply_camera_prop(cap, cv2.CAP_PROP_AUTOFOCUS, 1 if auto_on else 0)
+        except Exception:
+            pass
+
+        if hasattr(self, "slider_focus"):
+            self.slider_focus.setEnabled(not auto_on)
+
+        # Quando auto-foco está desligado, reaplica o valor manual atual
+        if not auto_on and hasattr(self, "slider_focus"):
+            try:
+                self._apply_camera_prop(cap, cv2.CAP_PROP_FOCUS, self.slider_focus.value())
+            except Exception:
+                pass
+
     def _reset_camera_props(self, cap):
         """Restaura configurações padrão da câmera"""
         self.slider_brightness.setValue(128)
@@ -3852,6 +2136,13 @@ class AOIControllerApp(QMainWindow):
         self.slider_gain.setValue(128)
         self.chk_auto_exp.setChecked(True)
         self.chk_auto_wb.setChecked(True)
+        if hasattr(self, "slider_focus"):
+            self.slider_focus.blockSignals(True)
+            self.slider_focus.setValue(self.config.get("camera", "focus", default=0))
+            self.slider_focus.blockSignals(False)
+        if hasattr(self, "chk_auto_focus"):
+            self.chk_auto_focus.setChecked(True)
+            self._apply_focus_mode(cap, True)
         self.chk_mirror_x.setChecked(False)
         self.chk_mirror_y.setChecked(False)
 
@@ -3870,8 +2161,10 @@ class AOIControllerApp(QMainWindow):
                 saturation=self.slider_saturation.value(),
                 exposure=self.slider_exposure.value(),
                 gain=self.slider_gain.value(),
+                focus=self.slider_focus.value(),
                 auto_exp=self.chk_auto_exp.isChecked(),
-                auto_wb=self.chk_auto_wb.isChecked()
+                auto_wb=self.chk_auto_wb.isChecked(),
+                auto_focus=self.chk_auto_focus.isChecked()
             )
             logger.info("Configurações de câmera salvas")
         except Exception as e:
@@ -3881,6 +2174,78 @@ class AOIControllerApp(QMainWindow):
             f"Espelhamento: X={'Sim' if self._camera_mirror_x else 'Não'}, "
             f"Y={'Sim' if self._camera_mirror_y else 'Não'} (Salvo)"
         )
+
+    # ========= PERFIS DE CÂMERA =========
+    def _load_camera_presets_into_combo(self):
+        """Atualiza o combo com os presets salvos."""
+        presets = self.config.list_camera_presets()
+        self.combo_cam_presets.clear()
+        self.combo_cam_presets.addItem("Selecione…", userData=None)
+        for name in presets:
+            self.combo_cam_presets.addItem(name, userData=name)
+
+    def _save_current_camera_preset(self):
+        name = self.edit_preset_name.text().strip()
+        if not name:
+            QMessageBox.warning(self, "Nome obrigatório", "Informe um nome para salvar o perfil.")
+            return
+        data = self._gather_camera_settings()
+        try:
+            self.config.save_camera_preset(name, data)
+            self._load_camera_presets_into_combo()
+            self.statusBar().showMessage(f"Perfil '{name}' salvo.")
+        except Exception as e:
+            QMessageBox.warning(self, "Erro", f"Falha ao salvar perfil: {e}")
+
+    def _load_selected_camera_preset(self):
+        name = self.combo_cam_presets.currentData()
+        if not name:
+            QMessageBox.information(self, "Selecione", "Escolha um perfil para carregar.")
+            return
+        preset = self.config.get_camera_preset(name)
+        if not preset:
+            QMessageBox.warning(self, "Erro", f"Perfil '{name}' não encontrado.")
+            return
+        try:
+            from PyQt6.QtCore import QSignalBlocker
+            with QSignalBlocker(self.slider_brightness):
+                self.slider_brightness.setValue(int(preset.get("brightness", 128)))
+            with QSignalBlocker(self.slider_contrast):
+                self.slider_contrast.setValue(int(preset.get("contrast", 128)))
+            with QSignalBlocker(self.slider_saturation):
+                self.slider_saturation.setValue(int(preset.get("saturation", 128)))
+            with QSignalBlocker(self.slider_exposure):
+                self.slider_exposure.setValue(int(preset.get("exposure", -6)))
+            with QSignalBlocker(self.slider_gain):
+                self.slider_gain.setValue(int(preset.get("gain", 128)))
+            if hasattr(self, "slider_focus"):
+                with QSignalBlocker(self.slider_focus):
+                    self.slider_focus.setValue(int(preset.get("focus", 0)))
+            self.chk_mirror_x.setChecked(bool(preset.get("mirror_x", False)))
+            self.chk_mirror_y.setChecked(bool(preset.get("mirror_y", False)))
+            self.chk_auto_exp.setChecked(bool(preset.get("auto_exposure", True)))
+            self.chk_auto_wb.setChecked(bool(preset.get("auto_white_balance", True)))
+            if hasattr(self, "chk_auto_focus"):
+                self.chk_auto_focus.setChecked(bool(preset.get("auto_focus", True)))
+                self._apply_focus_mode(self._camera_cap_ref, self.chk_auto_focus.isChecked())
+            # Aplica no dispositivo
+            self._apply_current_camera_settings(self._camera_cap_ref)
+            self.statusBar().showMessage(f"Perfil '{name}' carregado e aplicado.")
+        except Exception as e:
+            QMessageBox.warning(self, "Erro", f"Falha ao carregar perfil: {e}")
+
+    def _export_current_camera_settings(self):
+        """Exporta as configurações atuais de câmera para um JSON."""
+        filepath, _ = QFileDialog.getSaveFileName(self, "Exportar Configuração de Câmera", "", "JSON (*.json)")
+        if not filepath:
+            return
+        settings = self._gather_camera_settings()
+        try:
+            with open(filepath, "w", encoding="utf-8") as fp:
+                json.dump(settings, fp, indent=2, ensure_ascii=False)
+            self.statusBar().showMessage(f"Configuração exportada para {filepath}")
+        except Exception as e:
+            QMessageBox.warning(self, "Erro", f"Falha ao exportar: {e}")
 
 
     def show_settings_dialog(self):
@@ -3974,6 +2339,8 @@ class AOIControllerApp(QMainWindow):
         # 1) Cria sem flags inválidas
         dialog = QDialog(self)
         dialog.setWindowTitle("Definir Mapa")
+        dialog.setMinimumWidth(900)
+        dialog.setMinimumHeight(600)
 
         # 2) Non‐modal: permite operar a janela principal
         dialog.setWindowModality(Qt.WindowModality.NonModal)
@@ -3986,7 +2353,52 @@ class AOIControllerApp(QMainWindow):
             | Qt.WindowType.WindowStaysOnTopHint
         )
 
-        layout = QVBoxLayout(dialog)
+        # Layout principal com splitter
+        main_layout = QHBoxLayout(dialog)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        # ================== PAINEL ESQUERDO: PROGRAMAS SALVOS ==================
+        programs_widget = QWidget()
+        programs_layout = QVBoxLayout(programs_widget)
+        programs_layout.setContentsMargins(0, 0, 0, 0)
+
+        programs_group = QGroupBox("📁 Programas Salvos")
+        programs_group_layout = QVBoxLayout(programs_group)
+
+        # TreeView de programas
+        from PyQt6.QtWidgets import QTreeWidget, QTreeWidgetItem
+        self.map_programs_tree = QTreeWidget()
+        self.map_programs_tree.setHeaderLabels(["Nome", "Dimensão", "Data"])
+        self.map_programs_tree.setColumnWidth(0, 150)
+        self.map_programs_tree.setColumnWidth(1, 100)
+        self.map_programs_tree.itemDoubleClicked.connect(
+            lambda item: self._load_map_program(Path(item.data(0, Qt.ItemDataRole.UserRole))) if item else None
+        )
+        programs_group_layout.addWidget(self.map_programs_tree)
+
+        # Botões de gerenciamento
+        btn_programs_layout = QHBoxLayout()
+        
+        btn_load_program = QPushButton("📂 Carregar")
+        btn_load_program.clicked.connect(lambda: self._on_load_map_program_clicked())
+        btn_programs_layout.addWidget(btn_load_program)
+        
+        btn_delete_program = QPushButton("🗑️ Excluir")
+        btn_delete_program.clicked.connect(lambda: self._delete_map_program())
+        btn_programs_layout.addWidget(btn_delete_program)
+        
+        btn_refresh_programs = QPushButton("🔄")
+        btn_refresh_programs.setMaximumWidth(40)
+        btn_refresh_programs.clicked.connect(lambda: self._refresh_map_programs())
+        btn_programs_layout.addWidget(btn_refresh_programs)
+        
+        programs_group_layout.addLayout(btn_programs_layout)
+        programs_layout.addWidget(programs_group)
+
+        # ================== PAINEL DIREITO: CONFIGURAÇÕES ==================
+        config_widget = QWidget()
+        layout = QVBoxLayout(config_widget)
+        layout.setContentsMargins(10, 0, 0, 0)
 
         # Nome do programa
         h1 = QHBoxLayout()
@@ -3996,15 +2408,19 @@ class AOIControllerApp(QMainWindow):
         last_program = self.config.get("mosaic", "last_program_name", default="")
         self.map_program_name_edit.setText(last_program)
         h1.addWidget(self.map_program_name_edit)
+        
+        # Botão salvar programa
+        btn_save_program = QPushButton("💾 Salvar")
+        btn_save_program.clicked.connect(lambda: self._save_map_program())
+        h1.addWidget(btn_save_program)
         layout.addLayout(h1)
 
-        # Pasta de salvamento (base para os projetos)
+        # Pasta de salvamento (base para os projetos) - agora usa MAP_PROGRAMS_FOLDER
         h2 = QHBoxLayout()
         h2.addWidget(QLabel("Pasta de Salvamento:"))
         self.map_folder_edit = QLineEdit()
-        # Carrega última pasta usada ou usa padrão "Projetos"
-        import os
-        default_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Projetos")
+        # Usa pasta map_programs como padrão
+        default_folder = str(MAP_PROGRAMS_FOLDER)
         last_folder = self.config.get("mosaic", "last_folder", default=default_folder)
         self.map_folder_edit.setText(last_folder)
         self.map_folder_edit.setToolTip(
@@ -4031,6 +2447,58 @@ class AOIControllerApp(QMainWindow):
         self.map_step_y_edit.setText(str(saved_step_y))
         h3.addWidget(self.map_step_y_edit)
         layout.addLayout(h3)
+
+        # ============== PAINEL DE INFORMAÇÕES CALCULADAS ==============
+        info_group = QGroupBox("📊 Cálculo da Grade (ajuste automático)")
+        info_layout = QGridLayout(info_group)
+        info_layout.setColumnStretch(1, 1)
+        info_layout.setColumnStretch(3, 1)
+        
+        # Labels para exibir valores calculados
+        info_layout.addWidget(QLabel("Passo X ajustado:"), 0, 0)
+        self.lbl_adjusted_step_x = QLabel("--")
+        self.lbl_adjusted_step_x.setStyleSheet("font-weight: bold; color: #2196F3;")
+        info_layout.addWidget(self.lbl_adjusted_step_x, 0, 1)
+        
+        info_layout.addWidget(QLabel("Passo Y ajustado:"), 0, 2)
+        self.lbl_adjusted_step_y = QLabel("--")
+        self.lbl_adjusted_step_y.setStyleSheet("font-weight: bold; color: #2196F3;")
+        info_layout.addWidget(self.lbl_adjusted_step_y, 0, 3)
+        
+        info_layout.addWidget(QLabel("Colunas:"), 1, 0)
+        self.lbl_cols = QLabel("--")
+        self.lbl_cols.setStyleSheet("font-weight: bold;")
+        info_layout.addWidget(self.lbl_cols, 1, 1)
+        
+        info_layout.addWidget(QLabel("Linhas:"), 1, 2)
+        self.lbl_rows = QLabel("--")
+        self.lbl_rows.setStyleSheet("font-weight: bold;")
+        info_layout.addWidget(self.lbl_rows, 1, 3)
+        
+        info_layout.addWidget(QLabel("Total de imagens:"), 2, 0)
+        self.lbl_total_images = QLabel("--")
+        self.lbl_total_images.setStyleSheet("font-weight: bold; font-size: 14px; color: #4CAF50;")
+        info_layout.addWidget(self.lbl_total_images, 2, 1)
+        
+        info_layout.addWidget(QLabel("Área (mm):"), 2, 2)
+        self.lbl_area = QLabel("--")
+        self.lbl_area.setStyleSheet("font-weight: bold;")
+        info_layout.addWidget(self.lbl_area, 2, 3)
+        
+        # Mensagem de status
+        self.lbl_adjustment_status = QLabel("")
+        self.lbl_adjustment_status.setWordWrap(True)
+        self.lbl_adjustment_status.setStyleSheet("color: #666; font-style: italic;")
+        info_layout.addWidget(self.lbl_adjustment_status, 3, 0, 1, 4)
+        
+        layout.addWidget(info_group)
+        
+        # Conecta eventos para atualização dinâmica
+        self.map_step_x_edit.textChanged.connect(lambda: self._update_adjusted_step_info())
+        self.map_step_y_edit.textChanged.connect(lambda: self._update_adjusted_step_info())
+        
+        # Atualiza informações iniciais
+        self._update_adjusted_step_info()
 
         # ============== OPÇÕES DE MOSAICO ==============
         from PyQt6.QtWidgets import QSpinBox
@@ -4100,6 +2568,15 @@ class AOIControllerApp(QMainWindow):
         btn_generate.clicked.connect(lambda: self._on_generate_map(dialog))
         layout.addWidget(btn_generate)
 
+        # ================== MONTAGEM DO SPLITTER ==================
+        splitter.addWidget(programs_widget)
+        splitter.addWidget(config_widget)
+        splitter.setSizes([250, 650])  # Proporção inicial
+        main_layout.addWidget(splitter)
+
+        # Atualiza lista de programas
+        self._refresh_map_programs()
+
         dialog.show()  # modeless, não bloqueia a janela principal
 
     def _select_map_folder(self):
@@ -4121,6 +2598,319 @@ class AOIControllerApp(QMainWindow):
             self.statusBar().showMessage(
                 f"✅ Limite definido: X={pos['x']:.3f}, Y={pos['y']:.3f}"
             )
+        
+        # Atualiza painel de informações calculadas
+        self._update_adjusted_step_info()
+
+    def _update_adjusted_step_info(self):
+        """
+        Atualiza o painel de informações com os passos ajustados calculados.
+        Chamado quando o usuário muda os passos ou define os cantos.
+        """
+        # Verifica se as labels existem
+        if not hasattr(self, 'lbl_adjusted_step_x'):
+            return
+        
+        # Obtém origem e fim
+        origin = getattr(self, 'map_origin', None)
+        end = getattr(self, 'map_end', None)
+        
+        if not origin or not end:
+            self.lbl_adjusted_step_x.setText("--")
+            self.lbl_adjusted_step_y.setText("--")
+            self.lbl_cols.setText("--")
+            self.lbl_rows.setText("--")
+            self.lbl_total_images.setText("--")
+            self.lbl_area.setText("--")
+            self.lbl_adjustment_status.setText("⚠️ Defina os cantos (origem e limite) para calcular a grade.")
+            return
+        
+        # Tenta ler os passos
+        try:
+            step_x = float(self.map_step_x_edit.text())
+            step_y = float(self.map_step_y_edit.text())
+        except ValueError:
+            self.lbl_adjustment_status.setText("⚠️ Passos X/Y inválidos.")
+            return
+        
+        if step_x <= 0 or step_y <= 0:
+            self.lbl_adjustment_status.setText("⚠️ Os passos devem ser maiores que zero.")
+            return
+        
+        # Calcula ajustes
+        try:
+            from aoi_lib import CNCAOIController
+            adjusted = CNCAOIController.calculate_adjusted_steps(origin, end, step_x, step_y)
+            
+            # Atualiza labels
+            self.lbl_adjusted_step_x.setText(f"{adjusted['step_x']:.3f} mm")
+            self.lbl_adjusted_step_y.setText(f"{adjusted['step_y']:.3f} mm")
+            self.lbl_cols.setText(str(adjusted['cols']))
+            self.lbl_rows.setText(str(adjusted['rows']))
+            self.lbl_total_images.setText(str(adjusted['total_images']))
+            self.lbl_area.setText(f"{adjusted['dx']:.1f} x {adjusted['dy']:.1f}")
+            
+            # Monta mensagem de status
+            messages = []
+            if adjusted['adjusted_x']:
+                delta_x = adjusted['step_x'] - step_x
+                messages.append(f"Passo X ajustado de {step_x:.3f} → {adjusted['step_x']:.3f} mm ({'+' if delta_x > 0 else ''}{delta_x:.3f})")
+            if adjusted['adjusted_y']:
+                delta_y = adjusted['step_y'] - step_y
+                messages.append(f"Passo Y ajustado de {step_y:.3f} → {adjusted['step_y']:.3f} mm ({'+' if delta_y > 0 else ''}{delta_y:.3f})")
+            
+            if messages:
+                self.lbl_adjustment_status.setText("ℹ️ " + " | ".join(messages))
+                self.lbl_adjustment_status.setStyleSheet("color: #FF9800; font-style: italic;")
+            else:
+                self.lbl_adjustment_status.setText("✅ Os passos dividem a área uniformemente.")
+                self.lbl_adjustment_status.setStyleSheet("color: #4CAF50; font-style: italic;")
+                
+        except ValueError as e:
+            self.lbl_adjustment_status.setText(f"⚠️ {str(e)}")
+            self.lbl_adjustment_status.setStyleSheet("color: #F44336; font-style: italic;")
+        except Exception as e:
+            logger.warning(f"Erro ao calcular passos ajustados: {e}")
+            self.lbl_adjustment_status.setText(f"⚠️ Erro no cálculo: {e}")
+
+    # ================== GERENCIAMENTO DE PROGRAMAS DE MAPA ==================
+
+    def _refresh_map_programs(self, base_folder: Path | None = None):
+        """Atualiza a lista de programas salvos na TreeView sem travar a UI"""
+        if not hasattr(self, 'map_programs_tree'):
+            return
+            
+        from PyQt6.QtWidgets import QTreeWidgetItem
+        from datetime import datetime
+        # Usa pasta configurada na interface, caindo para pasta padrão
+        base_dir = Path(base_folder) if base_folder else Path(self.map_folder_edit.text() or MAP_PROGRAMS_FOLDER)
+        
+        self.map_programs_tree.clear()
+        
+        # Garante que a pasta existe
+        base_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Lista todas as subpastas que contêm config.json
+        for idx, prog_dir in enumerate(sorted(base_dir.iterdir())):
+            if not prog_dir.is_dir():
+                continue
+            
+            config_file = prog_dir / "config.json"
+            if not config_file.exists():
+                continue
+            
+            try:
+                with open(config_file, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                
+                # Extrai informações
+                name = data.get("name", prog_dir.name)
+                capture = data.get("capture_params", {})
+                origin = capture.get("origin", {})
+                end = capture.get("end", {})
+                
+                # Calcula dimensão
+                if origin and end:
+                    dx = abs(end.get("x", 0) - origin.get("x", 0))
+                    dy = abs(end.get("y", 0) - origin.get("y", 0))
+                    dimension = f"{dx:.0f}x{dy:.0f}mm"
+                else:
+                    dimension = "-"
+                
+                # Data de modificação
+                mod_time = datetime.fromtimestamp(config_file.stat().st_mtime)
+                date_str = mod_time.strftime("%Y-%m-%d %H:%M")
+                
+                # Adiciona à tree
+                item = QTreeWidgetItem([name, dimension, date_str])
+                item.setData(0, Qt.ItemDataRole.UserRole, str(prog_dir))
+                self.map_programs_tree.addTopLevelItem(item)
+
+                # Processa eventos periodicamente para manter a UI responsiva
+                if idx % 20 == 0:
+                    QApplication.processEvents()
+                
+            except Exception as e:
+                logger.warning(f"Erro ao carregar programa {prog_dir}: {e}")
+
+    def _save_map_program(self):
+        """Salva o programa atual com suas configurações"""
+        from datetime import datetime
+        
+        prog_name = self.map_program_name_edit.text().strip()
+        if not prog_name:
+            QMessageBox.warning(self, "Erro", "Informe um nome para o programa.")
+            return
+        
+        # Sanitiza nome
+        safe_name = "".join(c for c in prog_name if c.isalnum() or c in "._- ").strip()
+        if not safe_name:
+            QMessageBox.warning(self, "Erro", "Nome de programa inválido.")
+            return
+        
+        # Cria pasta do programa
+        base_folder = Path(self.map_folder_edit.text().strip() or str(MAP_PROGRAMS_FOLDER))
+        program_folder = base_folder / safe_name
+        images_folder = program_folder / "Imagens"
+        
+        try:
+            images_folder.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao criar pasta:\n{e}")
+            return
+        
+        # Coleta dados
+        origin = getattr(self, 'map_origin', None)
+        end = getattr(self, 'map_end', None)
+        
+        try:
+            step_x = float(self.map_step_x_edit.text())
+            step_y = float(self.map_step_y_edit.text())
+        except ValueError:
+            step_x, step_y = 10.0, 10.0
+        
+        config_data = {
+            "version": "1.0",
+            "name": prog_name,
+            "created_at": datetime.now().isoformat(),
+            "modified_at": datetime.now().isoformat(),
+            "capture_params": {
+                "origin": origin if origin else {"x": 0, "y": 0},
+                "end": end if end else {"x": 0, "y": 0},
+                "step_x": step_x,
+                "step_y": step_y
+            },
+            "mosaic_params": {
+                "auto_build": self.chk_auto_mosaic.isChecked(),
+                "margin": self.spin_mosaic_margin.value(),
+                "blend_size": self.spin_mosaic_blend.value(),
+                "capture_delay_ms": self.spin_capture_delay.value()
+            },
+            "status": {
+                "images_captured": len(list(images_folder.glob("*.png"))),
+                "mosaic_generated": (program_folder / "mosaic.png").exists(),
+                "last_capture_date": None
+            }
+        }
+        
+        # Salva config.json
+        config_file = program_folder / "config.json"
+        try:
+            with open(config_file, "w", encoding="utf-8") as f:
+                json.dump(config_data, f, indent=2, ensure_ascii=False)
+            
+            self.statusBar().showMessage(f"✅ Programa '{prog_name}' salvo com sucesso!")
+            logger.info(f"Programa salvo: {config_file}")
+            
+            # Atualiza TreeView usando a pasta do programa salvo
+            self._refresh_map_programs(base_folder=program_folder.parent)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao salvar programa:\n{e}")
+
+    def _on_load_map_program_clicked(self):
+        """Callback para o botão Carregar - carrega programa selecionado na TreeView"""
+        if not hasattr(self, 'map_programs_tree'):
+            return
+            
+        current = self.map_programs_tree.currentItem()
+        if not current:
+            QMessageBox.warning(self, "Seleção", "Selecione um programa na lista.")
+            return
+        
+        program_path = Path(current.data(0, Qt.ItemDataRole.UserRole))
+        self._load_map_program(program_path)
+
+    def _load_map_program(self, program_path: Path):
+        """Carrega um programa a partir de seu diretório"""
+        config_file = program_path / "config.json"
+        
+        if not config_file.exists():
+            QMessageBox.warning(self, "Erro", f"Arquivo de configuração não encontrado:\n{config_file}")
+            return
+        
+        try:
+            with open(config_file, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            
+            # Preenche campos
+            name = data.get("name", program_path.name)
+            self.map_program_name_edit.setText(name)
+            
+            # Pasta base
+            self.map_folder_edit.setText(str(program_path.parent))
+            
+            # Parâmetros de captura
+            capture = data.get("capture_params", {})
+            self.map_step_x_edit.setText(str(capture.get("step_x", 10.0)))
+            self.map_step_y_edit.setText(str(capture.get("step_y", 10.0)))
+            
+            # Define origin/end
+            origin = capture.get("origin", {})
+            end = capture.get("end", {})
+            if origin.get("x") is not None and origin.get("y") is not None:
+                self.map_origin = origin
+            if end.get("x") is not None and end.get("y") is not None:
+                self.map_end = end
+            
+            # Parâmetros de mosaico
+            mosaic = data.get("mosaic_params", {})
+            self.chk_auto_mosaic.setChecked(mosaic.get("auto_build", True))
+            self.spin_mosaic_margin.setValue(mosaic.get("margin", 50))
+            self.spin_mosaic_blend.setValue(mosaic.get("blend_size", 20))
+            self.spin_capture_delay.setValue(mosaic.get("capture_delay_ms", 200))
+            
+            # Atualiza painel de informações calculadas
+            self._update_adjusted_step_info()
+            
+            # Feedback
+            msg = f"✅ Programa '{name}' carregado"
+            if self.map_origin and self.map_end:
+                msg += f" | Área: ({self.map_origin['x']:.1f},{self.map_origin['y']:.1f}) → ({self.map_end['x']:.1f},{self.map_end['y']:.1f})"
+            self.statusBar().showMessage(msg)
+            logger.info(f"Programa carregado: {program_path}")
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao carregar programa:\n{e}")
+
+    def _delete_map_program(self):
+        """Exclui o programa selecionado"""
+        if not hasattr(self, 'map_programs_tree'):
+            return
+            
+        current = self.map_programs_tree.currentItem()
+        if not current:
+            QMessageBox.warning(self, "Seleção", "Selecione um programa para excluir.")
+            return
+        
+        program_path = Path(current.data(0, Qt.ItemDataRole.UserRole))
+        program_name = current.text(0)
+        
+        # Confirma exclusão
+        reply = QMessageBox.question(
+            self, "Confirmar Exclusão",
+            f"Deseja excluir o programa '{program_name}'?\n\n"
+            f"Pasta: {program_path}\n\n"
+            "Esta ação removerá a pasta e todo seu conteúdo (imagens, mosaico, etc.)",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+        
+        if reply != QMessageBox.StandardButton.Yes:
+            return
+        
+        try:
+            import shutil
+            shutil.rmtree(program_path)
+            
+            self.statusBar().showMessage(f"✅ Programa '{program_name}' excluído")
+            logger.info(f"Programa excluído: {program_path}")
+            
+            # Atualiza TreeView na mesma pasta
+            self._refresh_map_programs(base_folder=program_path.parent)
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao excluir programa:\n{e}")
 
     def _on_generate_map(self, dialog):
         # Verifica conexão CNC - bloqueia APENAS a geração, não o diálogo
@@ -4244,8 +3034,8 @@ class AOIControllerApp(QMainWindow):
             self.map_thread = MapGeneratorThread(
                 self.controller, p.origin, p.end,
                 p.step_x, p.step_y, p.folder, p.program_name,
-                self._get_current_feed_rate(),  # Passa velocidade configurada
-                delay_ms  # Tempo de espera antes da captura
+                feed_rate=None,              # Usa velocidade ja gravada no CLP (nao sobrescreve)
+                capture_delay_ms=delay_ms    # Tempo de espera antes da captura
             )
 
             # Progress dialog simples
@@ -5126,19 +3916,27 @@ class AOIControllerApp(QMainWindow):
             self.statusBar().showMessage("Câmera desconectada")
         else:
             # Conectar
+            # Conectar
             try:
-                camera_id = int(self.camera_id_combo.currentText())
+                # Obtém texto do combo (pode ser número ou URL)
+                id_text = self.camera_id_combo.currentText().strip()
                 
-                self.statusBar().showMessage(f"Conectando à câmera ID {camera_id}...")
+                # Tenta converter para int se for numérico
+                if id_text.isdigit():
+                    camera_id = int(id_text)
+                else:
+                    camera_id = id_text
+                
+                self.statusBar().showMessage(f"Conectando à câmera {camera_id}...")
                 
                 if self.controller.connect_camera(camera_id):
                     self.connect_camera_btn.setText("Desconectar Câmera")
-                    self.statusBar().showMessage(f"Câmera ID {camera_id} conectada")
+                    self.statusBar().showMessage(f"Câmera {camera_id} conectada")
                     self.config.remember_camera_id(camera_id)
                 else:
                     QMessageBox.critical(self, "Erro", f"Falha ao conectar à câmera: {self.controller.camera.last_error}")
-            except ValueError:
-                QMessageBox.warning(self, "Erro", "ID de câmera inválido")
+            except Exception as e:
+                QMessageBox.warning(self, "Erro", f"Erro ao conectar câmera: {e}")
                 
     def test_camera(self):
         """Testa a captura de imagem da câmera"""
@@ -5408,165 +4206,6 @@ class AOIControllerApp(QMainWindow):
     def closeEvent(self, event):
         self._cleanup_resources()
         event.accept()
-
-class SequenceRunnerThread(QThread):
-    """Thread para executar uma sequência de inspeção"""
-    image_captured = pyqtSignal(dict)  # Emite resultados da captura
-    sequence_completed = pyqtSignal()  # Emite quando a sequência é concluída
-    sequence_error = pyqtSignal(str)   # Emite quando ocorre um erro
-    
-    def __init__(self, controller, sequence_name):
-        super().__init__()
-        self.controller = controller
-        self.sequence_name = sequence_name
-        
-    def run(self):
-        try:
-            # Execute a sequência e processe os resultados
-            def process_result(result):
-                self.image_captured.emit(result)
-                
-            self.controller.run_sequence(self.sequence_name, process_result)
-            self.sequence_completed.emit()
-            
-        except Exception as e:
-            self.sequence_error.emit(str(e))
-
-class MapGeneratorThread(QThread):
-    """
-    Thread responsável por percorrer a grade, movimentar a CNC e capturar
-    as imagens sem travar a GUI.
-    
-    Otimizações de velocidade:
-    - Movimento direto sem espera inicial desnecessária
-    - Delay mínimo de estabilização configurável
-    - Usa feed_rate para maximizar velocidade de movimento
-    """
-    progress = pyqtSignal(int, int)       # imagens_capturadas, total
-    image_captured = pyqtSignal(object)   # cv2 image (opcional para preview)
-    finished = pyqtSignal()
-    error = pyqtSignal(str)
-
-    def __init__(self, controller, origin, end, sx, sy, folder, prog_name, feed_rate=1000, capture_delay_ms=100):
-        super().__init__()
-        self.ctrl = controller
-        self.origin = origin
-        self.end = end
-        self.sx = sx
-        self.sy = sy
-        self.folder = folder
-        self.prog_name = prog_name
-        # Usa no mínimo 2000 mm/min para movimento rápido
-        self.feed_rate = max(feed_rate, 2000)
-        # Delay mínimo de 50ms para estabilização
-        self.capture_delay_ms = max(capture_delay_ms, 50)
-
-    def run(self):
-        log = logging.getLogger("MapGeneratorThread")
-        backlight_was_on = False  # Para restaurar estado original ao final
-        
-        try:
-            points = list(self.ctrl._grid_points(self.origin, self.end,
-                                             self.sx, self.sy))
-            total = len(points)
-            os.makedirs(self.folder, exist_ok=True)
-
-            # Converte delay de ms para segundos
-            delay_sec = self.capture_delay_ms / 1000.0
-            log.info(f"MapGeneratorThread: Delay={self.capture_delay_ms}ms, FeedRate={self.feed_rate}mm/min, Total={total} pontos")
-
-            # ========== CONTROLE DO BACKLIGHT - INÍCIO ==========
-            # Liga o backlight 2 segundos antes de iniciar as capturas
-            if hasattr(self.ctrl.cnc, 'backlight_set'):
-                # Salva estado anterior para restaurar depois
-                backlight_was_on = getattr(self.ctrl.cnc, 'backlight_on', False)
-                
-                log.info("MapGeneratorThread: Ligando backlight (Y0.7)")
-                self.ctrl.cnc.backlight_turn_on()
-                
-                # Aguarda 2 segundos para estabilização da iluminação
-                log.info("MapGeneratorThread: Aguardando 2s para estabilização do backlight")
-                time.sleep(2.0)
-            # ========== CONTROLE DO BACKLIGHT - FIM ==========
-
-            # Descarta frames antigos do buffer da câmera antes de iniciar
-            for _ in range(3):
-                self.ctrl.camera.capture()
-
-            captured = 0
-            last_x, last_y = None, None
-            
-            for r, col, x, y in points:
-                if self.isInterruptionRequested():
-                    log.warning("Mapa cancelado pelo usuário")
-                    # Desliga backlight antes de sair
-                    self._turn_off_backlight(log, backlight_was_on)
-                    self.error.emit("Operação cancelada")
-                    return
-                
-                # Move apenas se a posição mudou
-                need_move = (last_x is None or last_y is None or 
-                            abs(x - last_x) > 0.01 or abs(y - last_y) > 0.01)
-                
-                if need_move:
-                    self.ctrl.cnc.move_to_absolute_position(x, y, feed_rate=self.feed_rate)
-                    self.ctrl.cnc.wait_for_idle(tolerance=2, timeout=15)
-                    last_x, last_y = x, y
-                    
-                    # Aguarda estabilização apenas se houve movimento
-                    if delay_sec > 0:
-                        time.sleep(delay_sec)
-
-                # Captura imagem
-                img = self.ctrl.camera.capture()
-                if img is not None:
-                    fname = f"{self.prog_name}_r{r:03d}_c{col:03d}.png"
-                    cv2.imwrite(os.path.join(self.folder, fname), img)
-                    self.image_captured.emit(img)
-                else:
-                    log.warning(f"Falha ao capturar imagem em r={r}, c={col}")
-                    
-                captured += 1
-                self.progress.emit(captured, total)
-
-            log.info(f"MapGeneratorThread: Finalizado - {captured} imagens capturadas")
-            
-            # ========== DESLIGA BACKLIGHT APÓS 2 SEGUNDOS ==========
-            self._turn_off_backlight(log, backlight_was_on)
-            
-            self.finished.emit()
-        except Exception as exc:
-            log.exception("Erro na geração do mapa")
-            # Garante que o backlight seja desligado em caso de erro
-            self._turn_off_backlight(log, backlight_was_on)
-            self.error.emit(str(exc))
-    
-    def _turn_off_backlight(self, log, restore_previous_state: bool):
-        """
-        Desliga o backlight após aguardar 2 segundos.
-        
-        Args:
-            log: Logger para registrar mensagens
-            restore_previous_state: Se True, restaura o estado anterior do backlight
-        """
-        if not hasattr(self.ctrl.cnc, 'backlight_set'):
-            return
-        
-        try:
-            # Aguarda 2 segundos antes de desligar
-            log.info("MapGeneratorThread: Aguardando 2s antes de desligar backlight")
-            time.sleep(2.0)
-            
-            if restore_previous_state:
-                # Restaura estado anterior
-                log.info(f"MapGeneratorThread: Restaurando backlight para estado anterior: {'ON' if restore_previous_state else 'OFF'}")
-                self.ctrl.cnc.backlight_set(restore_previous_state)
-            else:
-                # Desliga
-                log.info("MapGeneratorThread: Desligando backlight (Y0.7)")
-                self.ctrl.cnc.backlight_turn_off()
-        except Exception as e:
-            log.error(f"MapGeneratorThread: Erro ao controlar backlight: {e}")
 
 
 if __name__ == "__main__":
