@@ -1,6 +1,16 @@
 teste/
 .conda/
 .venv/
+
+# Arquivos grandes (RAR, ZIP, etc)
+*.rar
+*.zip
+*.7z
+*.tar
+*.gz
+*.exe
+
+# Diretórios de teste/backup
 teste_clp/Projetos/modelos/
 teste_clp/__pycache__/axes_control_tab.cpython-310.pyc
 teste_clp/__pycache__/mesa_plot_widget.cpython-310.pyc
