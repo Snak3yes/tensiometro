@@ -54,7 +54,20 @@ def parse_coord(val_str: str, cfg: GerberConfig) -> float:
     Converte uma string de coordenada Gerber (sem ponto) em valor numérico
     na unidade base do arquivo (inch ou mm), considerando formato FS
     (número de dígitos inteiros e decimais) e zero suppression 'L' (leading).
+
+    Args:
+        val_str: String de coordenada Gerber (ex: "012345")
+        cfg: Configuração do Gerber com formato de coordenadas
+
+    Returns:
+        Valor numérico na unidade do arquivo
+
+    Raises:
+        ValueError: Se val_str for None ou inválido
     """
+    if val_str is None:
+        raise ValueError("Coordinate string cannot be None")
+
     s = val_str.strip()
     if not s:
         return 0.0
@@ -63,13 +76,19 @@ def parse_coord(val_str: str, cfg: GerberConfig) -> float:
     if s[0] in "+-":
         s = s[1:]
 
+    if not s.isdigit():
+        raise ValueError(f"Invalid coordinate format: {val_str}")
+
     total_len = cfg.fmt_int + cfg.fmt_dec
     # leading zero suppression → faz left-pad até o tamanho esperado
     s = s.rjust(total_len, "0")
 
-    int_part = int(s[:cfg.fmt_int])
-    dec_part = int(s[cfg.fmt_int:]) / (10 ** cfg.fmt_dec)
-    return sign * (int_part + dec_part)
+    try:
+        int_part = int(s[:cfg.fmt_int])
+        dec_part = int(s[cfg.fmt_int:]) / (10 ** cfg.fmt_dec)
+        return sign * (int_part + dec_part)
+    except (ValueError, IndexError) as e:
+        raise ValueError(f"Failed to parse coordinate '{val_str}': {e}")
 
 
 def to_mm_from_unit(v: float, cfg: GerberConfig) -> float:

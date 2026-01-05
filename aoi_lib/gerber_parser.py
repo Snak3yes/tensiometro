@@ -25,7 +25,7 @@ from pathlib import Path
 
 # Importar do parser existente (se existir) ou definir aqui
 import sys
-_gerber_viewer_path = Path(__file__).parent.parent / "testes_gerber"
+_gerber_viewer_path = Path(__file__).parent.parent / "poc_gerber"
 if str(_gerber_viewer_path) not in sys.path:
     sys.path.insert(0, str(_gerber_viewer_path))
 
@@ -44,7 +44,7 @@ try:
     )
 except ImportError as e:
     raise ImportError(
-        f"Gerber viewer modules not found. Ensure 'testes_gerber/gerber_viewer' exists: {e}"
+        f"Gerber viewer modules not found. Ensure 'poc_gerber/gerber_viewer' exists: {e}"
     )
 
 log = logging.getLogger(__name__)

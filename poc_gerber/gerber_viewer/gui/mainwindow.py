@@ -1345,11 +1345,6 @@ class GerberMacroViewer(QMainWindow):
                     (x + dx, y + dy) for (x, y) in obj.polygon_mm
                 ]
 
-        if obj.x_mm is not None:
-            obj.x_mm += dx
-        if obj.y_mm is not None:
-            obj.y_mm += dy
-
         # Atualiza lista de polígonos a partir dos objetos atuais
         if self._full_layer_objects is not None:
             self._full_layer_polys_mm = [

@@ -64,13 +64,30 @@ def gerber_to_records(gerber_lines: List[str]) -> List[str]:
     """
     Converte a lista de linhas do arquivo Gerber em uma lista de
     "registros" separados por '*', como definido no padrão RS-274X.
+
+    Args:
+        gerber_lines: Lista de linhas do arquivo Gerber
+
+    Returns:
+        Lista de registros Gerber (cada um termina com '*')
+
+    Raises:
+        ValueError: Se gerber_lines for None ou vazio
     """
+    if not gerber_lines:
+        return []
+
     text = ""
     for line in gerber_lines:
+        if line is None:
+            continue
         s = line.strip()
         if not s:
             continue
         text += s
+
+    if not text:
+        return []
 
     parts = text.split("*")
     records: List[str] = []

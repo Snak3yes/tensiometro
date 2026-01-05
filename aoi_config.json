@@ -26,7 +26,8 @@
     "last_camera_id": 0,
     "auto_connect_camera": true,
     "plc_host": "192.168.1.5",
-    "plc_port": 502
+    "plc_port": 502,
+    "auto_connect_plc": true
   },
   "ui": {
     "theme": "light"

@@ -55,24 +55,62 @@ class ApertureMacro:
 
 
 def parse_macro(lines: List[str]) -> ApertureMacro:
-    """Recebe lista de linhas entre %AM…* e % e devolve ApertureMacro."""
-    header = lines[0]            # ex: "%AMacap0165_180*"
-    name = header[3:-1]
+    """
+    Recebe lista de linhas entre %AM…* e % e devolve ApertureMacro.
+
+    Args:
+        lines: Lista de linhas do arquivo Gerber contendo a definição da macro
+
+    Returns:
+        ApertureMacro com os primitivos parseados
+
+    Raises:
+        ValueError: Se a definição da macro for inválida ou estiver malformada
+    """
+    if not lines:
+        raise ValueError("Macro definition is empty")
+
+    header = lines[0].strip()  # ex: "%AMacap0165_180*"
+
+    # Valida formato do cabeçalho
+    if not header.startswith("%AM"):
+        raise ValueError(f"Invalid macro header: must start with '%AM', got: {header}")
+    if not header.endswith("*"):
+        raise ValueError(f"Invalid macro header: must end with '*', got: {header}")
+
+    # Extrai nome da macro (entre "%AM" e o último "*")
+    name = header[3:-1].strip()
+    if not name:
+        raise ValueError("Macro name is empty")
+
     mac = ApertureMacro(name)
-    # junta só as linhas que NÃO são o "%" final
-    body = "".join(l for l in lines[1:] if not l.strip() == '%')
-    # só tokens que começam com dígito (4,1,42,...) e não "%", ou vazios
+
+    # Junta só as linhas que NÃO são o "%" final
+    body = "".join(l for l in lines[1:] if l.strip() != '%')
+
+    # Extrai apenas primitivas válidas (começam com dígito)
     prims = [
         s.strip()
         for s in body.split('*')
         if s.strip() and s.strip()[0].isdigit()
     ]
+
+    # Parse cada primitiva
     for prim in prims:
         tokens = prim.split(',')
-        code = int(tokens[0])
-        expo = int(tokens[1])
-        params = tokens[2:]
-        mac.add_primitive(code, expo, params)
+        if len(tokens) < 2:
+            continue  # ignora primitivas malformadas silenciosamente
+
+        try:
+            code = int(tokens[0])
+            expo = int(tokens[1])
+            params = tokens[2:]
+            mac.add_primitive(code, expo, params)
+        except (ValueError, IndexError) as e:
+            # Log warning mas continua parsing
+            import warnings
+            warnings.warn(f"Failed to parse macro primitive in '{name}': {e}")
+
     return mac
 
 
@@ -86,7 +124,16 @@ def parse_all_macros(gerber_lines: List[str]) -> Dict[str, ApertureMacro]:
       %AMnome*
         ...
       ...0.00000*%
+
+    Args:
+        gerber_lines: Linhas do arquivo Gerber
+
+    Returns:
+        Dicionário mapeando nome da macro → ApertureMacro
     """
+    if not gerber_lines:
+        return {}
+
     macros: Dict[str, ApertureMacro] = {}
     i = 0
     n = len(gerber_lines)
@@ -107,8 +154,13 @@ def parse_all_macros(gerber_lines: List[str]) -> Dict[str, ApertureMacro]:
             if i < n:
                 block.append(gerber_lines[i].rstrip("\n"))
 
-            macro = parse_macro(block)
-            macros[macro.name] = macro
+            try:
+                macro = parse_macro(block)
+                macros[macro.name] = macro
+            except (ValueError, IndexError) as e:
+                # Avisa mas continua parsing de outras macros
+                import warnings
+                warnings.warn(f"Failed to parse macro at line {i}: {e}")
 
         i += 1
 

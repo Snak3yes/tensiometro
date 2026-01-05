@@ -37,6 +37,8 @@ from .fiducial_alignment import (
     AlignmentTransform, create_alignment_preview
 )
 
+log = logging.getLogger(__name__)
+
 # Parser Gerber para detecção automática de fiduciais
 try:
     from .gerber_parser import (
@@ -46,8 +48,6 @@ try:
 except ImportError:
     HAS_GERBER_PARSER = False
     log.warning("gerber_parser não disponível - detecção automática de fiduciais desabilitada")
-
-log = logging.getLogger(__name__)
 
 
 # ============================================================================
