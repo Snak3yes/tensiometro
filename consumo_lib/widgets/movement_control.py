@@ -1,18 +1,38 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QGridLayout,
-    QPushButton, QLabel, QDoubleSpinBox, QSpinBox, QMessageBox
+    QPushButton, QLabel, QDoubleSpinBox, QSpinBox, QMessageBox, QSizePolicy,
+    QLineEdit, QCheckBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont, QDoubleValidator, QIntValidator
 from aoi_lib.config_manager import AOIConfigManager
 import logging
 
 logger = logging.getLogger(__name__)
+
 class MovementControlWidget(QWidget):
-    """Widget for controlling CNC movement (jog)"""
-    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
+    """
+    Widget for controlling CNC movement (jog).
+
+    Esta versão é compatível com MovementService.
+    Se MovementService for fornecido, usa-o; caso contrário,
+    usa o controller diretamente (compatibilidade com código antigo).
+    """
+
+    def __init__(self, controller, cfg: AOIConfigManager, movement_service=None, parent=None):
+        """
+        Inicializa o widget.
+
+        Args:
+            controller: CNCAOIController
+            cfg: AOIConfigManager
+            movement_service: MovementService (opcional) - se fornecido, usa-o em vez de controller direto
+            parent: Widget pai
+        """
         super().__init__(parent)
         self.controller = controller
-        self.cfg        = cfg 
+        self.cfg = cfg
+        self.movement_service = movement_service  # Pode ser None (compatibilidade)
         self.setup_ui()
         
     def setup_ui(self):
@@ -225,32 +245,49 @@ class MovementControlWidget(QWidget):
     def _on_direction_press(self, axis: str, direction: int):
         """
         Chamada quando o usuário pressiona um botão (ou tecla).
-        Decide entre STEP ou JOG e delega ao GRBLCNCController.
+        Decide entre STEP ou JOG e delega ao MovementService.
         """
-        if not self._precheck_connected():
+        # Verificar se MovementService está disponível
+        if self.movement_service is None:
+            logger.error("MovementService não disponível. Movimento não funcionará.")
+            QMessageBox.warning(
+                self, "Service Não Disponível",
+                "MovementService não foi injetado. Controle de movimento não disponível."
+            )
             return
 
-        feed = self._get_feed_rate()
+        # Salvar step/feed antes de mover
         step = self._get_step_size()
+        feed = self._get_feed_rate()
         if feed is None or step is None:
             return
-        
+
         # --- grava imediatamente no JSON ---
         self.cfg.remember_step_feed(step, feed)
 
-        # “Passo-a-passo” = botão G90 selecionado  ➜  usa step_move
+        # Usar MovementService
         if self.mode_absolute.isChecked():
-            self.controller.cnc.step_move(axis, step * direction, feed)
-        # “Contínuo” = G91 selecionado  ➜  jog
+            # STEP (G90)
+            result = self.movement_service.start_step_move(axis, direction, step, feed)
+            if not result.success:
+                QMessageBox.warning(self, "Erro", result.error_message)
         else:
-            self.controller.cnc.jog_start(axis, direction, feed)
+            # JOG (G91)
+            result = self.movement_service.start_jog(axis, direction, feed)
+            if not result.success:
+                QMessageBox.warning(self, "Erro", result.error_message)
 
     def _on_direction_release(self):
         """Interrompe jog se estivermos em modo contínuo."""
-        if not self._precheck_connected():
-            return
         if self.mode_relative.isChecked():      # só há jog se G91
-            self.controller.cnc.jog_stop()
+            if self.movement_service is None:
+                logger.warning("MovementService não disponível. Não é possível parar jog.")
+                return
+
+            # Usar MovementService
+            result = self.movement_service.stop_jog()
+            if not result.success:
+                logger.warning(f"Erro ao parar jog: {result.error_message}")
 
     def start_movement(self, axis: str, direction: int):
         """
@@ -317,63 +354,28 @@ class MovementControlWidget(QWidget):
             QMessageBox.warning(self, "Erro", "Step size inválido")
             return None
 
-    def _precheck_connected(self) -> bool:
-        if not self.controller.cnc.is_connected:
-            QMessageBox.warning(self, "Erro", "CNC não conectada")
-            return False
-        status = getattr(self.controller.cnc, "machine_status", "")
-        if isinstance(status, str) and status.lower().startswith("alarm"):
-            QMessageBox.warning(self, "Aviso", "Máquina em parada de emergência")
-            return False
-        return True
-
     def go_to_zero(self):
         """
-        Dispara homing no CLP: envia pulso de 100 ms em cada coil de sensor:
-          - M1350 → eixo X
-          - M850  → eixo Y
-          - M185  → eixo Z
+        Executa homing ou movimento para zero usando MovementService.
         """
-        if not self._precheck_connected():
+        # Verificar se MovementService está disponível
+        if self.movement_service is None:
+            logger.error("MovementService não disponível. Homing não funcionará.")
+            QMessageBox.warning(
+                self, "Service Não Disponível",
+                "MovementService não foi injetado. Homing não disponível."
+            )
             return
-        # PLC backend → pulso de 100 ms em cada coil de homing
-        if isinstance(self.controller.cnc, PLCAxisController):
-            status = self.controller.cnc.machine_status
-            if status in ("Run", "Jog", "Alarm"):
-                QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
-                return
-            # Endereços dos coils de homing
-            homing_coils = {
-                'X': 1350,  # M1350_X
-                'Y': 850,   # M850_Y
-                'Z': 1850    # M185_Z
-            }
-            for axis, coil in homing_coils.items():
-                try:
-                    # sobe borda
-                    self.controller.cnc.client.write_coil(coil, True)
-                    time.sleep(0.1)
-                    # desce borda
-                    self.controller.cnc.client.write_coil(coil, False)
-                except Exception as e:
-                    logger.error(f"Homing CLP: falha no pulso de {axis} (coil {coil}): {e}")
-            # aguarda término de todos os eixos
-            self.controller.cnc.wait_for_idle()
-            # atualiza interface
-            self.window().update_position_display()
-            self.window().statusBar().showMessage("Homing CLP concluído")
-            return
-        # GRBL or other → fallback ao “go to zero” por movimento absoluto
-        # evita travar se já em movimento/alarm
-        status = self.controller.cnc.machine_status
-        if status in ("Run", "Jog", "Alarm"):
-            QMessageBox.warning(self, "Aviso", f"Máquina ocupada ({status})")
-            return
-        feed = self._get_feed_rate()
-        if feed is None:
-            return
-        self._start_move_thread(x=0, y=0, z=0, feed=feed,
-                                status_msg="Movendo para posição zero")
+
+        # Usar MovementService
+        result = self.movement_service.go_to_zero()
+        if not result.success:
+            QMessageBox.warning(self, "Erro", result.error_message)
+        else:
+            # Atualizar interface
+            if self.window():
+                self.window().update_position_display()
+                self.window().statusBar().showMessage("Homing concluído")
     
     def get_current_feed_rate(self):
         """Método público para outras classes acessarem a velocidade configurada"""

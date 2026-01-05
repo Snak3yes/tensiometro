@@ -53,8 +53,11 @@ class AOIConfigManager:
             "saturation": 128,
             "exposure": -6,
             "gain": 128,
+            "focus": 0,
+            "auto_focus": True,
             "auto_exposure": True,
             "auto_white_balance": True,
+            "presets": {},                # Perfis nomeados de configuração de câmera
             "calibration_file": "",       # Arquivo de calibração de distorção
             # Configurações da cruz de centralização
             "crosshair": {
@@ -89,7 +92,12 @@ class AOIConfigManager:
     def remember_cnc_port(self, port: str):
         self.set("connections", "last_cnc_port", value=port)
     def remember_camera_id(self, cam_id: int | str):
-        self.set("connections", "last_camera_id", value=int(cam_id))
+        # Tenta converter para int se possível, senão salva como string
+        try:
+            val = int(cam_id)
+        except ValueError:
+            val = str(cam_id)
+        self.set("connections", "last_camera_id", value=val)
     def remember_step_feed(self, step: float, feed: float):
         self.set("movement", "step_size",  value=step)
         self.set("movement", "feed_rate",  value=feed)
@@ -106,8 +114,9 @@ class AOIConfigManager:
     def remember_camera_settings(self, mirror_x: bool, mirror_y: bool, 
                                   brightness: int = 128, contrast: int = 128,
                                   saturation: int = 128, exposure: int = -6,
-                                  gain: int = 128, auto_exp: bool = True,
-                                  auto_wb: bool = True):
+                                  gain: int = 128, focus: int = 0,
+                                  auto_exp: bool = True, auto_wb: bool = True,
+                                  auto_focus: bool = True):
         """Grava configurações de câmera."""
         self.set("camera", "mirror_x", value=mirror_x)
         self.set("camera", "mirror_y", value=mirror_y)
@@ -116,8 +125,25 @@ class AOIConfigManager:
         self.set("camera", "saturation", value=saturation)
         self.set("camera", "exposure", value=exposure)
         self.set("camera", "gain", value=gain)
+        self.set("camera", "focus", value=focus)
         self.set("camera", "auto_exposure", value=auto_exp)
         self.set("camera", "auto_white_balance", value=auto_wb)
+        self.set("camera", "auto_focus", value=auto_focus)
+
+    # -------- presets de câmera ---------------
+    def save_camera_preset(self, name: str, data: dict):
+        """Grava um preset de câmera nomeado."""
+        presets = self.get("camera", "presets", default={})
+        presets[name] = data
+        self.set("camera", "presets", value=presets)
+
+    def get_camera_preset(self, name: str) -> dict | None:
+        presets = self.get("camera", "presets", default={})
+        return presets.get(name)
+
+    def list_camera_presets(self) -> list[str]:
+        presets = self.get("camera", "presets", default={})
+        return list(presets.keys())
 
     def remember_camera_calibration(self, filepath: str):
         """Grava caminho do arquivo de calibração de câmera."""
@@ -277,10 +303,10 @@ class SettingsDialog(QDialog):
         cam_group = QGroupBox("Câmera")
         cam_layout = QFormLayout(cam_group)
         
-        self.spin_camera_id = QSpinBox()
-        self.spin_camera_id.setRange(0, 10)
-        self.spin_camera_id.setValue(cfg.get("connections", "last_camera_id", default=0))
-        cam_layout.addRow("ID da Câmera:", self.spin_camera_id)
+        self.edit_camera_id = QLineEdit()
+        self.edit_camera_id.setText(str(cfg.get("connections", "last_camera_id", default="0")))
+        self.edit_camera_id.setToolTip("ID numérico ou URL (http://...)")
+        cam_layout.addRow("ID/URL da Câmera:", self.edit_camera_id)
         
         self.chk_auto_camera = QCheckBox("Conectar câmera automaticamente")
         self.chk_auto_camera.setChecked(cfg.get("connections", "auto_connect_camera", default=False))
@@ -391,8 +417,12 @@ class SettingsDialog(QDialog):
         # Conexões
         self.cfg.set("connections", "plc_host", value=self.edit_plc_host.text().strip())
         self.cfg.set("connections", "plc_port", value=self.spin_plc_port.value())
-        self.cfg.set("connections", "last_camera_id", value=self.spin_camera_id.value())
-        self.cfg.set("connections", "last_camera_id", value=self.spin_camera_id.value())
+        
+        # Camera ID/URL
+        cam_val = self.edit_camera_id.text().strip()
+        if cam_val.isdigit():
+            cam_val = int(cam_val)
+        self.cfg.set("connections", "last_camera_id", value=cam_val)
         self.cfg.set("connections", "auto_connect_camera", value=self.chk_auto_camera.isChecked())
         self.cfg.set("connections", "backlight_coil", value=self.spin_bl_coil.value())
         
@@ -410,4 +440,3 @@ class SettingsDialog(QDialog):
         self.cfg.set("movement", "feed_rate", value=self.spin_feed.value())
         
         self.accept()
-

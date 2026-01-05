@@ -14,21 +14,42 @@ from aoi_lib.fov_calibration import (
 
 logger = logging.getLogger(__name__)
 class CameraPreviewWidget(QWidget):
-    """Widget for displaying camera preview and capturing images"""
+    """
+    Widget for displaying camera preview and capturing images.
+
+    Esta versão é compatível com ClickToMoveService.
+    Se ClickToMoveService for fornecido, usa-o; caso contrário,
+    usa a lógica original de conversão (compatibilidade).
+    """
     image_captured = pyqtSignal(object, str)  # Emits the captured image and position name
-    
-    def __init__(self, controller, cfg: AOIConfigManager, parent=None):
+
+    def __init__(self, controller, cfg: AOIConfigManager, click_to_move_service=None, fov_converter=None, parent=None):
+        """
+        Inicializa o widget.
+
+        Args:
+            controller: AOIController
+            cfg: AOIConfigManager
+            click_to_move_service: ClickToMoveService (opcional) - se fornecido, usa-o em vez da lógica original
+            fov_converter: CameraFOVConverter (opcional) - se fornecido, usa-o em vez de criar um novo
+            parent: Widget pai
+        """
         super().__init__(parent)
         self.controller = controller
         self.cfg = cfg
+        self.click_to_move_service = click_to_move_service  # Pode ser None (compatibilidade)
         self.current_image = None
         self._last_frame_size = (640, 480)  # Tamanho do frame da câmera
         self.preview_timer = QTimer(self)
         self.preview_timer.timeout.connect(self.update_preview)
-        
+
         # Inicializa conversor de FOV para clique no vídeo
-        self._init_fov_converter()
-        
+        # Usa fov_converter fornecido ou cria um novo
+        if fov_converter is not None:
+            self.fov_converter = fov_converter
+        else:
+            self._init_fov_converter()
+
         self.setup_ui()
     
     def _init_fov_converter(self):
@@ -83,12 +104,21 @@ class CameraPreviewWidget(QWidget):
     def _on_video_click(self, click_x: float, click_y: float):
         """
         Handler para clique no preview de vídeo.
-        Move a head para centralizar o ponto clicado.
+        Move a head para centralizar o ponto clicado usando ClickToMoveService.
         """
         # Verifica se movimento por clique está habilitado
         if not self.click_move_enabled.isChecked():
             return
-        
+
+        # Verifica se ClickToMoveService está disponível
+        if self.click_to_move_service is None:
+            logger.warning("ClickToMoveService não disponível. Movimento por clique não funcionará.")
+            QMessageBox.warning(
+                self, "Service Não Disponível",
+                "ClickToMoveService não foi injetado. Movimento por clique não disponível."
+            )
+            return
+
         # Verifica se CLP está conectado
         if not hasattr(self.controller, 'cnc') or not self.controller.cnc.is_connected:
             QMessageBox.warning(
@@ -96,52 +126,55 @@ class CameraPreviewWidget(QWidget):
                 "O CLP não está conectado. Conecte antes de usar movimento por clique."
             )
             return
-        
+
+        # Usar ClickToMoveService
+        self._move_via_service(click_x, click_y)
+
+    def _move_via_service(self, click_x: float, click_y: float):
+        """
+        Move a posição usando ClickToMoveService.
+        """
         try:
-            # Obtém posição Z atual para calibração correta
-            z_current = self.controller.cnc.get_current_position().get('z', 0)
-            
-            # Atualiza tamanho do frame no conversor
-            self.fov_converter.set_frame_size(*self._last_frame_size)
-            
-            # Converte clique em movimento (retorna pulsos)
-            # NOTA: Sistema de coordenadas de imagem (Y para baixo) vs CNC
-            # A função video_click_to_movement já aplica a inversão necessária:
-            # - Por padrão (invert_y=False): Y é negado para corrigir orientação
-            # - Se _camera_mirror_y=True: imagem está espelhada, passa invert_y=True para cancelar a negação
-            dx_pulses, dy_pulses = self.fov_converter.video_click_to_movement(
-                click_x, click_y,
-                self.image_label.width(),
-                self.image_label.height(),
-                z_current,
-                axis_x="X", axis_y="Y",
-                invert_y=getattr(self.window(), '_camera_mirror_y', False)
-            )
-            
-            # Executa movimento se houver deslocamento significativo
-            if abs(dx_pulses) > 5 or abs(dy_pulses) > 5:
-                logger.info(f"Clique no vídeo: movendo ΔX={dx_pulses}, ΔY={dy_pulses} pulsos")
-                
-                # Converte pulsos para mm
-                dx_mm = dx_pulses / self.controller.cnc.pulses_per_mm if dx_pulses != 0 else None
-                dy_mm = dy_pulses / self.controller.cnc.pulses_per_mm if dy_pulses != 0 else None
-                
-                # Usa mesma velocidade configurada no widget de movimento (mm/min)
-                main_window = self.window()
-                if hasattr(main_window, 'movement_widget'):
-                    feed_rate = main_window.movement_widget.get_current_feed_rate()
-                else:
-                    feed_rate = 1000  # Fallback padrão
-                
-                # Usa move_relative do PLCAxisController (espera mm e mm/min)
-                self.controller.cnc.move_relative(x=dx_mm, y=dy_mm, feed_rate=feed_rate)
+            # Obter tamanho atual da imagem
+            image_size = (self.image_label.width(), self.image_label.height())
+
+            # Obter posição Z atual
+            z_current = self.controller.cnc.get_current_position().get('z', 0.0)
+
+            # Obter feed rate do movement_widget
+            main_window = self.window()
+            if hasattr(main_window, 'movement_widget'):
+                feed_rate = main_window.movement_widget.get_current_feed_rate()
             else:
-                logger.debug("Clique muito próximo do centro, ignorado")
-                
+                feed_rate = 1000.0  # Fallback
+
+            # Obter configuração de espelhamento
+            invert_y = getattr(self.window(), '_camera_mirror_y', False)
+
+            # Executar movimento via service
+            result = self.click_to_move_service.move_to_pixel(
+                pixel_x=int(click_x),
+                pixel_y=int(click_y),
+                image_size=image_size,
+                z_current=z_current,
+                feed_rate=feed_rate,
+                invert_y=invert_y
+            )
+
+            if result.success:
+                if result.movement_made:
+                    dx, dy = result.distance_moved
+                    logger.info(f"Click-to-move: Δ({dx:.3f}, {dy:.3f}) mm @ {feed_rate} mm/min")
+                else:
+                    logger.debug("Clique muito próximo do centro, ignorado pelo service")
+            else:
+                logger.error(f"Click-to-move falhou: {result.error_message}")
+                QMessageBox.warning(self, "Erro", result.error_message)
+
         except Exception as e:
-            logger.error(f"Erro ao processar clique no vídeo: {e}")
+            logger.error(f"Erro ao processar clique via service: {e}")
             QMessageBox.warning(self, "Erro", f"Erro ao mover: {e}")
-        
+
     def start_preview(self):
         """Start camera preview"""
         if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:

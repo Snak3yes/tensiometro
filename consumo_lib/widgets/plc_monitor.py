@@ -1,8 +1,10 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel,
-    QFrame, QSizePolicy
+    QFrame, QSizePolicy, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem,
+    QHeaderView
 )
 from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtGui import QIntValidator
 from aoi_lib.plc_axis_controller import PLCAxisController
 import logging
 

@@ -15,7 +15,20 @@ class CameraController:
         self.is_connected = False
         self.last_error = ""
         
-    def connect(self, camera_id=0):
+    def connect(self, camera_id=0, timeout_seconds=10):
+        """
+        Conecta a uma câmera (USB ou stream URL).
+        
+        Para streams de URL (HTTP/MJPEG), a conexão é feita em uma thread 
+        separada com timeout para evitar congelamento da UI.
+        
+        Args:
+            camera_id: ID da câmera (int) ou URL do stream (str)
+            timeout_seconds: Timeout máximo para conexão URL (padrão: 10s)
+            
+        Returns:
+            True se conectou com sucesso, False caso contrário
+        """
         # 0) Se já está conectado, primeiro desconecta para garantir
         #    liberação correta do dispositivo.
         if self.is_connected:
@@ -41,14 +54,89 @@ class CameraController:
         # 3) Caminho padrão OpenCV  -------------------------------
         try:
             import cv2
-            self.camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
-            self.is_connected = self.camera.isOpened()
+            
+            # Verifica se é uma URL (string não numérica) ou ID numérico
+            is_url = False
+            if isinstance(camera_id, str):
+                # Remove espaços em branco que podem causar erro
+                camera_id = camera_id.strip()
+                if not camera_id.isdigit():
+                    is_url = True
+                else:
+                    camera_id = int(camera_id)
+            
+            if is_url:
+                # Para URLs, usa conexão com timeout em thread separada
+                # para não bloquear a UI principal
+                self.camera = self._connect_url_with_timeout(camera_id, timeout_seconds)
+                if self.camera is None:
+                    self.is_connected = False
+                    return False
+            else:
+                # Para Webcams USB no Windows, CAP_DSHOW é recomendado (mais rápido/estável para USB)
+                self.camera = cv2.VideoCapture(camera_id, cv2.CAP_DSHOW)
+                
+            self.is_connected = self.camera.isOpened() if self.camera else False
             if not self.is_connected:
-                self.last_error = f"cv2.VideoCapture({camera_id}) não abriu"
+                self.last_error = f"cv2.VideoCapture({camera_id}) não abriu (URL={is_url})"
             return self.is_connected
         except Exception as e:
             self.last_error = str(e)
             return False
+    
+    def _connect_url_with_timeout(self, url, timeout_seconds):
+        """
+        Tenta conectar a uma URL de stream com timeout.
+        
+        Executa a conexão em uma thread separada para não bloquear a UI.
+        
+        Args:
+            url: URL do stream de vídeo
+            timeout_seconds: Tempo máximo de espera (segundos)
+            
+        Returns:
+            cv2.VideoCapture object se sucesso, None se falhou/timeout
+        """
+        import cv2
+        from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+        
+        def try_connect():
+            """Função que será executada na thread separada."""
+            # Tenta primeiro com FFMPEG (melhor para streams HTTP/MJPEG)
+            cap = cv2.VideoCapture(url, cv2.CAP_FFMPEG)
+            if cap.isOpened():
+                # Tenta ler um frame para confirmar que está funcionando
+                ret, _ = cap.read()
+                if ret:
+                    return cap
+                cap.release()
+            
+            # Fallback: tenta sem backend específico
+            cap = cv2.VideoCapture(url)
+            if cap.isOpened():
+                ret, _ = cap.read()
+                if ret:
+                    return cap
+                cap.release()
+            
+            return None
+        
+        # Executa a conexão em thread separada com timeout
+        with ThreadPoolExecutor(max_workers=1) as executor:
+            future = executor.submit(try_connect)
+            try:
+                result = future.result(timeout=timeout_seconds)
+                if result is None:
+                    self.last_error = f"Falha ao conectar à URL: {url}"
+                return result
+            except FuturesTimeoutError:
+                self.last_error = f"Timeout ({timeout_seconds}s) ao conectar à URL: {url}"
+                # Tenta cancelar a operação pendente
+                future.cancel()
+                return None
+            except Exception as e:
+                self.last_error = f"Erro ao conectar à URL {url}: {str(e)}"
+                return None
                 
     def disconnect(self):
         if not self.is_connected and not self.camera:

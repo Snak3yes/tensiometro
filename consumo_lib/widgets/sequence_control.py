@@ -1,6 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QSpinBox, QCheckBox, QMessageBox
+    QLabel, QSpinBox, QCheckBox, QMessageBox,
+    QGroupBox, QGridLayout, QLineEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from aoi_lib.config_manager import AOIConfigManager

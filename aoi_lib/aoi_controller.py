@@ -269,9 +269,82 @@ class CNCAOIController:
         logger.info("generate_map: concluído com sucesso.")
     
     @staticmethod
-    def _grid_points(origin, end, sx, sy, snake=True):
+    def calculate_adjusted_steps(origin: dict, end: dict, step_x: float, step_y: float) -> dict:
+        """
+        Calcula os passos ajustados para dividir a distância igualmente.
+        
+        Quando a distância total (dx ou dy) não é múltiplo exato do passo,
+        recalcula o passo para que todas as imagens tenham sobreposição uniforme.
+        
+        Args:
+            origin: {'x': float, 'y': float} - Ponto de origem
+            end: {'x': float, 'y': float} - Ponto final
+            step_x: Passo desejado em X (mm)
+            step_y: Passo desejado em Y (mm)
+            
+        Returns:
+            {
+                'step_x': float,           # Passo X ajustado
+                'step_y': float,           # Passo Y ajustado
+                'cols': int,               # Número de colunas
+                'rows': int,               # Número de linhas
+                'total_images': int,       # Total de imagens
+                'dx': float,               # Distância total X
+                'dy': float,               # Distância total Y
+                'adjusted_x': bool,        # Se X foi ajustado
+                'adjusted_y': bool         # Se Y foi ajustado
+            }
+        """
+        dx = end['x'] - origin['x']
+        dy = end['y'] - origin['y']
+        
+        if dx <= 0 or dy <= 0:
+            raise ValueError("Cantos inválidos (dx/dy devem ser positivos)")
+        if step_x <= 0 or step_y <= 0:
+            raise ValueError("Passos devem ser > 0")
+        
+        # Calcula número de passos necessários (arredonda para cima)
+        n_steps_x = int(math.ceil(dx / step_x))
+        n_steps_y = int(math.ceil(dy / step_y))
+        
+        # Garante pelo menos 1 passo
+        n_steps_x = max(n_steps_x, 1)
+        n_steps_y = max(n_steps_y, 1)
+        
+        # Recalcula o passo para dividir igualmente
+        adjusted_step_x = dx / n_steps_x
+        adjusted_step_y = dy / n_steps_y
+        
+        # Número de imagens = passos + 1 (inclui origem e fim)
+        cols = n_steps_x + 1
+        rows = n_steps_y + 1
+        
+        return {
+            'step_x': adjusted_step_x,
+            'step_y': adjusted_step_y,
+            'cols': cols,
+            'rows': rows,
+            'total_images': cols * rows,
+            'dx': dx,
+            'dy': dy,
+            'adjusted_x': abs(adjusted_step_x - step_x) > 0.001,
+            'adjusted_y': abs(adjusted_step_y - step_y) > 0.001,
+            'original_step_x': step_x,
+            'original_step_y': step_y
+        }
+
+    @staticmethod
+    def _grid_points(origin, end, sx, sy, snake=True, auto_adjust=True):
         """
         Gera tuplas (row, col, x, y) seguindo padrão "zig-zag" (snake) opcional.
+        
+        Args:
+            origin: {'x': float, 'y': float} - Ponto de origem
+            end: {'x': float, 'y': float} - Ponto final
+            sx: Passo em X (mm)
+            sy: Passo em Y (mm)
+            snake: Se True, usa padrão zig-zag para otimizar movimento
+            auto_adjust: Se True, ajusta passos para divisão uniforme
         """
         dx = end['x'] - origin['x']
         dy = end['y'] - origin['y']
@@ -280,10 +353,25 @@ class CNCAOIController:
         if sx <= 0 or sy <= 0:
             raise ValueError("Passos sx/sy devem ser > 0")
 
-        cols = int(math.ceil(dx / sx)) + 1
-        rows = int(math.ceil(dy / sy)) + 1
-        x_pos = [origin['x'] + min(i * sx, dx) for i in range(cols)]
-        y_pos = [origin['y'] + min(j * sy, dy) for j in range(rows)]
+        if auto_adjust:
+            # Usa cálculo ajustado para divisão uniforme
+            adjusted = CNCAOIController.calculate_adjusted_steps(origin, end, sx, sy)
+            sx = adjusted['step_x']
+            sy = adjusted['step_y']
+            cols = adjusted['cols']
+            rows = adjusted['rows']
+        else:
+            # Comportamento antigo (mantido para compatibilidade)
+            cols = int(math.ceil(dx / sx)) + 1
+            rows = int(math.ceil(dy / sy)) + 1
+        
+        # Gera posições com espaçamento uniforme
+        x_pos = [origin['x'] + i * sx for i in range(cols)]
+        y_pos = [origin['y'] + j * sy for j in range(rows)]
+        
+        # Garante que o último ponto seja exatamente o end
+        x_pos[-1] = end['x']
+        y_pos[-1] = end['y']
 
         for r, y in enumerate(y_pos):
             scan = x_pos if (r % 2 == 0 or not snake) else list(reversed(x_pos))

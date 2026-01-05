@@ -48,16 +48,51 @@ class CNCControlTab(BaseTab):
         tab_layout.setContentsMargins(5, 5, 5, 5)
         tab_layout.setSpacing(5)
 
-        # Importa widgets
-        from aoi_lib.stencil_tracker_ui import (
+        # Importa widgets e services
+        from consumo_lib.widgets import (
             CameraPreviewWidget,
             MovementControlWidget
         )
+        from consumo_lib.services import MovementService, ClickToMoveService
+        from aoi_lib.fov_calibration import CameraFOVConverter, FOVCalibration
+
+        # Criar MovementService
+        self.movement_service = MovementService(
+            cnc_controller=self.controller.cnc,
+            config_manager=self.config_manager
+        )
+        logger.debug("MovementService criado para CNCControlTab")
+
+        # Criar FOVConverter para ClickToMoveService
+        fov_converter = CameraFOVConverter()
+
+        # Carrega calibração FOV salva se existir
+        fov_data = self.config_manager.get("camera", "fov_calibration", default={})
+        if fov_data:
+            try:
+                fov_converter.set_fov_calibration(FOVCalibration.from_dict(fov_data))
+                logger.debug("FOV calibration carregada no CNCControlTab")
+            except Exception as e:
+                logger.warning(f"Erro ao carregar FOV calibration: {e}")
+
+        # Carrega calibração de eixos
+        pulses_per_mm = self.config_manager.get("movement", "pulses_per_mm", default=100.0)
+        fov_converter.set_axis_calibration("X", pulses_per_mm)
+        fov_converter.set_axis_calibration("Y", pulses_per_mm)
+
+        # Criar ClickToMoveService
+        self.click_to_move_service = ClickToMoveService(
+            movement_service=self.movement_service,
+            fov_converter=fov_converter
+        )
+        logger.debug("ClickToMoveService criado para CNCControlTab")
 
         # Left side: camera preview (maior espaço)
         self.camera_preview = CameraPreviewWidget(
             self.controller,
-            self.config_manager
+            self.config_manager,
+            click_to_move_service=self.click_to_move_service,  # Injeta service
+            fov_converter=fov_converter  # Injeta FOV converter
         )
         self.camera_preview.image_captured.connect(self._on_image_captured)
         tab_layout.addWidget(self.camera_preview, 3)  # Proporção 3
@@ -69,7 +104,8 @@ class CNCControlTab(BaseTab):
 
         self.movement_widget = MovementControlWidget(
             self.controller,
-            self.config_manager
+            self.config_manager,
+            movement_service=self.movement_service  # Passa o service
         )
         cm_left_layout.addWidget(self.movement_widget)
 

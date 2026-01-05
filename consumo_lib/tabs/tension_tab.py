@@ -33,7 +33,7 @@ class TensionTab(BaseTab):
     def build_ui(self):
         """Constrói a interface da aba."""
         # Importa widget de visualização
-        from aoi_lib.stencil_tracker_ui import TensionVisualizationWidget
+        from consumo_lib.widgets import TensionVisualizationWidget
 
         # Cria o widget de visualização
         self.visualization = TensionVisualizationWidget()

@@ -88,10 +88,63 @@ class PLCAxisController:
         self.backlight_on = False
         # Endereço da saída Y0.7 para controle do backlight (padrão 1 = M1 -> Y0.7)
         self.backlight_coil_address = 1
+        # destinos ativos (usado para wait_for_idle inspirado na adesivadora)
+        self._targets: dict[str, int] = {}
         
         # Conecta automaticamente se solicitado
         if auto_connect:
             self.connect()
+
+    # =========================================================================
+    # Helpers internos de movimento
+    # =========================================================================
+    def _clamp_feed_rate(self, feed_rate: float | None) -> float | None:
+        """
+        Garante que o feed-rate esteja dentro de limites válidos.
+        """
+        if feed_rate is None:
+            return None
+        try:
+            fr = float(feed_rate)
+        except (TypeError, ValueError):
+            return None
+        fr = max(fr, 1.0)
+        finite_limits = [v for v in self.max_feed.values() if v != float("inf")]
+        if finite_limits:
+            fr = min(fr, min(finite_limits))
+        return fr
+
+    def _apply_motion_pulses(self, targets_pulses: dict[str, int], feed_rate: float | None = None) -> bool:
+        """
+        Escreve alvo e velocidade para múltiplos eixos e dispara o movimento
+        quase simultaneamente, evitando jitter entre eixos.
+        """
+        if not targets_pulses:
+            return True
+        if not self.client or not self.is_connected:
+            raise IOError("PLC não conectado")
+
+        fr = self._clamp_feed_rate(feed_rate)
+        speed_pulses = int(round(fr * self.pulses_per_mm)) if fr is not None else None
+
+        # limpa alvos anteriores e registra os novos para wait_for_idle
+        self._targets.clear()
+
+        # 1) Grava alvos e velocidades
+        for ax, tgt in targets_pulses.items():
+            cfg = self.ADDRESSES[ax]
+            self._write_dword(cfg['pos_input'], int(tgt))
+            if speed_pulses is not None:
+                self._write_dword(cfg['speed'], int(speed_pulses))
+            self._targets[ax] = int(tgt)
+
+        # 2) Dispara todos os eixos rapidamente
+        for ax in targets_pulses.keys():
+            cfg = self.ADDRESSES[ax]
+            self._pulse_coil(cfg['move_abs'])
+
+        self.machine_status = "Run"
+        return True
 
     def set_connection_params(self, host: str, port: int):
         """
@@ -190,11 +243,7 @@ class PLCAxisController:
         Move o eixo `axis` para posição absoluta (pulsos).
         Se `speed` for fornecido, grava no registrador de velocidade.
         """
-        cfg = self.ADDRESSES[axis]
-        self._write_dword(cfg['pos_input'], int(position))
-        if speed is not None:
-            self._write_dword(cfg['speed'], int(speed))
-        self._pulse_coil(cfg['move_abs'])
+        return self._apply_motion_pulses({axis: position}, speed / self.pulses_per_mm if speed else None)
 
     def move_relative(self, x=None, y=None, z=None, feed_rate=1000):
         """
@@ -205,41 +254,21 @@ class PLCAxisController:
             x, y, z: Deslocamento relativo em mm (None para não mover o eixo)
             feed_rate: Velocidade em mm/min
         """
-        # Converte feed_rate (mm/min) para pulsos/min
-        speed_pulses = int(round(feed_rate * self.pulses_per_mm)) if feed_rate else None
-        
-        # Move cada eixo especificado de forma relativa
+        targets = {}
         if x is not None:
-            x_pulses = int(round(x * self.pulses_per_mm))
             current_x = self._read_dword(self.ADDRESSES['X']['pos_reg'])
-            self.move_absolute('X', current_x + x_pulses, speed_pulses)
-            
-        if y is not None:
-            y_pulses = int(round(y * self.pulses_per_mm))
-            current_y = self._read_dword(self.ADDRESSES['Y']['pos_reg'])
-            self.move_absolute('Y', current_y + y_pulses, speed_pulses)
-            
-        if z is not None:
-            z_pulses = int(round(z * self.pulses_per_mm))
-            current_z = self._read_dword(self.ADDRESSES['Z']['pos_reg'])
-            self.move_absolute('Z', current_z + z_pulses, speed_pulses)
-            
-        return True
+            targets['X'] = current_x + int(round(x * self.pulses_per_mm))
 
-    def wait_for_idle(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
-        """
-        Aguarda até o eixo atingir o alvo ±`tolerance` pulsos,
-        retornando True se dentro de `timeout` segundos.
-        """
-        target = self._read_dword(self.ADDRESSES[axis]['pos_input'])
-        t0 = time.time()
-        while time.time() - t0 < timeout:
-            cur = self._read_dword(self.ADDRESSES[axis]['pos_reg'])
-            if abs(cur - target) <= tolerance:
-                return True
-            time.sleep(0.05)
-        return False
-    
+        if y is not None:
+            current_y = self._read_dword(self.ADDRESSES['Y']['pos_reg'])
+            targets['Y'] = current_y + int(round(y * self.pulses_per_mm))
+
+        if z is not None:
+            current_z = self._read_dword(self.ADDRESSES['Z']['pos_reg'])
+            targets['Z'] = current_z + int(round(z * self.pulses_per_mm))
+
+        return self._apply_motion_pulses(targets, feed_rate)
+
     def step_move(self, axis: str, distance_mm: float, feed_rate: float = None) -> bool:
         """
         Move um passo no eixo especificado:
@@ -254,15 +283,15 @@ class PLCAxisController:
         speed = int(round(feed_rate * self.pulses_per_mm)) if feed_rate is not None else None
         # 3) executa movimento relativo usando o método antigo interno
         self._move_relative_single_axis(axis, pulses, speed)
-        # 4) aguarda até o eixo estar idle
-        return self._wait_for_idle_axis(axis)
+        # 4) aguarda até o eixo estar idle (e restaura status Idle)
+        return self.wait_for_idle(axis)
     
     def _move_relative_single_axis(self, axis: str, offset: int, speed: int=None):
         """
         Move um único eixo de forma relativa (método interno).
         """
         current = self._read_dword(self.ADDRESSES[axis]['pos_reg'])
-        self.move_absolute(axis, current + offset, speed)
+        return self._apply_motion_pulses({axis: current + offset}, speed / self.pulses_per_mm if speed else None)
 
     def jog_start(self, axis: str, direction: int, feed_rate: float = None):
         """
@@ -279,12 +308,14 @@ class PLCAxisController:
         cfg = self.ADDRESSES[axis]
         # Converte feed_rate (mm/min) para pulsos/min se fornecido
         if feed_rate is not None:
-            speed_pulses = int(round(feed_rate * self.pulses_per_mm))
+            fr = self._clamp_feed_rate(feed_rate)
+            speed_pulses = int(round(fr * self.pulses_per_mm))
             self._write_dword(cfg['speed'], speed_pulses)
-        
+
         # Aciona o coil apropriado baseado na direção
         coil = cfg['jog_plus'] if direction > 0 else cfg['jog_minus']
         self.client.write_coil(coil, True)
+        self.machine_status = "Jog"
 
     def jog_stop(self, axis: str = None):
         """
@@ -297,6 +328,7 @@ class PLCAxisController:
             cfg = self.ADDRESSES[ax]
             self.client.write_coil(cfg['jog_plus'], False)
             self.client.write_coil(cfg['jog_minus'], False)
+        self.machine_status = "Idle"
 
     def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=1000):
         """
@@ -307,40 +339,59 @@ class PLCAxisController:
             x, y, z: Coordenadas de destino em mm (None para não mover o eixo)
             feed_rate: Velocidade em mm/min
         """
-        # Converte feed_rate (mm/min) para pulsos/min
-        speed_pulses = int(round(feed_rate * self.pulses_per_mm)) if feed_rate else None
-        
-        # Move cada eixo que foi especificado
+        targets = {}
         if x is not None:
-            x_pulses = int(round(x * self.pulses_per_mm))
-            self.move_absolute('X', x_pulses, speed_pulses)
-            
+            targets['X'] = int(round(x * self.pulses_per_mm))
+
         if y is not None:
-            y_pulses = int(round(y * self.pulses_per_mm))
-            self.move_absolute('Y', y_pulses, speed_pulses)
-            
+            targets['Y'] = int(round(y * self.pulses_per_mm))
+
         if z is not None:
-            z_pulses = int(round(z * self.pulses_per_mm))
-            self.move_absolute('Z', z_pulses, speed_pulses)
-            
-        return True
+            targets['Z'] = int(round(z * self.pulses_per_mm))
+
+        return self._apply_motion_pulses(targets, feed_rate)
     
     def wait_for_idle(self, axis=None, tolerance: int=1, timeout: int=10):
         """
         Aguarda até que os eixos fiquem idle.
-        - Se axis for uma string ('X','Y','Z'), aguarda apenas esse eixo.
-        - Se axis for None, aguarda todos os eixos (X, Y, Z) sequencialmente.
-        tolerance: tolerância em pulsos.
-        timeout: tempo máximo de espera em segundos.
+        - Se axis for string, usa apenas aquele alvo; senão usa _targets ativos.
         """
-        # Se pediram eixo específico, despacha direto
+        # fallback para compatibilidade: se nada em _targets, usa axis único ou todos
+        targets = {}
         if isinstance(axis, str):
-            return self._wait_for_idle_axis(axis, tolerance, timeout)
-        # Senão espera todos os eixos em série
-        for ax in ('X', 'Y', 'Z'):
-            if not self._wait_for_idle_axis(ax, tolerance, timeout):
-                return False
-        return True
+            # se pediram eixo específico, tenta alvo registrado; senão lê pos_input
+            if self._targets:
+                if axis in self._targets:
+                    targets = {axis: self._targets[axis]}
+            else:
+                targets = {axis: self._read_dword(self.ADDRESSES[axis]['pos_input'])}
+        else:
+            targets = self._targets.copy() if self._targets else {
+                ax: self._read_dword(cfg['pos_input'])
+                for ax, cfg in self.ADDRESSES.items()
+            }
+
+        t0 = time.time()
+        ok_axes = set()
+        while time.time() - t0 < timeout:
+            all_reached = True
+            for ax, tgt in list(targets.items()):
+                if ax in ok_axes:
+                    continue
+                pos = self._read_dword(self.ADDRESSES[ax]['pos_reg'])
+                if abs(pos - tgt) <= tolerance:
+                    ok_axes.add(ax)
+                else:
+                    all_reached = False
+            if all_reached:
+                self._targets.clear()
+                self.machine_status = "Idle"
+                return True
+            time.sleep(0.05)
+
+        # timeout
+        self.machine_status = "Alarm" if self.machine_status == "Run" else self.machine_status
+        return False
     
     def _wait_for_idle_axis(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
         """

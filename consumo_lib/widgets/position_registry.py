@@ -3,6 +3,7 @@ from PyQt6.QtWidgets import (
     QListWidget, QListWidgetItem, QInputDialog, QMessageBox
 )
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont
 from aoi_lib.config_manager import AOIConfigManager
 import logging
 

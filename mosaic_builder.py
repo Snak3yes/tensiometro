@@ -30,10 +30,10 @@ try:
     from PyQt6.QtWidgets import (
         QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
         QPushButton, QLabel, QFileDialog, QSpinBox, QGroupBox, QMessageBox,
-        QCheckBox, QProgressBar, QComboBox,
+        QCheckBox, QProgressBar, QComboBox, QGraphicsView, QGraphicsScene
     )
-    from PyQt6.QtGui import QPixmap, QImage
-    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QPixmap, QImage, QWheelEvent, QMouseEvent
+    from PyQt6.QtCore import Qt, QPoint
     HAS_PYQT = True
 except ImportError:
     HAS_PYQT = False
@@ -435,7 +435,16 @@ if HAS_PYQT:
         def _build_ui(self):
             central = QWidget()
             self.setCentralWidget(central)
-            v = QVBoxLayout(central)
+            # Layout principal: preview à esquerda, controles à direita
+            h_main = QHBoxLayout(central)
+
+            # Preview com zoom/pan
+            self.preview = MosaicPreview()
+            h_main.addWidget(self.preview, 2)
+
+            # Painel de controles
+            v = QVBoxLayout()
+            h_main.addLayout(v, 1)
 
             # --- Seletor de pasta ---
             grp = QGroupBox("Seleção de Imagens")
@@ -534,12 +543,7 @@ if HAS_PYQT:
             self.progress.setVisible(False)
             v.addWidget(self.progress)
 
-            # --- Preview ---
-            self.preview_lbl = QLabel("Resultado aparecerá aqui")
-            self.preview_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.preview_lbl.setStyleSheet("border:1px solid gray; background:#f8f8f8;")
-            self.preview_lbl.setMinimumHeight(400)
-            v.addWidget(self.preview_lbl, 1)
+            v.addStretch(1)
 
             self.statusBar().showMessage("Selecione a pasta com as imagens capturadas")
 
@@ -621,19 +625,75 @@ if HAS_PYQT:
             out_name = os.path.join(self.folder, f"{self.program_name}_mosaic.png")
             cv2.imwrite(out_name, mosaic)
 
-            # Exibe preview
-            h, w = mosaic.shape[:2]
-            qimg = QImage(mosaic.data, w, h, w * 3, QImage.Format.Format_BGR888)
-            pix = QPixmap.fromImage(qimg)
-            
-            max_w, max_h = 1200, 600
-            if w > max_w or h > max_h:
-                pix = pix.scaled(max_w, max_h, Qt.AspectRatioMode.KeepAspectRatio)
-            self.preview_lbl.setPixmap(pix)
-            
+            # Exibe preview com zoom/pan
+            self.preview.set_image(mosaic)
+                
             self.statusBar().showMessage(
-                f"✅ Mosaico criado: {w}x{h} px ({cols}x{rows} tiles). Salvo: {out_name}"
+                f"✅ Mosaico criado: {mosaic.shape[1]}x{mosaic.shape[0]} px ({cols}x{rows} tiles). Salvo: {out_name}"
             )
+
+
+# =============================================================================
+# Preview com zoom e pan
+# =============================================================================
+
+class MosaicPreview(QGraphicsView):
+    """Preview que suporta zoom com scroll e pan com botão do meio."""
+    def __init__(self):
+        super().__init__()
+        self.setScene(QGraphicsScene(self))
+        self._pixmap_item = None
+        self._zoom = 1.0
+        self._panning = False
+        self._pan_start: QPoint | None = None
+        self.setDragMode(QGraphicsView.DragMode.NoDrag)
+        self.setBackgroundBrush(Qt.GlobalColor.lightGray)
+
+    def set_image(self, image: np.ndarray):
+        """Recebe imagem BGR (numpy) e exibe com reset de zoom."""
+        if image is None:
+            return
+        h, w = image.shape[:2]
+        bytes_per_line = 3 * w
+        qimg = QImage(image.data, w, h, bytes_per_line, QImage.Format.Format_BGR888)
+        pix = QPixmap.fromImage(qimg)
+
+        self.scene().clear()
+        self._pixmap_item = self.scene().addPixmap(pix)
+        self._zoom = 1.0
+        self.resetTransform()
+        self.fitInView(self._pixmap_item, Qt.AspectRatioMode.KeepAspectRatio)
+
+    # Zoom com scroll
+    def wheelEvent(self, event: QWheelEvent):
+        if self._pixmap_item is None:
+            return
+        angle = event.angleDelta().y()
+        factor = 1.15 if angle > 0 else 1/1.15
+        self._zoom *= factor
+        self.scale(factor, factor)
+
+    # Pan com botão do meio
+    def mousePressEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self._panning = True
+            self._pan_start = event.position().toPoint()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event: QMouseEvent):
+        if self._panning and self._pan_start is not None:
+            delta = event.position().toPoint() - self._pan_start
+            self._pan_start = event.position().toPoint()
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == Qt.MouseButton.MiddleButton:
+            self._panning = False
+            self.setCursor(Qt.CursorShape.ArrowCursor)
+        super().mouseReleaseEvent(event)
 
 
 # =============================================================================

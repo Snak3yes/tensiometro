@@ -1,8 +1,12 @@
 import numpy as np
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QGroupBox, QLabel
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel, QPushButton,
+    QGridLayout, QFileDialog, QDoubleSpinBox, QSpinBox, QFrame
+)
 from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QColor, QPen, QBrush, QPainter
 from typing import List, Dict
 import logging
 
