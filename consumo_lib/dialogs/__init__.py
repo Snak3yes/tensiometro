@@ -17,7 +17,6 @@ from .recipe_dialogs import (
 # Stencil dialogs (de outros módulos, exportados aqui para conveniência)
 from aoi_lib.stencil_tracker_ui import StencilManagerDialog, StencilCreateDialog
 from aoi_lib.stencil_tension import StencilTensionDialog
-from aoi_lib.fiducial_alignment_widget import FiducialAlignmentDialog
 
 __all__ = [
     # Calibration & Settings
@@ -34,7 +33,6 @@ __all__ = [
     'StencilManagerDialog',
     'StencilCreateDialog',
     'StencilTensionDialog',
-    'FiducialAlignmentDialog',
 ]
 
 # TODO: Mover diálogos restantes em fases futuras:
