@@ -3,6 +3,9 @@ import sys
 import os
 import time
 import logging
+
+# Configure logger
+logger = logging.getLogger(__name__)
 import json
 import cv2
 import numpy as np
