@@ -1,0 +1,374 @@
+"""
+UI Builders - Construtores de Interface do Usuário
+
+Este módulo contém builders para criar a UI da aplicação de forma organizada.
+"""
+
+import logging
+from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox,
+    QLabel, QLineEdit, QComboBox, QSpinBox, QPushButton,
+    QTabWidget, QSplitter, QTableWidget, QTableView,
+    QHeaderView
+)
+from aoi_lib.plc_axis_controller import PLCAxisController
+from consumo_lib.tabs import (
+    CNCControlTab,
+    TensionTab,
+    TrackingTab,
+    InspectionTab,
+    MapTab
+)
+from consumo_lib.widgets.position_list import PositionListWidget
+from consumo_lib.widgets.sequence_control import SequenceControlWidget
+from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
+from consumo_lib.controllers import ConnectionManagerController
+
+logger = logging.getLogger(__name__)
+
+
+class MainUIBuilder:
+    """
+    Builder para criar a UI principal da aplicação.
+
+    Responsabilidade:
+    - Criar todos os widgets da UI principal
+    - Configurar layouts e splitter
+    - Criar todas as abas
+    - Conectar signals aos handlers do main_window
+    - Atribuir widgets criados ao main_window
+    """
+
+    def __init__(self, main_window):
+        """
+        Inicializa o UI builder.
+
+        Args:
+            main_window: Instância de AOIControllerApp onde widgets serão criados
+        """
+        self.main_window = main_window
+        self.window = main_window  # Alias para facilitar acesso
+
+    def build_ui(self):
+        """
+        Constrói toda a UI principal.
+
+        Este método:
+        1. Cria widget central e layout principal
+        2. Cria grupo de conexão
+        3. Cria painel esquerdo (posição, lista, sequência, resultados)
+        4. Cria painel direito com abas
+        5. Configura splitter
+        6. Inicializa controllers que dependem de UI widgets
+        """
+        # Widget central
+        central_widget = QWidget()
+        self.window.setCentralWidget(central_widget)
+
+        # Layout principal
+        main_layout = QVBoxLayout(central_widget)
+
+        # Cria grupos principais
+        self._build_connection_group(main_layout)
+        self._build_calibration_group(main_layout)
+
+        # Cria splitter e painéis
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        left_panel = self._build_left_panel()
+        right_panel = self._build_right_panel(splitter)
+
+        # Configura splitter
+        splitter.addWidget(left_panel)
+        splitter.addWidget(self.window.right_panel)
+        splitter.setSizes([400, 800])
+
+        main_layout.addWidget(splitter)
+
+        # Barra de status
+        self.window.statusBar().showMessage("Pronto para conectar")
+
+    def _build_connection_group(self, main_layout):
+        """Cria grupo de conexão (PLC, CNC, Camera)."""
+        self.window.connection_group = QGroupBox("Conexão")
+        connection_layout = QGridLayout()
+
+        # PLC (Modbus TCP)
+        connection_layout.addWidget(QLabel("IP PLC:"), 0, 0)
+        self.window.plc_host_input = QLineEdit(
+            self.window.config.get("connections", "plc_host", default="192.168.1.5")
+        )
+        connection_layout.addWidget(self.window.plc_host_input, 0, 1)
+
+        connection_layout.addWidget(QLabel("Porta:"), 0, 2)
+        self.window.plc_port_input = QSpinBox()
+        self.window.plc_port_input.setRange(1, 65535)
+        self.window.plc_port_input.setValue(
+            self.window.config.get("connections", "plc_port", default=502)
+        )
+        self.window.plc_port_input.setFixedWidth(100)
+        connection_layout.addWidget(self.window.plc_port_input, 0, 3)
+
+        btn_label = "Conectar PLC" if isinstance(
+            self.window.controller.cnc, PLCAxisController
+        ) else "Conectar CNC"
+        self.window.connect_cnc_btn = QPushButton(btn_label)
+        self.window.connect_cnc_btn.clicked.connect(self.window._on_connect_btn_clicked)
+        connection_layout.addWidget(self.window.connect_cnc_btn, 0, 4)
+
+        # CNC Connection (serial legacy)
+        connection_layout.addWidget(QLabel("Porta CNC:"), 1, 0)
+        self.window.cnc_port_combo = QComboBox()
+        self.window.refresh_ports()
+        connection_layout.addWidget(self.window.cnc_port_combo, 1, 1)
+
+        # Camera connection
+        connection_layout.addWidget(QLabel("Câmera ID/URL:"), 2, 0)
+        self.window.camera_id_combo = QComboBox()
+        self.window.camera_id_combo.setEditable(True)
+        self.window.camera_id_combo.setToolTip(
+            "Selecione ID (0,1...) ou digite URL (http://...)"
+        )
+        self.window.camera_id_combo.addItems(["0", "1", "2", "3"])
+        connection_layout.addWidget(self.window.camera_id_combo, 2, 1)
+
+        self.window.connect_camera_btn = QPushButton("Conectar Câmera")
+        self.window.connect_camera_btn.clicked.connect(self.window.connect_camera)
+        connection_layout.addWidget(self.window.connect_camera_btn, 2, 2)
+
+        # Refresh ports button
+        self.window.refresh_ports_btn = QPushButton("Atualizar Portas")
+        self.window.refresh_ports_btn.clicked.connect(self.window.refresh_ports)
+        connection_layout.addWidget(self.window.refresh_ports_btn, 1, 3)
+
+        # Test camera button
+        self.window.test_camera_btn = QPushButton("Testar Câmera")
+        self.window.test_camera_btn.clicked.connect(self.window.test_camera)
+        connection_layout.addWidget(self.window.test_camera_btn, 2, 3)
+
+        self.window.connection_group.setLayout(connection_layout)
+        main_layout.addWidget(self.window.connection_group)
+
+    def _build_calibration_group(self, main_layout):
+        """Cria grupo de calibração (oculto por padrão)."""
+        calibration_group = QGroupBox("Calibração de Movimento")
+        calibration_layout = QHBoxLayout()
+
+        # Campos permanecem criados porque são usados pela lógica de calibração
+        self.window.pulses_input = QLineEdit(str(
+            self.window.config.get("calibration", "pulses_per_rev", default=400)
+        ))
+        self.window.fuso_input = QLineEdit(str(
+            self.window.config.get("calibration", "fuso_pitch", default=5)
+        ))
+        self.window.apply_calibration_btn = QPushButton("Aplicar Calibração")
+
+        # Conecta ao CalibrationController
+        self.window.apply_calibration_btn.clicked.connect(
+            lambda: self.window.calibration_controller.show_dialog(
+                self.window,
+                self.window.pulses_per_rev_input.text(),
+                self.window.fuso_input.text()
+            ) if self.window.calibration_controller is not None else None
+        )
+
+        calibration_group.setLayout(calibration_layout)
+        calibration_group.setVisible(False)  # Esconde grupo
+        main_layout.addWidget(calibration_group)  # Mantém no DOM para uso interno
+
+    def _build_left_panel(self):
+        """Cria painel esquerdo (posição, lista, sequência, resultados)."""
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+
+        # Informações de posição
+        self._build_position_group(left_layout)
+
+        # Widget de lista de posições
+        self._build_position_list(left_layout)
+
+        # Controle de sequência
+        self._build_sequence_control(left_layout)
+
+        # Tabela de resultados
+        self._build_results_table(left_layout)
+
+        return left_panel
+
+    def _build_position_group(self, parent_layout):
+        """Cria grupo de informações de posição."""
+        position_group = QGroupBox("Posição Atual")
+        position_layout = QGridLayout()
+
+        # Exibe os valores X, Y, Z e status
+        position_layout.addWidget(QLabel("X:"), 0, 0)
+        self.window.x_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.window.x_position, 0, 1)
+        position_layout.addWidget(QLabel("Y:"), 1, 0)
+        self.window.y_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.window.y_position, 1, 1)
+        position_layout.addWidget(QLabel("Z:"), 2, 0)
+        self.window.z_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.window.z_position, 2, 1)
+        position_layout.addWidget(QLabel("Status:"), 3, 0)
+        self.window.cnc_status = QLabel("Desconectado")
+        position_layout.addWidget(self.window.cnc_status, 3, 1)
+
+        position_group.setLayout(position_layout)
+        parent_layout.addWidget(position_group)
+
+    def _build_position_list(self, parent_layout):
+        """Cria widget de lista de posições."""
+        self.window.position_list_widget = PositionListWidget()
+        self.window.position_list_widget.add_position_btn.clicked.connect(
+            self.window.add_current_position
+        )
+        self.window.position_list_widget.remove_position_btn.clicked.connect(
+            self.window.remove_position
+        )
+        self.window.position_list_widget.position_selected.connect(
+            self.window.on_position_selected
+        )
+
+        parent_layout.addWidget(self.window.position_list_widget)
+
+    def _build_sequence_control(self, parent_layout):
+        """Cria widget de controle de sequência."""
+        self.window.sequence_widget = SequenceControlWidget()
+        self.window.sequence_widget.create_sequence_btn.clicked.connect(
+            self.window.create_sequence
+        )
+        self.window.sequence_widget.run_sequence_btn.clicked.connect(
+            self.window.run_sequence
+        )
+        self.window.sequence_widget.stop_sequence_btn.clicked.connect(
+            self.window.stop_sequence
+        )
+        self.window.sequence_widget.save_btn.clicked.connect(
+            self.window.save_program
+        )
+        self.window.sequence_widget.load_btn.clicked.connect(
+            self.window.load_program
+        )
+        self.window.sequence_widget.save_gcode_btn.clicked.connect(
+            self.window.save_gcode
+        )
+        self.window.sequence_widget.load_gcode_btn.clicked.connect(
+            self.window.load_gcode
+        )
+
+        parent_layout.addWidget(self.window.sequence_widget)
+
+    def _build_results_table(self, parent_layout):
+        """Cria tabela de resultados de execução de sequência."""
+        self.window.results_table = QTableWidget(0, 3)
+        self.window.results_table.setHorizontalHeaderLabels(
+            ["Posição", "Horário", "Status"]
+        )
+        # Make columns stretch to fill available space
+        self.window.results_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        parent_layout.addWidget(self.window.results_table)
+
+    def _build_right_panel(self, splitter):
+        """Cria painel direito com abas e controllers que dependem de UI."""
+        right_panel = QTabWidget()
+        self.window.right_panel = right_panel
+
+        # Aba 1: Câmera & Movimento
+        self._build_cnc_control_tab(right_panel)
+
+        # Criar ConnectionManagerController (agora que camera_preview está disponível)
+        self._create_connection_manager_controller()
+
+        # Abas restantes
+        self._build_remaining_tabs(right_panel)
+
+        # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
+        # O bloqueio agora é feito apenas nas ações que requerem movimento
+        return right_panel
+
+    def _build_cnc_control_tab(self, parent):
+        """Cria aba de controle CNC e câmera."""
+        self.window.cnc_control_tab = CNCControlTab(
+            self.window.controller,
+            self.window.config,
+            parent=self.window
+        )
+        self.window.cnc_control_tab.image_captured.connect(
+            self.window.on_image_captured
+        )
+        # Expose widgets internos para compatibilidade
+        self.window.camera_preview = self.window.cnc_control_tab.camera_preview
+        self.window.movement_widget = self.window.cnc_control_tab.movement_widget
+        parent.addTab(self.window.cnc_control_tab, "Câmera & Movimento")
+
+    def _create_connection_manager_controller(self):
+        """Cria ConnectionManagerController após UI estar montada."""
+        try:
+            self.window.connection_manager_controller = ConnectionManagerController(
+                self.window.controller,
+                self.window.config,
+                self.window.camera_preview,
+                self.window
+            )
+            logger.debug("ConnectionManagerController criado com sucesso")
+
+            # Signals conectados via SignalAggregator
+        except Exception as e:
+            logger.error(f"Erro ao criar ConnectionManagerController: {e}")
+            self.window.connection_manager_controller = None
+
+    def _build_remaining_tabs(self, parent):
+        """Cria abas restantes do painel direito."""
+        # Aba 2: Monitor CLP
+        self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
+        parent.addTab(self.window.plc_monitor, "Monitor CLP")
+
+        # Aba 3: Visualização de Tensão
+        self.window.tension_visualization = TensionTab(parent=self.window)
+        self.window.tension_viz_widget = self.window.tension_visualization.visualization
+        parent.addTab(self.window.tension_visualization, "Visualização de Tensão")
+
+        # Aba 4: Rastreabilidade
+        self.window.tracking_tab = TrackingTab(
+            self.window.stencil_tracker,
+            parent=self.window
+        )
+        # Conecta sinais (exceto _on_* que são tratados pelo SignalAggregator)
+        self.window.tracking_tab.tension_measurement_requested.connect(
+            self.window._run_tension_measurement
+        )
+        self.window.tracking_tab.stencil_management_requested.connect(
+            self.window.show_stencil_manager
+        )
+        self.window.tracking_tab.new_stencil_requested.connect(
+            self.window.show_new_stencil_dialog
+        )
+        # Expose widget interno para compatibilidade
+        self.window.stencil_identification = self.window.tracking_tab.stencil_identification
+        self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
+        parent.addTab(self.window.tracking_tab, "🏷️ Rastreabilidade")
+
+        # Aba 5: Inspeção Visual
+        self.window.inspection_tab = InspectionTab(parent=self.window)
+        self.window.inspection_tab.settings_requested.connect(
+            self.window.show_inspection_settings
+        )
+        parent.addTab(self.window.inspection_tab, "🔍 Inspeção")
+
+        # Aba 6: Programação de Mapa
+        self.window.map_tab = MapTab(parent=self.window)
+        self.window.map_tab.map_definition_requested.connect(
+            lambda: self.window.map_controller.show_dialog(
+                self.window,
+                self.window.cnc_control_tab.camera_preview if hasattr(
+                    self.window, "cnc_control_tab"
+                ) else None
+            )
+        )
+        self.window.map_tab.mosaic_builder_requested.connect(
+            self.window.show_mosaic_builder
+        )
+        parent.addTab(self.window.map_tab, "🗺️ Mapa")

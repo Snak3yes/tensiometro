@@ -25,3 +25,11 @@ if str(_root_dir) not in sys.path:
     sys.path.insert(0, str(_root_dir))
 
 __version__ = "0.4.0"
+
+# Barrier package: Exporta classes principais para simplificar imports
+from .main_window import AOIControllerApp
+
+__all__ = [
+    'AOIControllerApp',
+    '__version__',
+]

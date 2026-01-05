@@ -1,0 +1,504 @@
+# 🔲 Diagrama Visual - Arquitetura Proposta
+
+## Antes (Monolito)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    consumo_lib.py (6.245 linhas)                │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  AOIControllerApp (4.138 linhas, 113 métodos)            │  │
+│  │                                                           │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │  │
+│  │  │   UI Logic  │  │Business     │  │  Hardware   │      │  │
+│  │  │   (35+)     │  │Logic (40+)  │  │  (15+)      │      │  │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘      │  │
+│  │        ▲                ▲                 ▲              │  │
+│  │        └────────────────┴─────────────────┘              │  │
+│  │                    TUDO ACOPLADO!                         │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  Outras 12 classes (2.107 linhas)                         │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                   │
+└─────────────────────────────────────────────────────────────────┘
+
+Problemas:
+🔴 Difícil de navegar
+🔴 Difícil de testar
+🔴 Difícil de manter
+🔴 Mudanças afetam tudo
+🔴 Múltiplos devs = conflitos
+```
+
+---
+
+## Depois (Modular)
+
+```
+consumo_lib/
+│
+├── 📄 main_window.py (350 linhas)  ← ORQUESTRADOR
+│   └── AOIControllerApp
+│       │
+│       ├── Gerencia Abas (tabs/)
+│       ├── Gerencia Menu
+│       └── Delega para Managers
+│
+├── 📁 tabs/                     ← CAMADA DE UI
+│   ├── BaseTab ⚙
+│   │
+│   ├── CNCControlTab ─────────────┐
+│   │   "🎮 Controle CNC"          │
+│   │   • Preview de câmera        │
+│   │   • Controle de movimento    │
+│   │   • Monitor PLC              │
+│   │   • Display de posição       │
+│   │                              │
+│   ├── TensionTab ────────────────┤
+│   │   "📏 Medição Tensão"        │
+│   │   • Visualização heatmap     │
+│   │   • Diálogo de medição       │
+│   │   • Salvamento automático    │
+│   │                              │
+│   ├── InspectionTab ─────────────┤
+│   │   "🔍 Inspeção Visual"       │
+│   │   • Config parâmetros        │
+│   │   • Executa inspeção         │
+│   │   • Mostra resultado         │
+│   │                              │
+│   ├── TrackingTab ───────────────┤
+│   │   "🏷️ Rastreabilidade"       │
+│   │   • Seleção de stencil       │
+│   │   • Histórico completo       │
+│   │   • Gráfico de tendência     │
+│   │                              │
+│   └── MapTab ────────────────────┘
+│       "🗺️ Mapa"
+│       • Definir programa
+│       • Carregar/Salvar
+│       • Gerar mapa
+│
+├── 📁 managers/                 ← CAMADA DE NEGÓCIO
+│   │
+│   ├── ConnectionManager ────────┐
+│   │   "Conexões Hardware"       │
+│   │   • PLC (Modbus TCP)        │
+│   │   • Câmera (USB/HTTP)       │
+│   │   • Auto-connect            │
+│   │   • Status monitoring       │
+│   │                              │
+│   ├── RecipeManagerWrapper ─────┤
+│   │   "Gerencia Receitas"       │
+│   │   • Load/Save               │
+│   │   • Apply to UI             │
+│   │   • Dialog management       │
+│   │                              │
+│   ├── StencilManagerWrapper ────┤
+│   │   "Gerencia Stencils"       │
+│   │   • CRUD stencils           │
+│   │   • History tracking        │
+│   │   • Trend analysis          │
+│   │                              │
+│   ├── InspectionManager ─────────┤
+│   │   "Workflow Inspeção"       │
+│   │   • Fiducial alignment      │
+│   │   • Run inspection          │
+│   │   • Export PDF              │
+│   │                              │
+│   ├── ReportManagerWrapper ─────┤
+│   │   "Gera Relatórios"         │
+│   │   • Tension reports         │
+│   │   • Stencil history         │
+│   │   • Period queries          │
+│   │                              │
+│   └── CalibrationManager ────────┘
+│       "Calibração Sistema"
+│       • FOV calibration
+│       • Camera calibration
+│       • Crosshair config
+│
+├── 📁 dialogs/                  ← CAMADA DE DIÁLOGOS
+│   │
+│   ├── CameraSettingsDialog
+│   ├── FOVCalibrationDialog
+│   ├── CrosshairSettingsDialog
+│   ├── FiducialAlignmentDialog
+│   ├── InspectionSettingsDialog
+│   ├── ReportSettingsDialog
+│   ├── CalibrationTestDialog
+│   ├── AboutDialog
+│   └── MapDefinitionDialog
+│
+├── 📁 widgets/                  ← COMPONENTES REUSÁVEIS
+│   │
+│   ├── CameraPreviewWidget
+│   ├── MovementControlWidget
+│   ├── PLCMonitorWidget
+│   ├── TensionVisualizationWidget
+│   ├── ImageViewerWidget
+│   ├── PositionListWidget
+│   ├── SequenceControlWidget
+│   └── PositionRegistryWidget
+│
+├── 📁 threads/                  ← WORKERS ASSÍNCRONOS
+│   │
+│   ├── SequenceRunnerThread
+│   └── MapGeneratorThread
+│
+└── 📁 utils/                    ← HELPERS
+    │
+    ├── PositionFormatter
+    ├── WCSManager
+    └── KeyboardEventHandler
+```
+
+---
+
+## Fluxo de Dados
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         USER INTERFACE                           │
+│                                                                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │   CNC    │  │  TENSÃO  │  │ INSPEÇÃO │  │   MAPA   │        │
+│  │   TAB    │  │   TAB    │  │   TAB    │  │   TAB    │        │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘        │
+│       │             │             │             │               │
+│       └─────────────┴─────────────┴─────────────┘               │
+│                           │                                       │
+│                           ▼                                       │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    AOIControllerApp                       │   │
+│  │                  (Orquestrador Simplificado)              │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                           │                                       │
+│         ┌─────────────────┼─────────────────┐                   │
+│         ▼                 ▼                 ▼                   │
+│  ┌──────────┐      ┌──────────┐      ┌──────────┐              │
+│  │ Managers │      │ Dialogs  │      │ Widgets  │              │
+│  │          │      │          │      │          │              │
+│  │ Connection│     │ Settings │      │ Camera   │              │
+│  │ Recipe    │     │ Calibration│    │ Movement │              │
+│  │ Stencil   │     │ Alignment │      │ etc.     │              │
+│  │ Inspection│     │ Reports   │      │          │              │
+│  │ Report    │      │          │      │          │              │
+│  └────┬─────┘      └──────────┘      └──────────┘              │
+│       │                                                            │
+│       ▼                                                            │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    CONTROLLER CAMADA                      │   │
+│  │  ┌────────────┐  ┌────────────┐  ┌────────────┐         │   │
+│  │  │   PLC      │  │  Camera    │  │  Tension   │         │   │
+│  │  │ (Modbus)   │  │  (USB/IP)  │  │ (Serial)   │         │   │
+│  │  └────────────┘  └────────────┘  └────────────┘         │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                           │                                       │
+│                           ▼                                       │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                      HARDWARE                             │   │
+│  └──────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Comunicação Entre Componentes
+
+### Padrão: Signals/Slots do Qt
+
+```
+┌──────────────────────┐         signal         ┌──────────────────────┐
+│  ConnectionManager   │ ──────────────────────>│  AOIControllerApp    │
+│                      │   plc_connected()      │                      │
+│                      │                        │  _on_plc_connected() │
+└──────────────────────┘                        └──────────────────────┘
+       ▲                                                   ▲
+       │                                                   │
+       │ connect PLC                                       │ update UI
+       │                                                   │
+┌─────┴───────────────────────────────────────────────────┴─────┐
+│                                                                 │
+│                    CNCControlTab                               │
+│  • connect_btn.clicked  →  ConnectionManager.connect_plc()     │
+│  • status_updated        →  ConnectionManager status signal   │
+│  • position_updated      →  Controller callback               │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Exemplo de Interação
+
+```
+USUÁRIO clica em "Conectar PLC"
+    │
+    ▼
+CNCControlTab.connect_btn.clicked
+    │
+    ├─> ConnectionManager.connect_plc()
+    │       │
+    │       ├─> controller.cnc.connect()
+    │       │       │
+    │       │       └─> PLC (Modbus TCP)
+    │       │
+    │       ├─> Sucesso? plz emit('plc_connected')
+    │       │
+    │       └─> Erro? plz emit('plc_connection_error')
+    │
+    └─> plz connect(ConnectionManager.plc_connected,
+                    AOIControllerApp._on_plc_connected)
+            │
+            └─> Atualiza UI: "Conectado"
+                • Atualiza status label
+                • Habilita controles de movimento
+                • Inicia timer de posição
+```
+
+---
+
+## Responsabilidades Claras
+
+### AOIControllerApp (MainWindow)
+```
+✅ ORQUESTRAR abas e menus
+✅ INICIALIZAR managers
+✅ CONECTAR signals/slots
+✅ GERENCIAR estado global
+
+❌ NÃO implementa lógica de negócio
+❌ NÃO conhece detalhes de hardware
+❌ NÃO tem UI direta (só orquestra)
+```
+
+### Managers
+```
+✅ LÓGICA DE NEGÓCIO pura
+✅ SEM dependências de PyQt widgets (exceto signals)
+✅ TESTÁVEIS sem UI
+
+❌ NÃO implementam UI
+❌ NÃO acessam diretamente widgets
+```
+
+### Tabs
+```
+✅ LAYOUT e UI específica
+✅ DELEGAM negócio para managers
+✅ RECEBEM events e atualizam display
+
+❌ NÃO têm lógica de negócio complexa
+❌ NÃO acessam hardware diretamente
+```
+
+### Dialogs
+```
+✅ COLETAR dados do usuário
+✅ VALIDAR entrada
+✅ RETORNAR dados estruturados
+
+❌ NÃO executam ações (apenas coletam dados)
+```
+
+---
+
+## Comparação de Complexidade
+
+### Antes
+```
+AOIControllerApp
+├── connect_cnc()
+├── connect_camera()
+├── test_camera()
+├── apply_recipe_to_capture()
+├── apply_recipe_to_tension()
+├── show_recipe_manager()
+├── show_stencil_manager()
+├── run_inspection()
+├── generate_report()
+├── update_position_display()
+├── handle_keyboard()
+├── save_map_program()
+├── load_map_program()
+├── ... 98+ métodos ...
+│
+└── 🔴 DIFICULDADE: ALTA (tudo misturado)
+```
+
+### Depois
+```
+AOIControllerApp
+├── _init_managers()
+├── _init_tabs()
+├── _init_menu()
+├── _init_connections()
+└── _on_*() handlers simples
+
+ConnectionManager
+├── connect_plc()
+├── connect_camera()
+└── test_camera()
+
+RecipeManagerWrapper
+├── show_manager_dialog()
+├── apply_to_capture()
+└── apply_to_tension()
+
+InspectionManager
+├── run_inspection()
+└── show_result()
+
+ReportManagerWrapper
+└── generate_report()
+
+CNCControlTab
+├── update_position_display()
+└── handle_keyboard()
+
+MapTab
+├── save_program()
+└── load_program()
+
+│
+└── ✅ DIFICULDADE: BAIXA (separado por responsabilidade)
+```
+
+---
+
+## Vantagens da Nova Estrutura
+
+### 1. MANUTENIBILIDADE
+```
+Antes: "Onde está o código de conexão PLC?"
+Resposta: "Em algum lugar dos 4k linhas da main window"
+
+Depois: "Onde está o código de conexão PLC?"
+Resposta: "Em managers/connection_manager.py"
+```
+
+### 2. TESTABILIDADE
+```
+Antes: Como testar connect_cnc()?
+❌ Precisa instanciar MainWindow inteira
+❌ Precisa PyQt6 rodando
+❌ Precisa todos os widgets
+
+Depois: Como testar ConnectionManager.connect_plc()?
+✅ Apenas instancia manager
+✅ Mock de controller
+✅ Teste unitário simples
+```
+
+### 3. COLABORAÇÃO
+```
+Cenário: 2 devs trabalhando
+
+Antes:
+🔴 Dev A edita consumo_lib.py (linhas 1-3000)
+🔴 Dev B edita consumo_lib.py (linhas 3000-6000)
+🔴 Merge conflict QUASE garantido
+
+Depois:
+✅ Dev A edita managers/connection_manager.py
+✅ Dev B edita tabs/inspection_tab.py
+✅ Zero conflitos
+```
+
+### 4. ONBOARDING
+```
+Novo dev na equipe:
+
+Antes: "Entenda o sistema"
+📚 Ler: 6.245 linhas em 1 arquivo
+⏱️ Tempo: 2-3 semanas
+
+Depois: "Entenda o sistema"
+📚 Ler: main_window.py (350 linhas)
+📚 Depois: focar no manager/tab relevante
+⏱️ Tempo: 3-5 dias
+```
+
+---
+
+## Caminho de Migração
+
+### Fase 1: Estrutura (Dia 1-2)
+```
+consumo_lib.py
+    │
+    ├─> Criar consumo_lib/
+    ├─> Mover widgets (cut/paste)
+    └─> Atualizar imports
+```
+
+### Fase 2: Managers (Dia 3-5)
+```
+AOIControllerApp
+    │
+    ├─> Extrair ConnectionManager
+    ├─> Extrair RecipeManagerWrapper
+    ├─> Extrair StencilManagerWrapper
+    ├─> Extrair InspectionManager
+    └─> Extrair ReportManagerWrapper
+```
+
+### Fase 3: Dialogs (Dia 6-7)
+```
+show_*_dialog() methods
+    │
+    ├─> Mover para dialogs/*.py
+    └─> Transformar em classes próprias
+```
+
+### Fase 4: Tabs (Dia 8-9)
+```
+setup_ui()
+    │
+    ├─> Extrair CNCControlTab
+    ├─> Extrair TensionTab
+    ├─> Extrair InspectionTab
+    ├─> Extrair TrackingTab
+    └─> Extrair MapTab
+```
+
+### Fase 5: Simplificar (Dia 10-11)
+```
+AOIControllerApp (4.138 linhas)
+    │
+    └─> Reduzir para ~350 linhas
+        • Orquestração apenas
+        • Delegar para managers/tabs
+```
+
+---
+
+## Legenda
+
+```
+┌─────────────────┐
+│  COMPONENTE     │
+└─────────────────┘
+
+     │
+     ▼
+  Fluxo de dados
+
+     ◄──►
+  Comunicação
+
+     ⚙
+  Base class
+
+     🔴
+  Problema
+
+     ✅
+  Solução/Benefício
+```
+
+---
+
+**Documento gerado em:** 03/01/2026
+**Autor:** Claude Code
+**Versão:** 1.0

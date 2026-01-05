@@ -1,11 +1,14 @@
 """
 managers/connection_manager.py
 ------------------------------
-Gerencia conexões de hardware (PLC + Câmera).
+Gerencia conexões de hardware (PLC + Câmera + GRBL).
 """
 import logging
+import time
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtWidgets import QMessageBox, QComboBox
 from aoi_lib import PLCAxisController
+from grbl_streamer import GrblStreamer
 
 logger = logging.getLogger(__name__)
 
@@ -141,5 +144,131 @@ class ConnectionManager(QObject):
         # Placeholder: implementar se necessário aplicar configurações específicas
         logger.debug("Aplicando configurações da UI ao PLC")
         self._plc_ui_settings_applied = True
+
+    def connect_grbl(self, port, connect_btn, status_label, status_bar,
+                     grbl_callback_handler, main_window):
+        """
+        Conecta ao CNC GRBL via serial.
+
+        Args:
+            port: Porta serial para conexão
+            connect_btn: Botão de conectar (para atualizar texto)
+            status_label: Label de status (para atualizar)
+            status_bar: Barra de status (para mostrar mensagens)
+            grbl_callback_handler: Handler de callbacks GRBL
+            main_window: Referência ao main_window (para acessar controller/config)
+
+        Returns:
+            bool: True se conectou com sucesso, False caso contrário
+        """
+        if not port:
+            QMessageBox.warning(main_window, "Erro", "Selecione uma porta serial")
+            return False
+
+        status_bar.showMessage(f"Conectando à CNC na porta {port}...")
+
+        try:
+            # Usa GRBLCallbackHandler para gerenciar callbacks complexos
+            grbl_callback = grbl_callback_handler.create_callback()
+
+            # Inicializa o GrblStreamer com o callback
+            main_window.controller.cnc.grbl = GrblStreamer(grbl_callback)
+
+            logger.debug(f"CONEXÃO: Tentando conectar à porta {port} com baudrate 115200")
+            # Conecta usando o método cnect()
+            main_window.controller.cnc.grbl.cnect(port, 115200)
+            time.sleep(2.0)
+
+            if not main_window.controller.cnc.grbl.connected:
+                logger.error("CONEXÃO: Falha ao estabelecer conexão serial (grbl.connected é False).")
+                raise ConnectionError("Falha ao conectar à porta serial após inicialização.")
+
+            logger.debug("CONEXÃO: Enviando comando de desbloqueio $X")
+            main_window.controller.cnc.grbl.send_immediately("$X")
+            time.sleep(0.1)
+
+            logger.debug("CONEXÃO: Configurando $10=3 para relatório completo de posição")
+            main_window.controller.cnc.grbl.send_immediately("$10=3") # Mantém $10=3 para receber MPos
+            time.sleep(0.1)
+
+            # Solicitar estado hash logo após conectar para obter offsets
+            logger.debug("CONEXÃO: Solicitando estado hash ($#) para obter offsets")
+            main_window.controller.cnc.grbl.send_immediately("$#")
+            time.sleep(0.1)
+
+            logger.debug("CONEXÃO: Configurando modo relativo G91")
+            main_window.controller.cnc.grbl.send_immediately("G91")
+            time.sleep(0.1)
+
+            logger.debug("CONEXÃO: Iniciando polling de status")
+            main_window.controller.cnc.grbl.poll_start()
+
+            main_window.controller.cnc.is_connected = True
+            main_window.config.apply_to_cnc(main_window.controller.cnc)
+            main_window.config.remember_cnc_port(port)
+            main_window.controller.cnc.machine_status = "Idle"
+            connect_btn.setText("Desconectar CNC")
+            status_label.setText("Conectado")
+            status_bar.showMessage(f"CNC conectada na porta {port}")
+
+            return True
+
+        except Exception as e:
+            # Tratamento de erro de conexão
+            logger.error(f"CONEXÃO: Falha ao conectar ou configurar: {str(e)}", exc_info=True)
+            QMessageBox.critical(main_window, "Erro", f"Falha ao conectar a CNC: {str(e)}")
+
+            if hasattr(main_window.controller.cnc, 'grbl') and main_window.controller.cnc.grbl:
+                try:
+                    main_window.controller.cnc.grbl.disconnect()
+                except:
+                    pass
+
+            main_window.controller.cnc.grbl = None
+            main_window.controller.cnc.is_connected = False
+            main_window.controller.cnc.machine_status = "Erro Conexão"
+            connect_btn.setText("Conectar CNC")
+            status_label.setText("Erro Conexão")
+
+            return False
+
+    def disconnect_grbl(self, connect_btn, status_label, status_bar, main_window):
+        """
+        Desconecta do CNC GRBL.
+
+        Args:
+            connect_btn: Botão de conectar (para atualizar texto)
+            status_label: Label de status (para atualizar)
+            status_bar: Barra de status (para mostrar mensagens)
+            main_window: Referência ao main_window
+        """
+        if hasattr(main_window.controller.cnc, 'grbl') and main_window.controller.cnc.grbl:
+            main_window.controller.cnc.grbl.poll_stop()
+            main_window.controller.cnc.grbl.disconnect()
+            main_window.controller.cnc.grbl = None
+            main_window.controller.cnc.is_connected = False
+            connect_btn.setText("Conectar CNC")
+            status_label.setText("Desconectado")
+            status_bar.showMessage("CNC desconectada")
+
+    def refresh_serial_ports(self, port_combo):
+        """
+        Atualiza a lista de portas seriais disponíveis.
+
+        Args:
+            port_combo: QComboBox para preencher com portas
+        """
+        import serial.tools.list_ports
+
+        port_combo.clear()
+        ports = serial.tools.list_ports.comports()
+
+        if ports:
+            for port in ports:
+                port_combo.addItem(port.device)
+            logger.info(f"Portas seriais encontradas: {[p.device for p in ports]}")
+        else:
+            port_combo.addItem("Nenhuma porta encontrada")
+            logger.warning("Nenhuma porta serial encontrada")
 
     # TODO: Implementar métodos de câmera (connect_camera, test_camera, etc)

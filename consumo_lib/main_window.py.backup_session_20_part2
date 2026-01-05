@@ -1,0 +1,2722 @@
+import sys
+import cv2
+import os
+import time
+from pathlib import Path
+from typing import Optional
+
+# ===== FIX IMPORT PATH =====
+# Garante que o diretório raiz do projeto esteja no sys.path
+# Isso permite que o arquivo seja executado diretamente ou como módulo
+_current_file = Path(__file__).resolve()
+_root_dir = _current_file.parent.parent  # Sobe de consumo_lib/ para raiz
+if str(_root_dir) not in sys.path:
+    sys.path.insert(0, str(_root_dir))
+# ===========================
+
+import numpy as np
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
+                             QHBoxLayout, QPushButton, QLabel, QGroupBox,
+                             QGridLayout, QLineEdit, QFormLayout,
+                             QComboBox, QListWidget, QCheckBox, QListWidgetItem, 
+                             QFileDialog, QMessageBox, QTabWidget, QSizePolicy,
+                             QSplitter, QFrame, QTableWidget, QTableWidgetItem, 
+                             QHeaderView, QDialog, QInputDialog,
+                             QProgressDialog, QDoubleSpinBox, QSpinBox)
+from PyQt6.QtCore import Qt, QThread, pyqtSignal, QTimer, QEvent, QRectF, QPointF, QSignalBlocker
+from PyQt6.QtGui import (QPixmap, QImage, QFont, QAction, QDoubleValidator,
+                         QPainter, QColor, QPen, QBrush, QIntValidator)
+
+from aoi_lib import CNCAOIController, InspectionPosition
+from aoi_lib.plc_axis_controller import PLCAxisController
+from grbl_streamer import GrblStreamer
+from aoi_lib.utils.move_task import MoveTaskThread
+from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
+from dataclasses import dataclass
+from aoi_lib.stencil_tension import StencilTensionDialog
+from aoi_lib.fov_calibration import (
+    FOVCalibration, CameraFOVConverter, FOVCalibrationDialog, ClickableVideoLabel
+)
+from aoi_lib.stencil_tracker import StencilTracker, Stencil, TensionRecord
+from aoi_lib.stencil_tracker_ui import (
+    StencilIdentificationWidget,
+    StencilManagerDialog, StencilCreateDialog
+)
+from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
+from aoi_lib.report_generator import ReportGenerator, ReportConfig
+from consumo_lib.dialogs import (
+    ReportSettingsDialog,
+    InspectionSettingsDialog,
+    FOVCalibrationDialog,
+    CrosshairSettingsDialog,
+    AboutDialog
+)
+from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, InspectionResult
+from aoi_lib.inspection_result_viewer import InspectionResultWidget
+import logging
+import json
+from mosaic_builder import compose_mosaic_from_folder
+
+# Imports de widgets movidos para o pacote consumo_lib
+from consumo_lib.widgets.tension_viz import TensionVisualizationWidget, TensionCanvas
+from consumo_lib.widgets.image_viewer import ImageViewerWidget
+from consumo_lib.widgets.position_list import PositionListWidget
+from consumo_lib.widgets.sequence_control import SequenceControlWidget
+from consumo_lib.widgets.position_registry import PositionRegistryWidget
+from consumo_lib.widgets.camera_preview import CameraPreviewWidget
+from consumo_lib.widgets.movement_control import MovementControlWidget
+from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
+from consumo_lib.widgets.preview_suspender import _PreviewSuspender
+from consumo_lib.threads.sequence_runner import SequenceRunnerThread
+from consumo_lib.threads.map_generator import MapGeneratorThread
+from consumo_lib.utils.map_params import MapParams
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
+from consumo_lib.coordinators import ConnectionCoordinator, InspectionCoordinator, TensionCoordinator
+from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, SignalAggregator
+
+# Imports das novas abas semânticas
+from consumo_lib.tabs import (
+    CNCControlTab,
+    TensionTab,
+    TrackingTab,
+    InspectionTab,
+    MapTab
+)
+
+# Imports dos novos controllers
+from consumo_lib.controllers import (
+    MapController,
+    CameraSettingsController,
+    CalibrationController,
+    InspectionUIController,
+    ReportDialogController,
+    SequenceController,
+    FiducialAlignmentController,
+    ConnectionManagerController,
+    TensionMeasurementController,
+    DialogManagerController,
+    FileIOController,
+    PositionManagerController,
+    RecipeManagerController
+)
+
+logger = logging.getLogger("consumo_lib")
+logger.setLevel(logging.DEBUG)
+# Se necessário, adicione um handler:
+if not logger.handlers:
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    ch.setFormatter(formatter)
+    logger.addHandler(ch)
+
+# Pasta padrão para programas de captura de mapa
+MAP_PROGRAMS_FOLDER = Path(__file__).parent / "map_programs"
+
+class AOIControllerApp(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Controle de Inspeção Óptica Automatizada")
+        self.setGeometry(100, 100, 1200, 800)
+        
+        # Carrega configurações do usuário
+        self.config = AOIConfigManager()
+        
+        # Inicializa o controlador AOI usando CLP (Modbus TCP),
+        # mas sem conectar automaticamente (conexão será tentada depois)
+        plc_host = self.config.get("connections", "plc_host", default="192.168.1.5")
+        plc_port = self.config.get("connections", "plc_port", default=502)
+        # Inicializa o controlador com PLC mas sem conectar automaticamente
+        logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
+        self.controller = CNCAOIController(
+            plc_host=plc_host,
+            plc_port=plc_port,
+            auto_connect=False  # Não conecta automaticamente - permite que a app inicie sem CLP
+        )
+        logger.debug("CNCAOIController inicializado; backend = %s",
+                     type(self.controller.cnc).__name__)
+
+        # =========== COORDENADOR DE CONEXÕES ===========
+        self.connection_coordinator = ConnectionCoordinator(self.controller, self.config)
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # Propriedade para compatibilidade com código existente
+        self.connection_mgr = self.connection_coordinator
+
+        self.current_sequence = None
+        self.is_running_sequence = False
+
+        # =========== SISTEMA DE RECEITAS ===========
+        self.recipe_manager_wrapper = RecipeManagerWrapper(parent=self)
+
+        # Propriedade para compatibilidade com código existente (criar ANTES do controller)
+        self.recipe_manager = self.recipe_manager_wrapper.recipe_manager
+        self.current_recipe = None  # Receita atualmente carregada
+
+        # Criar RecipeManagerController (agora self.recipe_manager existe)
+        try:
+            self.recipe_manager_controller = RecipeManagerController(
+                self.recipe_manager,  # recipe_manager direto
+                self.recipe_manager_wrapper,
+                self
+            )
+            logger.debug("RecipeManagerController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar RecipeManagerController: {e}")
+            self.recipe_manager_controller = None
+
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # =========== SISTEMA DE RASTREABILIDADE ===========
+        self.stencil_manager_wrapper = StencilManagerWrapper(parent=self)
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+        # Propriedade para compatibilidade com código existente
+        self.stencil_tracker = self.stencil_manager_wrapper.stencil_tracker
+        self.current_stencil = None  # Stencil atualmente selecionado
+
+
+        # =========== SISTEMA DE RELATÓRIOS ===========
+        self.report_manager_wrapper = ReportManagerWrapper(self.config, parent=self)
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+        # Propriedades para compatibilidade com código existente
+        self.report_config = self.report_manager_wrapper.get_config()
+        self.report_generator = self.report_manager_wrapper.get_generator()
+
+
+        # =========== SISTEMA DE INSPEÇÃO VISUAL ===========
+        self.inspection_manager = InspectionManager(self.config, parent=self)
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+        # Propriedades para compatibilidade com código existente
+        self.inspection_thresholds = self.inspection_manager.get_thresholds()
+        self.stencil_inspector = self.inspection_manager.get_inspector()
+        self._last_inspection_result = None
+        self._last_inspection_overlay = None
+
+        # =========== COORDENADOR DE INSPEÇÃO ===========
+        self.inspection_coordinator = InspectionCoordinator(
+            self.controller,
+            self.config,
+            self.inspection_manager
+        )
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # =========== COORDENADOR DE TENSÃO ===========
+        self.tension_coordinator = TensionCoordinator(self.controller, self.config)
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # =========== HANDLERS DE UI ===========
+        # KeyboardEventHandler (será configurado após setup_ui, quando movement_widget estiver disponível)
+        self.keyboard_handler = KeyboardEventHandler()
+        # MenuHandler (será configurado em setup_menu)
+        self.menu_handler = MenuHandler(main_window=self)
+        # GRBLCallbackHandler (gerencia callbacks complexos do GRBL)
+        self.grbl_callback_handler = GRBLCallbackHandler(self)
+
+        # =========== CONTROLLERS ===========
+        try:
+            self.map_controller = MapController(self.controller, self.config, self)
+            logger.debug("MapController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar MapController: {e}")
+            self.map_controller = None
+
+        try:
+            self.camera_settings_controller = CameraSettingsController(self.controller, self.config, self)
+            logger.debug("CameraSettingsController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar CameraSettingsController: {e}")
+            self.camera_settings_controller = None
+
+        try:
+            self.calibration_controller = CalibrationController(self.controller, self.config, self)
+            logger.debug("CalibrationController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar CalibrationController: {e}")
+            self.calibration_controller = None
+
+        try:
+            self.inspection_ui_controller = InspectionUIController(
+                self.inspection_manager, self.config, self
+            )
+            logger.debug("InspectionUIController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar InspectionUIController: {e}")
+            self.inspection_ui_controller = None
+
+        try:
+            self.report_dialog_controller = ReportDialogController(
+                self.report_manager_wrapper,
+                self.stencil_manager_wrapper,
+                self.stencil_tracker,
+                self
+            )
+            logger.debug("ReportDialogController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar ReportDialogController: {e}")
+            self.report_dialog_controller = None
+
+        try:
+            self.sequence_controller = SequenceController(self.controller, self)
+            logger.debug("SequenceController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar SequenceController: {e}")
+            self.sequence_controller = None
+
+        try:
+            self.fiducial_alignment_controller = FiducialAlignmentController(
+                self.config,
+                self.controller.camera,
+                self
+            )
+            logger.debug("FiducialAlignmentController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar FiducialAlignmentController: {e}")
+            self.fiducial_alignment_controller = None
+
+        # ConnectionManagerController será criado após setupUI()
+        # pois precisa de referências para widgets UI (camera_preview, etc.)
+        self.connection_manager_controller = None
+
+        # Criar TensionMeasurementController
+        try:
+            self.tension_measurement_controller = TensionMeasurementController(
+                self.controller,
+                self.config,
+                self.stencil_manager_wrapper,
+                self
+            )
+            logger.debug("TensionMeasurementController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar TensionMeasurementController: {e}")
+            self.tension_measurement_controller = None
+
+        # Criar DialogManagerController
+        try:
+            self.dialog_manager_controller = DialogManagerController(
+                self.stencil_manager_wrapper,
+                self.report_manager_wrapper,
+                self.report_config,
+                self.controller,
+                self
+            )
+            logger.debug("DialogManagerController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar DialogManagerController: {e}")
+            self.dialog_manager_controller = None
+
+        # NOTA: FileIOController e PositionManagerController são criados APÓS setup_ui()
+        # porque dependem de position_list_widget que só existe depois da UI ser montada
+
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # NOTA: Signals do ConnectionManagerController são conectados APÓS setup_ui()
+        # porque o controller só é criado dentro de setup_ui() (precisa de camera_preview)
+        # porque o controller só é criado depois que position_list_widget existe
+
+        # Variável para armazenar o último valor de posição (para comparação)
+        # Nota: Agora gerenciado pelo PositionManagerController
+        self.last_logged_position = None
+
+        # Armazenar o offset do sistema de coordenadas de trabalho (WCS) ativo (ex: G54)
+        self.current_wcs_offset = {'x': 0.0, 'y': 0.0, 'z': 0.0} # Inicializa o offset WCS padrão (G54)
+
+        # Armazenar a última Posição da Máquina (MPos) conhecida
+        self.current_mpos = {'x': 0.0, 'y': 0.0, 'z': 0.0} 
+        # Armazenar o Sistema de Coordenadas de Trabalho (WCS) ativo (ex: "G54")
+        self.active_wcs = "G54" # Assume G54 como padrão inicial
+        # Mapeamento de WCS para número P do G10
+        self.wcs_to_p = {"G54": 1, "G55": 2, "G56": 3, "G57": 4, "G58": 5, "G59": 6}
+        
+        # -------- Carrega configurações de câmera salvas --------
+        self._camera_mirror_x = self.config.get("camera", "mirror_x", default=False)
+        self._camera_mirror_y = self.config.get("camera", "mirror_y", default=False)
+        logger.debug(f"Configurações de câmera carregadas: mirror_x={self._camera_mirror_x}, mirror_y={self._camera_mirror_y}")
+        
+        # Configuração da interface
+        self.setup_ui()
+
+        # Criar controllers que dependem de widgets criados no setup_ui
+        # FileIOController e PositionManagerController precisam de position_list_widget
+        try:
+            self.file_io_controller = FileIOController(
+                self.controller,
+                self.position_list_widget,
+                self.sequence_widget,
+                self
+            )
+            logger.debug("FileIOController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar FileIOController: {e}")
+            self.file_io_controller = None
+
+        try:
+            self.position_manager_controller = PositionManagerController(
+                self.controller,
+                self.position_list_widget,
+                self
+            )
+            logger.debug("PositionManagerController criado com sucesso")
+        except Exception as e:
+            logger.error(f"Erro ao criar PositionManagerController: {e}")
+            self.position_manager_controller = None
+
+        # Signals conectados via SignalAggregator (criado abaixo em _setup_all_connections)
+
+        # Configurar KeyboardEventHandler (após setup_ui, quando movement_widget existe)
+        # O movement_widget está dentro da CNCControlTab
+        if hasattr(self, 'cnc_tab') and hasattr(self.cnc_tab, 'movement_widget'):
+            self.keyboard_handler.set_movement_widget(self.cnc_tab.movement_widget)
+            # Callback para verificar se keyboard control está habilitado
+            self.keyboard_handler.set_enable_control_callback(
+                lambda: self.cnc_tab.movement_widget.keyboard_control_checkbox.isChecked()
+                if hasattr(self.cnc_tab.movement_widget, 'keyboard_control_checkbox')
+                else False
+            )
+            logger.debug("KeyboardEventHandler configurado com movement_widget")
+
+        # Configuração do menu
+        self.setup_menu()
+
+        # =========== SIGNAL AGGREGATOR ===========
+        # Centraliza TODOS os handlers de signals do main_window
+        # Deve ser criado APÓS todos os controllers/coordinators/managers
+        self.signal_aggregator = SignalAggregator(self)
+        logger.debug("SignalAggregator criado e todos os signals conectados")
+
+        # -------- Painel de conexão inicialmente oculto -------
+        self.connection_group.setVisible(False)
+
+        # -------- Auto-connect se preferido --------------------
+
+        # Tenta auto-connect se configurado
+        logger.debug("Verificando auto-connect...")
+        self.connection_coordinator.attempt_auto_connect()
+
+        logger.debug(
+            "Verificando conexão PLC no arranque; backend=%s, conectado=%s",
+            type(self.controller.cnc).__name__,
+            getattr(self.controller.cnc, 'is_connected', False)
+        )
+        if isinstance(self.controller.cnc, PLCAxisController):
+            # Estado inicial - aguardando tentativa de conexão automática
+            self.connect_cnc_btn.setText("Conectar PLC")
+            self.cnc_status.setText("Iniciando...")
+            self.statusBar().showMessage("Iniciando aplicação - conexão automática ao PLC em breve...")
+            logger.info("Aplicação iniciada. Tentativa de conexão automática ao PLC agendada.")
+        
+        # Auto-connect apenas após a interface estar pronta
+        QTimer.singleShot(500, self._attempt_auto_connect)
+
+        # Timer para atualizar a posição – agora conectamos a um método que loga a ação 
+        self.update_timer = QTimer(self) 
+        self.update_timer.timeout.connect(self.on_update_timer) 
+        self.update_timer.start(1000) # Atualiza a cada 1000ms        
+
+        # Capturar eventos de teclado para movimentação via KeyboardEventHandler
+        QApplication.instance().installEventFilter(self.keyboard_handler)
+        logger.debug("KeyboardEventHandler instalado como eventFilter global")
+
+        # chama cleanup se o Qt encerrar por outros caminhos
+        QApplication.instance().aboutToQuit.connect(self._cleanup_resources)
+
+    #   Auto-connect com base no JSON de prefs
+    def _attempt_auto_connect(self):
+        """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""
+
+        # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
+        # ========== CONEXÃO AUTOMÁTICA À CÂMERA ==========
+        if self.config.get("connections", "auto_connect_camera", default=False):
+            # Obtém ID salvo (pode ser int ou string URL)
+            raw_id = self.config.get("connections", "last_camera_id", default=0)
+            
+            # Tenta converter para int se possível (para câmera USB padrão)
+            try:
+                cam_id = int(raw_id)
+                cam_str = str(cam_id)
+            except ValueError:
+                # É uma URL/String
+                cam_id = str(raw_id)
+                cam_str = cam_id
+            
+            # Tenta achar na lista
+            idx = self.camera_id_combo.findText(cam_str)
+            if idx >= 0:
+                self.camera_id_combo.setCurrentIndex(idx)
+            else:
+                # Se não achou (ex: é uma URL customizada), define o texto diretamente
+                self.camera_id_combo.setCurrentText(cam_str)
+                
+            QTimer.singleShot(500, self.connect_camera)
+
+    def _show_plc_connection_error(self, host: str, port: int, error: str):
+        """Exibe mensagem de erro de conexão ao PLC."""
+        QMessageBox.information(
+            self,
+            "CLP Não Conectado",
+            f"O CLP (Controlador Lógico Programável) não está conectado.\n\n"
+            f"A aplicação iniciará normalmente, porém as funções de controle de movimento "
+            f"estarão indisponíveis até que o CLP seja conectado.\n\n"
+            f"Detalhes da tentativa de conexão:\n"
+            f"• Endereço: {host}:{port}\n"
+            f"• Erro: {error}\n\n"
+            f"Para conectar o CLP:\n"
+            f"1. Verifique se o CLP está ligado e na mesma rede\n"
+            f"2. Confirme o endereço IP em 'Ferramentas → Preferências'\n"
+            f"3. Use 'Ferramentas → Conexões' para conectar manualmente"
+        )
+
+    def on_update_timer(self):
+        #logger.debug("Timer fired: atualizando tela de posição da head.")
+        self.update_position_display()
+        
+    def setup_ui(self):
+        # Widget central
+        central_widget = QWidget()
+        self.setCentralWidget(central_widget)
+        
+        # Layout principal
+        main_layout = QVBoxLayout(central_widget)
+        
+        # Grupo de conexão (oculto por padrão; mostrado via menu)
+        self.connection_group = QGroupBox("Conexão")
+        connection_layout = QGridLayout()
+
+        # PLC (Modbus TCP)
+        connection_layout.addWidget(QLabel("IP PLC:"), 0, 0)
+        self.plc_host_input = QLineEdit(self.config.get("connections", "plc_host", default="192.168.1.5"))
+        connection_layout.addWidget(self.plc_host_input, 0, 1)
+
+        connection_layout.addWidget(QLabel("Porta:"), 0, 2)
+        self.plc_port_input = QSpinBox()
+        self.plc_port_input.setRange(1, 65535)
+        self.plc_port_input.setValue(self.config.get("connections", "plc_port", default=502))
+        self.plc_port_input.setFixedWidth(100)
+        connection_layout.addWidget(self.plc_port_input, 0, 3)
+
+        btn_label = "Conectar PLC" if isinstance(self.controller.cnc, PLCAxisController) else "Conectar CNC"
+        self.connect_cnc_btn = QPushButton(btn_label)
+        self.connect_cnc_btn.clicked.connect(self._on_connect_btn_clicked)
+        connection_layout.addWidget(self.connect_cnc_btn, 0, 4)
+
+        # CNC Connection (serial legacy)
+        connection_layout.addWidget(QLabel("Porta CNC:"), 1, 0)
+        self.cnc_port_combo = QComboBox()
+        self.refresh_ports()
+        connection_layout.addWidget(self.cnc_port_combo, 1, 1)
+
+        # Camera connection
+        connection_layout.addWidget(QLabel("Câmera ID/URL:"), 2, 0)
+        self.camera_id_combo = QComboBox()
+        self.camera_id_combo.setEditable(True)
+        self.camera_id_combo.setToolTip("Selecione ID (0,1...) ou digite URL (http://...)")
+        self.camera_id_combo.addItems(["0", "1", "2", "3"])
+        connection_layout.addWidget(self.camera_id_combo, 2, 1)
+
+        self.connect_camera_btn = QPushButton("Conectar Câmera")
+        self.connect_camera_btn.clicked.connect(self.connect_camera)
+        connection_layout.addWidget(self.connect_camera_btn, 2, 2)
+
+        # Refresh ports button
+        self.refresh_ports_btn = QPushButton("Atualizar Portas")
+        self.refresh_ports_btn.clicked.connect(self.refresh_ports)
+        connection_layout.addWidget(self.refresh_ports_btn, 1, 3)
+
+        # Test camera button
+        self.test_camera_btn = QPushButton("Testar Câmera")
+        self.test_camera_btn.clicked.connect(self.test_camera)
+        connection_layout.addWidget(self.test_camera_btn, 2, 3)
+
+        self.connection_group.setLayout(connection_layout)
+        main_layout.addWidget(self.connection_group)
+
+        # Grupo de Calibração de Movimento ------
+        calibration_group = QGroupBox("Calibração de Movimento")
+        calibration_layout = QHBoxLayout()
+
+        # Campos permanecem criados porque são usados pela
+        # lógica de calibração, porém o grupo ficará oculto.
+        self.pulses_input = QLineEdit(str(
+            self.config.get("calibration", "pulses_per_rev", default=400)
+        ))
+        self.fuso_input = QLineEdit(str(
+            self.config.get("calibration", "fuso_pitch", default=5)
+        ))
+        self.apply_calibration_btn = QPushButton("Aplicar Calibração")
+        # Conecta ao CalibrationController
+        self.apply_calibration_btn.clicked.connect(
+            lambda: self.calibration_controller.show_dialog(
+                self,
+                self.pulses_per_rev_input.text(),
+                self.fuso_input.text()
+            ) if self.calibration_controller is not None else None
+        )
+
+        # (os widgets não são adicionados ao layout visual)
+        calibration_group.setLayout(calibration_layout)
+        calibration_group.setVisible(False)       # ← esconde
+        main_layout.addWidget(calibration_group)  # mantém no DOM para uso interno
+        
+        # Splitter para dividir a interface em painéis
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        
+        # Painel esquerdo: controles e lista de posições
+        left_panel = QWidget()
+        left_layout = QVBoxLayout(left_panel)
+        
+        # Informações de posição
+        position_group = QGroupBox("Posição Atual")
+        position_layout = QGridLayout()
+
+        # Exibe os valores X, Y, Z e status
+        position_layout.addWidget(QLabel("X:"), 0, 0)
+        self.x_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.x_position, 0, 1)
+        position_layout.addWidget(QLabel("Y:"), 1, 0)
+        self.y_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.y_position, 1, 1)
+        position_layout.addWidget(QLabel("Z:"), 2, 0)
+        self.z_position = QLabel("0.000 mm")
+        position_layout.addWidget(self.z_position, 2, 1)
+        position_layout.addWidget(QLabel("Status:"), 3, 0)
+        self.cnc_status = QLabel("Desconectado")
+        position_layout.addWidget(self.cnc_status, 3, 1)
+
+        position_group.setLayout(position_layout)
+        left_layout.addWidget(position_group)
+        
+        # Widget de lista de posições
+        self.position_list_widget = PositionListWidget()
+        self.position_list_widget.add_position_btn.clicked.connect(self.add_current_position)
+        self.position_list_widget.remove_position_btn.clicked.connect(self.remove_position)
+        self.position_list_widget.position_selected.connect(self.on_position_selected)
+        
+        left_layout.addWidget(self.position_list_widget)
+        
+        # Controle de sequência
+        self.sequence_widget = SequenceControlWidget()
+        self.sequence_widget.create_sequence_btn.clicked.connect(self.create_sequence)
+        self.sequence_widget.run_sequence_btn.clicked.connect(self.run_sequence)
+        self.sequence_widget.stop_sequence_btn.clicked.connect(self.stop_sequence)
+        self.sequence_widget.save_btn.clicked.connect(self.save_program)
+        self.sequence_widget.load_btn.clicked.connect(self.load_program)
+        self.sequence_widget.save_gcode_btn.clicked.connect(self.save_gcode)
+        self.sequence_widget.load_gcode_btn.clicked.connect(self.load_gcode)
+        
+        left_layout.addWidget(self.sequence_widget)
+
+        # Table to display each step/result of the executed sequence
+        self.results_table = QTableWidget(0, 3)
+        self.results_table.setHorizontalHeaderLabels(["Posição", "Horário", "Status"])
+        # Make columns stretch to fill available space
+        self.results_table.horizontalHeader().setSectionResizeMode(
+            QHeaderView.ResizeMode.Stretch
+        )
+        left_layout.addWidget(self.results_table)
+        
+        # Painel direito: abas semânticas
+        right_panel = QTabWidget()
+        # guardamos para habilitar/desabilitar abas depois
+        self.right_panel = right_panel
+
+        # Aba 1: Câmera & Movimento
+        self.cnc_control_tab = CNCControlTab(self.controller, self.config, parent=self)
+        self.cnc_control_tab.image_captured.connect(self.on_image_captured)
+        # Expose widgets internos para compatibilidade
+        self.camera_preview = self.cnc_control_tab.camera_preview
+        self.movement_widget = self.cnc_control_tab.movement_widget
+        right_panel.addTab(self.cnc_control_tab, "Câmera & Movimento")
+
+        # Criar ConnectionManagerController (agora que camera_preview está disponível)
+        try:
+            self.connection_manager_controller = ConnectionManagerController(
+                self.controller,
+                self.config,
+                self.camera_preview,
+                self
+            )
+            logger.debug("ConnectionManagerController criado com sucesso")
+
+            # Signals conectados via SignalAggregator (criado em _setup_all_connections)
+        except Exception as e:
+            logger.error(f"Erro ao criar ConnectionManagerController: {e}")
+            self.connection_manager_controller = None
+
+        # Aba 2: Monitor CLP (mantida como estava)
+        self.plc_monitor = PLCMonitorWidget(self.controller)
+        right_panel.addTab(self.plc_monitor, "Monitor CLP")
+
+        # Aba 3: Visualização de Tensão
+        self.tension_visualization = TensionTab(parent=self)
+        # Expose widget interno para compatibilidade
+        self.tension_viz_widget = self.tension_visualization.visualization
+        right_panel.addTab(self.tension_visualization, "Visualização de Tensão")
+
+        # Aba 4: Rastreabilidade
+        self.tracking_tab = TrackingTab(self.stencil_tracker, parent=self)
+        # Conecta sinais (exceto _on_* que são tratados pelo SignalAggregator)
+        self.tracking_tab.tension_measurement_requested.connect(self._run_tension_measurement)
+        self.tracking_tab.stencil_management_requested.connect(self.show_stencil_manager)
+        self.tracking_tab.new_stencil_requested.connect(self.show_new_stencil_dialog)
+        # Expose widget interno para compatibilidade
+        self.stencil_identification = self.tracking_tab.stencil_identification
+        self.btn_run_tension = self.tracking_tab.btn_run_tension
+        right_panel.addTab(self.tracking_tab, "🏷️ Rastreabilidade")
+
+        # Aba 5: Inspeção Visual (placeholder)
+        self.inspection_tab = InspectionTab(parent=self)
+        # Conecta sinais (exceto _on_* que são tratados pelo SignalAggregator)
+        self.inspection_tab.settings_requested.connect(self.show_inspection_settings)
+        right_panel.addTab(self.inspection_tab, "🔍 Inspeção")
+
+        # Aba 6: Programação de Mapa (placeholder)
+        self.map_tab = MapTab(parent=self)
+        self.map_tab.map_definition_requested.connect(lambda: self.map_controller.show_dialog(self, self.cnc_tab.camera_preview if hasattr(self, "cnc_tab") else None))
+        self.map_tab.mosaic_builder_requested.connect(self.show_mosaic_builder)
+        right_panel.addTab(self.map_tab, "🗺️ Mapa")
+        
+        # ===================================================================
+        # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
+        # O bloqueio agora é feito apenas nas ações que requerem movimento
+        # (ex: _precheck_connected, _on_generate_map, etc.)
+        # Isso permite usar câmera, receitas e visualização sem CLP
+        # ===================================================================
+        
+        # Adiciona painéis ao splitter
+        splitter.addWidget(left_panel)
+        splitter.addWidget(self.right_panel)
+        splitter.setSizes([400, 800])
+        
+        main_layout.addWidget(splitter)
+        
+        # Barra de status
+        self.statusBar().showMessage("Pronto para conectar")
+
+    def setup_menu(self):
+        """Configura o menu da aplicação usando MenuHandler."""
+        menubar = self.menuBar()
+
+        # Usar MenuHandler para criar todos os menus
+        self.menu_handler.create_menus(menubar)
+
+        # Obter referências para actions dinâmicos (para compatibilidade)
+        self.current_recipe_action = self.menu_handler.current_recipe_action
+        self.current_stencil_action = self.menu_handler.current_stencil_action
+
+        logger.info("Menu configurado via MenuHandler")
+
+    # abre o diálogo de medição de tensão
+    def open_stencil_tension_dialog(self):
+        """
+        Abre diálogo simples de medição de tensão.
+
+        Delega para DialogManagerController.
+        """
+        if self.dialog_manager_controller is not None:
+            self.dialog_manager_controller.open_simple_tension_dialog()
+        else:
+            logger.error("DialogManagerController não está disponível")
+            if not self.controller.cnc.is_connected:
+                QMessageBox.warning(self, "Aviso", "Conecte a CNC antes de medir a tensão do stencil.")
+                return
+            from aoi_lib.stencil_tension import StencilTensionDialog
+            dlg = StencilTensionDialog(self, self.controller.cnc)
+            dlg.exec()
+
+    # =========================================================================
+    # GERENCIAMENTO DE RECEITAS
+    # =========================================================================
+
+    def show_recipe_manager(self):
+        """
+        Abre o diálogo de gerenciamento de receitas.
+
+        Delega para RecipeManagerController.
+        """
+        if self.recipe_manager_controller is not None:
+            self.recipe_manager_controller.show_recipe_manager()
+        else:
+            logger.error("RecipeManagerController não está disponível")
+            # Fallback: código original
+            self.recipe_manager_wrapper.show_manager(self)
+
+    def show_new_recipe_dialog(self):
+        """
+        Abre o diálogo para criar uma nova receita.
+
+        Delega para RecipeManagerController.
+        """
+        if self.recipe_manager_controller is not None:
+            self.recipe_manager_controller.show_new_recipe_dialog()
+        else:
+            logger.error("RecipeManagerController não está disponível")
+            # Fallback: código original
+            success = self.recipe_manager_wrapper.create_new(self)
+            if success:
+                QMessageBox.information(
+                    self, "Sucesso",
+                    "Receita criada com sucesso!\n\n"
+                    "Acesse Receitas > Gerenciar Receitas para carregar."
+                )
+
+    # =========================================================================
+    # NOTA: TODOS os handlers _on_* foram movidos para SignalAggregator
+    # Os 93 handlers que estavam aqui (linhas 880-2786) foram centralizados
+    # no arquivo consumo_lib/handlers/signal_aggregator.py
+    #
+    # Isso melhora a organização do código e separa responsabilidades:
+    # - main_window: Cria a UI e gerencia a aplicação
+    # - SignalAggregator: Gerencia todos os handlers de signals
+    # =========================================================================
+    
+    def apply_recipe_to_capture(self):
+        """
+        Aplica as configurações de captura da receita atual ao diálogo de mapa.
+
+        Delega para RecipeManagerController.
+        """
+        if self.recipe_manager_controller is not None:
+            # Prepara dict de widgets de mapa
+            map_widgets = {}
+            if hasattr(self, 'map_step_x_edit'):
+                map_widgets['map_step_x_edit'] = self.map_step_x_edit
+            if hasattr(self, 'map_step_y_edit'):
+                map_widgets['map_step_y_edit'] = self.map_step_y_edit
+            if hasattr(self, 'spin_capture_delay'):
+                map_widgets['spin_capture_delay'] = self.spin_capture_delay
+
+            self.recipe_manager_controller.apply_recipe_to_capture(
+                self.current_recipe,
+                map_widgets if map_widgets else None
+            )
+        else:
+            logger.error("RecipeManagerController não está disponível")
+            # Fallback: código original
+            settings = self.recipe_manager_wrapper.apply_to_capture()
+            if settings is None:
+                QMessageBox.warning(
+                    self, "Aviso",
+                    "Nenhuma receita carregada.\n\n"
+                    "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
+                )
+                return
+
+    def apply_recipe_to_tension(self):
+        """
+        Aplica as configurações de tensão da receita atual ao diálogo de medição.
+
+        Delega para RecipeManagerController.
+        """
+        if self.recipe_manager_controller is not None:
+            self.recipe_manager_controller.apply_recipe_to_tension(self.current_recipe)
+        else:
+            logger.error("RecipeManagerController não está disponível")
+            # Fallback: código original
+            settings = self.recipe_manager_wrapper.apply_to_tension()
+            if settings is None:
+                QMessageBox.warning(
+                    self, "Aviso",
+                    "Nenhuma receita carregada.\n\n"
+                    "Acesse Receitas > Gerenciar Receitas e carregue uma receita."
+                )
+                return
+
+    # =========================================================================
+    # GERENCIAMENTO DE STENCILS (RASTREABILIDADE)
+    # =========================================================================
+    
+    def _on_stencil_selected(self, stencil: Stencil):
+        """Handler quando um stencil é selecionado."""
+        self.current_stencil = stencil
+        self.btn_run_tension.setEnabled(True)
+        
+        # Atualiza barra de status
+        self.statusBar().showMessage(
+            f"Stencil selecionado: {stencil.code} | "
+            f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
+            f"Inspeções: {stencil.inspection_count}"
+        )
+        
+        # Atualiza menu
+        self.current_stencil_action.setText(f"Stencil: {stencil.code}")
+        
+        logger.info(f"Stencil selecionado: {stencil.code}")
+    
+    def _on_stencil_cleared(self):
+        """Handler quando a seleção de stencil é limpa."""
+        self.current_stencil = None
+        self.btn_run_tension.setEnabled(False)
+        self.statusBar().showMessage("Pronto")
+        
+        # Atualiza menu
+        self.current_stencil_action.setText("(Nenhum stencil selecionado)")
+        
+        logger.info("Seleção de stencil limpa")
+    
+    def _on_recipe_requested(self, recipe_name: str):
+        """Handler quando o stencil solicita carregamento de receita."""
+        self.recipe_manager_wrapper.load_recipe(recipe_name)
+        # O restante é tratado pelo handler _on_recipe_loaded conectado ao signal
+
+    # =========================================================================
+    # HANDLERS DO RECIPEMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_recipe_created(self, recipe_name: str):
+        """Handler chamado quando nova receita é criada."""
+        logger.info(f"Nova receita criada: {recipe_name}")
+        # O método create_new() já mostrou QMessageBox
+
+    def _on_recipe_applied_to_capture(self, settings: dict):
+        """Handler chamado quando configurações de captura são aplicadas."""
+        # Verifica se os atributos de mapa existem
+        if not hasattr(self, 'map_origin'):
+            self.map_origin = {}
+        if not hasattr(self, 'map_end'):
+            self.map_end = {}
+
+        # Aplica configurações de captura
+        self.map_origin = settings['origin']
+        self.map_end = settings['end']
+
+        # Tenta atualizar os widgets se existirem
+        if hasattr(self, 'map_step_x_edit'):
+            self.map_step_x_edit.setText(str(settings['step_x']))
+        if hasattr(self, 'map_step_y_edit'):
+            self.map_step_y_edit.setText(str(settings['step_y']))
+        if hasattr(self, 'spin_capture_delay'):
+            self.spin_capture_delay.setValue(settings['capture_delay_ms'])
+
+        # Atualiza painel de informações calculadas
+        self._update_adjusted_step_info()
+
+        # Mostra confirmação
+        r = self.current_recipe
+        QMessageBox.information(
+            self, "Receita Aplicada",
+            f"Configurações de captura aplicadas:\n\n"
+            f"• Origem: ({settings['origin']['x']}, {settings['origin']['y']})\n"
+            f"• Final: ({settings['end']['x']}, {settings['end']['y']})\n"
+            f"• Step X: {settings['step_x']} mm\n"
+            f"• Step Y: {settings['step_y']} mm\n"
+            f"• Delay: {settings['capture_delay_ms']} ms\n"
+            f"• Backlight: {'Sim' if settings['backlight_enabled'] else 'Não'}\n\n"
+            "Abra 'Definir Mapa' para verificar ou ajustar."
+        )
+
+    def _on_recipe_applied_to_tension(self, settings: dict):
+        """Handler chamado quando configurações de tensão são aplicadas."""
+        r = self.current_recipe
+
+        # Mostra informações dos critérios de aceitação
+        acc = settings['acceptance']
+        QMessageBox.information(
+            self, "Receita de Tensão",
+            f"Configurações de tensão da receita '{r.name}':\n\n"
+            f"📐 Grid: {settings['grid_rows']} x {settings['grid_cols']}\n"
+            f"📍 Área: ({settings['start_point']['x']}, {settings['start_point']['y']}) → "
+            f"({settings['end_point']['x']}, {settings['end_point']['y']})\n\n"
+            f"📊 Critérios de Aceitação:\n"
+            f"  • Mínimo: {acc['min_tension']} N/cm²\n"
+            f"  • Máximo: {acc['max_tension']} N/cm²\n"
+            f"  • Warning baixo: {acc['warning_low']} N/cm²\n"
+            f"  • Warning alto: {acc['warning_high']} N/cm²\n\n"
+            "ℹ️ Estes critérios serão usados para classificar as medições."
+        )
+
+    def _on_recipe_error(self, error: str):
+        """Handler chamado quando ocorre um erro com receitas."""
+        logger.error(f"Erro de receita: {error}")
+        # O método que chamou já tratou o erro com QMessageBox
+
+    # =========================================================================
+    # HANDLERS DO STENCILMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_tension_record_added(self, stencil_code: str, record: TensionRecord):
+        """Handler chamado quando registro de tensão é adicionado."""
+        logger.info(
+            f"Medição de tensão salva no histórico do stencil "
+            f"'{stencil_code}': {record.result}"
+        )
+
+        QMessageBox.information(
+            self, "Medição Salva",
+            f"Resultado da medição salvo no histórico.\n\n"
+            f"Stencil: {stencil_code}\n"
+            f"Resultado: {record.result}\n"
+            f"Média: {record.average_tension:.2f} N/cm²"
+        )
+
+        # Atualiza widget de identificação para refletir nova inspeção
+        stencil = self.stencil_manager_wrapper.get_stencil(stencil_code)
+        if stencil:
+            self.stencil_identification._select_stencil(stencil)
+
+    def _on_degradation_alert(self, alert: str):
+        """Handler chamado quando há alerta de degradação."""
+        QMessageBox.warning(
+            self, "⚠️ Alerta de Degradação",
+            f"Stencil: {self.current_stencil.code}\n\n{alert}"
+        )
+
+    def _on_stencil_error(self, error: str):
+        """Handler chamado quando ocorre um erro com stencils."""
+        logger.error(f"Erro de stencil: {error}")
+        # Mostra erro ao usuário se necessário
+        QMessageBox.critical(
+            self, "Erro de Stencil",
+            f"Ocorreu um erro:\n{error}"
+        )
+
+    # =========================================================================
+    # HANDLERS DO INSPECTIONMANAGER
+    # =========================================================================
+
+    def _on_inspection_requested(self, gerber_file: str):
+        """Handler para quando uma inspeção é solicitada."""
+        logger.info(f"Inspeção solicitada para arquivo: {gerber_file}")
+        # A inspeção será processada pelo InspectionManager
+        pass
+
+    def _on_inspection_completed(self, result, overlay):
+        """Handler chamado quando inspeção é completada com sucesso."""
+        import numpy as np
+
+        # Salvar referências
+        self._last_inspection_result = result
+        self._last_inspection_overlay = overlay
+
+        logger.info(f"Inspeção completada: {result.summary}")
+
+        # Mostrar resultado
+        self._show_inspection_result(result, overlay)
+
+    def _on_inspection_failed(self, error: str):
+        """Handler chamado quando inspeção falha."""
+        logger.error(f"Inspeção falhou: {error}")
+        QMessageBox.critical(
+            self, "Erro na Inspeção",
+            f"A inspeção falhou:\n{error}"
+        )
+
+    # =========================================================================
+    # HANDLERS DO INSPECTIONCOORDINATOR (NOVO)
+    # =========================================================================
+
+    def _on_inspection_step_changed(self, step, message: str):
+        """Handler chamado quando a etapa da inspeção muda."""
+        logger.info(f"Inspection step: {step.value} - {message}")
+        self.statusBar().showMessage(message)
+
+    def _on_inspection_progress(self, percent: int, message: str):
+        """Handler chamado quando o progresso da inspeção atualiza."""
+        logger.debug(f"Inspection progress: {percent}% - {message}")
+        self.statusBar().showMessage(f"{message} ({percent}%)")
+
+    def _on_gerber_loaded(self, gerber_data):
+        """Handler chamado quando Gerber é carregado."""
+        logger.info("Gerber carregado com sucesso")
+        self.statusBar().showMessage("Gerber carregado - Capture fiduciais", 5000)
+
+    def _on_fiducials_captured(self, templates: list):
+        """Handler chamado quando fiduciais são capturados."""
+        logger.info(f"Fiduciais capturados: {len(templates)} templates")
+        self.statusBar().showMessage(f"Fiduciais capturados: {len(templates)} - Alinhe o sistema", 5000)
+
+    def _on_alignment_completed(self, transformation):
+        """Handler chamado quando alinhamento é completado."""
+        logger.info("Alinhamento completado")
+        self.statusBar().showMessage("Sistema alinhado - Capture imagem de inspeção", 5000)
+
+    def _on_inspection_image_captured(self, image_path: str):
+        """Handler chamado quando imagem de inspeção é capturada."""
+        logger.info(f"Imagem capturada: {image_path}")
+        self.statusBar().showMessage("Imagem capturada - Analisando...", 3000)
+
+    def _on_inspection_analysis_completed(self, result, overlay):
+        """Handler chamado quando análise é completada."""
+        logger.info("Análise completada")
+        self.statusBar().showMessage("Análise concluída", 3000)
+
+    def _on_inspection_workflow_completed(self, result):
+        """Handler chamado quando workflow completo termina."""
+        if result.success:
+            logger.info(f"Inspeção completada: {result.summary}")
+            self.statusBar().showMessage("Inspeção concluída com sucesso", 5000)
+        else:
+            logger.error(f"Inspeção falhou: {result.error}")
+            self.statusBar().showMessage("Inspeção falhou", 5000)
+
+    def _on_inspection_workflow_failed(self, error: str):
+        """Handler chamado quando workflow falha."""
+        logger.error(f"Workflow falhou: {error}")
+        QMessageBox.critical(self, "Erro na Inspeção", f"O workflow de inspeção falhou:\n{error}")
+
+    # =========================================================================
+    # HANDLERS DO INSPECTIONUICONTROLLER (NOVO - Session 10)
+    # =========================================================================
+
+    def _on_inspection_completed_from_controller(self, result, overlay_path):
+        """Handler chamado quando inspeção é completada via InspectionUIController."""
+        logger.info(f"Inspeção completada via controller: {result}")
+
+        # Gerar PDF se overlay_path foi fornecido
+        if overlay_path:
+            try:
+                from consumo_lib.managers import ReportManagerWrapper
+                report_manager = ReportManagerWrapper(self.report_generator, self.config)
+
+                stencil_code = self.current_stencil.code if self.current_stencil else None
+
+                pdf_path = report_manager.generate_inspection_report(
+                    inspection_result=result,
+                    overlay_image_path=overlay_path,
+                    stencil_code=stencil_code,
+                    operator=self.config.get("user", "name", default="Operador")
+                )
+
+                self.statusBar().showMessage(f"Relatório salvo: {pdf_path}", 5000)
+            except Exception as e:
+                logger.exception("Erro ao gerar relatório de inspeção")
+                self.statusBar().showMessage(f"Erro ao gerar relatório: {str(e)}", 5000)
+
+    def _on_inspection_settings_updated(self, thresholds):
+        """Handler chamado quando configurações de inspeção são atualizadas."""
+        logger.info(f"Configurações de inspeção atualizadas: {thresholds}")
+        self.inspection_thresholds = thresholds
+
+    # =========================================================================
+    # HANDLERS DO REPORTDIALOGCONTROLLER (NOVO - Session 10)
+    # =========================================================================
+
+    def _on_tension_report_generated(self, output_path: str):
+        """Handler chamado quando relatório de tensão é gerado."""
+        logger.info(f"Relatório de tensão gerado: {output_path}")
+        self.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+
+    def _on_stencil_report_generated(self, output_path: str):
+        """Handler chamado quando relatório de stencil é gerado."""
+        logger.info(f"Relatório de stencil gerado: {output_path}")
+        self.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+
+    def _on_period_query_executed(self, record_count: int):
+        """Handler chamado quando consulta por período é executada."""
+        logger.info(f"Consulta por período executada: {record_count} registros")
+
+    def _on_report_error(self, error: str):
+        """Handler chamado quando ocorre erro na geração de relatório."""
+        logger.error(f"Erro na geração de relatório: {error}")
+
+    # =========================================================================
+    # HANDLERS DO SEQUENCECONTROLLER (NOVO - Session 11)
+    # =========================================================================
+
+    def _on_sequence_created(self, sequence):
+        """Handler chamado quando uma sequência é criada."""
+        self.current_sequence = sequence
+        self.statusBar().showMessage(
+            f"Sequência '{sequence.name}' criada com {len(sequence.positions)} posições",
+            5000
+        )
+
+    def _on_sequence_loaded(self, sequence, source):
+        """Handler chamado quando uma sequência é carregada."""
+        self.current_sequence = sequence
+        self.statusBar().showMessage(
+            f"Sequência carregada de {source}: {len(sequence.positions)} posições",
+            5000
+        )
+
+    def _on_sequence_saved(self, filepath):
+        """Handler chamado quando uma sequência é salva."""
+        self.statusBar().showMessage(f"G-CODE salvo em {filepath}", 5000)
+
+    def _on_sequence_execution_started(self, sequence_name):
+        """Handler chamado quando a execução da sequência é iniciada."""
+        self.is_running_sequence = True
+        self.statusBar().showMessage(f"Executando sequência '{sequence_name}'...")
+
+    def _on_sequence_execution_stopped(self):
+        """Handler chamado quando a execução da sequência é parada."""
+        self.is_running_sequence = False
+        self.statusBar().showMessage("Execução de sequência interrompida", 5000)
+
+    def _on_sequence_execution_finished(self):
+        """Handler chamado quando a execução da sequência é finalizada."""
+        self.is_running_sequence = False
+        self.statusBar().showMessage("Execução de sequência concluída", 5000)
+
+    def _on_sequence_error_from_controller(self, error_message):
+        """Handler chamado quando ocorre um erro na execução da sequência."""
+        logger.error(f"Erro na sequência: {error_message}")
+
+    def _on_position_captured(self, position, image, timestamp):
+        """Handler chamado quando uma posição é capturada."""
+        import time
+        self.statusBar().showMessage(
+            f"Posição capturada: {position.name} ({position.x:.3f}, {position.y:.3f})",
+            3000
+        )
+
+    # =========================================================================
+    # HANDLERS DO FIDUCIALALIGNMENTCONTROLLER (NOVO - Session 12)
+    # =========================================================================
+
+    def _on_fiducial_alignment_completed(self, transform):
+        """Handler chamado quando o alinhamento de fiduciais é completado."""
+        logger.info(f"Alinhamento de fiduciais completado: {transform}")
+        self.statusBar().showMessage(
+            f"Alinhamento aplicado: tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
+            f"rot={transform.angle:.2f}°",
+            5000
+        )
+
+    def _on_fiducial_alignment_cancelled(self):
+        """Handler chamado quando o alinhamento é cancelado."""
+        logger.info("Alinhamento de fiduciais cancelado")
+        self.statusBar().showMessage("Alinhamento cancelado", 3000)
+
+    def _on_fiducial_alignment_error(self, error):
+        """Handler chamado quando ocorre um erro no alinhamento."""
+        logger.error(f"Erro no alinhamento de fiduciais: {error}")
+
+    # =========================================================================
+    # HANDLERS DO CONNECTIONMANAGERCONTROLLER (NOVO)
+    # =========================================================================
+
+    def _on_camera_connected_from_controller(self, camera_id):
+        """
+        Handler chamado quando a câmera conecta com sucesso.
+
+        Args:
+            camera_id: ID da câmera (int ou str)
+
+        Signal origin:
+            ConnectionManagerController.camera_connected
+        """
+        logger.info(f"Câmera {camera_id} conectada (via controller)")
+
+    def _on_camera_disconnected_from_controller(self):
+        """
+        Handler chamado quando a câmera desconecta.
+
+        Signal origin:
+            ConnectionManagerController.camera_disconnected
+        """
+        logger.info("Câmera desconectada (via controller)")
+
+    def _on_camera_connection_error(self, error_message):
+        """
+        Handler chamado quando ocorre um erro de conexão da câmera.
+
+        Args:
+            error_message: Mensagem de erro
+
+        Signal origin:
+            ConnectionManagerController.camera_connection_error
+        """
+        logger.error(f"Erro de conexão da câmera: {error_message}")
+
+    def _on_plc_settings_changed(self, host, port):
+        """
+        Handler chamado quando as configurações de PLC mudam.
+
+        Args:
+            host: Novo host do PLC
+            port: Nova porta do PLC
+
+        Signal origin:
+            ConnectionManagerController.plc_settings_changed
+        """
+        logger.info(f"Configurações de PLC alteradas para {host}:{port}")
+
+    def _on_ports_refreshed(self, ports_list):
+        """
+        Handler chamado quando a lista de portas é atualizada.
+
+        Args:
+            ports_list: Lista de portas encontradas
+
+        Signal origin:
+            ConnectionManagerController.ports_refreshed
+        """
+        logger.debug(f"Lista de portas atualizada: {len(ports_list)} portas encontradas")
+
+    # =========================================================================
+    # HANDLERS DO TENSIONMEASUREMENTCONTROLLER (NOVO)
+    # =========================================================================
+
+    def _on_tension_measurement_started(self):
+        """
+        Handler chamado quando a medição de tensão é iniciada.
+
+        Signal origin:
+            TensionMeasurementController.measurement_started
+        """
+        logger.info("Medição de tensão iniciada (via controller)")
+
+    def _on_tension_measurement_completed_from_controller(self, record):
+        """
+        Handler chamado quando a medição de tensão é completada.
+
+        Args:
+            record: TensionRecord com os dados da medição
+
+        Signal origin:
+            TensionMeasurementController.measurement_completed
+        """
+        logger.info(f"Medição de tensão completada: {record}")
+
+    def _on_tension_measurement_failed(self, error_message):
+        """
+        Handler chamado quando a medição de tensão falha.
+
+        Args:
+            error_message: Mensagem de erro
+
+        Signal origin:
+            TensionMeasurementController.measurement_failed
+        """
+        logger.error(f"Medição de tensão falhou: {error_message}")
+
+    def _on_tension_measurement_saved(self, stencil_code, record):
+        """
+        Handler chamado quando a medição de tensão é salva no histórico.
+
+        Args:
+            stencil_code: Código do stencil
+            record: TensionRecord salvo
+
+        Signal origin:
+            TensionMeasurementController.measurement_saved
+        """
+        logger.info(f"Medição de tensão salva para stencil {stencil_code}")
+
+    # =========================================================================
+    # HANDLERS DIALOGMANAGERCONTROLLER (NOVO)
+    # =========================================================================
+
+    def _on_dialog_closed(self, dialog_name):
+        """
+        Handler chamado quando um diálogo é fechado.
+
+        Args:
+            dialog_name: Nome do diálogo fechado
+
+        Signal origin:
+            DialogManagerController.dialog_closed
+        """
+        logger.debug(f"Diálogo '{dialog_name}' fechado")
+
+    def _on_stencil_created_from_manager(self, stencil):
+        """
+        Handler chamado quando um novo stencil é criado.
+
+        Args:
+            stencil: Stencil criado
+
+        Signal origin:
+            DialogManagerController.stencil_created
+        """
+        logger.info(f"Stencil criado via DialogManager: {stencil.code}")
+
+    def _on_report_settings_updated_from_manager(self, config):
+        """
+        Handler chamado quando as configurações de relatório são atualizadas.
+
+        Args:
+            config: Nova configuração de relatório
+
+        Signal origin:
+            DialogManagerController.report_settings_updated
+        """
+        logger.info("Configurações de relatório atualizadas via DialogManager")
+
+    # =========================================================================
+    # HANDLERS DO POSITIONMANAGERCONTROLLER (NOVO - Session 17)
+    # =========================================================================
+
+    def _on_position_updated(self, position):
+        """
+        Handler chamado quando a posição CNC é atualizada.
+
+        Args:
+            position: Dicionário com coordenadas x, y, z
+
+        Signal origin:
+            PositionManagerController.position_updated
+        """
+        logger.debug(f"Posição atualizada: {position}")
+
+    def _on_position_added(self, position):
+        """
+        Handler chamado quando uma posição é adicionada.
+
+        Args:
+            position: InspectionPosition adicionada
+
+        Signal origin:
+            PositionManagerController.position_added
+        """
+        logger.info(f"Posição adicionada: {position.name}")
+
+    def _on_position_removed(self, position_name):
+        """
+        Handler chamado quando uma posição é removida.
+
+        Args:
+            position_name: Nome da posição removida
+
+        Signal origin:
+            PositionManagerController.position_removed
+        """
+        logger.info(f"Posição removida: {position_name}")
+
+    def _on_position_selected_from_controller(self, position):
+        """
+        Handler chamado quando uma posição é selecionada.
+
+        Args:
+            position: InspectionPosition selecionada
+
+        Signal origin:
+            PositionManagerController.position_selected
+        """
+        logger.debug(f"Posição selecionada: {position.name}")
+
+    def _on_sequence_created(self, sequence):
+        """
+        Handler chamado quando uma sequência é criada.
+
+        Args:
+            sequence: Sequence criada
+
+        Signal origin:
+            PositionManagerController.sequence_created
+        """
+        logger.info(f"Sequência criada: {sequence.name}")
+
+    # =========================================================================
+    # HANDLERS DO RECIPEMANAGERCONTROLLER (NOVO - Session 18)
+    # =========================================================================
+
+    def _on_recipe_loaded_from_controller(self, recipe):
+        """
+        Handler chamado quando uma receita é carregada via controller.
+
+        Args:
+            recipe: Recipe carregada
+
+        Signal origin:
+            RecipeManagerController.recipe_loaded
+        """
+        logger.info(f"Receita carregada via controller: {recipe.name}")
+
+    def _on_recipe_created_from_controller(self, recipe_name):
+        """
+        Handler chamado quando uma receita é criada via controller.
+
+        Args:
+            recipe_name: Nome da receita criada
+
+        Signal origin:
+            RecipeManagerController.recipe_created
+        """
+        logger.info(f"Receita criada via controller: {recipe_name}")
+
+    def _on_recipe_applied_to_capture_from_controller(self, settings):
+        """
+        Handler chamado quando configurações de captura são aplicadas via controller.
+
+        Args:
+            settings: Configurações aplicadas
+
+        Signal origin:
+            RecipeManagerController.recipe_applied_to_capture
+        """
+        logger.info("Configurações de captura aplicadas via controller")
+
+    def _on_recipe_applied_to_tension_from_controller(self, settings):
+        """
+        Handler chamado quando configurações de tensão são aplicadas via controller.
+
+        Args:
+            settings: Configurações aplicadas
+
+        Signal origin:
+            RecipeManagerController.recipe_applied_to_tension
+        """
+        logger.info("Configurações de tensão aplicadas via controller")
+
+    def _on_recipe_error_from_controller(self, error_message):
+        """
+        Handler chamado quando ocorre um erro com receita via controller.
+
+        Args:
+            error_message: Mensagem de erro
+
+        Signal origin:
+            RecipeManagerController.recipe_error
+        """
+        logger.error(f"Erro de receita via controller: {error_message}")
+
+    # =========================================================================
+    # HANDLERS DO TENSIONCOORDINATOR (NOVO)
+    # =========================================================================
+
+    def _on_tension_step_changed(self, step, message: str):
+        """Handler chamado quando a etapa da medição muda."""
+        logger.info(f"Tension measurement step: {step.value} - {message}")
+        self.statusBar().showMessage(message)
+
+    def _on_tension_progress(self, current: int, total: int, message: str):
+        """Handler chamado quando o progresso da medição atualiza."""
+        logger.debug(f"Tension progress: {current}/{total} - {message}")
+        self.statusBar().showMessage(f"{message} ({current}/{total} pontos)")
+
+    def _on_tension_grid_generated(self, points: list):
+        """Handler chamado quando o grid de medição é gerado."""
+        logger.info(f"Grid gerado: {len(points)} pontos")
+
+    def _on_tension_point_started(self, index: int, point):
+        """Handler chamado quando a medição de um ponto inicia."""
+        logger.debug(f"Iniciando medição do ponto {index}: ({point.x:.1f}, {point.y:.1f})")
+
+    def _on_tension_point_completed(self, index: int, point):
+        """Handler chamado quando a medição de um ponto completa."""
+        if point.tension is not None:
+            logger.info(f"Ponto {index} medido: {point.tension:.2f} N/cm")
+        else:
+            logger.warning(f"Ponto {index} falhou")
+
+    def _on_tension_measurement_taken(self, x: float, y: float, tension: float):
+        """Handler chamado quando uma medição é tomada."""
+        logger.debug(f"Medição tomada: ({x:.1f}, {y:.1f}) = {tension:.2f} N/cm")
+
+    def _on_tension_all_completed(self, result):
+        """Handler chamado quando todas as medições são completadas."""
+        logger.info(f"Todas as medições completadas: {len(result.measurements)} pontos")
+        self.statusBar().showMessage("Medições concluídas - Gerando relatório", 5000)
+
+    def _on_tension_heatmap_generated(self, heatmap_path: str):
+        """Handler chamado quando o heatmap é gerado."""
+        logger.info(f"Heatmap gerado: {heatmap_path}")
+        self.statusBar().showMessage("Heatmap gerado", 3000)
+
+    def _on_tension_measurement_completed(self, result):
+        """Handler chamado quando o workflow completo termina."""
+        if result.success:
+            classification = result.classification or "unknown"
+            avg = result.average_tension or 0
+            logger.info(f"Medição completada: {classification} (média: {avg:.2f} N/cm)")
+            self.statusBar().showMessage(
+                f"Medição concluída: {classification.upper()} ({avg:.2f} N/cm médio)",
+                5000
+            )
+        else:
+            logger.error("Medição falhou")
+            self.statusBar().showMessage("Medição falhou", 5000)
+
+    def _on_tension_measurement_failed(self, error: str):
+        """Handler chamado quando workflow de tensão falha."""
+        logger.error(f"Workflow de tensão falhou: {error}")
+        QMessageBox.critical(self, "Erro na Medição", f"O workflow de medição falhou:\n{error}")
+
+    def _on_thresholds_changed(self, thresholds):
+        """Handler chamado quando thresholds de inspeção mudam."""
+        logger.info("Thresholds de inspeção alterados")
+        # Atualiza referência local
+        self.inspection_thresholds = thresholds
+        self.stencil_inspector = self.inspection_manager.get_inspector()
+
+    # =========================================================================
+    # HANDLERS DO REPORTMANAGERWRAPPER
+    # =========================================================================
+
+    def _on_report_generated(self, report_type: str, output_path: str):
+        """Handler chamado quando relatório é gerado com sucesso."""
+        logger.info(f"Relatório '{report_type}' gerado: {output_path}")
+
+        QMessageBox.information(
+            self, "Relatório Gerado",
+            f"Relatório de {report_type} gerado com sucesso!\n\n"
+            f"Arquivo: {output_path}"
+        )
+
+    def _on_report_failed(self, report_type: str, error: str):
+        """Handler chamado quando geração de relatório falha."""
+        logger.error(f"Falha ao gerar relatório '{report_type}': {error}")
+
+        QMessageBox.critical(
+            self, "Erro no Relatório",
+            f"Falha ao gerar relatório de {report_type}:\n{error}"
+        )
+
+    def _on_report_config_changed(self, config):
+        """Handler chamado quando configuração de relatório muda."""
+        logger.info("Configuração de relatório alterada")
+        # Atualiza referência local
+        self.report_config = config
+        self.report_generator = self.report_manager_wrapper.get_generator()
+
+
+
+
+
+    def show_stencil_manager(self):
+        """
+        Abre o diálogo de gerenciamento de stencils.
+
+        Delega para DialogManagerController.
+        """
+        if self.dialog_manager_controller is not None:
+            self.dialog_manager_controller.show_stencil_manager()
+        else:
+            logger.error("DialogManagerController não está disponível")
+            self.stencil_manager_wrapper.show_manager(self)
+
+    def show_new_stencil_dialog(self):
+        """
+        Abre o diálogo para criar um novo stencil.
+
+        Delega para DialogManagerController.
+        """
+        if self.dialog_manager_controller is not None:
+            self.dialog_manager_controller.show_new_stencil_dialog()
+        else:
+            logger.error("DialogManagerController não está disponível")
+            stencil = self.stencil_manager_wrapper.create_new(self)
+            if stencil:
+                QMessageBox.information(
+                    self, "Sucesso",
+                    f"Stencil '{stencil.code}' cadastrado com sucesso!\n\n"
+                    "Escaneie ou digite o código para selecioná-lo."
+                )
+
+
+    def _run_tension_measurement(self):
+        """
+        Executa medição de tensão para o stencil selecionado.
+
+        Delega para TensionMeasurementController.
+        """
+        if self.tension_measurement_controller is not None:
+            self.tension_measurement_controller.run_measurement(
+                self.current_stencil,
+                self.current_recipe
+            )
+        else:
+            logger.error("TensionMeasurementController não está disponível")
+            QMessageBox.warning(
+                self,
+                "Erro",
+                "TensionMeasurementController não está disponível"
+            )
+
+    def _save_tension_to_history(self, tension_dialog):
+        """
+        Salva resultado da medição de tensão no histórico do stencil.
+
+        Delega para TensionMeasurementController.
+
+        Args:
+            tension_dialog: Diálogo de tensão com os dados da medição
+        """
+        if self.tension_measurement_controller is not None:
+            self.tension_measurement_controller.save_measurement(
+                self.current_stencil,
+                self.current_recipe,
+                tension_dialog
+            )
+        else:
+            logger.error("TensionMeasurementController não está disponível")
+
+    def show_mosaic_builder(self):
+        """Abre a janela do Mosaic Builder para montagem de imagens"""
+        from mosaic_builder import MosaicBuilder
+        self.mosaic_window = MosaicBuilder()
+        self.mosaic_window.resize(1200, 900)
+        self.mosaic_window.show()
+
+    def show_camera_calibration_dialog(self):
+        """Abre diálogo para calibração de câmera (correção de distorção)"""
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Aviso", "Conecte a câmera antes de calibrar.")
+            return
+        
+        from camera_calibration import CameraCalibrationDialog
+        self.camera_calib_dialog = CameraCalibrationDialog(self.controller.camera, self)
+        self.camera_calib_dialog.resize(900, 750)
+        self.camera_calib_dialog.show()
+
+    def show_fov_calibration_dialog(self):
+        """
+        Abre diálogo para calibração de Campo de Visão (FOV).
+        
+        Esta calibração define a relação entre pixels da câmera e dimensões físicas (mm)
+        em diferentes alturas Z, permitindo conversão precisa de clique no vídeo para
+        movimento da head.
+        """
+        # Cria adaptador para o ConfigManager para usar o formato esperado pelo diálogo
+        class ConfigAdapter:
+            def __init__(self, cfg):
+                self._cfg = cfg
+            
+            def get_config(self, key, default=None):
+                if key == "camera_fov":
+                    return self._cfg.get("camera", "fov_calibration", default=default or {})
+                return default
+            
+            def set_config(self, key, value):
+                if key == "camera_fov":
+                    self._cfg.set("camera", "fov_calibration", value=value)
+                    self._cfg.save()
+        
+        adapter = ConfigAdapter(self.config)
+        
+        dialog = FOVCalibrationDialog(adapter, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            # Atualiza o conversor FOV do CameraPreviewWidget
+            if hasattr(self, 'camera_preview') and hasattr(self.camera_preview, 'fov_converter'):
+                fov = dialog.get_calibration()
+                self.camera_preview.fov_converter.set_fov_calibration(fov)
+                logger.info(f"Calibração de FOV atualizada: {fov}")
+            
+            QMessageBox.information(
+                self, "Calibração Salva",
+                "A calibração de campo de visão foi salva.\n\n"
+                "Agora você pode usar o clique no vídeo para mover a head\n"
+                "com precisão baseada na altura Z atual."
+            )
+
+    def show_crosshair_settings_dialog(self):
+        """
+        Abre diálogo para configurar a cruz de centralização da câmera.
+
+        Permite ajustar:
+        - Cor da linha (seletor de cor visual)
+        - Espessura da linha (1-10 pixels)
+        - Comprimento da linha (1-50% da menor dimensão)
+        """
+        dialog = CrosshairSettingsDialog(self.config, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            QMessageBox.information(
+                self, "Configurações Salvas",
+                "As configurações da cruz foram salvas.\n\n"
+                "As mudanças serão aplicadas na próxima atualização do preview."
+            )
+
+    def show_fiducial_alignment_dialog(self):
+        """
+        Abre diálogo para alinhamento de fiduciais.
+
+        Esta ferramenta permite:
+        - Carregar arquivo Gerber e detectar fiduciais automaticamente
+        - Capturar templates de fiduciais da câmera ou mosaico
+        - Calcular transformação (translação, rotação, escala) para alinhar
+        - Ajuste fino manual da transformação
+        """
+        if self.fiducial_alignment_controller is not None:
+            self.fiducial_alignment_controller.show_dialog()
+        else:
+            logger.error("FiducialAlignmentController não está disponível")
+            QMessageBox.warning(self, "Erro", "FiducialAlignmentController não está disponível")
+
+    # =========================================================================
+    #  SISTEMA DE RELATÓRIOS
+    # =========================================================================
+    
+    def show_report_settings(self):
+        """
+        Abre diálogo de configurações de relatório.
+
+        Delega para DialogManagerController.
+        """
+        if self.dialog_manager_controller is not None:
+            self.dialog_manager_controller.show_report_settings()
+        else:
+            logger.error("DialogManagerController não está disponível")
+            from consumo_lib.recipe_dialog import ReportSettingsDialog
+            dialog = ReportSettingsDialog(self.report_config, self)
+
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                new_config = dialog.get_config()
+                self.report_manager_wrapper.update_config(new_config, save=True)
+                self.report_config = new_config  # Atualiza referência local
+
+                logger.info("Configuração de relatórios atualizada e salva")
+                self.statusBar().showMessage("Configurações de relatório salvas", 3000)
+
+    
+    def show_tension_report_dialog(self):
+        """Gera relatório de tensão da última medição."""
+        if self.report_dialog_controller is not None:
+            self.report_dialog_controller.show_tension_report_dialog()
+        else:
+            logger.error("ReportDialogController não está disponível")
+            QMessageBox.warning(self, "Erro", "ReportDialogController não está disponível")
+
+    def show_stencil_report_dialog(self):
+        """Gera relatório de histórico do stencil selecionado."""
+        if self.report_dialog_controller is not None:
+            self.report_dialog_controller.show_stencil_report_dialog()
+        else:
+            logger.error("ReportDialogController não está disponível")
+            QMessageBox.warning(self, "Erro", "ReportDialogController não está disponível")
+
+    def show_period_query_dialog(self):
+        """Abre diálogo para consultar medições por período."""
+        if self.report_dialog_controller is not None:
+            self.report_dialog_controller.show_period_query_dialog()
+        else:
+            logger.error("ReportDialogController não está disponível")
+            QMessageBox.warning(self, "Erro", "ReportDialogController não está disponível")
+
+
+    # =========================================================================
+    #  SISTEMA DE INSPEÇÃO VISUAL
+    # =========================================================================
+    
+    def show_inspection_settings(self):
+        """Abre diálogo de configuração dos parâmetros de inspeção."""
+        if self.inspection_ui_controller is not None:
+            self.inspection_ui_controller.show_settings_dialog(self.inspection_thresholds)
+        else:
+            # Fallback para comportamento antigo se controller não existir
+            dialog = InspectionSettingsDialog(self.inspection_thresholds, self)
+
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                new_thresholds = dialog.get_thresholds()
+                self.inspection_manager.update_thresholds(new_thresholds, save=True)
+                self.inspection_thresholds = new_thresholds  # Atualiza referência local
+
+                logger.info("Parâmetros de inspeção atualizados e salvos")
+                self.statusBar().showMessage("Parâmetros de inspeção salvos", 3000)
+
+    def show_inspection_dialog(self):
+        """Abre diálogo para executar inspeção visual."""
+        if self.inspection_ui_controller is not None:
+            self.inspection_ui_controller.show_dialog(
+                current_stencil=self.current_stencil,
+                inspection_thresholds=self.inspection_thresholds
+            )
+        else:
+            logger.error("InspectionUIController não está disponível")
+            QMessageBox.warning(self, "Erro", "InspectionUIController não está disponível")
+
+    def show_last_inspection_result(self):
+        """Mostra o último resultado de inspeção."""
+        if self.inspection_ui_controller is not None:
+            self.inspection_ui_controller.show_last_result()
+        else:
+            # Fallback para comportamento antigo
+            if not hasattr(self, '_last_inspection_result') or self._last_inspection_result is None:
+                QMessageBox.information(
+                    self, "Sem Resultado",
+                    "Nenhuma inspeção foi executada ainda.\n\n"
+                    "Use 'Inspeção Visual' → 'Executar Inspeção' para realizar uma inspeção."
+                )
+                return
+
+            # Método antigo de exibir resultado (será removido em futura refatoração)
+            dialog = QDialog(self)
+            dialog.setWindowTitle(f"📊 Resultado da Inspeção - {self._last_inspection_result.overall_status}")
+            dialog.resize(1200, 800)
+
+            layout = QVBoxLayout(dialog)
+
+            # Widget de resultado
+            result_widget = InspectionResultWidget()
+            result_widget.set_result(self._last_inspection_result, self._last_inspection_overlay)
+
+            # Conectar exportação
+            def export_pdf():
+                try:
+                    import tempfile
+                    from pathlib import Path
+
+                    # Salvar overlay em arquivo temporário
+                    temp_dir = Path(tempfile.gettempdir())
+                    overlay_path = str(temp_dir / "inspection_overlay_temp.png")
+                    cv2.imwrite(overlay_path, self._last_inspection_overlay)
+
+                    # Preparar dados da inspeção
+                    result_dict = self._last_inspection_result.to_dict() if hasattr(self._last_inspection_result, 'to_dict') else {
+                        'total_apertures': self._last_inspection_result.total_apertures,
+                        'ok_count': self._last_inspection_result.ok_count,
+                        'partial_count': self._last_inspection_result.partial_count,
+                        'blocked_count': self._last_inspection_result.blocked_count,
+                        'overall_status': self._last_inspection_result.overall_status,
+                        'approval_rate': self._last_inspection_result.approval_rate,
+                        'defects': [d.to_dict() if hasattr(d, 'to_dict') else d for d in self._last_inspection_result.defects]
+                    }
+
+                    stencil_code = self.current_stencil.code if self.current_stencil else None
+
+                    # Gerar PDF
+                    pdf_path = self.report_generator.generate_inspection_report(
+                        inspection_result=result_dict,
+                        overlay_image_path=overlay_path,
+                        stencil_code=stencil_code,
+                        operator=self.config.get("user", "name", default="Operador")
+                    )
+
+                    QMessageBox.information(
+                        dialog, "Relatório Gerado",
+                        f"Relatório de inspeção visual salvo em:\n\n{pdf_path}"
+                    )
+
+                    # Abrir PDF
+                    os.startfile(pdf_path)
+
+                except Exception as e:
+                    logger.exception("Erro ao gerar relatório de inspeção")
+                    QMessageBox.critical(
+                        dialog, "Erro",
+                        f"Erro ao gerar relatório:\n{str(e)}"
+                    )
+
+            result_widget.exportRequested.connect(export_pdf)
+
+            layout.addWidget(result_widget)
+
+            # Botões
+            btn_layout = QHBoxLayout()
+            btn_layout.addStretch()
+
+            btn_close = QPushButton("Fechar")
+            btn_close.clicked.connect(dialog.accept)
+            btn_layout.addWidget(btn_close)
+
+            layout.addLayout(btn_layout)
+
+            dialog.exec()
+
+
+
+
+    def show_settings_dialog(self):
+        dlg = SettingsDialog(self.config, self)
+        if dlg.exec():
+            # Se o usuário modificou algo, re-aplica (se a CNC já estiver conectada)
+            if self.controller.cnc.is_connected:
+                self.config.apply_to_cnc(self.controller.cnc)
+            # Atualiza campos rápidos de conexão do PLC
+            if hasattr(self, "plc_host_input"):
+                self.plc_host_input.setText(self.config.get("connections", "plc_host", default="192.168.1.5"))
+            if hasattr(self, "plc_port_input"):
+                self.plc_port_input.setValue(self.config.get("connections", "plc_port", default=502))
+            self.statusBar().showMessage("Preferências salvas")
+
+
+    def on_image_captured(self, image, position_name):
+        """Handle captured image and register position"""
+        # Display in image viewer
+        self.image_viewer.display_image(image, f"Image: {position_name}")
+        
+        # Get current position
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Error", "CNC not connected")
+            return
+            
+        current_pos = self.controller.cnc.get_current_position()
+        
+        # Register position with image
+        self.position_registry.add_position(
+            position_name,
+            current_pos['x'],
+            current_pos['y'],
+            current_pos['z'],
+            image
+        )
+        
+        self.statusBar().showMessage(f"Position '{position_name}' registered at X:{current_pos['x']:.3f}, Y:{current_pos['y']:.3f}")
+
+    def create_sequence_from_registry(self):
+        """Create a sequence from registered positions"""
+        if not self.position_registry.positions:
+            QMessageBox.warning(self, "Warning", "No positions registered")
+            return
+            
+        # Get sequence name
+        sequence_name = self.sequence_widget.sequence_name.text()
+        if not sequence_name:
+            QMessageBox.warning(self, "Warning", "Please enter a sequence name")
+            return
+            
+        # Clear existing positions in the position list widget
+        self.position_list_widget.clear_positions()
+        
+        # Create positions for the sequence
+        positions = []
+        for pos in self.position_registry.positions:
+            # Create position object with camera parameters
+            camera_params = {"has_image": pos['image'] is not None}
+            
+            inspection_pos = InspectionPosition(
+                pos['name'],
+                pos['x'],
+                pos['y'],
+                pos.get('z', 0.0),
+                camera_params
+            )
+            positions.append(inspection_pos)
+            
+            # Also add to the position list widget
+            self.position_list_widget.add_position(inspection_pos)
+            
+        # Create the sequence
+        self.current_sequence = self.controller.create_sequence(sequence_name, positions)
+        
+        # Update UI
+        self.sequence_widget.sequence_status.setText(f"Created: {len(positions)} positions")
+        self.statusBar().showMessage(f"Sequence '{sequence_name}' created with {len(positions)} positions")
+        
+        # Ask if user wants to save as G-CODE
+        reply = QMessageBox.question(
+            self, 
+            "Save G-CODE", 
+            "Do you want to save this sequence as G-CODE?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            self.save_gcode()
+
+    def load_gcode(self):
+        """
+        Carrega uma sequência a partir de um arquivo G-CODE.
+
+        Delega para FileIOController.
+        """
+        if self.file_io_controller is not None:
+            self.file_io_controller.load_gcode()
+        else:
+            logger.error("FileIOController não está disponível")
+            # Fallback: código original
+            from aoi_lib.gcode_manager import GCodeManager
+            gcode_manager = GCodeManager()
+
+            filename, _ = QFileDialog.getOpenFileName(
+                self, "Abrir G-CODE", "", "Arquivos G-CODE (*.gcode *.nc *.ngc)"
+            )
+
+            if filename:
+                result = gcode_manager.read_gcode_file(filename)
+
+                if result:
+                    self.position_list_widget.clear_positions()
+
+                    positions = []
+                    for pos_data in result['positions']:
+                        position = InspectionPosition(
+                            pos_data['name'],
+                            pos_data['x'],
+                            pos_data['y'],
+                            pos_data['camera_params']
+                        )
+
+                        self.position_list_widget.add_position(position)
+                        positions.append(position)
+
+                    self.current_sequence = self.controller.create_sequence(
+                        result['sequence_name'], positions
+                    )
+
+                    self.sequence_widget.sequence_name.setText(result['sequence_name'])
+                    self.sequence_widget.sequence_status.setText(
+                        f"Carregada do G-CODE: {len(positions)} posições"
+                    )
+
+                    self.statusBar().showMessage(f"G-CODE carregado de {filename}")
+                else:
+                    QMessageBox.critical(self, "Erro", "Falha ao carregar o arquivo G-CODE")
+
+    def save_gcode(self):
+        """
+        Salva a sequência atual como um arquivo G-CODE.
+
+        Delega para FileIOController.
+        """
+        if self.file_io_controller is not None:
+            self.file_io_controller.save_gcode(self.current_sequence)
+        else:
+            logger.error("FileIOController não está disponível")
+            # Fallback: código original
+            if not self.current_sequence:
+                QMessageBox.warning(self, "Aviso", "Crie uma sequência primeiro")
+                return
+
+            from aoi_lib.gcode_manager import GCodeManager
+            gcode_manager = GCodeManager()
+
+            filename, _ = QFileDialog.getSaveFileName(
+                self, "Salvar G-CODE", "", "Arquivos G-CODE (*.gcode *.nc *.ngc)"
+            )
+
+            if filename:
+                # Adiciona extensão se necessário
+                if not filename.endswith('.gcode') and not filename.endswith('.nc') and not filename.endswith('.ngc'):
+                    filename += '.gcode'
+
+                # Salva usando o GCodeManager
+                if gcode_manager.save_gcode_to_file(self.current_sequence, filename):
+                    self.statusBar().showMessage(f"G-CODE salvo em {filename}")
+                else:
+                    QMessageBox.critical(self, "Erro", "Falha ao salvar o arquivo G-CODE")
+
+    def show_about_dialog(self):
+        """
+        Exibe o diálogo Sobre.
+
+        Delega para DialogManagerController.
+        """
+        if self.dialog_manager_controller is not None:
+            self.dialog_manager_controller.show_about_dialog()
+        else:
+            logger.error("DialogManagerController não está disponível")
+            from consumo_lib.dialogs import AboutDialog
+            dialog = AboutDialog(self)
+            dialog.exec()
+
+    def refresh_ports(self):
+        """
+        Atualiza a lista de portas seriais disponíveis.
+
+        Delega para ConnectionManagerController.
+        """
+        if self.connection_manager_controller is not None:
+            self.connection_manager_controller.refresh_ports(self.cnc_port_combo)
+        else:
+            logger.error("ConnectionManagerController não está disponível")
+
+    def _apply_plc_ui_settings(self):
+        """
+        Atualiza IP/porta do PLC vindos da UI e persiste no config.
+
+        Delega para ConnectionManagerController.
+        """
+        if self.connection_manager_controller is not None:
+            self.connection_manager_controller.apply_plc_ui_settings(
+                self.plc_host_input,
+                self.plc_port_input
+            )
+        else:
+            logger.error("ConnectionManagerController não está disponível")
+
+    def connect_cnc(self):
+        """
+        Conecta/desconecta à máquina CNC.
+
+        NOTA: Para PLC, este método delega para ConnectionManager.
+        Para GRBL, mantém a implementação original.
+        """
+        # Se for PLCAxisController, delega para ConnectionManager
+        if isinstance(self.controller.cnc, PLCAxisController):
+            self.connection_mgr.toggle_plc()
+            return
+        # Senão, cai no fluxo original GRBL…
+        if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl: 
+            self.controller.cnc.grbl.poll_stop() 
+            self.controller.cnc.grbl.disconnect() 
+            self.controller.cnc.grbl = None
+            self.controller.cnc.is_connected = False
+            self.connect_cnc_btn.setText("Conectar CNC")
+            self.cnc_status.setText("Desconectado")
+            self.statusBar().showMessage("CNC desconectada")
+    
+        else:
+            # Conectar
+            port = self.cnc_port_combo.currentText()
+            if not port:
+                QMessageBox.warning(self, "Erro", "Selecione uma porta serial")
+                return
+                
+            self.statusBar().showMessage(f"Conectando à CNC na porta {port}...")
+            
+            try:
+                # Usa GRBLCallbackHandler para gerenciar callbacks complexos
+                grbl_callback = self.grbl_callback_handler.create_callback()
+
+                # Inicializa o GrblStreamer com o callback
+                self.controller.cnc.grbl = GrblStreamer(grbl_callback)
+
+                logger.debug(f"CONEXÃO: Tentando conectar à porta {port} com baudrate 115200")
+                # Conecta usando o método cnect()
+                self.controller.cnc.grbl.cnect(port, 115200) 
+                time.sleep(2.0) 
+
+                if not self.controller.cnc.grbl.connected:
+                     logger.error("CONEXÃO: Falha ao estabelecer conexão serial (grbl.connected é False).")
+                     raise ConnectionError("Falha ao conectar à porta serial após inicialização.")
+
+                logger.debug("CONEXÃO: Enviando comando de desbloqueio $X")
+                self.controller.cnc.grbl.send_immediately("$X")
+                time.sleep(0.1) 
+
+                logger.debug("CONEXÃO: Configurando $10=3 para relatório completo de posição")
+                self.controller.cnc.grbl.send_immediately("$10=3") # Mantém $10=3 para receber MPos
+                time.sleep(0.1)
+
+                # --- INÍCIO DA MODIFICAÇÃO ---
+                # Solicitar estado hash logo após conectar para obter offsets
+                logger.debug("CONEXÃO: Solicitando estado hash ($#) para obter offsets")
+                self.controller.cnc.grbl.send_immediately("$#") 
+                time.sleep(0.1)
+                # --- FIM DA MODIFICAÇÃO ---
+
+                logger.debug("CONEXÃO: Configurando modo relativo G91")
+                self.controller.cnc.grbl.send_immediately("G91")
+                time.sleep(0.1)
+
+                logger.debug("CONEXÃO: Iniciando polling de status")
+                self.controller.cnc.grbl.poll_start()
+
+                self.controller.cnc.is_connected = True
+                self.config.apply_to_cnc(self.controller.cnc)
+                self.config.remember_cnc_port(port)
+                self.controller.cnc.machine_status = "Idle"  
+                self.connect_cnc_btn.setText("Desconectar CNC")
+                self.cnc_status.setText("Conectado")
+                self.statusBar().showMessage(f"CNC conectada na porta {port}")
+                
+            except Exception as e:
+                # ... (código de tratamento de erro de conexão) ...
+                logger.error(f"CONEXÃO: Falha ao conectar ou configurar: {str(e)}", exc_info=True) 
+                QMessageBox.critical(self, "Erro", f"Falha ao conectar a CNC: {str(e)}")
+                if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
+                    try:
+                        self.controller.cnc.grbl.disconnect()
+                    except: pass
+                self.controller.cnc.grbl = None
+                self.controller.cnc.is_connected = False
+                self.controller.cnc.machine_status = "Erro Conexão"
+                self.connect_cnc_btn.setText("Conectar CNC")
+                self.cnc_status.setText("Erro Conexão")
+
+    # =========================================================================
+    # HANDLERS DO CONNECTIONMANAGER
+    # =========================================================================
+
+    def _on_connect_btn_clicked(self):
+        """
+        Botão conectar/desconectar clicado.
+
+        Delega para ConnectionManager quando for PLC.
+        Para GRBL, chama o método connect_cnc() original.
+        """
+        if isinstance(self.controller.cnc, PLCAxisController):
+            # Delega para ConnectionManager
+            self.connection_mgr.toggle_plc()
+        else:
+            # Usa implementação original para GRBL
+            self.connect_cnc()
+
+    def _on_plc_connected(self):
+        """
+        Handler para quando PLC conecta com sucesso.
+
+        Atualiza:
+            - Botão de conexão
+            - Label de status
+            - Status bar
+
+        Signal origin:
+            ConnectionManager.plc_connected
+        """
+        plc = self.controller.cnc
+        self.connect_cnc_btn.setText("Desconectar PLC")
+        self.cnc_status.setText("Conectado")
+        self.statusBar().showMessage(f"PLC conectado em {plc.host}:{plc.port}")
+        logger.info(f"PLC conectado em {plc.host}:{plc.port}")
+
+    def _on_plc_disconnected(self):
+        """
+        Handler para quando PLC desconecta.
+
+        Atualiza:
+            - Botão de conexão
+            - Label de status
+
+        Signal origin:
+            ConnectionManager.plc_disconnected
+        """
+        self.connect_cnc_btn.setText("Conectar PLC")
+        self.cnc_status.setText("Desconectado")
+        logger.info("PLC desconectado")
+
+    def _on_plc_error(self, error: str):
+        """
+        Handler para erros de conexão PLC.
+
+        Atualiza:
+            - Label de status
+            - Mostra QMessageBox ao usuário
+
+        Signal origin:
+            ConnectionManager.plc_connection_error
+        """
+        self.cnc_status.setText("Erro")
+        QMessageBox.warning(
+            self,
+            "Erro de Conexão",
+            f"Não foi possível conectar ao PLC:\n{error}"
+        )
+        logger.error(f"Erro de conexão PLC: {error}")
+
+    def connect_camera(self):
+        """
+        Conecta à câmera.
+
+        Delega para ConnectionManagerController.
+        """
+        if self.connection_manager_controller is not None:
+            self.connection_manager_controller.connect_camera(
+                self.camera_id_combo,
+                self.connect_camera_btn
+            )
+        else:
+            logger.error("ConnectionManagerController não está disponível")
+
+    def test_camera(self):
+        """
+        Testa a captura de imagem da câmera.
+
+        Delega para ConnectionManagerController.
+        """
+        if self.connection_manager_controller is not None:
+            self.connection_manager_controller.test_camera()
+        else:
+            logger.error("ConnectionManagerController não está disponível")
+            
+    def update_position_display(self):
+        """
+        Atualiza a exibição da posição atual (WPos calculada).
+
+        Delega para PositionManagerController.
+        """
+        if self.position_manager_controller is not None:
+            # Obtém labels Z e CNC status opcionalmente
+            z_label = self.z_position if hasattr(self, "z_position") else None
+            self.position_manager_controller.update_position_display(
+                self.x_position,
+                self.y_position,
+                z_position_label=z_label,
+                cnc_status_label=self.cnc_status
+            )
+        else:
+            logger.error("PositionManagerController não está disponível")
+            # Fallback: código original
+            if not self.controller.cnc.is_connected:
+                return
+            try:
+                position = self.controller.cnc.get_current_position()
+            except Exception as e:
+                logger.error("update_position_display: erro ao obter posição: %s", e)
+                return
+
+            if self.last_logged_position is not None:
+                if position != self.last_logged_position:
+                    logger.debug("Posição mudou de %s para %s",
+                               self.last_logged_position, position)
+            else:
+                logger.debug("Primeira posição registrada: %s", position)
+
+            self.last_logged_position = position.copy()
+
+            # Atualiza os labels da interface com a WPos calculada
+            self.x_position.setText(f"{position['x']:.3f} mm")
+            self.y_position.setText(f"{position['y']:.3f} mm")
+            if hasattr(self, "z_position"):
+                self.z_position.setText(f"{position['z']:.3f} mm")
+            self.cnc_status.setText(self.controller.cnc.machine_status)
+        
+    def add_current_position(self):
+        """
+        Adiciona a posição atual à lista.
+
+        Delega para PositionManagerController.
+        """
+        if self.position_manager_controller is not None:
+            self.position_manager_controller.add_current_position()
+        else:
+            logger.error("PositionManagerController não está disponível")
+            # Fallback: código original
+            if not self.controller.cnc.is_connected:
+                QMessageBox.warning(self, "Aviso", "CNC não conectada")
+                return
+
+            position_name, ok = QInputDialog.getText(self, "Nova Posição", "Nome da posição:")
+
+            if ok and position_name:
+                position = self.controller.add_current_position(position_name)
+                self.position_list_widget.add_position(position)
+                self.statusBar().showMessage(f"Posição '{position_name}' adicionada")
+            
+    def remove_position(self):
+        """
+        Remove a posição selecionada.
+
+        Delega para PositionManagerController.
+        """
+        if self.position_manager_controller is not None:
+            self.position_manager_controller.remove_position()
+        else:
+            logger.error("PositionManagerController não está disponível")
+            # Fallback: código original
+            position = self.position_list_widget.remove_selected_position()
+
+            if position:
+                self.controller.position_manager.remove_position(position.name)
+                self.statusBar().showMessage(f"Posição '{position.name}' removida")
+            
+    def on_position_selected(self, position):
+        """
+        Manipula a seleção de uma posição.
+
+        Delega para PositionManagerController.
+        """
+        if self.position_manager_controller is not None:
+            self.position_manager_controller.on_position_selected(position)
+        else:
+            logger.error("PositionManagerController não está disponível")
+            # Fallback: código original
+            self.statusBar().showMessage(
+                f"Posição selecionada: {position.name} "
+                f"({position.x:.3f}, {position.y:.3f})"
+            )
+        
+    def create_sequence(self):
+        """
+        Cria uma nova sequência com as posições atuais.
+
+        Delega para PositionManagerController.
+        """
+        if self.position_manager_controller is not None:
+            # Prepara referência mutable para current_sequence
+            current_sequence_ref = [self.current_sequence]
+
+            self.position_manager_controller.create_sequence(
+                self.sequence_widget.sequence_name,
+                self.sequence_widget.sequence_status,
+                current_sequence_ref
+            )
+
+            # Atualiza self.current_sequence com o resultado
+            self.current_sequence = current_sequence_ref[0]
+        else:
+            logger.error("PositionManagerController não está disponível")
+            # Fallback: código original
+            positions = self.position_list_widget.get_all_positions()
+
+            if not positions:
+                QMessageBox.warning(self, "Aviso", "Adicione pelo menos uma posição")
+                return
+
+            sequence_name = self.sequence_widget.sequence_name.text()
+            if not sequence_name:
+                QMessageBox.warning(self, "Aviso", "Digite um nome para a sequência")
+                return
+
+            self.current_sequence = self.controller.create_sequence(sequence_name, positions)
+            self.statusBar().showMessage(
+                f"Sequência '{sequence_name}' criada com {len(positions)} posições"
+            )
+            self.sequence_widget.sequence_status.setText(
+                f"Criada: {len(positions)} posições"
+            )
+        
+    def run_sequence(self):
+        """Executes the current sequence"""
+        if not self.current_sequence:
+            QMessageBox.warning(self, "Warning", "Create a sequence first")
+            return
+            
+        if not self.controller.cnc.is_connected:
+            QMessageBox.warning(self, "Warning", "CNC not connected")
+            return
+            
+        if not hasattr(self.controller.camera, 'is_connected') or not self.controller.camera.is_connected:
+            QMessageBox.warning(self, "Warning", "Camera not connected")
+            return
+            
+        # Clear previous results
+        self.results_table.setRowCount(0)
+        
+        # Configure UI for execution
+        self.is_running_sequence = True
+        self.sequence_widget.run_sequence_btn.setEnabled(False)
+        self.sequence_widget.stop_sequence_btn.setEnabled(True)
+        self.sequence_widget.sequence_status.setText("Executing...")
+        
+        # Start execution
+        try:
+            self.statusBar().showMessage(f"Executing sequence '{self.current_sequence.name}'...")
+            # Configura velocidade no controlador baseada na interface
+            self.controller.set_feed_rate(self.movement_widget.get_current_feed_rate())
+            
+            # Use a thread to run the sequence
+            self.run_thread = SequenceRunnerThread(self.controller, self.current_sequence.name)
+            self.run_thread.image_captured.connect(self.on_sequence_image_captured)
+            self.run_thread.sequence_completed.connect(self.on_sequence_completed)
+            self.run_thread.sequence_error.connect(self.on_sequence_error)
+            self.run_thread.start()
+            
+        except Exception as e:
+            self.statusBar().showMessage(f"Error executing sequence: {str(e)}")
+            self.sequence_widget.sequence_status.setText("Error")
+            self.on_sequence_completed()
+
+    def on_sequence_image_captured(self, result):
+        """Called when an image is captured during sequence execution"""
+        position = result["position"]
+        image = result["image"]
+        timestamp = result["timestamp"]
+        
+        # Display the image on the existing camera_preview widget
+        self.camera_preview.display_image(image)
+        # Atualiza a status bar com o nome/posição
+        self.statusBar().showMessage(
+            f"Position captured: {position.name} ({position.x:.3f}, {position.y:.3f})"
+        )
+        
+        # Add to results table
+        row = self.results_table.rowCount()
+        self.results_table.insertRow(row)
+        self.results_table.setItem(row, 0, QTableWidgetItem(position.name))
+        self.results_table.setItem(row, 1, QTableWidgetItem(time.strftime("%H:%M:%S", time.localtime(timestamp))))
+        self.results_table.setItem(row, 2, QTableWidgetItem("Captured"))
+            
+    def stop_sequence(self):
+        """Para a execução da sequência atual"""
+        if self.is_running_sequence:
+            self.controller.stop_sequence()
+            self.statusBar().showMessage("Execução de sequência interrompida")
+            self.on_sequence_completed()
+        
+    def on_sequence_completed(self):
+        """Chamado quando a execução da sequência é concluída"""
+        self.is_running_sequence = False
+        self.sequence_widget.run_sequence_btn.setEnabled(True)
+        self.sequence_widget.stop_sequence_btn.setEnabled(False)
+        self.sequence_widget.sequence_status.setText("Concluída")
+        self.statusBar().showMessage("Execução de sequência concluída")
+        
+    def on_sequence_error(self, error_message):
+        """Chamado quando ocorre um erro durante a execução da sequência"""
+        QMessageBox.critical(self, "Erro na Sequência", error_message)
+        self.on_sequence_completed()
+        
+    def save_program(self):
+        """
+        Salva o programa de inspeção atual.
+
+        Delega para FileIOController.
+        """
+        if self.file_io_controller is not None:
+            self.file_io_controller.save_program(self.current_sequence)
+        else:
+            logger.error("FileIOController não está disponível")
+            # Fallback: código original
+            if not self.current_sequence:
+                QMessageBox.warning(self, "Aviso", "Crie uma sequência primeiro")
+                return
+
+            filename, _ = QFileDialog.getSaveFileName(self, "Salvar Programa", "", "Arquivos JSON (*.json)")
+
+            if filename:
+                if not filename.endswith('.json'):
+                    filename += '.json'
+
+                if self.controller.save_positions(filename):
+                    self.statusBar().showMessage(f"Programa salvo em {filename}")
+                else:
+                    QMessageBox.critical(self, "Erro", "Falha ao salvar o programa")
+                
+    def load_program(self):
+        """
+        Carrega um programa de inspeção salvo.
+
+        Delega para FileIOController.
+        """
+        if self.file_io_controller is not None:
+            self.file_io_controller.load_program()
+        else:
+            logger.error("FileIOController não está disponível")
+            # Fallback: código original
+            filename, _ = QFileDialog.getOpenFileName(self, "Carregar Programa", "", "Arquivos JSON (*.json)")
+
+            if filename:
+                if self.controller.load_positions(filename):
+                    # Atualiza a interface
+                    self.position_list_widget.clear_positions()
+
+                    # Adiciona posições carregadas à lista
+                    for name, position in self.controller.position_manager.positions.items():
+                        self.position_list_widget.add_position(position)
+
+                    # Se há sequências, usa a primeira como atual
+                    if self.controller.position_manager.sequences:
+                        sequence_name = next(iter(self.controller.position_manager.sequences))
+                        self.current_sequence = self.controller.position_manager.sequences[sequence_name]
+                        self.sequence_widget.sequence_name.setText(sequence_name)
+                        self.sequence_widget.sequence_status.setText(f"Carregada: {len(self.current_sequence.positions)} posições")
+
+                    self.statusBar().showMessage(f"Programa carregado de {filename}")
+                else:
+                    QMessageBox.critical(self, "Erro", "Falha ao carregar o programa")
+
+    # ========== MAPCONTROLLER SIGNAL HANDLERS ==========
+
+    def _on_map_program_saved(self, name, path):
+        """Handler quando um programa de mapa é salvo."""
+        logger.info(f"Programa de mapa salvo: {name} -> {path}")
+        self.statusBar().showMessage(f"Programa '{name}' salvo com sucesso", 3000)
+
+    def _on_map_program_loaded(self, name, params):
+        """Handler quando um programa de mapa é carregado."""
+        logger.info(f"Programa de mapa carregado: {name}")
+        self.statusBar().showMessage(f"Programa '{name}' carregado", 3000)
+
+    def _on_map_program_deleted(self, name):
+        """Handler quando um programa de mapa é excluído."""
+        logger.info(f"Programa de mapa excluído: {name}")
+        self.statusBar().showMessage(f"Programa '{name}' excluído", 3000)
+
+    def _on_map_generated(self, mosaic_path):
+        """Handler quando geração de mapa é completada."""
+        logger.info(f"Mosaico gerado: {mosaic_path}")
+        self.statusBar().showMessage(f"Mosaico gerado com sucesso", 5000)
+        QMessageBox.information(
+            self, "Mosaico Gerado",
+            f"O mosaico foi gerado com sucesso!\n\n"
+            f"Arquivo: {mosaic_path}"
+        )
+
+    def _on_map_progress(self, current, total, message):
+        """Handler durante progresso da geração do mapa."""
+        logger.debug(f"Progresso do mapa: {current}/{total} - {message}")
+
+    def _on_map_error(self, error_message):
+        """Handler quando ocorre erro na geração do mapa."""
+        logger.error(f"Erro no mapa: {error_message}")
+        QMessageBox.critical(self, "Erro na Geração do Mapa", error_message)
+
+    # ========== CAMERASETTINGSCONTROLLER SIGNAL HANDLERS ==========
+
+    def _on_camera_settings_changed(self, settings):
+        """Handler quando configurações de câmera são alteradas."""
+        logger.debug(f"Configurações de câmera alteradas: {settings}")
+
+    def _on_camera_settings_applied(self, settings):
+        """Handler quando configurações de câmera são aplicadas."""
+        logger.info(f"Configurações de câmera aplicadas")
+
+        # Atualiza variáveis internas
+        self._camera_mirror_x = settings.get('mirror_x', False)
+        self._camera_mirror_y = settings.get('mirror_y', False)
+
+        # Aplica ao preview se disponível
+        if hasattr(self, 'cnc_tab') and hasattr(self.cnc_tab, 'camera_preview'):
+            self.cnc_tab.camera_preview.set_mirror(self._camera_mirror_x, self._camera_mirror_y)
+
+        self.statusBar().showMessage("Configurações de câmera aplicadas", 3000)
+
+    def _on_camera_settings_saved(self, preset_name):
+        """Handler quando preset de câmera é salvo."""
+        logger.info(f"Preset de câmera salvo: {preset_name}")
+        self.statusBar().showMessage(f"Preset '{preset_name}' salvo", 3000)
+
+    def _on_camera_settings_loaded(self, preset_name):
+        """Handler quando preset de câmera é carregado."""
+        logger.info(f"Preset de câmera carregado: {preset_name}")
+        self.statusBar().showMessage(f"Preset '{preset_name}' carregado", 3000)
+
+    # ========== CALIBRATIONCONTROLLER SIGNAL HANDLERS ==========
+
+    def _on_calibration_applied(self, steps_x, steps_y):
+        """Handler quando calibração é aplicada."""
+        logger.info(f"Calibração aplicada: X={steps_x} steps/mm, Y={steps_y} steps/mm")
+
+        # Atualiza configurações
+        self.config.set("connections", "pulses_per_rev", int(steps_x * 10))  # Converte para pulses por revolução
+        self.config.set("connections", "fuso_pitch", 10.0)  # Assume fuso de 10mm
+        self.config.save()
+
+        self.statusBar().showMessage(f"Calibração aplicada: {steps_x:.2f} x {steps_y:.2f} steps/mm", 3000)
+
+    def _on_calibration_completed(self):
+        """Handler quando calibração é completada."""
+        logger.info("Calibração completada")
+        self.statusBar().showMessage("Calibração completada com sucesso", 3000)
+
+    def _on_calibration_test_completed(self, movement_ok, message):
+        """Handler quando teste de calibração é completado."""
+        status = "OK" if movement_ok else "FALHOU"
+        logger.info(f"Teste de calibração: {status} - {message}")
+
+        if movement_ok:
+            QMessageBox.information(self, "Teste de Calibração", f"Teste concluído com sucesso!\n\n{message}")
+        else:
+            QMessageBox.warning(self, "Teste de Calibração", f"Teste falhou!\n\n{message}")
+
+        self.statusBar().showMessage(f"Teste de calibração: {status}", 3000)
+
+    #  LIMPEZA GERAL  (Threads, Timers, Dispositivos)
+    def _cleanup_resources(self):
+        """Para tudo que possa manter o Qt vivo após o fechamento."""
+        if getattr(self, "_already_clean", False):
+            return                         # evita executar 2×
+        self._already_clean = True
+
+        # 1) Sequências em execução
+        if getattr(self, "is_running_sequence", False):
+            self.controller.stop_sequence()
+
+        # 2) Timers ------------------------------------------------
+        for tm_name in ("update_timer",):
+            tm = getattr(self, tm_name, None)
+            if tm and tm.isActive():
+                tm.stop()
+        if getattr(self, "camera_preview", None):
+            self.camera_preview.stop_preview()
+
+        # 3) QThreads ---------------------------------------------
+        for th_name in ("run_thread", "map_thread", "_move_thread"):
+            th = getattr(self, th_name, None)
+            if th and th.isRunning():
+                th.requestInterruption()
+                th.quit()
+                th.wait(2000)             # aguarda até 2 s
+
+        # 4) Thread de status do GRBL dentro do controlador CNC
+        if getattr(self.controller.cnc, "running", False):
+            self.controller.cnc.running = False
+            if getattr(self.controller.cnc, "status_thread", None):
+                self.controller.cnc.status_thread.join(timeout=2)
+
+        # 5) grbl-streamer (poll thread) --------------------------
+        if getattr(self.controller.cnc, "grbl", None):
+            try:
+                self.controller.cnc.grbl.poll_stop()
+                self.controller.cnc.grbl.disconnect()   # fecha serial + join
+            except Exception:
+                pass
+
+        # 6) Dispositivos -----------------------------------------
+        if getattr(self.controller.camera, "is_connected", False):
+            self.controller.camera.disconnect()
+        if getattr(self.controller.cnc, "is_connected", False):
+            self.controller.cnc.disconnect()
+
+    # closeEvent agora só dispara a limpeza
+    def closeEvent(self, event):
+        self._cleanup_resources()
+        event.accept()
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = AOIControllerApp()
+    window.show()
+    sys.exit(app.exec())
