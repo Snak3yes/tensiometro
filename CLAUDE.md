@@ -21,6 +21,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Added crosshair customization dialog
 - Fixed FOV calibration save bug (ConfigAdapter keyword argument)
 
+**Latest Updates (2026-01-05):**
+- **Project Reorganization:** Restructured project root, moved documentation to `docs/`, archived test files to `archive/`
+- **POC Gerber:** Renamed `testes_gerber/` → `poc_gerber/` (Proof of Concept Gerber viewer)
+- **Auto-Connect PLC:** Enabled `auto_connect_plc: true` in `aoi_config.json` for automatic PLC connection on startup
+- **Bug Fixes:**
+  - Fixed import path from `testes_gerber` to `poc_gerber` in `gerber_parser.py`
+  - Fixed `log` undefined error in `fiducial_alignment_widget.py`
+  - Fixed duplicate movement bug in POC Gerber viewer `_move_objects()` method
+  - Corrected obround geometry implementation (rectangle + semi-circles per Gerber spec)
+  - Added robust validation to Gerber parser functions
+- **Branch Strategy:** Migrated from `master` to `main` as primary branch
+- **SSH Configuration:** SSH keys properly configured for passwordless Git operations
+- **Repository Size:** Currently ~1.96 GB (needs cleanup of large .rar files from history)
+
 ## Commands
 
 ### Running the Application
@@ -60,6 +74,13 @@ python Leitura_Continua.py [COM_PORT]
 ### No Formal Test Suite
 This project does not have automated tests. Testing is done through practical validation with real hardware (PLC, tensiometer, USB camera). The `test_fov_corrections.py` file is an exception used for validating FOV calibration logic.
 
+### Git Repository Status
+- **Primary Branch:** `main` (migrated from `master` on 2026-01-05)
+- **Active Branches:** `main`, `clp`, `clp-release`
+- **Remote:** `git@github.com:RONALDBUZAGLO/tensiometro.git` (SSH configured)
+- **Repository Size:** ~1.96 GB (contains large .rar files in history - needs cleanup)
+- **Last Major Update:** 2026-01-05 - Project reorganization and bug fixes
+
 ### Module Import Pattern
 ```python
 # Recommended imports from aoi_lib
@@ -95,6 +116,16 @@ from aoi_lib.recipe_manager import RecipeManager
 2. **GerberParser** ([aoi_lib/gerber_parser.py](aoi_lib/gerber_parser.py)) - RS-274X Gerber file parsing with automatic fiducial candidate detection
 3. **GerberRenderer** ([aoi_lib/gerber_renderer.py](aoi_lib/gerber_renderer.py)) - Converts Gerber vector data to OpenCV masks for inspection
 4. **MosaicBuilder** ([mosaic_builder.py](mosaic_builder.py)) - Image stitching from grid captures with multiband blending
+
+### POC Gerber Viewer
+Located in `poc_gerber/` (formerly `testes_gerber/`) - Proof of Concept for standalone Gerber file viewer:
+- **Entry Point:** `poc_gerber/aperture_macro.py`
+- **Features:** Visualize, edit, and export Gerber RS-274X files with PyQt6 GUI
+- **Bug Fixes (2026-01-05):**
+  - Fixed duplicate movement bug in `_move_objects()` method (was applying dx/dy twice)
+  - Corrected obround geometry to match Gerber spec (rectangle + semi-circles, not ellipse)
+  - Added robust validation to parser functions
+- **Status:** Functional POC with improved accuracy for obround apertures
 
 ### Configuration & Persistence
 - **AOIConfigManager** ([aoi_lib/config_manager.py](aoi_lib/config_manager.py)) - Manages [aoi_config.json](aoi_config.json) (CNC params, connection settings, FOV calibration)
@@ -160,6 +191,9 @@ InspectionThresholds # ok_threshold, partial_threshold (pixel percentages)
 
 ### Configuration Files
 - **aoi_config.json** - System-wide settings (connection, calibration, UI state)
+  - **Important:** Contains `auto_connect_plc: true` (enabled 2026-01-05) for automatic PLC connection
+  - Contains `auto_connect_camera: true` for automatic camera connection
+  - PLC connection: `plc_host: "192.168.1.5"`, `plc_port: 502`
 - **camera_calibration.json** - FOV calibration data
 - **recipes/*.json** - Recipe definitions per stencil model
 - **data/stencils/*.json** - Individual stencil history files
@@ -174,13 +208,24 @@ data/
 recipes/         # Recipe JSON files
 map_programs/    # Mosaic capture configuration
 Projetos/        # Test projects with captured images
+archive/         # Archived refactoring scripts and test files (2026-01-05)
+docs/            # Documentation and manuals
+  history/       # Development history and session notes
+  manuals/       # Technical PDF manuals
+assets/          # Project assets
+  calibration/    # Calibration checkerboard images
+poc_gerber/      # POC Gerber viewer (renamed from testes_gerber/)
+aoi_lib/         # Core AOI library
+consumo_lib/    # Main GUI application (refactored from 6,245 to 589 lines)
 ```
 
 ### Known Issues & Quirks
-1. **Main File Size:** `consumo_lib.py` is 6,245 lines - future refactoring planned to split into modules
-2. **Legacy Code:** Some references to "ADESIVADORA" project (adhesive dispenser) - code was adapted from that project
-3. **Dual Persistence:** Both JSON and SQLite supported - SQLite migration is partial/optional
-4. **No requirements.txt:** Project uses `.venv` but no formal dependency declaration file
+1. **Repository Size:** Currently ~1.96 GB due to large .rar files in Git history (needs cleanup with BFG or git-filter-repo)
+2. **Refactoring Completed:** `consumo_lib.py` was successfully refactored from 6,245 to 589 lines (2026-01-05)
+3. **Legacy Code:** Some references to "ADESIVADORA" project (adhesive dispenser) - code was adapted from that project
+4. **Dual Persistence:** Both JSON and SQLite supported - SQLite migration is partial/optional
+5. **No requirements.txt:** Project uses `.venv` but no formal dependency declaration file
+6. **POC Gerber:** Located in `poc_gerber/` directory, contains experimental Gerber viewer with corrected obround geometry
 
 ### Coordinate Systems and Important Gotchas
 
