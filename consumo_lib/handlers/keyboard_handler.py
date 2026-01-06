@@ -114,7 +114,10 @@ class KeyboardEventHandler(QObject):
 
         # Log inicial para depuração
         key = event.key()
-        logger.debug(f"🔑 KeyboardEventHandler: event.type={event.type()}, key={key}, key.name={key.name if hasattr(key, 'name') else 'N/A'}")
+        # Converter key (int) para Qt.Key para poder acessar métodos
+        qt_key = Qt.Key(key)
+        key_name = qt_key.name if hasattr(qt_key, 'name') else f"Key_{key}"
+        logger.debug(f"🔑 KeyboardEventHandler: event.type={event.type()}, key={key}, key_name={key_name}")
 
         # Verificar se keyboard control está habilitado
         if self.enable_control_callback:
@@ -134,12 +137,12 @@ class KeyboardEventHandler(QObject):
 
         # Verificar se é uma tecla mapeada
         if key not in self.key_mapping:
-            logger.debug(f"🔑 Tecla {key} não está mapeada, ignorando")
+            logger.debug(f"🔑 Tecla {key_name} não está mapeada, ignorando")
             return False
 
         # Obter eixo e direção
         axis, direction = self.key_mapping[key]
-        logger.debug(f"🔑 Tecla mapeada: {key.name} → {axis}{direction}")
+        logger.debug(f"🔑 Tecla mapeada: {key_name} → {axis}{direction}")
 
         # Verificar se temos movement widget
         if not self.movement_widget:
@@ -148,13 +151,13 @@ class KeyboardEventHandler(QObject):
 
         # KeyPress: Iniciar movimento
         if event.type() == QEvent.Type.KeyPress:
-            logger.info(f"🎮 KeyPress: {key.name} → Iniciando movimento {axis}{direction}")
+            logger.info(f"🎮 KeyPress: {key_name} → Iniciando movimento {axis}{direction}")
             self._start_movement(axis, direction)
             return True
 
         # KeyRelease: Parar movimento
         elif event.type() == QEvent.Type.KeyRelease:
-            logger.info(f"🎮 KeyRelease: {key.name} → Parando movimento")
+            logger.info(f"🎮 KeyRelease: {key_name} → Parando movimento")
             self._stop_movement()
             return True
 
