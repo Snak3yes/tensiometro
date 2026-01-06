@@ -63,7 +63,10 @@ class MovementService:
         Returns:
             MovementResult com success=True se conectado e sem alarme
         """
+        logger.info(f"🔍 validate_connection: is_connected={self.cnc.is_connected}, machine_status='{self.cnc.machine_status}'")
+
         if not self.cnc.is_connected:
+            logger.warning("🔍 CNC não conectado!")
             return MovementResult(
                 success=False,
                 error_message="CNC não conectada"
@@ -71,12 +74,16 @@ class MovementService:
 
         # Verificar estado de alarme
         machine_status = self.cnc.machine_status
+        logger.info(f"🔍 machine_status='{machine_status}', começa com 'alarm'? {machine_status and machine_status.lower().startswith('alarm')}")
+
         if machine_status and machine_status.lower().startswith("alarm"):
+            logger.warning(f"🔍 MÁQUINA EM ALARME! Status: '{machine_status}'")
             return MovementResult(
                 success=False,
                 error_message="Máquina em parada de emergência"
             )
 
+        logger.info("✅ Conexão validada com sucesso")
         return MovementResult(success=True)
 
     def validate_feed_rate(self, feed: float) -> MovementResult:
@@ -153,29 +160,40 @@ class MovementService:
         Returns:
             MovementResult indicando sucesso ou falha
         """
+        logger.info(f"🔧 start_step_move: axis={axis}, direction={direction}, step={step}, feed={feed}")
+
         # Validações
+        logger.info("🔧 Validando conexão...")
         conn_result = self.validate_connection()
+        logger.info(f"🔧 validate_connection: success={conn_result.success}, error={conn_result.error_message}")
         if not conn_result.success:
+            logger.error(f"🔧 ERRO na validação de conexão: {conn_result.error_message}")
             return conn_result
 
+        logger.info("🔧 Validando feed rate...")
         feed_result = self.validate_feed_rate(feed)
+        logger.info(f"🔧 validate_feed_rate: success={feed_result.success}, data={feed_result.data}")
         if not feed_result.success:
             return feed_result
         feed = feed_result.data.get("feed", feed)
 
+        logger.info("🔧 Validando step size...")
         step_result = self.validate_step_size(step)
+        logger.info(f"🔧 validate_step_size: success={step_result.success}")
         if not step_result.success:
             return step_result
 
         try:
             distance = step * direction
+            logger.info(f"🔧 Chamando cnc.step_move({axis}, {distance:.3f}, {feed})")
+
             self.cnc.step_move(axis, distance, feed)
 
-            logger.debug(f"Step move iniciado: {axis}{distance:.3f} mm @ {feed} mm/min")
+            logger.info(f"✅ Step move iniciado: {axis}{distance:.3f} mm @ {feed} mm/min")
             return MovementResult(success=True)
 
         except Exception as e:
-            logger.error(f"Erro ao iniciar step move: {e}")
+            logger.error(f"❌ Erro ao iniciar step move: {e}", exc_info=True)
             return MovementResult(
                 success=False,
                 error_message=f"Erro ao iniciar movimento: {e}"

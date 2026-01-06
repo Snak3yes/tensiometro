@@ -248,6 +248,8 @@ class MovementControlWidget(QWidget):
         Chamada quando o usuário pressiona um botão (ou tecla).
         Decide entre STEP ou JOG e delega ao MovementService.
         """
+        logger.info(f"⌨️ _on_direction_press chamado: axis={axis}, direction={direction}")
+
         # Verificar se MovementService está disponível
         if self.movement_service is None:
             logger.error("MovementService não disponível. Movimento não funcionará.")
@@ -260,7 +262,10 @@ class MovementControlWidget(QWidget):
         # Salvar step/feed antes de mover
         step = self._get_step_size()
         feed = self._get_feed_rate()
+        logger.info(f"⌨️ step={step} mm, feed={feed} mm/min")
+
         if feed is None or step is None:
+            logger.warning("⌨️ step ou feed é None, abortando")
             return
 
         # --- grava imediatamente no JSON ---
@@ -269,13 +274,19 @@ class MovementControlWidget(QWidget):
         # Usar MovementService
         if self.mode_absolute.isChecked():
             # STEP (G90)
+            logger.info(f"⌨️ Modo PASSO (G90) - chamando start_step_move")
             result = self.movement_service.start_step_move(axis, direction, step, feed)
+            logger.info(f"⌨️ start_step_move result: success={result.success}, error={result.error_message}")
             if not result.success:
+                logger.error(f"⌨️ ERRO no movimento passo: {result.error_message}")
                 QMessageBox.warning(self, "Erro", result.error_message)
         else:
             # JOG (G91)
+            logger.info(f"⌨️ Modo CONTÍNUO (G91) - chamando start_jog")
             result = self.movement_service.start_jog(axis, direction, feed)
+            logger.info(f"⌨️ start_jog result: success={result.success}, error={result.error_message}")
             if not result.success:
+                logger.error(f"⌨️ ERRO no movimento jog: {result.error_message}")
                 QMessageBox.warning(self, "Erro", result.error_message)
 
     def _on_direction_release(self):
