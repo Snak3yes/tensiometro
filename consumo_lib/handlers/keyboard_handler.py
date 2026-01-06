@@ -47,8 +47,11 @@ class KeyboardEventHandler(QObject):
             enable_control_callback: Callable que retorna bool (se keyboard está habilitado)
         """
         super().__init__()
+        logger.info("🟢 KeyboardEventHandler.__init__() chamado - CRIANDO handler")
         self.movement_widget = movement_widget
         self.enable_control_callback = enable_control_callback
+        logger.info(f"🟢 movement_widget: {movement_widget}")
+        logger.info(f"🟢 enable_control_callback: {enable_control_callback}")
 
         # Mapeamento de teclas para (eixo, direção)
         self.key_mapping = {
@@ -59,6 +62,7 @@ class KeyboardEventHandler(QObject):
             Qt.Key.Key_PageUp: ("Z", -1),
             Qt.Key.Key_PageDown: ("Z", 1),
         }
+        logger.info(f"🟢 Mapeamento de teclas configurado: {len(self.key_mapping)} teclas")
 
     def set_movement_widget(self, widget):
         """
@@ -67,8 +71,10 @@ class KeyboardEventHandler(QObject):
         Args:
             widget: MovementControlWidget
         """
+        logger.info(f"🔧 set_movement_widget() chamado com widget: {widget}")
+        logger.info(f"🔧 widget type: {type(widget)}")
         self.movement_widget = widget
-        logger.debug("MovementWidget definido no KeyboardEventHandler")
+        logger.info("✅ MovementWidget definido no KeyboardEventHandler")
 
     def set_enable_control_callback(self, callback: Callable[[], bool]):
         """
@@ -77,8 +83,9 @@ class KeyboardEventHandler(QObject):
         Args:
             callback: Função que retorna True se keyboard control está ativo
         """
+        logger.info(f"🔧 set_enable_control_callback() chamado com callback: {callback}")
         self.enable_control_callback = callback
-        logger.debug("Callback de controle definido")
+        logger.info("✅ Callback de controle definido")
 
     def eventFilter(self, source: QObject, event: QEvent) -> bool:
         """
@@ -96,6 +103,11 @@ class KeyboardEventHandler(QObject):
         Returns:
             True se o evento foi processado, False caso contrário
         """
+        # 🔴 LOG GLOBAL: Capturar TODOS os eventos para verificar se eventFilter está sendo chamado
+        event_type = event.type()
+        if event_type in [QEvent.Type.KeyPress, QEvent.Type.KeyRelease]:
+            logger.warning(f"⚡️ EVENT FILTER CHAMADO: type={event_type}, source={source.__class__.__name__}")
+
         # Apenas processar eventos de teclado
         if event.type() != QEvent.Type.KeyPress and event.type() != QEvent.Type.KeyRelease:
             return False
