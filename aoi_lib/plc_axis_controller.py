@@ -7,6 +7,8 @@ import time
 import logging
 from pymodbus.client import ModbusTcpClient
 
+logger = logging.getLogger(__name__)
+
 class PLCAxisController:
     """
     Controller para 3 eixos (X, Y, Z) usando Modbus TCP.
