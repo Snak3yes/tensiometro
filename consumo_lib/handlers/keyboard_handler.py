@@ -96,25 +96,38 @@ class KeyboardEventHandler(QObject):
         Returns:
             True se o evento foi processado, False caso contrário
         """
-        # Verificar se keyboard control está habilitado
-        if self.enable_control_callback and not self.enable_control_callback():
-            return False
-
         # Apenas processar eventos de teclado
         if event.type() != QEvent.Type.KeyPress and event.type() != QEvent.Type.KeyRelease:
             return False
 
+        # Log inicial para depuração
+        key = event.key()
+        logger.debug(f"🔑 KeyboardEventHandler: event.type={event.type()}, key={key}, key.name={key.name if hasattr(key, 'name') else 'N/A'}")
+
+        # Verificar se keyboard control está habilitado
+        if self.enable_control_callback:
+            enabled = self.enable_control_callback()
+            logger.debug(f"🔑 Keyboard control habilitado: {enabled}")
+            if not enabled:
+                logger.debug("🔑 Keyboard control desabilitado, ignorando evento")
+                return False
+        else:
+            logger.warning("🔑 enable_control_callback não definido!")
+            return False
+
         # Ignorar eventos de repetição automática (tecla mantida pressionada)
         if event.isAutoRepeat():
+            logger.debug("🔑 Auto-repeat detectado, ignorando")
             return False
 
         # Verificar se é uma tecla mapeada
-        key = event.key()
         if key not in self.key_mapping:
+            logger.debug(f"🔑 Tecla {key} não está mapeada, ignorando")
             return False
 
         # Obter eixo e direção
         axis, direction = self.key_mapping[key]
+        logger.debug(f"🔑 Tecla mapeada: {key.name} → {axis}{direction}")
 
         # Verificar se temos movement widget
         if not self.movement_widget:
@@ -123,13 +136,13 @@ class KeyboardEventHandler(QObject):
 
         # KeyPress: Iniciar movimento
         if event.type() == QEvent.Type.KeyPress:
-            logger.debug(f"KeyPress: {key.name} → {axis}{direction}")
+            logger.info(f"🎮 KeyPress: {key.name} → Iniciando movimento {axis}{direction}")
             self._start_movement(axis, direction)
             return True
 
         # KeyRelease: Parar movimento
         elif event.type() == QEvent.Type.KeyRelease:
-            logger.debug(f"KeyRelease: {key.name}")
+            logger.info(f"🎮 KeyRelease: {key.name} → Parando movimento")
             self._stop_movement()
             return True
 
@@ -144,26 +157,35 @@ class KeyboardEventHandler(QObject):
             direction: Direção (-1 ou +1)
         """
         try:
+            logger.debug(f"🔧 _start_movement chamado: axis={axis}, direction={direction}")
+            logger.debug(f"🔧 movement_widget type: {type(self.movement_widget)}")
+            logger.debug(f"🔧 movement_widget tem start_movement: {hasattr(self.movement_widget, 'start_movement')}")
+
             if hasattr(self.movement_widget, 'start_movement'):
+                logger.info(f"🎯 Chamando movement_widget.start_movement({axis}, {direction})")
                 self.movement_widget.start_movement(axis, direction)
-                logger.debug(f"Movimento iniciado: {axis}{direction}")
+                logger.info(f"✅ Movimento iniciado: {axis}{direction}")
             else:
-                logger.error(f"MovementWidget não tem método start_movement()")
+                logger.error(f"❌ MovementWidget não tem método start_movement()")
         except Exception as e:
-            logger.error(f"Erro ao iniciar movimento: {e}")
+            logger.error(f"❌ Erro ao iniciar movimento: {e}", exc_info=True)
 
     def _stop_movement(self):
         """
         Para movimento em andamento.
         """
         try:
+            logger.debug(f"🛑 _stop_movement chamado")
+            logger.debug(f"🛑 movement_widget tem stop_movement: {hasattr(self.movement_widget, 'stop_movement')}")
+
             if hasattr(self.movement_widget, 'stop_movement'):
+                logger.info(f"🎯 Chamando movement_widget.stop_movement()")
                 self.movement_widget.stop_movement()
-                logger.debug("Movimento parado")
+                logger.info(f"✅ Movimento parado")
             else:
-                logger.error(f"MovementWidget não tem método stop_movement()")
+                logger.error(f"❌ MovementWidget não tem método stop_movement()")
         except Exception as e:
-            logger.error(f"Erro ao parar movimento: {e}")
+            logger.error(f"❌ Erro ao parar movimento: {e}", exc_info=True)
 
     def is_key_mapped(self, key: Qt.Key) -> bool:
         """
