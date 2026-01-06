@@ -281,10 +281,23 @@ class PLCAxisController:
         pulses = int(round(distance_mm * self.pulses_per_mm))
         # 2) converte feed_rate (mm/min) em pulsos/min, se fornecido
         speed = int(round(feed_rate * self.pulses_per_mm)) if feed_rate is not None else None
-        # 3) executa movimento relativo usando o método antigo interno
+
+        # 3) Calcula timeout apropriado baseado no tempo esperado do movimento
+        # Tempo esperado (segundos) = (distância / velocidade) * 60 + margem de segurança
+        if feed_rate and feed_rate > 0:
+            distance_abs = abs(distance_mm)
+            expected_time_sec = (distance_abs / feed_rate) * 60  # converter min para seg
+            # Timeout = tempo esperado + margem de 50% + mínimo de 5 segundos
+            timeout = max(5, int(expected_time_sec * 1.5))
+            logger.info(f"⏱️ Timeout calculado: {timeout}s (distância={distance_abs}mm, velocidade={feed_rate}mm/min, tempo esperado≈{expected_time_sec:.1f}s)")
+        else:
+            timeout = 30  # Timeout padrão se não tiver feed_rate
+            logger.info(f"⏱️ Timeout padrão: {timeout}s (feed_rate não fornecido)")
+
+        # 4) executa movimento relativo usando o método antigo interno
         self._move_relative_single_axis(axis, pulses, speed)
-        # 4) aguarda até o eixo estar idle (e restaura status Idle)
-        return self.wait_for_idle(axis)
+        # 5) aguarda até o eixo estar idle com timeout calculado
+        return self.wait_for_idle(axis, timeout=timeout)
     
     def _move_relative_single_axis(self, axis: str, offset: int, speed: int=None):
         """
@@ -356,6 +369,28 @@ class PLCAxisController:
         Aguarda até que os eixos fiquem idle.
         - Se axis for string, usa apenas aquele alvo; senão usa _targets ativos.
         """
+        # Se status atual é "Alarm", tenta resetar automaticamente
+        if self.machine_status == "Alarm":
+            logger.info("🔄 Status é 'Alarm', verificando se máquina pode ser resetada")
+            # Verifica se todos os eixos estão idle (sem movimento ativo)
+            all_idle = True
+            for ax, cfg in self.ADDRESSES.items():
+                # Lê status de movimento do eixo (coil jog_plus/jog_minus)
+                try:
+                    jog_plus = self.client.read_coils(cfg['jog_plus'], count=1).bits[0]
+                    jog_minus = self.client.read_coils(cfg['jog_minus'], count=1).bits[0]
+                    if jog_plus or jog_minus:
+                        all_idle = False
+                        break
+                except:
+                    pass
+
+            if all_idle:
+                logger.info("🔄 Todos os eixos estão idle, resetando status de 'Alarm' para 'Idle'")
+                self.machine_status = "Idle"
+            else:
+                logger.warning("⚠️ Status é 'Alarm' e máquina ainda está em movimento, impossível resetar automaticamente")
+
         # fallback para compatibilidade: se nada em _targets, usa axis único ou todos
         targets = {}
         if isinstance(axis, str):
@@ -389,8 +424,11 @@ class PLCAxisController:
                 return True
             time.sleep(0.05)
 
-        # timeout
-        self.machine_status = "Alarm" if self.machine_status == "Run" else self.machine_status
+        # timeout - NÃO mudar status para "Alarm" automaticamente!
+        # Isso permite que o usuário possa tentar novamente sem precisar resetar
+        logger.warning(f"⏱️ TIMEOUT em wait_for_idle após {timeout}s (axis={axis}, targets={list(targets.keys())})")
+        logger.warning(f"⏱️ Status mantido como '{self.machine_status}' (não mudou para Alarm)")
+        # REMOVIDO: self.machine_status = "Alarm" if self.machine_status == "Run" else self.machine_status
         return False
     
     def _wait_for_idle_axis(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
