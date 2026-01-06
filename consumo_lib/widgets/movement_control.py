@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont, QDoubleValidator, QIntValidator
 from aoi_lib.config_manager import AOIConfigManager
+from aoi_lib.plc_axis_controller import PLCAxisController
 import logging
 
 logger = logging.getLogger(__name__)
