@@ -450,19 +450,25 @@ class SetupCoordinator:
             return
         logger.info(f"✅ keyboard_handler existe: {self.window.keyboard_handler}")
 
-        # O movement_widget está dentro da CNCControlTab
-        if hasattr(self.window, 'cnc_tab') and hasattr(self.window.cnc_tab, 'movement_widget'):
-            logger.info(f"✅ cnc_tab.movement_widget existe: {self.window.cnc_tab.movement_widget}")
+        # O movement_widget está exposto diretamente na window (veja ui_builders.py:304)
+        # self.window.movement_widget = self.window.cnc_control_tab.movement_widget
+        if hasattr(self.window, 'movement_widget') and self.window.movement_widget is not None:
+            logger.info(f"✅ movement_widget existe na window: {self.window.movement_widget}")
 
-            self.window.keyboard_handler.set_movement_widget(
-                self.window.cnc_tab.movement_widget
-            )
+            self.window.keyboard_handler.set_movement_widget(self.window.movement_widget)
+
             # Callback para verificar se keyboard control está habilitado
-            self.window.keyboard_handler.set_enable_control_callback(
-                lambda: self.window.cnc_tab.movement_widget.keyboard_control_checkbox.isChecked()
-                if hasattr(self.window.cnc_tab.movement_widget, 'keyboard_control_checkbox')
-                else False
-            )
+            # movement_widget tem o keyboard_control_checkbox
+            if hasattr(self.window.movement_widget, 'keyboard_control_checkbox'):
+                self.window.keyboard_handler.set_enable_control_callback(
+                    lambda: self.window.movement_widget.keyboard_control_checkbox.isChecked()
+                )
+                logger.info("✅ Callback de checkbox configurado")
+            else:
+                logger.warning("⚠️ keyboard_control_checkbox não encontrado em movement_widget")
+                # Define callback que retorna False (sempre desabilitado)
+                self.window.keyboard_handler.set_enable_control_callback(lambda: False)
+
             logger.info("✅ KeyboardEventHandler configurado com movement_widget e callback")
 
             # CRÍTICO: Instalar o eventFilter no QApplication para capturar eventos globais
@@ -473,11 +479,9 @@ class SetupCoordinator:
             app.installEventFilter(self.window.keyboard_handler)
             logger.warning("🚨✅ eventFilter INSTALADO no QApplication - Deve capturar todos os eventos de teclado agora!")
         else:
-            logger.error("❌ cnc_tab ou movement_widget não existe!")
-            logger.error(f"❌ hasattr(window, 'cnc_tab'): {hasattr(self.window, 'cnc_tab')}")
-            if hasattr(self.window, 'cnc_tab'):
-                logger.error(f"❌ hasattr(cnc_tab, 'movement_widget'): {hasattr(self.window.cnc_tab, 'movement_widget')}")
-                logger.error(f"❌ cnc_tab attributes: {dir(self.window.cnc_tab)}")
+            logger.error("❌ movement_widget não existe na window!")
+            logger.error(f"❌ hasattr(window, 'movement_widget'): {hasattr(self.window, 'movement_widget')}")
+            logger.error(f"❌ window.movement_widget: {getattr(self.window, 'movement_widget', 'NOT_FOUND')}")
 
     def _setup_menu(self):
         """Configura o menu da aplicação."""
