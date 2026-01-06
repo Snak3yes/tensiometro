@@ -431,7 +431,13 @@ class SetupCoordinator:
         logger.debug("Controllers dependentes de UI criados")
 
     def _setup_keyboard_handler(self):
-        """Configura KeyboardEventHandler após setup_ui."""
+        """
+        Configura KeyboardEventHandler após setup_ui.
+
+        Instala o eventFilter global para capturar eventos de teclado
+        e redirecionar para o MovementControlWidget quando o checkbox
+        "Enable Keyboard Control" estiver marcado.
+        """
         # O movement_widget está dentro da CNCControlTab
         if hasattr(self.window, 'cnc_tab') and hasattr(self.window.cnc_tab, 'movement_widget'):
             self.window.keyboard_handler.set_movement_widget(
@@ -444,6 +450,11 @@ class SetupCoordinator:
                 else False
             )
             logger.debug("KeyboardEventHandler configurado com movement_widget")
+
+            # CRÍTICO: Instalar o eventFilter no QApplication para capturar eventos globais
+            from PyQt6.QtWidgets import QApplication
+            QApplication.instance().installEventFilter(self.window.keyboard_handler)
+            logger.debug("KeyboardEventHandler instalado como eventFilter global da QApplication")
 
     def _setup_menu(self):
         """Configura o menu da aplicação."""
