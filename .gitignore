@@ -18,6 +18,7 @@ teste_clp/__pycache__/settings_manager.cpython-310.pyc
 teste_clp/__pycache__/table_positions_backend.cpython-310.pyc
 teste_clp/__pycache__/table_program_tab.cpython-310.pyc
 *.pyc
+__pycache__/
 teste_clp/aplicacao_adesivadora.pdf
 output/testes_comunicacao_e_comandos/
 output/testes_comunicacao_e_comandos/testes_comunicacao_e_comandos.exe
