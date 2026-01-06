@@ -393,6 +393,16 @@ class SetupCoordinator:
         """Cria controllers que dependem de widgets da UI."""
         from consumo_lib.controllers import FileIOController, PositionManagerController
 
+        # Configura widgets da UI no ConnectionManager para leitura de valores PLC
+        # Isso permite que o ConnectionManager leia diretamente os valores digitados
+        # pelo usuário antes de conectar (corrige bug de configurações não aplicadas)
+        if hasattr(self.window, 'connection_mgr') and hasattr(self.window, 'plc_host_input') and hasattr(self.window, 'plc_port_input'):
+            self.window.connection_mgr.set_ui_widgets(
+                plc_host_input=self.window.plc_host_input,
+                plc_port_input=self.window.plc_port_input
+            )
+            logger.debug("Widgets PLC configurados no ConnectionManager")
+
         # File IO Controller
         try:
             self.window.file_io_controller = FileIOController(

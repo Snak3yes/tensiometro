@@ -270,15 +270,33 @@ class MovementService:
             )
 
     def _plc_homing(self) -> MovementResult:
-        """Executa homing via coils Modbus (PLC)."""
+        """
+        Executa homing via coils Modbus (PLC).
+
+        Estados válidos para homing:
+            - Idle: Conectado e parado (estado ideal para homing)
+            - Run: Em movimento (pode iniciar homing durante movimento)
+            - Jog: Em movimento manual
+
+        Estados inválidos para homing:
+            - Alarm: Erro ativo, precisa resetar primeiro
+            - Disconnected: Não conectado ao PLC
+        """
         try:
             # Verificar status
             machine_status = self.cnc.machine_status
-            if machine_status not in ["Run", "Jog"]:
+
+            # Estados inválidos para homing
+            if machine_status in ["Alarm", "Disconnected"]:
                 return MovementResult(
                     success=False,
-                    error_message=f"Máquina em estado inadequado: {machine_status}"
+                    error_message=f"Máquina em estado inadequado para homing: {machine_status}. " +
+                                 ("Reset o alarme antes de prosseguir." if machine_status == "Alarm" else
+                                  "Conecte o PLC primeiro.")
                 )
+
+            # Estados válidos: Idle, Run, Jog (aceitar qualquer um destes)
+            logger.debug(f"Iniciando homing PLC com status: {machine_status}")
 
             # Coils de homing (X:1350, Y:850, Z:1850)
             homing_coils = {

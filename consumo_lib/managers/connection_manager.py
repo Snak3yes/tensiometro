@@ -39,6 +39,24 @@ class ConnectionManager(QObject):
         self.controller = controller
         self.config = config
         self._plc_ui_settings_applied = False
+        # Referências opcionais aos widgets da UI (para leitura de valores)
+        self.plc_host_input = None
+        self.plc_port_input = None
+
+    def set_ui_widgets(self, plc_host_input=None, plc_port_input=None):
+        """
+        Define referências aos widgets da UI para leitura de valores.
+
+        Isso permite que o ConnectionManager leia diretamente os valores
+        digitados pelo usuário antes de conectar.
+
+        Args:
+            plc_host_input: QLineEdit com host do PLC
+            plc_port_input: QSpinBox com porta do PLC
+        """
+        self.plc_host_input = plc_host_input
+        self.plc_port_input = plc_port_input
+        logger.debug("Widgets da UI configurados no ConnectionManager")
 
     def connect_plc(self):
         """
@@ -136,14 +154,58 @@ class ConnectionManager(QObject):
 
     def _apply_plc_ui_settings(self):
         """
-        Aplica configurações de UI ao PLC.
+        Aplica configurações de UI ao PLC antes de conectar.
 
-        Este método lê configurações e as aplica ao controlador.
-        Pode ser sobrescrito para aplicar configurações específicas da UI.
+        Prioriza ler dos widgets da UI (se disponíveis) para obter os valores
+        mais recentes digitados pelo usuário. Se os widgets não estiverem
+        disponíveis, lê do arquivo de configuração.
+
+        Aplica os valores ao controlador PLC se forem diferentes dos valores atuais.
         """
-        # Placeholder: implementar se necessário aplicar configurações específicas
-        logger.debug("Aplicando configurações da UI ao PLC")
-        self._plc_ui_settings_applied = True
+        from aoi_lib import PLCAxisController
+
+        if not isinstance(self.controller.cnc, PLCAxisController):
+            logger.debug("CNC não é PLCAxisController, pulando aplicação de configurações")
+            return
+
+        plc = self.controller.cnc
+
+        # Tenta ler dos widgets da UI primeiro (valores mais recentes)
+        if self.plc_host_input is not None and self.plc_port_input is not None:
+            host = (self.plc_host_input.text() or "").strip() or "192.168.1.5"
+            port = int(self.plc_port_input.value())
+            logger.debug(f"Lendo configurações dos widgets da UI: {host}:{port}")
+
+            # Atualiza o config com os valores da UI
+            self.config.set("connections", "plc_host", value=host)
+            self.config.set("connections", "plc_port", value=port)
+            self.config.save()
+            logger.debug(f"Configurações salvas no arquivo de config")
+        else:
+            # Fallback: lê do arquivo de configuração
+            host = self.config.get("connections", "plc_host", default="192.168.1.5")
+            port = self.config.get("connections", "plc_port", default=502)
+            logger.debug(f"Lendo configurações do arquivo: {host}:{port}")
+
+        # Verifica se os valores mudaram
+        current_host = getattr(plc, "host", None)
+        current_port = getattr(plc, "port", None)
+        current_port_int = int(current_port) if current_port is not None else None
+
+        if host == current_host and current_port_int == port:
+            logger.debug(f"Configurações do PLC inalteradas: {host}:{port}")
+            self._plc_ui_settings_applied = True
+            return
+
+        # Aplica novos valores ao controlador
+        try:
+            logger.info(f"Atualizando configurações do PLC: {current_host}:{current_port} → {host}:{port}")
+            plc.set_connection_params(host, port)
+            self._plc_ui_settings_applied = True
+            logger.info(f"Configurações do PLC atualizadas com sucesso: {host}:{port}")
+        except Exception as e:
+            logger.error(f"Falha ao aplicar configurações do PLC: {e}")
+            self._plc_ui_settings_applied = False
 
     def connect_grbl(self, port, connect_btn, status_label, status_bar,
                      grbl_callback_handler, main_window):
