@@ -2344,25 +2344,28 @@ pytest tests/integration/test_plc_controller.py -v
 
 ### 🎯 PRÓXIMOS PASSOS
 
-**Prioridade MÉDIA-ALTA:**
-1. **fiducial_alignment.py** (detecção de fiduciais)
-   - Template matching com OpenCV
-   - Cálculo de transformação (translação, rotação, escala)
-   - 15-20 testes, alvo: 75%+
+**FASE 3: Inspeção e Renderização** (Semanas 5-6)
 
-2. **stencil_inspector.py** (inspeção visual)
+**Prioridade ALTA:**
+1. **stencil_inspector.py** (inspeção visual)
    - Binarização e contagem de pixels
    - Classificação: OK, PARTIAL, BLOCKED
    - 20-25 testes, alvo: 70%+
 
-3. **gerber_renderer.py** (renderização Gerber)
+2. **gerber_renderer.py** (renderização Gerber)
    - Renderização de aperturas Gerber RS-274X
    - Geração de máscaras OpenCV
    - 15-20 testes, alvo: 70%+
 
+**Prioridade MÉDIA:**
+3. **config_manager.py** (gerenciamento de configuração)
+   - Leitura/escrita de JSON
+   - Validação de esquemas
+   - 10-15 testes, alvo: 60%+
+
 ---
 
-**Última atualização:** 2026-01-07 15:00
+**Última atualização:** 2026-01-07 18:00
 **Status FASE 1:** ✅ **100% CONCLUÍDO**
-**Status FASE 2:** 🔄 **33% CONCLUÍDO** (1 de 3 módulos críticos)
-**Próxima ação:** Implementar testes para stencil_tension.py (tensiômetro)
+**Status FASE 2:** ✅ **100% CONCLUÍDO** (Semanas 1-4)
+**Próxima ação:** Implementar testes para stencil_inspector.py (FASE 3)
