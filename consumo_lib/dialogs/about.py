@@ -20,9 +20,25 @@ class AboutDialog:
         """
         QMessageBox.about(
             parent,
-            "Sobre HesaiVision",
-            "HesaiVision v1.0\n\n"
-            "Sistema de Inspeção Óptica Automatizada\n"
-            "Desenvolvido para controle de CNC com GRBL\n\n"
-            "© 2025 HesaiVision"
+            "Sobre Tensiômetro AOI",
+            "<h2>Sistema AOI Tensiômetro</h2>"
+            "<h3>Controle de Qualidade de Stencils SMT</h3>"
+            "<p><b>Versão:</b> 0.4.0</p>"
+            "<p><b>Desenvolvido por:</b> Ronald Buzaglo</p>"
+            "<hr>"
+            "<p><b>Parceria de Desenvolvimento:</b></p>"
+            "<p>CodeVision ↔ CTD (Centro de Transformação Digital)<br>"
+            "Digiboard Eletrônica da Amazônia Ltda (DGB)</p>"
+            "<hr>"
+            "<p><b>Funcionalidades:</b></p>"
+            "<ul>"
+            "<li>✓ Medição de tensão superficial com AS-120N</li>"
+            "<li>✓ Inspeção visual de aberturas (Gerber RS-274X)</li>"
+            "<li>✓ Controle CNC 3 eixos via PLC (Modbus TCP)</li>"
+            "<li>✓ Geração de relatórios PDF com tendências</li>"
+            "<li>✓ Rastreabilidade completa de stencils</li>"
+            "</ul>"
+            "<hr>"
+            "<p style='text-align:center;'><i>© 2025-2026 - Projeto desenvolvido em parceria "
+            "CodeVision e DGB/CTD</i></p>"
         )

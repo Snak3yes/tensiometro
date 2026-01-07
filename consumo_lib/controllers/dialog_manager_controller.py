@@ -135,10 +135,9 @@ class DialogManagerController(QObject):
         Emits:
             dialog_closed signal quando diálogo fechar
         """
-        from consumo_lib.dialogs import AboutDialog
+        from consumo_lib.dialogs.about import AboutDialog
 
-        dialog = AboutDialog(self.parent_window)
-        dialog.exec()
+        AboutDialog.show_about(self.parent_window)
         logger.debug("Diálogo Sobre exibido")
         self.dialog_closed.emit("about")
 
