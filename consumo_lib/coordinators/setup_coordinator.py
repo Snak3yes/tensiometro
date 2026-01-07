@@ -519,7 +519,10 @@ class SetupCoordinator:
         if isinstance(self.window.controller.cnc, PLCAxisController):
             # Estado inicial - aguardando tentativa de conexão automática
             self.window.connect_cnc_btn.setText("Conectar PLC")
-            self.window.cnc_status.setText("Iniciando...")
+            # REMOVIDO: cnc_status não existe mais no painel esquerdo
+            # A posição agora está dentro de MovementControlWidget (aba CNC Control)
+            if hasattr(self.window, 'cnc_status'):
+                self.window.cnc_status.setText("Iniciando...")
             self.window.statusBar().showMessage(
                 "Iniciando aplicação - conexão automática ao PLC em breve..."
             )
