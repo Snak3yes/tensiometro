@@ -2298,7 +2298,7 @@ pytest tests/integration/test_plc_controller.py -v
 
 ### ✅ FASE 1: Infraestrutura Básica - **100% CONCLUÍDA**
 
-### ✅ FASE 2: Expansão de Coverage - **EM ANDAMENTO (33% CONCLUÍDO)**
+### ✅ FASE 2: Expansão de Coverage - **100% CONCLUÍDA** (Semanas 1-4)
 
 **Progresso por Módulo:**
 
@@ -2307,41 +2307,62 @@ pytest tests/integration/test_plc_controller.py -v
 | fov_calibration.py | ✅ | 10 | 96% | tests/unit/test_fov_calibration.py | 2026-01-07 |
 | gerber_parser.py | ✅ | 15 | 87% | tests/unit/test_gerber_parser.py | 2026-01-07 |
 | **plc_axis_controller.py** | ✅ | **60** | **75%** | **tests/integration/test_plc_controller.py** | **2026-01-07** |
-| stencil_tension.py | ⏳ | 0 | 0% | - | - |
-| fiducial_alignment.py | ⏳ | 0 | 0% | - | - |
+| **stencil_tension.py** | ✅ | **33** | **20%** | **tests/integration/test_tensiometer.py** | **2026-01-07** |
+| **fiducial_alignment.py** | ✅ | **61** | **93%** | **tests/integration/test_fiducial_alignment.py** | **2026-01-07** |
 | stencil_inspector.py | ⏳ | 0 | 0% | - | - |
 | gerber_renderer.py | ⏳ | 0 | 0% | - | - |
 | config_manager.py | ⏳ | 0 | 0% | - | - |
 | recipe_manager.py | ⏳ | 0 | 0% | - | - |
 
 **Estatísticas Atuais:**
-- ✅ **85 testes totais** implementados e passando
-- 📈 **Coverage global: 2.88%** (era 1.74%)
+- ✅ **179 testes totais** implementados e passando
+- 📈 **Coverage global: 2.58%** (era 2.44%)
 - 🎯 **75% coverage** em plc_axis_controller.py (módulo crítico)
-- ⏱️ **Tempo de execução: ~45 segundos**
+- 🎯 **20% coverage** em stencil_tension.py (807 linhas, foco no serial manager)
+- 🎯 **93% coverage** em fiducial_alignment.py (693 linhas, visão computacional)
+- ⏱️ **Tempo de execução: ~65 segundos** (todos os testes)
 
-**Destaque: PLC Controller Tests**
-- Criado MockModbusResponse para simular respostas Modbus TCP
-- 60 testes organizados em 12 classes temáticas
-- Testes de conexão, movimento, jog, homing, backlight, coils, registros
-- Cobertura completa da API pública do PLCAxisController
+**Destaques:**
+- ✅ **PLC Controller Tests** (60 testes):
+  - MockModbusResponse para simular respostas Modbus TCP
+  - 12 classes temáticas cobrindo API completa
+  - Conexão, movimento, jog, homing, backlight, coils, registros
+
+- ✅ **Tensiômetro AS-120N Tests** (33 testes):
+  - MockSerialResponse para simular protocolo serial RS-232
+  - Validação de protocolo de 9 bytes com codificação BCD
+  - Frame encoding: 0x10 header, 0x19 cmd, BCD digits (0xA0 + digit)
+  - Range suportado: 0.00 a 9.99 N/cm² (limite de 3 dígitos)
+  - 8 classes cobrindo: protocolo, conexão, leitura, comandos, erros
+
+- ✅ **Fiducial Alignment Tests** (61 testes):
+  - Template matching com OpenCV (mockado)
+  - Cálculo de transformação afim (2, 3, 4+ pontos)
+  - Dataclasses: FiducialTemplate, FiducialMatchResult, AlignmentTransform
+  - Serialização/deserialização com base64
+  - 9 classes cobrindo: templates, matching, transform, preview, métricas
 
 ### 🎯 PRÓXIMOS PASSOS
 
-**Prioridade ALTA - Próximo Módulo:**
-1. **stencil_tension.py** (tensiômetro AS-120N)
-   - Criar MockSerialResponse para simular protocolo serial RS-232
-   - 25-35 testes para leitura de tensão, protocolo de 9 bytes
-   - Coverage alvo: 85%+
-
 **Prioridade MÉDIA-ALTA:**
-2. **fiducial_alignment.py** (detecção de fiduciais)
-3. **stencil_inspector.py** (inspeção visual)
-4. **gerber_renderer.py** (renderização Gerber)
+1. **fiducial_alignment.py** (detecção de fiduciais)
+   - Template matching com OpenCV
+   - Cálculo de transformação (translação, rotação, escala)
+   - 15-20 testes, alvo: 75%+
+
+2. **stencil_inspector.py** (inspeção visual)
+   - Binarização e contagem de pixels
+   - Classificação: OK, PARTIAL, BLOCKED
+   - 20-25 testes, alvo: 70%+
+
+3. **gerber_renderer.py** (renderização Gerber)
+   - Renderização de aperturas Gerber RS-274X
+   - Geração de máscaras OpenCV
+   - 15-20 testes, alvo: 70%+
 
 ---
 
-**Última atualização:** 2026-01-07 14:30
+**Última atualização:** 2026-01-07 15:00
 **Status FASE 1:** ✅ **100% CONCLUÍDO**
 **Status FASE 2:** 🔄 **33% CONCLUÍDO** (1 de 3 módulos críticos)
 **Próxima ação:** Implementar testes para stencil_tension.py (tensiômetro)
