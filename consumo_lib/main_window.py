@@ -441,7 +441,7 @@ class AOIControllerApp(QMainWindow):
         """
         Atualiza a exibição da posição atual (WPos calculada).
 
-        Delega para PositionManagerController.
+        Delega para PositionManagerController e atualiza MovementControlWidget.
         """
         if self.position_manager_controller is not None:
             # Obtém labels Z e CNC status opcionalmente
@@ -452,9 +452,47 @@ class AOIControllerApp(QMainWindow):
                 z_position_label=z_label,
                 cnc_status_label=self.cnc_status
             )
+
+            # ─────────────────────────────────────────────────────────────────────
+            # NOVO: Atualizar também MovementControlWidget (dentro da aba CNC Control)
+            # ─────────────────────────────────────────────────────────────────────
+            self._update_movement_widget_position()
+
         else:
             logger.error("PositionManager não está disponível")
             return
+
+    def _update_movement_widget_position(self):
+        """
+        Atualiza display de posição no MovementControlWidget.
+
+        Obtém posição atual do CNC e atualiza os labels dentro da groupbox Movement Controls.
+        """
+        if not hasattr(self, 'right_panel') or not self.right_panel:
+            return
+
+        # Acessar primeira aba (CNC Control)
+        cnc_tab = self.right_panel.widget(0)
+        if not cnc_tab:
+            return
+
+        # Verificar se o movimento widget existe
+        if not hasattr(cnc_tab, 'movement_widget'):
+            return
+
+        try:
+            # Obter posição atual do CNC
+            pos = self.controller.cnc.get_current_position()
+
+            # Atualizar widget
+            cnc_tab.movement_widget.update_position(
+                x=pos['x'],
+                y=pos['y'],
+                z=pos.get('z', 0.0)
+            )
+        except Exception as e:
+            logger.debug(f"Erro ao atualizar posição no MovementControlWidget: {e}")
+            # Silencioso - pode não estar conectado ainda
     def add_current_position(self):
         """
         Adiciona a posição atual à lista.

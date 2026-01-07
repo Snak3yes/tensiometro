@@ -85,9 +85,9 @@ class MovementControlWidget(QWidget):
         movement_layout.addWidget(self.right_button, 1, 2)
         movement_layout.addWidget(self.down_button, 2, 1)
 
-        # Coloca Z+ acima de STOP e Z- abaixo
-        movement_layout.addWidget(self.z_up_button,   0, 3)
-        movement_layout.addWidget(self.z_down_button, 2, 3)
+        # Coloca Z+ acima de STOP e Z- abaixo (com span de 2 colunas)
+        movement_layout.addWidget(self.z_up_button,   0, 3, 1, 2)  # linha 0, col 3, span 1 linha, 2 colunas
+        movement_layout.addWidget(self.z_down_button, 2, 3, 1, 2)  # linha 2, col 3, span 1 linha, 2 colunas
 
         # Botão de Emergency Stop / Reset
         self.emergency_stop_button = QPushButton("STOP")
@@ -167,7 +167,7 @@ class MovementControlWidget(QWidget):
             QPushButton:checked { background-color: #FFD700; color: black; font-weight: bold; }
         """)
         self.backlight_button.toggled.connect(self._on_backlight_toggle)
-        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 4)  # Ocupa toda a largura
+        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 5)  # Ocupa toda a largura (5 colunas)
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
@@ -183,11 +183,82 @@ class MovementControlWidget(QWidget):
         mode_layout.addWidget(self.mode_absolute)
         mode_layout.addWidget(self.mode_relative)
         movement_layout.addLayout(mode_layout, 5, 0, 1, 3)
-        
+
+        # ─────────────────────────────────────────────────────────────────────
+        # NOVO: Display de posição atual dentro da groupbox Movement Controls
+        # ─────────────────────────────────────────────────────────────────────
+        self._init_position_display(movement_layout)
+
         movement_group.setLayout(movement_layout)
         layout.addWidget(movement_group)
         # Keep the groupbox at top without stretching
         layout.setAlignment(movement_group, Qt.AlignmentFlag.AlignTop)
+
+    def _init_position_display(self, parent_layout):
+        """
+        Inicializa display de posição atual dentro da groupbox Movement Controls.
+
+        Posiciona nas colunas 3-4 (à direita dos botões Z), ocupando 6 linhas.
+        Cria labels estilizados com fundo escuro e texto verde monospace.
+
+        Args:
+            parent_layout: QGridLayout onde adicionar o display de posição
+        """
+        # Sub-groupbox para posição
+        position_group = QGroupBox("Posição Atual (mm)")
+        position_group.setMaximumHeight(150)  # Limitar altura para não ficar muito grande
+        position_layout = QGridLayout()
+        position_layout.setContentsMargins(5, 5, 5, 5)
+        position_layout.setSpacing(3)
+
+        # Labels estilizados (fundo escuro, texto verde monospace)
+        self.pos_x_label = QLabel("0.000 mm")
+        self.pos_y_label = QLabel("0.000 mm")
+        self.pos_z_label = QLabel("0.000 mm")
+
+        for label in (self.pos_x_label, self.pos_y_label, self.pos_z_label):
+            label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: #333;
+                    color: #0f0;
+                    padding: 4px 8px;
+                    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                    font-size: 13px;
+                    font-weight: bold;
+                    border-radius: 3px;
+                }
+            """)
+            label.setMinimumWidth(100)
+
+        # Adicionar labels ao grid da sub-groupbox
+        position_layout.addWidget(QLabel("X:"), 0, 0)
+        position_layout.addWidget(self.pos_x_label, 0, 1)
+        position_layout.addWidget(QLabel("Y:"), 1, 0)
+        position_layout.addWidget(self.pos_y_label, 1, 1)
+        position_layout.addWidget(QLabel("Z:"), 2, 0)
+        position_layout.addWidget(self.pos_z_label, 2, 1)
+
+        position_group.setLayout(position_layout)
+
+        # Adicionar ao layout pai (colunas 3-4, linhas 3-8, span de 6 linhas)
+        # Nota: row=3, rowSpan=6 para ocupar da linha 3 até a linha 8
+        parent_layout.addWidget(position_group, 3, 3, 6, 2)
+
+    def update_position(self, x: float, y: float, z: float):
+        """
+        Atualiza display de posição atual no widget.
+
+        Método público que pode ser chamado pela MainWindow ou por polling.
+
+        Args:
+            x: Posição X em mm
+            y: Posição Y em mm
+            z: Posição Z em mm
+        """
+        self.pos_x_label.setText(f"{x:8.3f} mm")
+        self.pos_y_label.setText(f"{y:8.3f} mm")
+        self.pos_z_label.setText(f"{z:8.3f} mm")
 
     def _save_step_feed(self):
         try:
