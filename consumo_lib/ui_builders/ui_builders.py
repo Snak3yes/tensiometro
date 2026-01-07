@@ -177,12 +177,12 @@ class MainUIBuilder:
         main_layout.addWidget(calibration_group)  # Mantém no DOM para uso interno
 
     def _build_left_panel(self):
-        """Cria painel esquerdo (posição, lista, sequência, resultados)."""
+        """Cria painel esquerdo (lista, sequência, resultados)."""
         left_panel = QWidget()
         left_layout = QVBoxLayout(left_panel)
 
-        # Informações de posição
-        self._build_position_group(left_layout)
+        # REMOVIDO: _build_position_group() - posição agora está em MovementControlWidget
+        # Ver aba CNC Control → Movement Controls → "Posição Atual (mm)"
 
         # Widget de lista de posições
         self._build_position_list(left_layout)
@@ -194,28 +194,6 @@ class MainUIBuilder:
         self._build_results_table(left_layout)
 
         return left_panel
-
-    def _build_position_group(self, parent_layout):
-        """Cria grupo de informações de posição."""
-        position_group = QGroupBox("Posição Atual")
-        position_layout = QGridLayout()
-
-        # Exibe os valores X, Y, Z e status
-        position_layout.addWidget(QLabel("X:"), 0, 0)
-        self.window.x_position = QLabel("0.000 mm")
-        position_layout.addWidget(self.window.x_position, 0, 1)
-        position_layout.addWidget(QLabel("Y:"), 1, 0)
-        self.window.y_position = QLabel("0.000 mm")
-        position_layout.addWidget(self.window.y_position, 1, 1)
-        position_layout.addWidget(QLabel("Z:"), 2, 0)
-        self.window.z_position = QLabel("0.000 mm")
-        position_layout.addWidget(self.window.z_position, 2, 1)
-        position_layout.addWidget(QLabel("Status:"), 3, 0)
-        self.window.cnc_status = QLabel("Desconectado")
-        position_layout.addWidget(self.window.cnc_status, 3, 1)
-
-        position_group.setLayout(position_layout)
-        parent_layout.addWidget(position_group)
 
     def _build_position_list(self, parent_layout):
         """Cria widget de lista de posições."""

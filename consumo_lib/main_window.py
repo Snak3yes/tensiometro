@@ -373,6 +373,10 @@ class AOIControllerApp(QMainWindow):
             self.connection_mgr.toggle_plc()
             return
 
+        # Garantir que self.cnc_status existe (para código GRBL legado)
+        if not hasattr(self, 'cnc_status'):
+            self.cnc_status = QLabel("Desconectado")
+
         # Para GRBL, verifica se está conectado e alterna
         if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
             # Desconectar
@@ -441,26 +445,19 @@ class AOIControllerApp(QMainWindow):
         """
         Atualiza a exibição da posição atual (WPos calculada).
 
-        Delega para PositionManagerController e atualiza MovementControlWidget.
+        Atualiza apenas MovementControlWidget (dentro da aba CNC Control).
+        Os labels antigos do painel esquerdo foram removidos - posição
+        agora é exibida dentro da groupbox Movement Controls.
         """
-        if self.position_manager_controller is not None:
-            # Obtém labels Z e CNC status opcionalmente
-            z_label = self.z_position if hasattr(self, "z_position") else None
-            self.position_manager_controller.update_position_display(
-                self.x_position,
-                self.y_position,
-                z_position_label=z_label,
-                cnc_status_label=self.cnc_status
-            )
+        # ─────────────────────────────────────────────────────────────────────
+        # Atualizar MovementControlWidget (dentro da aba CNC Control)
+        # ─────────────────────────────────────────────────────────────────────
+        self._update_movement_widget_position()
 
-            # ─────────────────────────────────────────────────────────────────────
-            # NOVO: Atualizar também MovementControlWidget (dentro da aba CNC Control)
-            # ─────────────────────────────────────────────────────────────────────
-            self._update_movement_widget_position()
-
-        else:
-            logger.error("PositionManager não está disponível")
-            return
+        # NOTA: PositionManagerController.update_position_display() foi removido
+        # pois os labels do painel esquerdo não existem mais.
+        # O signal position_updated ainda é emitido por PositionManagerController
+        # em outros contextos onde necessário.
 
     def _update_movement_widget_position(self):
         """
