@@ -38,7 +38,7 @@
   },
   "movement": {
     "step_size": 15.0,
-    "feed_rate": 50.0
+    "feed_rate": 1200.0
   },
   "map": {
     "step_x": 15.0,

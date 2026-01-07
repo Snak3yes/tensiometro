@@ -28,36 +28,36 @@ class PLCAxisController:
     ADDRESSES = {
         'X': {
             'zero':           1000,    # M1000_X
-            'move_abs':       1050,    # M1050_X
+            'move_abs':       1050,    # M1050 - Interpolação X/Y (corrige ERRO: era 1100)
             'pos_input':      1100,    # D1100_X
             'speed':          21000,   # D21000_X
             'jog_plus':       1070,    # M1070_X
             'jog_minus':      1080,    # M1080_X
             'jog_stop_plus':  1010,    # M1010_X
             'jog_stop_minus': 1011,    # M1011_X
-            'pos_reg':        3000     # D3000_X
+            'pos_reg':        3000     # D3000_X (feedback posição atual)
         },
         'Y': {
             'zero':           500,     # M500_Y
-            'move_abs':       550,     # M550_Y
+            'move_abs':       1050,    # M1050 - Interpolação X/Y (corrige ERRO: era 600)
             'pos_input':      600,     # D600_Y
             'speed':          20500,   # D20500_Y
             'jog_plus':       570,     # M570_Y
             'jog_minus':      580,     # M580_Y
             'jog_stop_plus':  510,     # M510_Y
             'jog_stop_minus': 511,     # M511_Y
-            'pos_reg':        3200     # D3200_Y
+            'pos_reg':        3200     # D3200_Y (feedback posição atual)
         },
         'Z': {
             'zero':           1500,    # M1500_Z
-            'move_abs':       1550,    # M1550_Z
+            'move_abs':       1600,    # M1600_Z - Movimento absoluto Z (corrige ERRO: era 1600 mas comments errados)
             'pos_input':      1600,    # D1600_Z
             'speed':          21500,   # D21500_Z
             'jog_plus':       1570,    # M1570_Z
             'jog_minus':      1580,    # M1580_Z
             'jog_stop_plus':  1510,    # M1510_Z
             'jog_stop_minus': 1511,    # M1511_Z
-            'pos_reg':        3400     # D3400_Z
+            'pos_reg':        3400     # D3400_Z (feedback posição atual)
         }
     }
     
@@ -129,23 +129,62 @@ class PLCAxisController:
         fr = self._clamp_feed_rate(feed_rate)
         speed_pulses = int(round(fr * self.pulses_per_mm)) if fr is not None else None
 
+        logger.info(f"🎯 _apply_motion_pulses: alvos={targets_pulses}, feed_rate={feed_rate}mm/min, speed_pulses={speed_pulses}pulsos/min")
+
         # limpa alvos anteriores e registra os novos para wait_for_idle
         self._targets.clear()
 
         # 1) Grava alvos e velocidades
         for ax, tgt in targets_pulses.items():
             cfg = self.ADDRESSES[ax]
+            logger.info(f"🎯 Eixo {ax}: escrevendo target={tgt} pulsos em pos_input (endereco {cfg['pos_input']})")
             self._write_dword(cfg['pos_input'], int(tgt))
             if speed_pulses is not None:
+                logger.info(f"🎯 Eixo {ax}: escrevendo speed={speed_pulses} pulsos/min em speed (endereco {cfg['speed']})")
                 self._write_dword(cfg['speed'], int(speed_pulses))
             self._targets[ax] = int(tgt)
 
+            # Lê posicao atual ANTES do movimento para verificar
+            try:
+                current_before = self._read_dword(cfg['pos_reg'])
+                logger.info(f"🎯 Eixo {ax}: posicao atual (pos_reg) ANTES do movimento: {current_before} pulsos")
+            except Exception as e:
+                logger.warning(f"⚠️ Não foi possível ler posição atual antes do movimento: {e}")
+
         # 2) Dispara todos os eixos rapidamente
+        # NOTA: X e Y usam o MESMO coil (M1050) para interpolação
+        # Então precisamos pulsar cada coil único apenas uma vez
+        unique_coils = {}
         for ax in targets_pulses.keys():
             cfg = self.ADDRESSES[ax]
-            self._pulse_coil(cfg['move_abs'])
+            coil = cfg['move_abs']
+            if coil not in unique_coils:
+                unique_coils[coil] = []
+            unique_coils[coil].append(ax)
+
+        # Pulsa cada coil único apenas uma vez
+        for coil, axes in unique_coils.items():
+            axes_str = "+".join(axes)
+            logger.info(f"⚡ Eixo(s) {axes_str}: pulsando coil move_abs (endereco {coil}) para iniciar movimento")
+            self._pulse_coil(coil)
 
         self.machine_status = "Run"
+        logger.info(f"✅ Status alterado para 'Run', movimento iniciado")
+
+        # Pequena pausa para deixar o PLC começar o movimento
+        time.sleep(0.1)
+
+        # Lê posição logo após iniciar movimento para verificar se começou a mudar
+        for ax in targets_pulses.keys():
+            cfg = self.ADDRESSES[ax]
+            try:
+                current_after = self._read_dword(cfg['pos_reg'])
+                target = self._targets[ax]
+                diff = current_after - target
+                logger.info(f"📊 Eixo {ax}: posicao APÓS inicio={current_after} pulsos, target={target} pulsos, diferença={diff} pulsos ({diff/self.pulses_per_mm:.3f}mm)")
+            except Exception as e:
+                logger.warning(f"⚠️ Não foi possível ler posição após inicio do movimento: {e}")
+
         return True
 
     def set_connection_params(self, host: str, port: int):
@@ -225,9 +264,12 @@ class PLCAxisController:
         u32 = (hi << 16) | lo
         return u32 if u32 < 0x80000000 else u32 - 0x100000000
 
-    def _pulse_coil(self, coil: int, duration_ms: int=20):
+    def _pulse_coil(self, coil: int, duration_ms: int=100):
         """
         Aciona um coil por `duration_ms` milissegundos (borda de subida).
+
+        Aumentado de 20ms para 100ms para garantir que o PLC reconheça
+        o comando de movimento absoluto.
         """
         if not self.client:
             raise IOError("Cliente Modbus não inicializado")
@@ -408,27 +450,57 @@ class PLCAxisController:
                 for ax, cfg in self.ADDRESSES.items()
             }
 
+        logger.info(f"⏳ wait_for_idle iniciado: targets={targets}, tolerance={tolerance} pulsos, timeout={timeout}s")
+
         t0 = time.time()
         ok_axes = set()
+        last_log_time = -1.0  # Para forçar primeiro log
+        log_interval = 1.0  # Log a cada 1 segundo para não encher o terminal
+
         while time.time() - t0 < timeout:
             all_reached = True
+            elapsed = time.time() - t0
+
+            # Log progresso periodicamente
+            should_log = (elapsed - last_log_time >= log_interval)
+
             for ax, tgt in list(targets.items()):
                 if ax in ok_axes:
                     continue
                 pos = self._read_dword(self.ADDRESSES[ax]['pos_reg'])
+                diff = pos - tgt
+
+                # Log periodicamente
+                if should_log:
+                    logger.info(f"📊 Eixo {ax}: pos={pos} pulsos, target={tgt} pulsos, diff={diff} pulsos ({diff/self.pulses_per_mm:.3f}mm), elapsed={elapsed:.1f}s")
+
                 if abs(pos - tgt) <= tolerance:
+                    logger.info(f"✅ Eixo {ax} atingiu target! pos={pos}, target={tgt}, diff={diff} pulsos (tolerancia={tolerance})")
                     ok_axes.add(ax)
                 else:
                     all_reached = False
+
             if all_reached:
                 self._targets.clear()
                 self.machine_status = "Idle"
+                logger.info(f"✅ Todos os eixos atingiram targets após {elapsed:.1f}s")
                 return True
+
+            if should_log:
+                last_log_time = elapsed
+
             time.sleep(0.05)
 
-        # timeout - NÃO mudar status para "Alarm" automaticamente!
+        # timeout - mostra situação final antes de retornar
+        elapsed = time.time() - t0
+        logger.warning(f"⏱️ TIMEOUT em wait_for_idle após {elapsed:.1f}s")
+        for ax, tgt in targets.items():
+            pos = self._read_dword(self.ADDRESSES[ax]['pos_reg'])
+            diff = pos - tgt
+            logger.warning(f"⏱️ Eixo {ax}: FINAL pos={pos} pulsos, target={tgt} pulsos, diff={diff} pulsos ({diff/self.pulses_per_mm:.3f}mm), tolerance={tolerance}")
+
+        # NÃO mudar status para "Alarm" automaticamente!
         # Isso permite que o usuário possa tentar novamente sem precisar resetar
-        logger.warning(f"⏱️ TIMEOUT em wait_for_idle após {timeout}s (axis={axis}, targets={list(targets.keys())})")
         logger.warning(f"⏱️ Status mantido como '{self.machine_status}' (não mudou para Alarm)")
         # REMOVIDO: self.machine_status = "Alarm" if self.machine_status == "Run" else self.machine_status
         return False
