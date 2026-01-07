@@ -2299,6 +2299,7 @@ pytest tests/integration/test_plc_controller.py -v
 ### ✅ FASE 1: Infraestrutura Básica - **100% CONCLUÍDA**
 
 ### ✅ FASE 2: Expansão de Coverage - **100% CONCLUÍDA** (Semanas 1-4)
+### 🔄 FASE 3: Inspeção e Renderização - **50% CONCLUÍDA** (Semanas 5-6)
 
 **Progresso por Módulo:**
 
@@ -2309,18 +2310,19 @@ pytest tests/integration/test_plc_controller.py -v
 | **plc_axis_controller.py** | ✅ | **60** | **75%** | **tests/integration/test_plc_controller.py** | **2026-01-07** |
 | **stencil_tension.py** | ✅ | **33** | **20%** | **tests/integration/test_tensiometer.py** | **2026-01-07** |
 | **fiducial_alignment.py** | ✅ | **61** | **93%** | **tests/integration/test_fiducial_alignment.py** | **2026-01-07** |
-| stencil_inspector.py | ⏳ | 0 | 0% | - | - |
+| **stencil_inspector.py** | ✅ | **42** | **73%** | **tests/integration/test_stencil_inspector.py** | **2026-01-07** |
 | gerber_renderer.py | ⏳ | 0 | 0% | - | - |
 | config_manager.py | ⏳ | 0 | 0% | - | - |
 | recipe_manager.py | ⏳ | 0 | 0% | - | - |
 
 **Estatísticas Atuais:**
-- ✅ **179 testes totais** implementados e passando
-- 📈 **Coverage global: 2.58%** (era 2.44%)
+- ✅ **221 testes totais** implementados e passando
+- 📈 **Coverage global: 3.34%** (era 2.58%)
 - 🎯 **75% coverage** em plc_axis_controller.py (módulo crítico)
 - 🎯 **20% coverage** em stencil_tension.py (807 linhas, foco no serial manager)
 - 🎯 **93% coverage** em fiducial_alignment.py (693 linhas, visão computacional)
-- ⏱️ **Tempo de execução: ~65 segundos** (todos os testes)
+- 🎯 **73% coverage** em stencil_inspector.py (541 linhas, inspeção visual)
+- ⏱️ **Tempo de execução: ~75 segundos** (todos os testes)
 
 **Destaques:**
 - ✅ **PLC Controller Tests** (60 testes):
@@ -2333,39 +2335,40 @@ pytest tests/integration/test_plc_controller.py -v
   - Validação de protocolo de 9 bytes com codificação BCD
   - Frame encoding: 0x10 header, 0x19 cmd, BCD digits (0xA0 + digit)
   - Range suportado: 0.00 a 9.99 N/cm² (limite de 3 dígitos)
-  - 8 classes cobrindo: protocolo, conexão, leitura, comandos, erros
 
 - ✅ **Fiducial Alignment Tests** (61 testes):
   - Template matching com OpenCV (mockado)
   - Cálculo de transformação afim (2, 3, 4+ pontos)
   - Dataclasses: FiducialTemplate, FiducialMatchResult, AlignmentTransform
   - Serialização/deserialização com base64
-  - 9 classes cobrindo: templates, matching, transform, preview, métricas
+
+- ✅ **Stencil Inspector Tests** (42 testes):
+  - Binarização: Otsu, Adaptive, Fixed
+  - Classificação: OK (≥90%), PARTIAL (70-90%), BLOCKED (<70%)
+  - Morfologia matemática (open/close)
+  - Visualização de defeitos com overlay colorido
+  - Extração de crops de defeitos
 
 ### 🎯 PRÓXIMOS PASSOS
 
-**FASE 3: Inspeção e Renderização** (Semanas 5-6)
+**FASE 3: Inspeção e Renderização** (Semanas 5-6) - **EM ANDAMENTO**
 
 **Prioridade ALTA:**
-1. **stencil_inspector.py** (inspeção visual)
-   - Binarização e contagem de pixels
-   - Classificação: OK, PARTIAL, BLOCKED
-   - 20-25 testes, alvo: 70%+
-
-2. **gerber_renderer.py** (renderização Gerber)
+1. **gerber_renderer.py** (renderização Gerber)
    - Renderização de aperturas Gerber RS-274X
    - Geração de máscaras OpenCV
    - 15-20 testes, alvo: 70%+
 
 **Prioridade MÉDIA:**
-3. **config_manager.py** (gerenciamento de configuração)
+2. **config_manager.py** (gerenciamento de configuração)
    - Leitura/escrita de JSON
    - Validação de esquemas
    - 10-15 testes, alvo: 60%+
 
 ---
 
-**Última atualização:** 2026-01-07 18:00
+**Última atualização:** 2026-01-07 20:00
 **Status FASE 1:** ✅ **100% CONCLUÍDO**
 **Status FASE 2:** ✅ **100% CONCLUÍDO** (Semanas 1-4)
-**Próxima ação:** Implementar testes para stencil_inspector.py (FASE 3)
+**Status FASE 3:** 🔄 **50% CONCLUÍDO** (Semanas 5-6)
+**Próxima ação:** Implementar testes para gerber_renderer.py (FASE 3)
