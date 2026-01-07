@@ -809,6 +809,263 @@ Solutions:
   - Use simpler binarization (method: "fixed" instead of "otsu")
 ```
 
+## Project Organization Standards
+
+**Last Updated:** 2026-01-07
+**Status:** Enforced - Follow these principles for all new code
+
+### Directory Structure Principles
+
+This project follows a **clean root** philosophy with clear separation of concerns:
+
+```
+tensiometro/
+├── main.py                  # Single entry point (ACCEPTED in root)
+├── README.md                # Project overview (ACCEPTED in root)
+├── CLAUDE.md                # Claude Code context (ACCEPTED in root)
+│
+├── src/                     # Source code (planned reorganization)
+│   ├── aoi_lib/            # Core AOI library modules
+│   └── consumo_lib/        # Main GUI application
+│
+├── tests/                   # Test suite
+│   ├── unit/               # Fast unit tests
+│   ├── integration/        # Integration tests with mocks
+│   ├── fixtures/           # Test data and assets
+│   └── conftest.py         # Global fixtures
+│
+├── tools/                   # Utility scripts (NOT in root)
+│   ├── camera_calibration.py
+│   ├── mosaic_builder.py
+│   ├── Leitura_Continua.py
+│   └── tension/            # Tension-specific utilities
+│
+├── config/                  # Configuration files (NOT in root)
+│   ├── aoi_config.json
+│   ├── camera_calibration.json
+│   └── map_programs/       # Mosaic capture configurations
+│
+├── docs/                    # Documentation (NOT in root)
+│   ├── guides/             # Detailed guides
+│   │   ├── testing_guide.md
+│   │   └── test_implementation_plan.md
+│   ├── history/            # Development history
+│   └── manuals/            # Technical PDF manuals
+│
+├── data/                    # Application data (NOT in root)
+│   ├── stencils/           # Individual stencil JSON files
+│   └── projects/           # User test projects (was Projetos/)
+│
+├── recipes/                 # Recipe definitions
+├── reports/                 # Generated PDF reports
+├── assets/                  # Static assets
+│   └── calibration/        # Checkerboard images
+│
+├── archive/                 # Archived refactoring code
+├── poc_gerber/              # POC Gerber viewer
+│
+├── .venv/                   # Virtual environment
+├── .git/                    # Git repository
+├── .claude/                 # Claude Code settings
+└── .gitignore              # Git ignore patterns
+```
+
+### Root Directory Rules
+
+**✅ ALLOWED in root:**
+- Entry points: `main.py`, `app.py`
+- Essential guides: `README.md`, `CLAUDE.md`
+- Build configs: `pytest.ini`, `setup.py`, `requirements.txt`
+- Virtual env: `.venv/`, `.conda/`
+- Git: `.git/`, `.gitignore`
+- Tool configs: `.vscode/`, `.claude/`
+
+**❌ FORBIDDEN in root:**
+- Utility scripts → `tools/`
+- Test files → `tests/`
+- Config files → `config/`
+- Documentation → `docs/`
+- Data files → `data/`
+- Build artifacts → `.gitignore`
+
+### Build Artifacts Policy
+
+**All build artifacts MUST be in .gitignore:**
+
+```gitignore
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Pytest
+.pytest_cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+.conda/
+venv/
+ENV/
+```
+
+**Never commit:**
+- Coverage reports (`htmlcov/`, `coverage.xml`)
+- Test cache (`.pytest_cache/`)
+- Python bytecode (`__pycache__/`, `*.pyc`)
+- Virtual environment (`.venv/`, `.conda/`)
+- User data (`data/projects/`, `Projetos/`)
+- Generated reports (`reports/`)
+
+### Configuration Management
+
+**All configuration files MUST be in `config/`:**
+
+- Application config: `config/aoi_config.json`
+- Calibration data: `config/camera_calibration.json`
+- Recipe definitions: `recipes/*.json` (exception: recipes stay in recipes/)
+- Map programs: `config/map_programs/*.json`
+
+**Loading config in code:**
+```python
+from pathlib import Path
+
+# aoi_lib/config_manager.py
+CONFIG_DIR = Path(__file__).parent.parent / "config"
+AOI_CONFIG_PATH = CONFIG_DIR / "aoi_config.json"
+```
+
+### Documentation Organization
+
+**Root level (essential guides only):**
+- `README.md` - Project overview, quick start, installation
+- `CLAUDE.md` - Claude Code context (this file)
+
+**docs/ directory (detailed documentation):**
+- `docs/guides/` - How-to guides (testing, development, deployment)
+- `docs/history/` - Development history, session notes
+- `docs/manuals/` - Technical PDF manuals, hardware specs
+
+**Creating new documentation:**
+```bash
+# Guides go in docs/guides/
+docs/guides/your_topic_guide.md
+
+# Manuals go in docs/manuals/
+docs/manuals/hardware_specification.pdf
+```
+
+### Tools and Utilities
+
+**All standalone scripts MUST be in `tools/`:**
+
+```bash
+tools/
+├── camera_calibration.py    # Camera calibration utility
+├── mosaic_builder.py        # Image stitching tool
+├── Leitura_Continua.py      # Tensiometer serial reader
+└── tension/                 # Domain-specific tools
+    ├── routine_1.py
+    └── routine_2.py
+```
+
+**Running tools:**
+```bash
+# From project root
+python tools/camera_calibration.py
+
+# Or from tools/ directory
+cd tools/
+python camera_calibration.py
+```
+
+### Test Organization
+
+**Test structure (enforced):**
+```
+tests/
+├── unit/                   # Fast, no dependencies
+│   ├── test_fov_calibration.py
+│   └── test_gerber_parser.py
+├── integration/            # With mocks, external deps
+│   ├── test_plc_controller.py
+│   └── test_tensiometer.py
+├── fixtures/               # Test data
+│   ├── gerber/
+│   └── images/
+└── conftest.py             # Global fixtures
+```
+
+**Test markers (use in test files):**
+```python
+@pytest.mark.unit           # Fast, isolated
+@pytest.mark.integration    # With mocks
+@pytest.mark.slow           # >1 second
+@pytest.mark.hardware       # Requires physical hardware
+```
+
+### Migration Path (Current → Ideal)
+
+**Phase 1: Clean Root (COMPLETED 2026-01-07)**
+- ✅ Move test_fov_corrections.py → tests/unit/
+- ✅ Update .gitignore
+- ✅ Remove build artifacts from Git
+
+**Phase 2: Organize Scripts (TODO)**
+- Move `camera_calibration.py` → tools/
+- Move `mosaic_builder.py` → tools/
+- Move `Leitura_Continua.py` → tools/
+- Create `tools/tension/` for tension routines
+
+**Phase 3: Organize Configs (TODO)**
+- Create `config/` directory
+- Move `aoi_config.json` → config/
+- Move `camera_calibration.json` → config/
+- Move `map_programs/` → config/map_programs/
+- Update config_manager.py paths
+
+**Phase 4: Organize Documentation (TODO)**
+- Move `PLANO_TESTES.md` → docs/guides/test_implementation_plan.md
+- Move `TESTING.md` → docs/guides/testing_guide.md
+- Create `docs/api/` for API documentation
+
+**Phase 5: Optional src/ Restructure (DEFERRED)**
+- Consider moving to `src/` layout for better packaging
+- Requires updating all imports across codebase
+- Use if project becomes distributable package
+
+### Enforcement Guidelines
+
+**When adding new files:**
+1. **Ask yourself:** "Is this a utility script?" → Put in `tools/`
+2. **Ask yourself:** "Is this configuration?" → Put in `config/`
+3. **Ask yourself:** "Is this documentation?" → Put in `docs/`
+4. **Ask yourself:** "Is this a test?" → Put in `tests/`
+
+**Code review checklist:**
+- [ ] No .py files in root (except main.py)
+- [ ] No .json configs in root (except build configs)
+- [ ] No documentation in root (except README.md, CLAUDE.md)
+- [ ] Build artifacts in .gitignore
+- [ ] Tests properly marked (unit/integration/slow/hardware)
+- [ ] All imports use absolute paths from project root
+
+### References
+
+- **Python Project Structure:** https://docs.python-guide.org/writing/structure/
+- **Testing Best Practices:** TESTING.md
+- **Git Ignore Patterns:** .gitignore
+- **Current Analysis:** See session 2026-01-07 in docs/history/
+
+---
+
 ## Next Steps (From Project Documentation)
 
 **Priority: CRITICAL - Practical Validation**

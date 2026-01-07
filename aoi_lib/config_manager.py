@@ -179,7 +179,8 @@ class AOIConfigManager:
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")
         # Se o caminho não for informado, grava ao lado do executável
-        default_path = Path(__file__).resolve().parent.parent / "aoi_config.json"
+        # Nota: Após reorganização (2026-01-07), config está em config/aoi_config.json
+        default_path = Path(__file__).resolve().parent.parent / "config" / "aoi_config.json"
         self.cfg_path = Path(cfg_path) if cfg_path else default_path
         self.data = {}
         self.load()

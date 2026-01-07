@@ -1,0 +1,23 @@
+{
+    "type": "stencil_tension_routine",
+    "name": "padrão 3x3",
+    "created_at": "2025-12-09T14:44:26.907773",
+    "parameters": {
+        "start": {
+            "x": 48.65,
+            "y": 0.0
+        },
+        "end": {
+            "x": 273.43,
+            "y": 238.79
+        },
+        "quantity": 3,
+        "measurement_height": 237.42,
+        "movement_height": 190.66,
+        "stabilization_time": 2000,
+        "movement_feed": 120.0
+    },
+    "tensiometer": {
+        "baudrate": "2400"
+    }
+}
