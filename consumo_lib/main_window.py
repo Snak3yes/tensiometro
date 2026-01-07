@@ -466,7 +466,8 @@ class AOIControllerApp(QMainWindow):
         """
         Atualiza display de posição no MovementControlWidget.
 
-        Obtém posição atual do CNC e atualiza os labels dentro da groupbox Movement Controls.
+        Obtém posição atual e status do CNC e atualiza os labels dentro
+        da groupbox Movement Controls.
         """
         if not hasattr(self, 'right_panel') or not self.right_panel:
             return
@@ -484,11 +485,15 @@ class AOIControllerApp(QMainWindow):
             # Obter posição atual do CNC
             pos = self.controller.cnc.get_current_position()
 
-            # Atualizar widget
+            # Obter status da máquina
+            status = getattr(self.controller.cnc, 'machine_status', 'Desconectado')
+
+            # Atualizar widget com posição e status
             cnc_tab.movement_widget.update_position(
                 x=pos['x'],
                 y=pos['y'],
-                z=pos.get('z', 0.0)
+                z=pos.get('z', 0.0),
+                status=status
             )
         except Exception as e:
             logger.debug(f"Erro ao atualizar posição no MovementControlWidget: {e}")

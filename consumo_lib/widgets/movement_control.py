@@ -206,12 +206,12 @@ class MovementControlWidget(QWidget):
         """
         # Sub-groupbox para posição
         position_group = QGroupBox("Posição Atual (mm)")
-        position_group.setMaximumHeight(150)  # Limitar altura para não ficar muito grande
+        position_group.setMaximumHeight(180)  # Aumentado para acomodar status
         position_layout = QGridLayout()
         position_layout.setContentsMargins(5, 5, 5, 5)
         position_layout.setSpacing(3)
 
-        # Labels estilizados (fundo escuro, texto verde monospace)
+        # Labels de posição estilizados (fundo escuro, texto verde monospace)
         self.pos_x_label = QLabel("0.000 mm")
         self.pos_y_label = QLabel("0.000 mm")
         self.pos_z_label = QLabel("0.000 mm")
@@ -231,6 +231,22 @@ class MovementControlWidget(QWidget):
             """)
             label.setMinimumWidth(100)
 
+        # Label de status (estilo diferente - amarelo para destacar)
+        self.pos_status_label = QLabel("Desconectado")
+        self.pos_status_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
+        self.pos_status_label.setStyleSheet("""
+            QLabel {
+                background-color: #333;
+                color: #fc0;
+                padding: 4px 8px;
+                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+                font-size: 12px;
+                font-weight: bold;
+                border-radius: 3px;
+            }
+        """)
+        self.pos_status_label.setMinimumWidth(100)
+
         # Adicionar labels ao grid da sub-groupbox
         position_layout.addWidget(QLabel("X:"), 0, 0)
         position_layout.addWidget(self.pos_x_label, 0, 1)
@@ -238,6 +254,8 @@ class MovementControlWidget(QWidget):
         position_layout.addWidget(self.pos_y_label, 1, 1)
         position_layout.addWidget(QLabel("Z:"), 2, 0)
         position_layout.addWidget(self.pos_z_label, 2, 1)
+        position_layout.addWidget(QLabel("Status:"), 3, 0)
+        position_layout.addWidget(self.pos_status_label, 3, 1)
 
         position_group.setLayout(position_layout)
 
@@ -245,7 +263,7 @@ class MovementControlWidget(QWidget):
         # Nota: row=3, rowSpan=6 para ocupar da linha 3 até a linha 8
         parent_layout.addWidget(position_group, 3, 3, 6, 2)
 
-    def update_position(self, x: float, y: float, z: float):
+    def update_position(self, x: float, y: float, z: float, status: str = None):
         """
         Atualiza display de posição atual no widget.
 
@@ -255,10 +273,15 @@ class MovementControlWidget(QWidget):
             x: Posição X em mm
             y: Posição Y em mm
             z: Posição Z em mm
+            status: Status da CNC (opcional) - ex: "Idle", "Run", "Jog", "Alarm"
         """
         self.pos_x_label.setText(f"{x:8.3f} mm")
         self.pos_y_label.setText(f"{y:8.3f} mm")
         self.pos_z_label.setText(f"{z:8.3f} mm")
+
+        # Atualizar status se fornecido
+        if status is not None:
+            self.pos_status_label.setText(status)
 
     def _save_step_feed(self):
         try:
