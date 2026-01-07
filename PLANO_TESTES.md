@@ -2196,11 +2196,12 @@ Com a infraestrutura pronta, os próximos módulos a testar (prioridade alta):
 
 **Módulos Críticos (Sem testes ainda):**
 
-1. **plc_axis_controller.py** (~450 linhas)
+1. ~~**plc_axis_controller.py** (~450 linhas)~~ ✅ **CONCLUÍDO 2026-01-07**
    - Prioridade: **ALTA** (controle de movimento CNC)
-   - Testes necessários: 30-40 testes
-   - Coverage alvo: 80%+
-   - Usar mock_plc_client fixture
+   - ✅ **60 testes implementados e passando**
+   - ✅ **75% coverage atingido** (alvo era 80%+)
+   - ✅ MockModbusResponse criado para simular respostas Modbus
+   - Arquivo: tests/integration/test_plc_controller.py (877 linhas)
 
 2. **stencil_tension.py** (~600 linhas)
    - Prioridade: **ALTA** (medição de tensão, protocolo serial)
@@ -2293,7 +2294,54 @@ pytest tests/integration/test_plc_controller.py -v
 
 ---
 
-**Última atualização:** 2026-01-07 07:58
+## 📊 STATUS GERAL DE TESTES - ATUALIZADO 2026-01-07
+
+### ✅ FASE 1: Infraestrutura Básica - **100% CONCLUÍDA**
+
+### ✅ FASE 2: Expansão de Coverage - **EM ANDAMENTO (33% CONCLUÍDO)**
+
+**Progresso por Módulo:**
+
+| Módulo | Status | Testes | Coverage | Arquivo | Data |
+|--------|--------|--------|----------|---------|------|
+| fov_calibration.py | ✅ | 10 | 96% | tests/unit/test_fov_calibration.py | 2026-01-07 |
+| gerber_parser.py | ✅ | 15 | 87% | tests/unit/test_gerber_parser.py | 2026-01-07 |
+| **plc_axis_controller.py** | ✅ | **60** | **75%** | **tests/integration/test_plc_controller.py** | **2026-01-07** |
+| stencil_tension.py | ⏳ | 0 | 0% | - | - |
+| fiducial_alignment.py | ⏳ | 0 | 0% | - | - |
+| stencil_inspector.py | ⏳ | 0 | 0% | - | - |
+| gerber_renderer.py | ⏳ | 0 | 0% | - | - |
+| config_manager.py | ⏳ | 0 | 0% | - | - |
+| recipe_manager.py | ⏳ | 0 | 0% | - | - |
+
+**Estatísticas Atuais:**
+- ✅ **85 testes totais** implementados e passando
+- 📈 **Coverage global: 2.88%** (era 1.74%)
+- 🎯 **75% coverage** em plc_axis_controller.py (módulo crítico)
+- ⏱️ **Tempo de execução: ~45 segundos**
+
+**Destaque: PLC Controller Tests**
+- Criado MockModbusResponse para simular respostas Modbus TCP
+- 60 testes organizados em 12 classes temáticas
+- Testes de conexão, movimento, jog, homing, backlight, coils, registros
+- Cobertura completa da API pública do PLCAxisController
+
+### 🎯 PRÓXIMOS PASSOS
+
+**Prioridade ALTA - Próximo Módulo:**
+1. **stencil_tension.py** (tensiômetro AS-120N)
+   - Criar MockSerialResponse para simular protocolo serial RS-232
+   - 25-35 testes para leitura de tensão, protocolo de 9 bytes
+   - Coverage alvo: 85%+
+
+**Prioridade MÉDIA-ALTA:**
+2. **fiducial_alignment.py** (detecção de fiduciais)
+3. **stencil_inspector.py** (inspeção visual)
+4. **gerber_renderer.py** (renderização Gerber)
+
+---
+
+**Última atualização:** 2026-01-07 14:30
 **Status FASE 1:** ✅ **100% CONCLUÍDO**
-**Status FASE 2:** ⏳ **AGUARDANDO INÍCIO**
-**Próxima ação:** Implementar testes para plc_axis_controller.py
+**Status FASE 2:** 🔄 **33% CONCLUÍDO** (1 de 3 módulos críticos)
+**Próxima ação:** Implementar testes para stencil_tension.py (tensiômetro)

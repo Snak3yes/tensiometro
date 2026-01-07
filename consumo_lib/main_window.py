@@ -39,8 +39,22 @@ from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, In
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
 
 # External
-from grbl_streamer import GrblStreamer
-from mosaic_builder import compose_mosaic_from_folder
+try:
+    from grbl_streamer import GrblStreamer
+except ImportError:
+    # grbl_streamer.py não encontrado - será criado quando necessário
+    GrblStreamer = None
+    logger.warning("grbl_streamer.py não encontrado - funcionalidade GRBL desabilitada")
+
+try:
+    from tools.mosaic_builder import compose_mosaic_from_folder
+except ImportError:
+    # Fallback para importação legada (para compatibilidade)
+    try:
+        from mosaic_builder import compose_mosaic_from_folder
+    except ImportError:
+        compose_mosaic_from_folder = None
+        logger.warning("mosaic_builder.py não encontrado - funcionalidade de mosaico desabilitada")
 
 # Consumo lib - barrier packages
 from consumo_lib.dialogs import (

@@ -8,9 +8,16 @@ import time
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtWidgets import QMessageBox, QComboBox
 from aoi_lib import PLCAxisController
-from grbl_streamer import GrblStreamer
 
-logger = logging.getLogger(__name__)
+try:
+    from grbl_streamer import GrblStreamer
+except ImportError:
+    # grbl_streamer.py não encontrado - funcionalidade GRBL desabilitada
+    GrblStreamer = None
+    logger = logging.getLogger(__name__)
+    logger.warning("grbl_streamer.py não encontrado - funcionalidade GRBL desabilitada")
+else:
+    logger = logging.getLogger(__name__)
 
 
 class ConnectionManager(QObject):
@@ -228,6 +235,12 @@ class ConnectionManager(QObject):
             return False
 
         status_bar.showMessage(f"Conectando à CNC na porta {port}...")
+
+        if GrblStreamer is None:
+            QMessageBox.warning(main_window, "Erro",
+                "GrblStreamer não disponível. A funcionalidade GRBL está desabilitada.")
+            logger.error("GrblStreamer não disponível - não é possível conectar à CNC GRBL")
+            return False
 
         try:
             # Usa GRBLCallbackHandler para gerenciar callbacks complexos

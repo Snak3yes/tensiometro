@@ -32,9 +32,19 @@ from aoi_lib import CNCAOIController
 from consumo_lib.utils.map_params import MapParams
 from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.widgets.preview_suspender import _PreviewSuspender
-from mosaic_builder import compose_mosaic_from_folder
 
 logger = logging.getLogger("consumo_lib")
+
+# Import compose_mosaic_from_folder com fallback
+try:
+    from tools.mosaic_builder import compose_mosaic_from_folder
+except ImportError:
+    # Fallback para importação legada (já que root está no sys.path)
+    try:
+        from mosaic_builder import compose_mosaic_from_folder
+    except ImportError:
+        compose_mosaic_from_folder = None
+        logger.warning("mosaic_builder.py não encontrado - funcionalidade de mosaico desabilitada")
 
 # Default folder for map programs
 MAP_PROGRAMS_FOLDER = Path(__file__).parent.parent / "map_programs"
@@ -914,22 +924,26 @@ class MapController(QObject):
 
             # Build mosaic
             try:
-                mosaic_path = compose_mosaic_from_folder(
-                    folder_path,
-                    invert_rows=True,  # Origin at bottom-left corner
-                    margin=margin_value,
-                    blend_size=blend_value,
-                )
-
-                # Count images
-                images_folder = Path(folder_path) / "Imagens"
-                if images_folder.exists():
-                    image_count = len(list(images_folder.glob("*.png")))
-
-                if mosaic_path:
-                    self.map_generated.emit(image_count, str(mosaic_path))
+                if compose_mosaic_from_folder is None:
+                    logger.warning("Funcionalidade de mosaico não disponível - pulando montagem automática")
+                    should_build_mosaic = False
                 else:
-                    self.map_generated.emit(image_count, folder_path)
+                    mosaic_path = compose_mosaic_from_folder(
+                        folder_path,
+                        invert_rows=True,  # Origin at bottom-left corner
+                        margin=margin_value,
+                        blend_size=blend_value,
+                    )
+
+                    # Count images
+                    images_folder = Path(folder_path) / "Imagens"
+                    if images_folder.exists():
+                        image_count = len(list(images_folder.glob("*.png")))
+
+                    if mosaic_path:
+                        self.map_generated.emit(image_count, str(mosaic_path))
+                    else:
+                        self.map_generated.emit(image_count, folder_path)
             except Exception as e:
                 logger.error(f"Erro ao montar mosaico: {e}")
                 self.map_error.emit(f"Erro ao montar mosaico: {e}")
