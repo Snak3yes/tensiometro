@@ -2312,18 +2312,19 @@ pytest tests/integration/test_plc_controller.py -v
 | **fiducial_alignment.py** | ✅ | **61** | **93%** | **tests/integration/test_fiducial_alignment.py** | **2026-01-07** |
 | **stencil_inspector.py** | ✅ | **42** | **73%** | **tests/integration/test_stencil_inspector.py** | **2026-01-07** |
 | **gerber_renderer.py** | ✅ | **37** | **86%** | **tests/integration/test_gerber_renderer.py** | **2026-01-07** |
-| config_manager.py | ⏳ | 0 | 0% | - | - |
+| **config_manager.py** | ✅ | **48** | **50%** | **tests/integration/test_config_manager.py** | **2026-01-07** |
 | recipe_manager.py | ⏳ | 0 | 0% | - | - |
 
 **Estatísticas Atuais:**
-- ✅ **258 testes totais** implementados e passando
-- 📈 **Coverage global: 3.65%** (era 3.34%)
+- ✅ **306 testes totais** implementados e passando
+- 📈 **Coverage global: 3.78%** (era 3.65%)
 - 🎯 **75% coverage** em plc_axis_controller.py (módulo crítico)
 - 🎯 **20% coverage** em stencil_tension.py (807 linhas, foco no serial manager)
 - 🎯 **93% coverage** em fiducial_alignment.py (693 linhas, visão computacional)
 - 🎯 **73% coverage** em stencil_inspector.py (541 linhas, inspeção visual)
 - 🎯 **86% coverage** em gerber_renderer.py (433 linhas, renderização)
-- ⏱️ **Tempo de execução: ~85 segundos** (todos os testes)
+- 🎯 **50% coverage** em config_manager.py (444 linhas, configuração, exclui UI)
+- ⏱️ **Tempo de execução: ~95 segundos** (todos os testes)
 
 **Destaques:**
 - ✅ **PLC Controller Tests** (60 testes):
@@ -2358,15 +2359,24 @@ pytest tests/integration/test_plc_controller.py -v
   - Máscaras individuais por abertura
   - Transformação padrão (auto-centralização)
 
+- ✅ **Config Manager Tests** (48 testes):
+  - 8 classes temáticas cobrindo API completa
+  - Inicialização, load/save JSON, get/set
+  - Métodos de atalho remember_* (11 atalhos)
+  - Presets de câmera (CRUD)
+  - Aplicação de configuração ao hardware CNC
+  - Casos extremos e validações
+  - Fixture com UUID para isolamento total entre testes
+
 ### 🎯 PRÓXIMOS PASSOS
 
-**FASE 4: Configuração e Receitas** (Semanas 7-8) - **NOVA FASE**
+**FASE 4: Configuração e Receitas** (Semanas 7-8) - **EM ANDAMENTO**
 
 **Prioridade MÉDIA:**
-1. **config_manager.py** (gerenciamento de configuração)
-   - Leitura/escrita de JSON
-   - Validação de esquemas
-   - 10-15 testes, alvo: 60%+
+1. ~~**config_manager.py** (gerenciamento de configuração)~~ ✅ **CONCLUÍDO**
+   - ✅ Leitura/escrita de JSON
+   - ✅ Validação de esquemas
+   - ✅ 48 testes implementados, 50% coverage
 
 2. **recipe_manager.py** (gerenciamento de receitas)
    - CRUD de receitas de stencil
@@ -2375,9 +2385,9 @@ pytest tests/integration/test_plc_controller.py -v
 
 ---
 
-**Última atualização:** 2026-01-07 22:00
+**Última atualização:** 2026-01-07 23:30
 **Status FASE 1:** ✅ **100% CONCLUÍDO**
 **Status FASE 2:** ✅ **100% CONCLUÍDO** (Semanas 1-4)
 **Status FASE 3:** ✅ **100% CONCLUÍDO** (Semanas 5-6)
-**Status FASE 4:** ⏳ **0% CONCLUÍDO** (Semanas 7-8)
-**Próxima ação:** Implementar testes para config_manager.py (FASE 4)
+**Status FASE 4:** ⏳ **50% CONCLUÍDO** (Semanas 7-8)
+**Próxima ação:** Implementar testes para recipe_manager.py (FASE 4)
