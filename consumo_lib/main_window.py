@@ -124,6 +124,10 @@ class AOIControllerApp(QMainWindow):
         setup_coordinator = SetupCoordinator(AOIControllerApp)
         setup_coordinator.setup(self)
 
+        # Aplica permissões baseadas no role do usuário (NOVO - FASE 2)
+        # Usa delay maior aqui pois a UI acaba de ser montada
+        QTimer.singleShot(500, self._apply_role_permissions)
+
         # Conecta cleanup ao evento de fechamento
         QApplication.instance().aboutToQuit.connect(self._cleanup_resources)
 
@@ -164,10 +168,77 @@ class AOIControllerApp(QMainWindow):
             # Login bem-sucedido
             user = self.auth_service.get_current_user()
             logger.info(f"Usuário logado: {user}")
+
+            # Aplica permissões baseadas no role (FASE 2)
+            # Isso será chamado novamente após a UI ser construída
+            # Mas chamamos aqui também para configurar o estado
+            QTimer.singleShot(100, self._apply_role_permissions)
+
             return True
         else:
             # Usuário cancelou ou fechou o dialog
             return False
+
+    def _apply_role_permissions(self):
+        """
+        Aplica permissões de acesso baseadas no role do usuário.
+
+        Regras:
+        - OPERATOR: Apenas aba "Programas" habilitada
+        - ENGINEERING: Todas as abas habilitadas
+        - ADMIN: Todas as abas habilitadas
+        """
+        if not hasattr(self, 'right_panel') or not self.right_panel:
+            logger.warning("right_panel ainda não criado, permissões serão aplicadas depois")
+            return
+
+        user = self.auth_service.get_current_user()
+        if not user:
+            logger.warning("Nenhum usuário logado, não aplicando permissões")
+            return
+
+        from aoi_lib.auth import UserRole
+
+        if user.role == UserRole.OPERATOR:
+            # Operador: Apenas aba "Programas" (TreeViewTab)
+            logger.info(f"Aplicando permissões OPERATOR para {user.username}")
+
+            # Desabilita todas as abas exceto "Programas"
+            for i in range(self.right_panel.count()):
+                tab_text = self.right_panel.tabText(i)
+                if "Programas" not in tab_text:
+                    self.right_panel.setTabEnabled(i, False)
+                    logger.debug(f"Aba desabilitada: {tab_text}")
+
+            # Garante que aba "Programas" esteja habilitada e selecionada
+            for i in range(self.right_panel.count()):
+                if "Programas" in self.right_panel.tabText(i):
+                    self.right_panel.setTabEnabled(i, True)
+                    self.right_panel.setCurrentIndex(i)
+                    logger.debug(f"Aba habilitada e selecionada: {self.right_panel.tabText(i)}")
+                    break
+
+            # Desabilita grupos de conexão e calibração (painel esquerdo)
+            if hasattr(self, 'connection_group'):
+                self.connection_group.setEnabled(False)
+            if hasattr(self, 'calibration_group'):
+                self.calibration_group.setEnabled(False)
+
+        elif user.role in [UserRole.ENGINEERING, UserRole.ADMIN]:
+            # Engineering/Admin: Todas as abas habilitadas
+            logger.info(f"Aplicando permissões {user.role.value.upper()} para {user.username}")
+
+            # Habilita todas as abas
+            for i in range(self.right_panel.count()):
+                self.right_panel.setTabEnabled(i, True)
+                logger.debug(f"Aba habilitada: {self.right_panel.tabText(i)}")
+
+            # Habilita grupos de conexão e calibração
+            if hasattr(self, 'connection_group'):
+                self.connection_group.setEnabled(True)
+            if hasattr(self, 'calibration_group'):
+                # Calibração fica oculta mesmo para admin, mas habilitada
+                self.calibration_group.setEnabled(True)
 
     def _on_inspect_requested(self, stencil: dict):
         """

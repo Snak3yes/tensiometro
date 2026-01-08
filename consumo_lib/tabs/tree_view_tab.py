@@ -131,12 +131,6 @@ class TreeViewTab(QWidget):
 
         layout.addStretch()
 
-        # Botão código de barras
-        self.barcode_button = QPushButton("📷 Escanear Código")
-        self.barcode_button.setMinimumHeight(35)
-        self.barcode_button.clicked.connect(self.on_scan_barcode_clicked)
-        layout.addWidget(self.barcode_button)
-
         return widget
 
     def create_details_panel(self) -> QWidget:
@@ -177,6 +171,26 @@ class TreeViewTab(QWidget):
         self.inspect_button = QPushButton("🔍 Inspecionar Stencil")
         self.inspect_button.setMinimumHeight(45)
         self.inspect_button.setEnabled(False)
+        self.inspect_button.setStyleSheet("""
+            QPushButton {
+                background-color: #2196F3;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 4px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #1976D2;
+            }
+            QPushButton:pressed {
+                background-color: #0D47A1;
+            }
+            QPushButton:disabled {
+                background-color: #BDBDBD;
+                color: #757575;
+            }
+        """)
         self.inspect_button.clicked.connect(self.on_inspect_clicked)
         layout.addWidget(self.inspect_button)
 
@@ -194,7 +208,18 @@ class TreeViewTab(QWidget):
                 "last_measurement": "15/12/2025 14:30",
                 "recipe": "Limpeza Padrão",
                 "tension_avg": 32.5,
-                "measurements_count": 5
+                "measurements_count": 5,
+                # Dados adicionais hipotéticos
+                "dimensions": "520mm x 480mm",
+                "thickness": "120 µm (5 mil)",
+                "manufacturer": "Stencils International Ltda",
+                "manufacture_date": "2023-08-15",
+                "aperture_count": 2847,
+                "area_total": "0.145 m²",
+                "alloy_type": "AISI 304",
+                "frame_type": "Cast Aluminum H-frame",
+                "last_cleaning": "10/12/2025",
+                "inspection_cycle": "1000 impressões"
             },
             {
                 "code": "STENCIL-XYZ-456",
@@ -203,7 +228,18 @@ class TreeViewTab(QWidget):
                 "last_measurement": "14/12/2025 09:15",
                 "recipe": "Limpeza Reforçada",
                 "tension_avg": 30.2,
-                "measurements_count": 3
+                "measurements_count": 3,
+                # Dados adicionais hipotéticos
+                "dimensions": "480mm x 420mm",
+                "thickness": "100 µm (4 mil)",
+                "manufacturer": "Precision Stencils Inc",
+                "manufacture_date": "2024-01-20",
+                "aperture_count": 1523,
+                "area_total": "0.098 m²",
+                "alloy_type": "AISI 304L",
+                "frame_type": "Cast Aluminum H-frame",
+                "last_cleaning": "12/12/2025",
+                "inspection_cycle": "800 impressões"
             },
             {
                 "code": "STENCIL-DEF-789",
@@ -212,7 +248,18 @@ class TreeViewTab(QWidget):
                 "last_measurement": "13/12/2025 16:45",
                 "recipe": "Protótipo",
                 "tension_avg": 28.7,
-                "measurements_count": 2
+                "measurements_count": 2,
+                # Dados adicionais hipotéticos
+                "dimensions": "600mm x 550mm",
+                "thickness": "150 µm (6 mil)",
+                "manufacturer": "ProtoStencils SA",
+                "manufacture_date": "2022-11-05",
+                "aperture_count": 4521,
+                "area_total": "0.220 m²",
+                "alloy_type": "AISI 316",
+                "frame_type": "Tubular Stainless Steel",
+                "last_cleaning": "08/12/2025",
+                "inspection_cycle": "1500 impressões"
             },
             {
                 "code": "STENCIL-GHI-012",
@@ -221,7 +268,18 @@ class TreeViewTab(QWidget):
                 "last_measurement": "-",
                 "recipe": "Teste",
                 "tension_avg": None,
-                "measurements_count": 0
+                "measurements_count": 0,
+                # Dados adicionais hipotéticos
+                "dimensions": "380mm x 320mm",
+                "thickness": "127 µm (5 mil)",
+                "manufacturer": "Stencils International Ltda",
+                "manufacture_date": "2025-01-10",
+                "aperture_count": 856,
+                "area_total": "0.058 m²",
+                "alloy_type": "AISI 304",
+                "frame_type": "Cast Aluminum H-frame",
+                "last_cleaning": "Nova",
+                "inspection_cycle": "500 impressões"
             }
         ]
 
@@ -284,24 +342,60 @@ class TreeViewTab(QWidget):
         line.setFrameStyle(QLabel.Shape.HLine | QLabel.Shadow.Sunken)
         layout.addWidget(line)
 
-        # Detalhes
-        details_html = f"""
-        <table cellpadding="5">
-            <tr><td><b>Status:</b></td><td>{self._get_status_label(stencil['status'])}</td></tr>
-            <tr><td><b>Receita:</b></td><td>{stencil.get('recipe', '-')}</td></tr>
-            <tr><td><b>Última Medição:</b></td><td>{stencil.get('last_measurement', '-')}</td></tr>
+        # Detalhes principais
+        details_html = """
+        <style>
+            .label { color: #666; font-weight: bold; }
+            .value { color: #333; }
+        </style>
+        <table cellpadding="5" cellspacing="0">
         """
 
+        # Status
+        details_html += f"""
+            <tr><td class="label">Status:</td><td class="value">{self._get_status_label(stencil['status'])}</td></tr>
+            <tr><td class="label">Receita:</td><td class="value">{stencil.get('recipe', '-')}</td></tr>
+            <tr><td class="label">Última Medição:</td><td class="value">{stencil.get('last_measurement', '-')}</td></tr>
+        """
+
+        # Dados de tensão (se disponível)
         if stencil.get('tension_avg'):
             details_html += f"""
-            <tr><td><b>Tensão Média:</b></td><td>{stencil['tension_avg']:.1f} N/cm</td></tr>
-            <tr><td><b>Medições:</b></td><td>{stencil['measurements_count']}</td></tr>
+            <tr><td class="label">Tensão Média:</td><td class="value">{stencil['tension_avg']:.1f} N/cm</td></tr>
+            <tr><td class="label">Medições:</td><td class="value">{stencil['measurements_count']}</td></tr>
             """
+
+        # Linha separadora
+        details_html += """
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;"></td></tr>
+        """
+
+        # Dados físicos
+        details_html += f"""
+            <tr><td class="label">Dimensões:</td><td class="value">{stencil.get('dimensions', '-')}</td></tr>
+            <tr><td class="label">Espessura:</td><td class="value">{stencil.get('thickness', '-')}</td></tr>
+            <tr><td class="label">Fabricante:</td><td class="value">{stencil.get('manufacturer', '-')}</td></tr>
+            <tr><td class="label">Data Fabricação:</td><td class="value">{stencil.get('manufacture_date', '-')}</td></tr>
+            <tr><td class="label">Aberturas:</td><td class="value">{stencil.get('aperture_count', 0):,}</td></tr>
+            <tr><td class="label">Área Total:</td><td class="value">{stencil.get('area_total', '-')}</td></tr>
+            <tr><td class="label">Liga Metálica:</td><td class="value">{stencil.get('alloy_type', '-')}</td></tr>
+            <tr><td class="label">Tipo Frame:</td><td class="value">{stencil.get('frame_type', '-')}</td></tr>
+        """
+
+        # Dados de manutenção
+        details_html += """
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;"></td></tr>
+        """
+        details_html += f"""
+            <tr><td class="label">Última Limpeza:</td><td class="value">{stencil.get('last_cleaning', '-')}</td></tr>
+            <tr><td class="label">Ciclo Inspeção:</td><td class="value">{stencil.get('inspection_cycle', '-')}</td></tr>
+        """
 
         details_html += "</table>"
 
         details_label = QLabel(details_html)
         details_label.setTextFormat(Qt.TextFormat.RichText)
+        details_label.setWordWrap(True)
         layout.addWidget(details_label)
 
         layout.addStretch()
@@ -338,11 +432,6 @@ class TreeViewTab(QWidget):
         period = self.period_combo.currentText()
         status = self.status_combo.currentText()
         logger.debug(f"Filtros: Período={period}, Status={status}")
-
-    def on_scan_barcode_clicked(self):
-        """Handler: Botão Escanear Código clicado"""
-        # TODO: Implementar leitura de código de barras
-        logger.info("Escanear código de barras - não implementado ainda")
 
     def on_inspect_clicked(self):
         """Handler: Botão Inspecionar clicado"""
