@@ -1,9 +1,22 @@
 # Fluxo do Usuário Operador - Tensiômetro
 
 **Data:** 2026-01-08
-**Versão:** 1.0
-**Status:** ✅ Completo
+**Versão:** 2.0 (Fluxo Simplificado)
+**Status:** ✅ Atualizado
 **Baseado em:** `docs/guides/fluxo_usuario_questionario.md`
+
+**Mudanças na v2.0:**
+- ✅ Adotada abordagem "descartar e recomeçar" (aprovada pelo cliente)
+- ✅ Atualizado fluxo de decisão com 3 status finais (A-AUTO, A-USER, REPROV)
+- ✅ Removido loop iterativo de correção e reteste
+- ✅ Adicionado dialog final: Descartar / Reprovar
+- ✅ Histórico limpo (sem informações de iteração)
+- ✅ Inspeções descartadas NÃO ficam no histórico (apenas log de auditoria)
+
+**Veja também:**
+- `docs/guides/ANALISE_PROPOSTA_SIMPLIFICADA.md` - Análise comparativa completa
+- `docs/wireframes/svg/06_analise_visual_humana_v2.svg` - Tela de análise atualizada
+- `docs/wireframes/svg/07_tela_historico_v2.svg` - Tela de histórico atualizada
 
 ---
 
@@ -308,6 +321,8 @@ stateDiagram-v2
 
 ### 5. Tela de Análise Visual Humana
 
+**⚠️ VERSÃO ATUALIZADA:** Veja `docs/wireframes/svg/06_analise_visual_humana_v2.svg`
+
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                    Análise de Defeitos - Julgamento                         │
@@ -326,35 +341,69 @@ stateDiagram-v2
 │  │  │ Posição: X=125, Y=78  │   │  │  │                                │  │ │
 │  │  │ Tipo: Abertura        │   │  │  │    [Imagem capturada           │  │ │
 │  │  │ Status: ⚠️ BLOQUEADA  │   │  │  │     da abertura bloqueada]      │  │ │
-│  │  └───────────────────────┘   │  │  │                                │  │ │
-│  │                              │  │  │    Zoom: [+] [-] [Reset]       │  │ │
-│  │  Classificação:              │  │  │                                │  │ │
-│  │  ┌─────────────────────────┐ │  │  └────────────────────────────────┘  │ │
-│  │  │ Tipo de Defeito: [▼]   │ │  │                                      │ │
-│  │  │ • Bloqueado por resíduo │ │  │  ┌────────────────────────────────┐  │ │
-│  │  │ • Abertura deformada    │ │  │  │ Análise do Sistema:            │  │ │
-│  │  │ • Dano mecânico         │ │  │  │ Área esperada: 2.3 mm²        │  │ │
-│  │  │ • Sujidade generalizada │ │  │  │ Área observada: 0.6 mm²       │  │ │
-│  │  │ • Outro...              │ │  │  │ % Aberta: 26% (BLOQUEADO)      │  │ │
-│  │  └─────────────────────────┘ │  │  └────────────────────────────────┘  │ │
-│  │                              │  │                                      │ │
-│  │  Anotações (opcional):       │  │  ┌────────────────────────────────┐  │ │
-│  │  ┌─────────────────────────┐ │  │  │ Seu Julgamento:                │  │ │
-│  │  │ [_____________________] │ │  │  │                                │  │ │
-│  │  │ [_____________________] │ │  │  │  Este defeito é REAL?          │  │ │
+│  │  │ 26% aberta (74% bloqueada) │  │  │                                │  │ │
+│  │  └───────────────────────┘   │  │  │    Zoom: [+] [-] [Reset]       │  │ │
+│  │                              │  │  │                                │  │ │
+│  │  Anotações (opcional):       │  │  └────────────────────────────────┘  │ │
+│  │  ┌─────────────────────────┐ │  │                                      │ │
+│  │  │ [_____________________] │ │  │  ┌────────────────────────────────┐  │ │
+│  │  │ [_____________________] │ │  │  │ Análise do Sistema:            │  │ │
 │  │  └─────────────────────────┘ │  │  │                                │  │ │
-│  └─────────────────────────────┘  │  │  [✓] Sim, confirmar como DEFEITO│  │ │
-│                                   │  │                                │  │ │
-│  ┌─────────────────────────────┐  │  │  [ ] Não, APROVAR este ponto   │  │ │
-│  │  Navegação                  │  │  │     (falha falsa do sistema)   │  │ │
+│  └─────────────────────────────┘  │  │ Área esperada: 2.3 mm²        │  │ │
+│                                   │  │ Área observada: 0.6 mm²       │  │ │
+│  ┌─────────────────────────────┐  │  │ % Aberta: 26%                  │  │ │
+│  │  Navegação                  │  │  │ ████████████░░░░░░░             │  │ │
 │  │  [◀ Anterior] [Próximo ▶]  │  │  │                                │  │ │
-│  └─────────────────────────────┘  │  └────────────────────────────────┘  │ │
+│  └─────────────────────────────┘  │  │ ⚠️ BLOQUEADO - Fora de spec.   │  │ │
+│                                   │  └────────────────────────────────┘  │ │
+│  ┌─────────────────────────────┐  │                                      │ │
+│  │  Classificação:              │  │  ┌────────────────────────────────┐  │ │
+│  │  ┌─────────────────────────┐ │  │  │ Seu Julgamento:                │  │ │
+│  │  │ Tipo de Defeito: [▼]   │ │  │  │                                │  │ │
+│  │  │ • Bloqueado por resíduo │ │  │  │  Este defeito é REAL?          │  │ │
+│  │  │ • Abertura deformada    │ │  │  │                                │  │ │
+│  │  │ • Dano mecânico         │ │  │  └────────────────────────────────┘  │ │
+│  │  │ • Sujidade generalizada │ │  │                                      │ │
+│  │  │ • Outro...              │ │  │  ┌────────────────────────────────┐  │ │
+│  │  └─────────────────────────┘ │  │  │ [✓ APROVAR (Falha Falsa)]     │  │ │
+│  └─────────────────────────────┘  │  │                                │  │ │
+│                                   │  │  [✓ CONFIRMAR como Defeito Real]│ │ │
+│                                   │  │                                │  │ │
+│                                   │  └────────────────────────────────┘  │ │
 │                                   │                                      │ │
-│                                   │  [Finalizar Julgamento]              │ │
+│                                   │  [📋 Finalizar Análise]              │ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              Dialog Final: Análise Completa - Decisão Final                │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                          15 defeitos analisados                             │
+│                                                                             │
+│  ✅ 12 aprovados (falhas falsas)                                           │
+│  ❌ 3 confirmados como defeitos reais                                      │
+│                                                                             │
+│                   Há defeitos confirmados. O que deseja fazer?             │
+│                                                                             │
+│  ┌─────────────────────────────────────────────┐  ┌─────────────────────┐ │
+│  │  🗑️ Descartar Inspeção                      │  │  ❌ Reprovar Sessão │ │
+│  │                                             │  │                     │ │
+│  │  Não salva no histórico                     │  │  Salva no histórico │ │
+│  │  Faça correção e inspecione novamente       │  │  como Reprovado     │ │
+│  └─────────────────────────────────────────────┘  └─────────────────────┘ │
+│                                                                             │
+│                           [Cancelar]  [Confirmar]                           │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+**Status Finais Possíveis:**
+- **A-AUTO** (Verde): Aprovado Automático - sem defeitos detectados
+- **A-USER** (Verde-amarelo): Aprovado com Julgamento - defeitos julgados como falhas falsas
+- **REPROV** (Vermelho): Reprovado - defeitos confirmados como reais
+
 ### 6. Tela de Histórico
+
+**⚠️ VERSÃO ATUALIZADA:** Veja `docs/wireframes/svg/07_tela_historico_v2.svg`
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -362,41 +411,55 @@ stateDiagram-v2
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  ┌─────────────────────────────────┐  ┌──────────────────────────────────┐ │
-│  │ Período: [▼ Últimas 10]         │  │ Filtros: [▼ Todos os status]     │ │
-│  │          [▼ 7 dias]             │  │         [Exportar CSV]           │ │
-│  │          [▼ 30 dias]            │  │         [Gerar PDF]              │ │
-│  │          [▼ 60 dias]            │  │                                  │ │
-│  │          [▼ 90 dias]            │  │ [Buscar no Histórico]            │ │
-│  │          [▼ 180 dias]           │  │                                  │ │
-│  │          [▼ 365 dias]           │  └──────────────────────────────────┘ │
-│  └─────────────────────────────────┘                                        │
+│  │ Período: [▼ Últimas 10]         │  │ Status: [▼ Todos]               │ │
+│  │          [▼ 7 dias]             │  │         [▼ A-AUTO]              │ │
+│  │          [▼ 30 dias]            │  │         [▼ A-USER]              │ │
+│  │          [▼ 60 dias]            │  │         [▼ REPROV]              │ │
+│  │          [▼ 90 dias]            │  │                                  │ │
+│  │          [▼ 180 dias]           │  │ [Exportar CSV] [Gerar PDF]      │ │
+│  │          [▼ 365 dias]           │  │                                  │ │
+│  └─────────────────────────────────┘  └──────────────────────────────────┘ │
 │                                                                             │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Data/Hora        │ Operador    │ Modo      │ Status  │ Ações        │   │
+│  │ Data/Hora     │ Operador  │ Modo     │ Status │ Defeitos │ Ações    │   │
+│  │               │           │          │        │ Encontr. │           │   │
+│  │               │           │          │        │ /Julgado │           │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │ 15/12/2025 14:30 │ Maria Santos│ Completo  │ ✅ OK  │ [Detalhes]   │   │
-│  │                  │             │           │         │ [PDF]        │   │
+│  │ 15/12/2025    │ Maria     │ Completo │ [A-AUTO]│ 0        │ [Dtls]   │   │
+│  │ 14:30        │ Santos    │          │ ✅      │ 0 / 0    │ [PDF]    │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │ 14/12/2025 09:15 │ João Silva  │ Tensão    │ ❌ NOK │ [Detalhes]   │   │
-│  │                  │             │           │         │ [PDF]        │   │
+│  │ 14/12/2025    │ João      │ Inspeção │ [A-USER]│ 15       │ [Dtls]   │   │
+│  │ 09:15        │ Silva     │          │ ✅      │ 12 / 3   │ [PDF]    │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │ 13/12/2025 16:45 │ Maria Santos│ Inspeção  │ ✅ OK  │ [Detalhes]   │   │
-│  │                  │             │           │         │ [PDF]        │   │
+│  │ 13/12/2025    │ Maria     │ Completo │ [REPROV] │ 1        │ [Dtls]   │   │
+│  │ 16:45        │ Santos    │          │ ❌      │ 0 / 1    │ [PDF]    │   │
 │  ├─────────────────────────────────────────────────────────────────────┤   │
-│  │ 12/12/2025 11:20 │ João Silva  │ Completo  │ ✅ OK  │ [Detalhes]   │   │
-│  │                  │             │           │         │ [PDF]        │   │
+│  │ 12/12/2025    │ João      │ Tensão   │ [A-AUTO]│ 0        │ [Dtls]   │   │
+│  │ 11:20        │ Silva     │          │ ✅      │ 0 / 0    │ [PDF]    │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
 │                                                                             │
 │  Estatísticas do Período Selecionado:                                      │
 │  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │ Total de medições: 10  │ Aprovadas: 8 (80%)  │ Reprovadas: 2 (20%)  │   │
-│  │ Tensão média: 31.2 N/cm │ Mínima: 28.3        │ Máxima: 35.1         │   │
-│  │ Operadores: 2 (João Silva, Maria Santos)                             │   │
+│  │ Total: 10  │ A-AUTO: 5 (50%)  │ A-USER: 3 (30%)  │ REPROV: 2 (20%) │   │
+│  │ Tensão média: 31.2 N/cm │ Mínima: 28.3        │ Máxima: 35.1        │   │
+│  │ Operadores: 2 (João Silva, Maria Santos)                            │   │
 │  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  💡 Inspeções descartadas NÃO ficam no histórico (apenas log de auditoria) │
 │                                                                             │
 │  [Voltar para TreeView]                                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Status Disponíveis:**
+- **[A-AUTO]** ✅: Aprovado Automático (sem defeitos)
+- **[A-USER]** ✅: Aprovado com Julgamento (defeitos julgados como falhas falsas)
+- **[REPROV]** ❌: Reprovado (defeitos confirmados como reais)
+
+**Coluna "Defeitos":**
+- Formato: "Encontrados / Julgados"
+- Exemplo: "12 / 3" significa 12 falhas falsas, 3 defeitos reais
+- Exemplo: "0 / 0" significa nenhum defeito encontrado
 
 ---
 
@@ -469,21 +532,36 @@ graph TD
     ModeCheck -->|Inspeção/Completo| Analysis[Análise Visual Humana]
 
     Analysis --> DefectsCheck{Há Defeitos?}
-    DefectsCheck -->|Não| SaveHist
+    DefectsCheck -->|Não| AutoApprove[Aprovação Automática]
+    AutoApprove --> SaveHist[Salvar no Histórico: A-AUTO]
+
     DefectsCheck -->|Sim| ShowDefects[Exibir Lista de Defeitos]
 
     ShowDefects --> LoopStart{Início Loop}
     LoopStart --> ShowDefect[Exibir Defeito Atual]
     ShowDefect --> UserJudge{Julgamento}
 
-    UserJudge -->|Defeito Confirmado| RecordDefect[Registrar como Defeito]
-    UserJudge -->|Aprovado| RecordOverride[Registrar Override Operador]
+    UserJudge -->|Defeito Confirmado| RecordDefect[Registrar como Defeito Real]
+    UserJudge -->|Aprovado (Falha Falsa)| RecordOverride[Registrar Override]
 
     RecordDefect --> NextDefect{Próximo?}
     RecordOverride --> NextDefect
 
     NextDefect -->|Sim| LoopStart
-    NextDefect -->|Não| SaveHist
+    NextDefect -->|Não| FinalCheck{Há Defeitos Confirmados?}
+
+    FinalCheck -->|Não (Todos Aprovados)| UserApprove[Aprovação com Julgamento]
+    UserApprove --> SaveHist[Salvar no Histórico: A-USER]
+
+    FinalCheck -->|Sim| FinalDialog[Dialog: Descartar ou Reprovar]
+    FinalDialog --> UserChoice{Escolha do Operador}
+
+    UserChoice -->|Descartar Inspeção| Discard[Descartar (NÃO Salvar)]
+    Discard --> AuditLog[Registrar em Log de Auditoria]
+    AuditLog --> ReturnTree[Retornar para TreeView]
+
+    UserChoice -->|Reprovar Sessão| SaveReject[Salvar no Histórico: REPROV]
+    SaveReject --> ReturnTree[Retornar para TreeView]
 
     SaveHist --> APICheck{Enviar API?}
     APICheck -->|Sim| SendAPI[Enviar JSON para API]
