@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Project Organization:** This project follows [PROJECT_ORGANIZATION_GUIDELINES.md](PROJECT_ORGANIZATION_GUIDELINES.md) for maintaining a clean, professional structure.
+
 ## Project Overview
 
 **Tensiometro** is an industrial Automated Optical Inspection (AOI) system for solder stencil quality control in SMT manufacturing. The system performs:
@@ -74,7 +76,7 @@ python Leitura_Continua.py [COM_PORT]
 # - matplotlib (charts)
 
 # Install all at once:
-pip install PyQt6 opencv-python numpy pymodbus pyserial reportlab matplotlib
+pip install -r requirements.txt
 ```
 
 ### Test Suite
@@ -248,7 +250,7 @@ Located in `poc_gerber/` (formerly `testes_gerber/`) - Proof of Concept for stan
 
 ### Main Application (Modular Architecture)
 **consumo_lib/** package - Refactored from monolithic 6,245-line file to modular structure:
-- **main_window.py** (592 lines) - PyQt6 main window orchestrator with tabs:
+- **main_window.py** (646 lines) - PyQt6 main window orchestrator with tabs:
   - CNC Control: Manual jogging, camera preview with click-to-move
   - Tension Measurement: Grid-based sampling with heatmap visualization
   - Stencil Inspection: Fiducial alignment, Gerber overlay, visual analysis
@@ -385,12 +387,12 @@ consumo_lib/main_window.py (589 lines - orchestrator only)
 
 **Pulse ↔ Millimeter (CNC Positioning):**
 ```python
-# From aoi_config.json: "pulses_per_rev": 1000, "fuso_pitch": 10.0
-pulses_per_mm = 1000 / 10.0 = 100.0
+# From aoi_config.json: "pulses_per_rev": 800, "fuso_pitch": 10.0
+pulses_per_mm = 800 / 10.0 = 80.0
 
 # Examples:
 position_mm = 50.0
-position_pulses = position_mm * pulses_per_mm  # 5000 pulses
+position_pulses = position_mm * pulses_per_mm  # 4000 pulses
 ```
 
 **Pixel ↔ Millimeter (Camera FOV):**
@@ -598,11 +600,10 @@ consumo_lib/     # Main GUI application (modular package, 592 lines main_window.
 
 ### Known Issues & Quirks
 1. **Repository Size:** Currently ~2.0 GB due to large .rar files in Git history (needs cleanup with BFG or git-filter-repo)
-2. **Refactoring Completed:** `consumo_lib.py` was successfully refactored from 6,245 to 592 lines as modular package (2026-01-05)
+2. **Refactoring Completed:** `consumo_lib.py` was successfully refactored from 6,245 to 646 lines as modular package (2026-01-05)
 3. **Legacy Code:** Some references to "ADESIVADORA" project (adhesive dispenser) - code was adapted from that project
 4. **Dual Persistence:** Both JSON and SQLite supported - SQLite migration is partial/optional
-5. **No requirements.txt:** Project uses `.venv` but no formal dependency declaration file
-6. **POC Gerber:** Located in `poc_gerber/` directory, contains experimental Gerber viewer with corrected obround geometry
+5. **POC Gerber:** Located in `poc_gerber/` directory, contains experimental Gerber viewer with corrected obround geometry
 
 ### Coordinate Systems and Important Gotchas
 
@@ -811,7 +812,7 @@ Solutions:
 
 ## Project Organization Standards
 
-**Last Updated:** 2026-01-07
+**Last Updated:** 2026-01-08
 **Status:** Enforced - Follow these principles for all new code
 
 ### Directory Structure Principles
@@ -820,62 +821,66 @@ This project follows a **clean root** philosophy with clear separation of concer
 
 ```
 tensiometro/
-├── main.py                  # Single entry point (ACCEPTED in root)
-├── README.md                # Project overview (ACCEPTED in root)
-├── CLAUDE.md                # Claude Code context (ACCEPTED in root)
+├── main.py                     # Single entry point (ACCEPTED in root)
+├── README.md                   # Project overview (ACCEPTED in root)
+├── CLAUDE.md                   # Claude Code context (ACCEPTED in root)
+├── PROJECT_ORGANIZATION_GUIDELINES.md  # Organization standards (ACCEPTED in root)
 │
-├── src/                     # Source code (planned reorganization)
-│   ├── aoi_lib/            # Core AOI library modules
-│   └── consumo_lib/        # Main GUI application
+├── aoi_lib/                    # Core AOI library modules
+├── consumo_lib/                # Main GUI application (modular package, 646 lines)
 │
-├── tests/                   # Test suite
-│   ├── unit/               # Fast unit tests
-│   ├── integration/        # Integration tests with mocks
-│   ├── fixtures/           # Test data and assets
-│   └── conftest.py         # Global fixtures
+├── tests/                      # Test suite
+│   ├── unit/                   # Fast unit tests
+│   ├── integration/            # Integration tests with mocks
+│   └── fixtures/               # Test data and assets
 │
-├── tools/                   # Utility scripts (NOT in root)
-│   ├── camera_calibration.py
-│   ├── mosaic_builder.py
-│   ├── Leitura_Continua.py
-│   └── tension/            # Tension-specific utilities
+├── tools/                      # Development utilities (camera calibration, mosaic builder, etc.)
 │
-├── config/                  # Configuration files (NOT in root)
-│   ├── aoi_config.json
-│   ├── camera_calibration.json
-│   └── map_programs/       # Mosaic capture configurations
+├── config/                     # Configuration files
+│   ├── aoi_config.json         # Main application configuration
+│   ├── camera_calibration.json # FOV calibration data
+│   └── map_programs/           # Mosaic capture configurations
 │
-├── docs/                    # Documentation (NOT in root)
-│   ├── guides/             # Detailed guides
+├── docs/                       # Documentation (organized by purpose)
+│   ├── guides/                 # How-to guides and tutorials
 │   │   ├── testing_guide.md
-│   │   └── test_implementation_plan.md
-│   ├── history/            # Development history
-│   └── manuals/            # Technical PDF manuals
+│   │   ├── test_implementation_plan.md
+│   │   └── fluxo_usuario_questionario.md
+│   ├── architecture/           # System design documents
+│   │   ├── ANALISE_INTEGRACAO_MOVEMENT_CONTROLS.md
+│   │   └── TENSION_COORDINATOR.md
+│   ├── meetings/               # Meeting notes and client reports
+│   │   └── RELATORIO_CLIENTE_3_SEMANAS.md
+│   ├── reports/                # Technical reports
+│   │   └── RELATORIO_IMPLEMENTACAO_3_SEMANAS.md
+│   ├── history/                # Development history
+│   │   ├── BACKLOG.md
+│   │   ├── CHANGELOG_2025-12-12.md
+│   │   └── REFACTORING_*.md
+│   └── manuals/                # Technical PDF manuals
 │
-├── data/                    # Application data (NOT in root)
-│   ├── stencils/           # Individual stencil JSON files
-│   └── projects/           # User test projects (was Projetos/)
+├── data/                       # Application data
+│   ├── stencils/               # Individual stencil JSON files
+│   └── projects/               # User test projects (was Projetos/)
 │
-├── recipes/                 # Recipe definitions
-├── reports/                 # Generated PDF reports
-├── assets/                  # Static assets
-│   └── calibration/        # Checkerboard images
+├── recipes/                    # Recipe definitions
+├── reports/                    # Generated PDF reports
+├── assets/                     # Static assets
+│   └── calibration/            # Checkerboard images
 │
-├── archive/                 # Archived refactoring code
-├── poc_gerber/              # POC Gerber viewer
-│
-├── .venv/                   # Virtual environment
-├── .git/                    # Git repository
-├── .claude/                 # Claude Code settings
-└── .gitignore              # Git ignore patterns
+├── archive/                    # Archived refactoring code
+├── poc_gerber/                 # POC Gerber viewer
+├── tension_routines/           # Domain-specific tension measurement utilities
+├── programas_teste/            # Test programs for PLC
+└── map_programs/               # Legacy map programs (consider moving to config/)
 ```
 
 ### Root Directory Rules
 
 **✅ ALLOWED in root:**
-- Entry points: `main.py`, `app.py`
-- Essential guides: `README.md`, `CLAUDE.md`
-- Build configs: `pytest.ini`, `setup.py`, `requirements.txt`
+- Entry points: `main.py`
+- Essential guides: `README.md`, `CLAUDE.md`, `PROJECT_ORGANIZATION_GUIDELINES.md`
+- Build configs: `pytest.ini`, `requirements.txt`
 - Virtual env: `.venv/`, `.conda/`
 - Git: `.git/`, `.gitignore`
 - Tool configs: `.vscode/`, `.claude/`
@@ -884,7 +889,7 @@ tensiometro/
 - Utility scripts → `tools/`
 - Test files → `tests/`
 - Config files → `config/`
-- Documentation → `docs/`
+- Documentation (except essential guides) → `docs/`
 - Data files → `data/`
 - Build artifacts → `.gitignore`
 
@@ -1013,28 +1018,31 @@ tests/
 
 ### Migration Path (Current → Ideal)
 
-**Phase 1: Clean Root (COMPLETED 2026-01-07)**
+**Phase 1: Clean Root (COMPLETED 2026-01-08)**
 - ✅ Move test_fov_corrections.py → tests/unit/
 - ✅ Update .gitignore
 - ✅ Remove build artifacts from Git
+- ✅ Move documentation files from root to docs/ subdirectories
+- ✅ Organize docs/ with subdirectories (guides/, architecture/, meetings/, reports/)
 
-**Phase 2: Organize Scripts (TODO)**
-- Move `camera_calibration.py` → tools/
-- Move `mosaic_builder.py` → tools/
-- Move `Leitura_Continua.py` → tools/
-- Create `tools/tension/` for tension routines
+**Phase 2: Organize Scripts (COMPLETED 2026-01-08)**
+- ✅ Move `camera_calibration.py` → tools/
+- ✅ Move `mosaic_builder.py` → tools/
+- ✅ Move `Leitura_Continua.py` → tools/
+- ✅ Create `tools/tension/` for tension routines
 
-**Phase 3: Organize Configs (TODO)**
-- Create `config/` directory
-- Move `aoi_config.json` → config/
-- Move `camera_calibration.json` → config/
-- Move `map_programs/` → config/map_programs/
-- Update config_manager.py paths
+**Phase 3: Organize Configs (COMPLETED 2026-01-08)**
+- ✅ Create `config/` directory
+- ✅ Move `aoi_config.json` → config/
+- ✅ Move `camera_calibration.json` → config/
+- ✅ Update config_manager.py paths
 
-**Phase 4: Organize Documentation (TODO)**
-- Move `PLANO_TESTES.md` → docs/guides/test_implementation_plan.md
-- Move `TESTING.md` → docs/guides/testing_guide.md
-- Create `docs/api/` for API documentation
+**Phase 4: Organize Documentation (COMPLETED 2026-01-08)**
+- ✅ Move `PLANO_TESTES.md` → docs/guides/test_implementation_plan.md
+- ✅ Move `TESTING.md` → docs/guides/testing_guide.md
+- ✅ Move `RELATORIO_CLIENTE_3_SEMANAS.md` → docs/meetings/
+- ✅ Move `RELATORIO_IMPLEMENTACAO_3_SEMANAS.md` → docs/reports/
+- ✅ Organize docs/ with purpose-based subdirectories
 
 **Phase 5: Optional src/ Restructure (DEFERRED)**
 - Consider moving to `src/` layout for better packaging
@@ -1060,9 +1068,49 @@ tests/
 ### References
 
 - **Python Project Structure:** https://docs.python-guide.org/writing/structure/
-- **Testing Best Practices:** TESTING.md
+- **Testing Best Practices:** docs/guides/testing_guide.md
 - **Git Ignore Patterns:** .gitignore
-- **Current Analysis:** See session 2026-01-07 in docs/history/
+- **Current Analysis:** See session 2026-01-08 in docs/history/
+- **Organization Standards:** PROJECT_ORGANIZATION_GUIDELINES.md
+
+---
+
+## Domain-Specific Directories
+
+This project contains several domain-specific directories that deviate from generic standards due to the industrial nature of the application:
+
+### `tension_routines/`
+**Purpose:** Domain-specific utilities for tension measurement workflows
+**Contains:** Custom routines for specific tension testing scenarios
+**Status:** Accepted (domain-specific exception to standards)
+
+### `programas_teste/`
+**Purpose:** PLC test programs for hardware validation
+**Contains:** Test programs for Delta PLC movement validation
+**Status:** Accepted (hardware-specific exception)
+**Note:** Could be moved to `tests/fixtures/` if purely for testing, or `config/plc_programs/` if production programs
+
+### `map_programs/`
+**Purpose:** Mosaic capture configurations for image stitching
+**Contains:** Grid layout configurations for mosaic generation
+**Status:** Legacy (consider moving to `config/map_programs/`)
+**Recommendation:** Move to `config/map_programs/` for consistency
+
+### `recipes/`
+**Purpose:** Stencil recipe definitions with acceptance criteria
+**Contains:** JSON files with tension and inspection thresholds
+**Status:** Accepted (domain data - stays in root per project convention)
+
+### `Projetos/` (Portuguese)
+**Purpose:** User test projects with captured images
+**Contains:** Test data from practical validation sessions
+**Status:** Temporary user data (should be in .gitignore or moved to `data/projects/`)
+
+### `poc_gerber/`
+**Purpose:** Proof of Concept for standalone Gerber file viewer
+**Contains:** Experimental Gerber viewer with PyQt6 GUI
+**Status:** Accepted (POC/experimental code - separate from main codebase)
+**Note:** May evolve into separate product or be integrated later
 
 ---
 
@@ -1090,11 +1138,15 @@ tests/
 - ML-based failure prediction
 
 **See Also:**
-- [BACKLOG.md](BACKLOG.md) - Detailed task backlog with priorities
-- [ROADMAP_DESENVOLVIMENTO.md](ROADMAP_DESENVOLVIMENTO.md) - Phase-by-phase development history
-- [CHANGELOG_2025-12-12.md](CHANGELOG_2025-12-12.md) - Recent fixes and improvements
-- [NOTAS_TECNICAS.md](NOTAS_TECNICAS.md) - Technical notes on code reuse from ADESIVADORA
-- [ANALISE_PROJETO_PROXIMOS_PASSOS.txt](ANALISE_PROJETO_PROXIMOS_PASSOS.txt) - Portuguese project analysis
-- [CORRECOES_FOV_CALIBRATION.md](CORRECOES_FOV_CALIBRATION.md) - FOV calibration correction details
-- [CROSSHAIR_CONFIG.md](CROSSHAIR_CONFIG.md) - Crosshair configuration guide
-- [GUIA_MIGRACAO_SQLITE.md](GUIA_MIGRACAO_SQLITE.md) - SQLite migration guide
+- [docs/history/BACKLOG.md](docs/history/BACKLOG.md) - Detailed task backlog with priorities
+- [docs/history/ROADMAP_DESENVOLVIMENTO.md](docs/history/ROADMAP_DESENVOLVIMENTO.md) - Phase-by-phase development history
+- [docs/history/CHANGELOG_2025-12-12.md](docs/history/CHANGELOG_2025-12-12.md) - Recent fixes and improvements
+- [docs/history/NOTAS_TECNICAS.md](docs/history/NOTAS_TECNICAS.md) - Technical notes on code reuse from ADESIVADORA
+- [docs/history/CORRECOES_FOV_CALIBRATION.md](docs/history/CORRECOES_FOV_CALIBRATION.md) - FOV calibration correction details
+- [docs/history/CROSSHAIR_CONFIG.md](docs/history/CROSSHAIR_CONFIG.md) - Crosshair configuration guide
+- [docs/history/GUIA_MIGRACAO_SQLITE.md](docs/history/GUIA_MIGRACAO_SQLITE.md) - SQLite migration guide
+- [docs/guides/testing_guide.md](docs/guides/testing_guide.md) - Testing best practices
+- [docs/guides/test_implementation_plan.md](docs/guides/test_implementation_plan.md) - Test implementation roadmap
+- [docs/architecture/ANALISE_INTEGRACAO_MOVEMENT_CONTROLS.md](docs/architecture/ANALISE_INTEGRACAO_MOVEMENT_CONTROLS.md) - Movement controls integration analysis
+- [docs/reports/RELATORIO_IMPLEMENTACAO_3_SEMANAS.md](docs/reports/RELATORIO_IMPLEMENTACAO_3_SEMANAS.md) - 3-week implementation report
+- [docs/meetings/RELATORIO_CLIENTE_3_SEMANAS.md](docs/meetings/RELATORIO_CLIENTE_3_SEMANAS.md) - 3-week client report
