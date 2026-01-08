@@ -192,7 +192,40 @@ class TreeViewTab(QWidget):
             }
         """)
         self.inspect_button.clicked.connect(self.on_inspect_clicked)
-        layout.addWidget(self.inspect_button)
+
+        # Botão histórico (NOVO - FASE 7)
+        self.history_button = QPushButton("📋 Histórico")
+        self.history_button.setMinimumHeight(45)
+        self.history_button.setEnabled(False)
+        self.history_button.setStyleSheet("""
+            QPushButton {
+                background-color: #8B5CF6;
+                color: white;
+                font-size: 14px;
+                font-weight: bold;
+                border-radius: 4px;
+                padding: 8px 16px;
+            }
+            QPushButton:hover {
+                background-color: #7C3AED;
+            }
+            QPushButton:pressed {
+                background-color: #5B21B6;
+            }
+            QPushButton:disabled {
+                background-color: #BDBDBD;
+                color: #757575;
+            }
+        """)
+        self.history_button.clicked.connect(self.show_history)
+
+        # Layout horizontal para os botões
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(10)
+        buttons_layout.addWidget(self.inspect_button)
+        buttons_layout.addWidget(self.history_button)
+
+        layout.addLayout(buttons_layout)
 
         return panel
 
@@ -313,6 +346,7 @@ class TreeViewTab(QWidget):
         self.show_details(stencil_data)
         self.program_selected.emit(stencil_data)
         self.inspect_button.setEnabled(True)
+        self.history_button.setEnabled(True)
 
     def show_details(self, stencil: dict):
         """Exibe detalhes do stencil no painel lateral"""
@@ -438,6 +472,26 @@ class TreeViewTab(QWidget):
         if self.selected_stencil:
             self.inspect_requested.emit(self.selected_stencil)
             logger.info(f"Solicitar inspeção: {self.selected_stencil['code']}")
+
+    def show_history(self):
+        """Handler: Botão Histórico clicado"""
+        if self.selected_stencil:
+            # Chama método do MainWindow para exibir histórico
+            main_window = self.parent()
+            while main_window and not hasattr(main_window, 'show_inspection_history'):
+                main_window = main_window.parent()
+
+            if main_window and hasattr(main_window, 'show_inspection_history'):
+                main_window.show_inspection_history(self.selected_stencil['code'])
+            else:
+                logger.error("Não foi possível encontrar MainWindow para exibir histórico")
+                QMessageBox.warning(
+                    self,
+                    "Erro",
+                    "Não foi possível abrir o histórico.\nContacte o suporte técnico."
+                )
+        else:
+            logger.warning("Tentativa de abrir histórico sem stencil selecionado")
 
     def on_hardware_status_clicked(self, hardware: str):
         """Handler: Status de hardware clicado"""

@@ -33,7 +33,7 @@ from PyQt6.QtGui import QPixmap, QImage, QPainter, QColor
 # AOI library
 from aoi_lib import (
     CNCAOIController, InspectionPosition,
-    StencilTracker, Stencil, TensionRecord
+    StencilTracker, Stencil, TensionRecord, InspectionRecord
 )
 from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
@@ -348,6 +348,141 @@ class AOIControllerApp(QMainWindow):
             self
         )
 
+        dialog.exec()
+
+    def save_inspection_to_history(self, stencil: dict, results: dict, mode: str) -> bool:
+        """
+        Salva inspeção no histórico do stencil
+
+        Args:
+            stencil: Dicionário com dados do stencil
+            results: Resultados da inspeção
+            mode: Modo executado ("tension", "inspection", "both")
+
+        Returns:
+            True se salvou com sucesso, False caso contrário
+        """
+        from datetime import datetime
+
+        try:
+            user = self.auth_service.get_current_user()
+            timestamp = datetime.now().isoformat()
+
+            # Verifica se stencil existe, senão cria
+            tracker = StencilTracker()
+            if not tracker.stencil_exists(stencil['code']):
+                # Cria stencil básico
+                new_stencil = Stencil(
+                    code=stencil['code'],
+                    description=stencil.get('description', ''),
+                    recipe_name=stencil.get('recipe', 'Limpeza Padrão')
+                )
+                tracker.create_stencil(new_stencil)
+                logger.info(f"Stencil {stencil['code']} criado automaticamente")
+
+            # Salva registros dependendo do modo
+            if mode in ["tension", "both"]:
+                # Obtém dados de tensão
+                if mode == "both":
+                    tension_data = results.get('tension_results', {})
+                else:
+                    tension_data = results
+
+                # Cria TensionRecord
+                tension_record = TensionRecord(
+                    timestamp=timestamp,
+                    measurements=[],  # Vazio por enquanto (simulação)
+                    average_tension=tension_data.get('tension_avg', 0.0),
+                    min_tension=tension_data.get('tension_min', 0.0),
+                    max_tension=tension_data.get('tension_max', 0.0),
+                    result=tension_data.get('classification', 'OK'),
+                    ok_count=1,  # Simulação
+                    warning_count=0,
+                    nok_count=0,
+                    operator=user.username,
+                    recipe_name=stencil.get('recipe', 'Limpeza Padrão')
+                )
+
+                tracker.add_tension_record(stencil['code'], tension_record)
+                logger.info(f"Registro de tensão salvo: {stencil['code']}")
+
+            if mode in ["inspection", "both"]:
+                # Obtém dados de inspeção
+                if mode == "both":
+                    inspection_data = results.get('inspection_results', {})
+                else:
+                    inspection_data = results
+
+                # Mapeia classification (OK/WARNING/NOK) para result (PASS/FAIL)
+                classification = inspection_data.get('classification', 'OK')
+                result = "PASS" if classification == "OK" else "FAIL"
+
+                # Calcula pass_rate
+                total = inspection_data.get('apertures_analyzed', 1)
+                ok = inspection_data.get('ok_count', 0)
+                partial = inspection_data.get('partial_count', 0)
+                pass_rate = ((ok * 100) + (partial * 50)) / total if total > 0 else 100.0
+
+                # Cria InspectionRecord
+                inspection_record = InspectionRecord(
+                    timestamp=timestamp,
+                    total_apertures=inspection_data.get('apertures_analyzed', 0),
+                    ok_count=inspection_data.get('ok_count', 0),
+                    partial_count=inspection_data.get('partial_count', 0),
+                    blocked_count=inspection_data.get('blocked_count', 0),
+                    result=result,
+                    pass_rate=pass_rate,
+                    gerber_file=None,  # Vazio por enquanto
+                    operator=user.username,
+                    recipe_name=stencil.get('recipe', 'Limpeza Padrão'),
+                    report_path=None,
+                    defects=[],  # Vazio por enquanto
+                    notes=""
+                )
+
+                tracker.add_inspection_record(stencil['code'], inspection_record)
+                logger.info(f"Registro de inspeção salvo: {stencil['code']}")
+
+            # Mensagem de sucesso
+            QMessageBox.information(
+                self,
+                "Salvo com Sucesso",
+                f"Inspeção do stencil {stencil['code']} foi salva no histórico!\n\n"
+                f"Modo: {self._get_mode_title(mode)}\n"
+                f"Operador: {user.username}\n"
+                f"Data/Hora: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+            )
+
+            return True
+
+        except Exception as e:
+            logger.error(f"Erro ao salvar inspeção: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro ao Salvar",
+                f"Não foi possível salvar a inspeção:\n\n{str(e)}"
+            )
+            return False
+
+    def _get_mode_title(self, mode: str) -> str:
+        """Retorna título legível do modo"""
+        titles = {
+            "tension": "Medição de Tensão",
+            "inspection": "Inspeção Visual",
+            "both": "Completo (Tensão + Visual)"
+        }
+        return titles.get(mode, "Inspeção")
+
+    def show_inspection_history(self, stencil_code: str):
+        """
+        Exibe dialog de histórico do stencil
+
+        Args:
+            stencil_code: Código do stencil
+        """
+        from consumo_lib.dialogs import InspectionHistoryDialog
+
+        dialog = InspectionHistoryDialog(stencil_code, self)
         dialog.exec()
 
     def show_positioning_confirmation(self, stencil: dict) -> bool:

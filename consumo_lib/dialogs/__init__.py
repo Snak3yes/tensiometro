@@ -59,3 +59,7 @@ __all__.append('InspectionProgressDialog')
 # Results dialogs (NOVO - FASE 6)
 from .inspection_results_dialog import InspectionResultsDialog
 __all__.append('InspectionResultsDialog')
+
+# History dialogs (NOVO - FASE 7)
+from .inspection_history_dialog import InspectionHistoryDialog
+__all__.append('InspectionHistoryDialog')

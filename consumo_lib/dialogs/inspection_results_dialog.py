@@ -383,13 +383,29 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
 
     def on_save_clicked(self):
         """Handler: Botão Salvar clicado"""
-        # TODO: Implementar salvamento no StencilTracker
-        logger.info(f"Salvar inspeção no histórico: {self.stencil_code}")
-        QMessageBox.information(
-            self,
-            "Salvar no Histórico",
-            "Funcionalidade de salvamento será implementada na FASE 7."
-        )
+        # Chama método de salvamento do MainWindow
+        parent_window = self.parent()
+
+        # Verifica se o parent é MainWindow
+        if parent_window and hasattr(parent_window, 'save_inspection_to_history'):
+            success = parent_window.save_inspection_to_history(
+                {'code': self.stencil_code, 'description': '', 'recipe': 'Limpeza Padrão'},
+                self.results,
+                self.mode
+            )
+
+            if success:
+                # Fecha o dialog após salvar
+                self.accept()
+        else:
+            # Fallback caso não tenha acesso ao MainWindow
+            logger.error(f"Não foi possível acessar método de salvamento")
+            QMessageBox.warning(
+                self,
+                "Erro ao Salvar",
+                "Não foi possível acessar o sistema de salvamento.\n\n"
+                "Contacte o suporte técnico."
+            )
 
     def on_pdf_clicked(self):
         """Handler: Botão PDF clicado"""
