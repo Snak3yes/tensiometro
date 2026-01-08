@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="1000" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 22px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .value { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 400; fill: #212121; }
+      .table-header { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 700; fill: #424242; }
+      .table-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 400; fill: #212121; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #FFFFFF; }
+      .header-bg { fill: #1976D2; }
+      .header-text { font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; fill: #FFFFFF; }
+      .panel-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .section-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .dropdown-bg { fill: #FFFFFF; stroke: #BDBEBD; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #4CAF50; }
+      .button-cancel { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .status-ok { fill: #4CAF50; }
+      .status-nok { fill: #F44336; }
+      .table-row-even { fill: #FFFFFF; }
+      .table-row-odd { fill: #F5F5F5; }
+      .stat-box { fill: #E3F2FD; stroke: #1976D2; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Main Window Background -->
+  <rect x="0" y="0" width="1400" height="1000" fill="#FAFAFA"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1400" height="60" class="header-bg"/>
+  <text x="30" y="38" class="header-text">Histórico de Medições - STENCIL-ABC-123</text>
+
+  <!-- Main Content Area -->
+  <rect x="20" y="80" width="1360" height="920" rx="4" class="panel-bg"/>
+
+  <!-- Filters Section -->
+  <rect x="50" y="100" width="600" height="150" rx="4" class="section-bg"/>
+
+  <text x="70" y="130" class="title" font-size="15px">Filtros</text>
+
+  <text x="70" y="165" class="label">Período:</text>
+  <rect x="140" y="155" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="155" y="175" class="value">Últimas 10 ▼</text>
+
+  <rect x="330" y="155" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="345" y="175" class="value">7 dias ▼</text>
+  <rect x="425" y="155" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="440" y="175" class="value">30 dias ▼</text>
+
+  <text x="70" y="210" class="label">Status:</text>
+  <rect x="140" y="200" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="155" y="220" class="value">Todos os status ▼</text>
+
+  <rect x="330" y="200" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="345" y="220" class="value">Aprovados ▼</text>
+  <rect x="425" y="200" width="175" height="30" rx="4" class="dropdown-bg"/>
+  <text x="440" y="220" class="value">Reprovados ▼</text>
+
+  <!-- Export Buttons -->
+  <rect x="680" y="100" width="660" height="150" rx="4" class="section-bg"/>
+
+  <text x="700" y="130" class="title" font-size="15px">Ações</text>
+
+  <rect x="720" y="150" width="140" height="30" rx="4" class="button-secondary"/>
+  <text x="790" y="170" text-anchor="middle" class="button-text">Exportar CSV</text>
+
+  <rect x="880" y="150" width="140" height="30" rx="4" class="button-primary"/>
+  <text x="950" y="170" text-anchor="middle" class="button-text">Gerar PDF</text>
+
+  <rect x="1040" y="150" width="140" height="30" rx="4" class="button-secondary"/>
+  <text x="1110" y="170" text-anchor="middle" class="button-text">Buscar no Histórico</text>
+
+  <!-- Statistics -->
+  <rect x="50" y="270" width="1290" height="100" rx="4" class="stat-box"/>
+
+  <text x="70" y="300" class="title" font-size="15px">Estatísticas do Período Selecionado</text>
+
+  <text x="70" y="330" class="label">Total de medições:</text>
+  <text x="200" y="330" class="value" font-weight="700" font-size="16px">10</text>
+
+  <text x="260" y="330" class="label">Aprovadas:</text>
+  <text x="350" y="330" class="value" font-weight="700" fill="#4CAF50" font-size="16px">8 (80%)</text>
+
+  <text x="460" y="330" class="label">Reprovadas:</text>
+  <text x="560" y="330" class="value" font-weight="700" fill="#F44336" font-size="16px">2 (20%)</text>
+
+  <text x="680" y="330" class="label">Tensão média:</text>
+  <text x="800" y="330" class="value" font-weight="700" font-size="16px">31.2 N/cm²</text>
+
+  <text x="930" y="330" class="label">Mínima:</text>
+  <text x="1000" y="330" class="value" font-size="15px">28.3 N/cm²</text>
+
+  <text x="1100" y="330" class="label">Máxima:</text>
+  <text x="1170" y="330" class="value" font-size="15px">35.1 N/cm²</text>
+
+  <text x="70" y="360" class="label">Operadores:</text>
+  <text x="160" y="360" class="value">João Silva, Maria Santos</text>
+
+  <!-- Table Section -->
+  <rect x="50" y="390" width="1290" height="470" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <!-- Table Header -->
+  <rect x="50" y="390" width="1290" height="40" fill="#E0E0E0"/>
+
+  <text x="70" y="415" class="table-header">Data/Hora</text>
+  <text x="250" y="415" class="table-header">Operador</text>
+  <text x="420" y="415" class="table-header">Modo</text>
+  <text x="570" y="415" class="table-header">Status</text>
+  <text x="700" y="415" class="table-header">Tensão</text>
+  <text x="820" y="415" class="table-header">Inspeção</text>
+  <text x="970" y="415" class="table-header">Defeitos</text>
+  <text x="1090" y="415" class="table-header">Resultado</text>
+  <text x="1200" y="415" class="table-header">Ações</text>
+
+  <!-- Row 1 -->
+  <rect x="50" y="430" width="1290" height="40" class="table-row-odd"/>
+  <text x="70" y="455" class="table-text">15/12/2025 14:30</text>
+  <text x="250" y="455" class="table-text">Maria Santos</text>
+  <text x="420" y="455" class="table-text">Completo</text>
+  <circle cx="585" cy="450" r="5" class="status-ok"/>
+  <text x="700" y="455" class="table-text">31.5 N/cm²</text>
+  <text x="820" y="455" class="table-text">✓</text>
+  <text x="970" y="455" class="table-text">0/15</text>
+  <rect x="1095" y="443" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="456" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="455" class="table-text">[PDF]</text>
+
+  <!-- Row 2 -->
+  <rect x="50" y="470" width="1290" height="40" class="table-row-even"/>
+  <text x="70" y="495" class="table-text">14/12/2025 09:15</text>
+  <text x="250" y="495" class="table-text">João Silva</text>
+  <text x="420" y="495" class="table-text">Tensão</text>
+  <circle cx="585" cy="490" r="5" class="status-nok"/>
+  <text x="700" y="495" class="table-text">27.8 N/cm²</text>
+  <text x="820" y="495" class="table-text">-</text>
+  <text x="970" y="495" class="table-text">-</text>
+  <rect x="1095" y="483" width="60" height="18" rx="2" class="status-nok"/>
+  <text x="1125" y="496" text-anchor="middle" class="button-text" font-size="10px">NOK</text>
+  <text x="1200" y="495" class="table-text">[PDF]</text>
+
+  <!-- Row 3 -->
+  <rect x="50" y="510" width="1290" height="40" class="table-row-odd"/>
+  <text x="70" y="535" class="table-text">13/12/2025 16:45</text>
+  <text x="250" y="535" class="table-text">Maria Santos</text>
+  <text x="420" y="535" class="table-text">Inspeção</text>
+  <circle cx="585" cy="530" r="5" class="status-ok"/>
+  <text x="700" y="535" class="table-text">-</text>
+  <text x="820" y="535" class="table-text">✓</text>
+  <text x="970" y="535" class="table-text">2/15</text>
+  <rect x="1095" y="523" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="536" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="535" class="table-text">[PDF]</text>
+
+  <!-- Row 4 -->
+  <rect x="50" y="550" width="1290" height="40" class="table-row-even"/>
+  <text x="70" y="575" class="table-text">12/12/2025 11:20</text>
+  <text x="250" y="575" class="table-text">João Silva</text>
+  <text x="420" y="575" class="table-text">Completo</text>
+  <circle cx="585" cy="570" r="5" class="status-ok"/>
+  <text x="700" y="575" class="table-text">32.1 N/cm²</text>
+  <text x="820" y="575" class="table-text">✓</text>
+  <text x="970" y="575" class="table-text">1/15</text>
+  <rect x="1095" y="563" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="576" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="575" class="table-text">[PDF]</text>
+
+  <!-- Row 5 -->
+  <rect x="50" y="590" width="1290" height="40" class="table-row-odd"/>
+  <text x="70" y="615" class="table-text">11/12/2025 08:30</text>
+  <text x="250" y="615" class="table-text">Maria Santos</text>
+  <text x="420" y="615" class="table-text">Tensão</text>
+  <circle cx="585" cy="610" r="5" class="status-nok"/>
+  <text x="700" y="615" class="table-text">26.5 N/cm²</text>
+  <text x="820" y="615" class="table-text">-</text>
+  <text x="970" y="615" class="table-text">-</text>
+  <rect x="1095" y="603" width="60" height="18" rx="2" class="status-nok"/>
+  <text x="1125" y="616" text-anchor="middle" class="button-text" font-size="10px">NOK</text>
+  <text x="1200" y="615" class="table-text">[PDF]</text>
+
+  <!-- Row 6-10 placeholders -->
+  <rect x="50" y="630" width="1290" height="40" class="table-row-even"/>
+  <text x="70" y="655" class="table-text">10/12/2025 15:00</text>
+  <text x="250" y="655" class="table-text">João Silva</text>
+  <text x="420" y="655" class="table-text">Completo</text>
+  <circle cx="585" cy="650" r="5" class="status-ok"/>
+  <text x="700" y="655" class="table-text">30.8 N/cm²</text>
+  <text x="820" y="655" class="table-text">✓</text>
+  <text x="970" y="655" class="table-text">0/15</text>
+  <rect x="1095" y="643" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="656" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="655" class="table-text">[PDF]</text>
+
+  <rect x="50" y="670" width="1290" height="40" class="table-row-odd"/>
+  <text x="70" y="695" class="table-text">09/12/2025 10:45</text>
+  <text x="250" y="695" class="table-text">Maria Santos</text>
+  <text x="420" y="695" class="table-text">Inspeção</text>
+  <circle cx="585" cy="690" r="5" class="status-ok"/>
+  <text x="700" y="695" class="table-text">-</text>
+  <text x="820" y="695" class="table-text">✓</text>
+  <text x="970" y="695" class="table-text">3/15</text>
+  <rect x="1095" y="683" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="696" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="695" class="table-text">[PDF]</text>
+
+  <rect x="50" y="710" width="1290" height="40" class="table-row-even"/>
+  <text x="70" y="735" class="table-text">08/12/2025 13:20</text>
+  <text x="250" y="735" class="table-text">João Silva</text>
+  <text x="420" y="735" class="table-text">Completo</text>
+  <circle cx="585" cy="730" r="5" class="status-ok"/>
+  <text x="700" y="735" class="table-text">31.9 N/cm²</text>
+  <text x="820" y="735" class="table-text">✓</text>
+  <text x="970" y="735" class="table-text">0/15</text>
+  <rect x="1095" y="723" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="736" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="735" class="table-text">[PDF]</text>
+
+  <rect x="50" y="750" width="1290" height="40" class="table-row-odd"/>
+  <text x="70" y="775" class="table-text">07/12/2025 09:10</text>
+  <text x="250" y="775" class="table-text">Maria Santos</text>
+  <text x="420" y="775" class="table-text">Tensão</text>
+  <circle cx="585" cy="770" r="5" class="status-ok"/>
+  <text x="700" y="775" class="table-text">32.5 N/cm²</text>
+  <text x="820" y="775" class="table-text">-</text>
+  <text x="970" y="775" class="table-text">-</text>
+  <rect x="1095" y="763" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="776" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="775" class="table-text">[PDF]</text>
+
+  <rect x="50" y="790" width="1290" height="40" class="table-row-even"/>
+  <text x="70" y="815" class="table-text">06/12/2025 14:50</text>
+  <text x="250" y="815" class="table-text">João Silva</text>
+  <text x="420" y="815" class="table-text">Completo</text>
+  <circle cx="585" cy="810" r="5" class="status-ok"/>
+  <text x="700" y="815" class="table-text">30.2 N/cm²</text>
+  <text x="820" y="815" class="table-text">✓</text>
+  <text x="970" y="815" class="table-text">1/15</text>
+  <rect x="1095" y="803" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="816" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="815" class="table-text">[PDF]</text>
+
+  <rect x="50" y="830" width="1290" height="30" class="table-row-odd"/>
+  <text x="70" y="850" class="table-text">05/12/2025 11:35</text>
+  <text x="250" y="850" class="table-text">Maria Santos</text>
+  <text x="420" y="850" class="table-text">Inspeção</text>
+  <circle cx="585" cy="845" r="5" class="status-ok"/>
+  <text x="700" y="850" class="table-text">-</text>
+  <text x="820" y="850" class="table-text">✓</text>
+  <text x="970" y="850" class="table-text">0/15</text>
+  <rect x="1095" y="838" width="60" height="18" rx="2" class="status-ok"/>
+  <text x="1125" y="851" text-anchor="middle" class="button-text" font-size="10px">OK</text>
+  <text x="1200" y="850" class="table-text">[PDF]</text>
+
+  <!-- Back Button -->
+  <rect x="50" y="880" width="200" height="35" rx="4" class="button-cancel"/>
+  <text x="150" y="903" text-anchor="middle" class="value">← Voltar para TreeView</text>
+</svg>

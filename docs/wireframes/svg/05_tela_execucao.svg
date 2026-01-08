@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 20px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .value { font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; fill: #212121; }
+      .value-animated { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .header-bg { fill: #1976D2; }
+      .header-text { font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; fill: #FFFFFF; }
+      .panel-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .section-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .progress-bg { fill: #E0E0E0; }
+      .progress-fill { fill: #4CAF50; }
+      .grid-cell { fill: none; stroke: #E0E0E0; stroke-width: 1; }
+      .grid-cell-measured { fill: #4CAF50; stroke: #4CAF50; stroke-width: 1; }
+      .grid-cell-current { fill: #FF9800; stroke: #FF9800; stroke-width: 2; }
+      .grid-cell-pending { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .status-ok { fill: #4CAF50; }
+      .status-label { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .button-danger { fill: #F44336; }
+      .button-danger-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+    </style>
+  </defs>
+
+  <!-- Main Window Background -->
+  <rect x="0" y="0" width="1400" height="900" fill="#FAFAFA"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1400" height="60" class="header-bg"/>
+  <text x="30" y="38" class="header-text">Executando Medição de Tensão</text>
+
+  <!-- Program Info -->
+  <text x="1300" y="38" text-anchor="end" class="header-text" font-size="14px">STENCIL-ABC-123 | Modo: Medição de Tensão</text>
+
+  <!-- Main Content Area -->
+  <rect x="20" y="80" width="1360" height="820" rx="4" class="panel-bg"/>
+
+  <!-- Progress Bar Section -->
+  <text x="50" y="115" class="title" font-size="16px">Progresso Geral</text>
+
+  <rect x="50" y="130" width="1300" height="40" rx="4" class="progress-bg"/>
+  <rect x="50" y="130" width="624" height="40" rx="4" class="progress-fill"/>
+
+  <text x="700" y="156" text-anchor="middle" class="value">12/25 pontos (48%)</text>
+
+  <!-- Left Panel - Current Point -->
+  <rect x="50" y="190" width="420" height="580" rx="4" class="section-bg"/>
+
+  <text x="70" y="220" class="title" font-size="15px">Ponto Atual</text>
+
+  <!-- Grid Visual -->
+  <rect x="130" y="240" width="260" height="260" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <!-- 5x5 Grid - Measured points -->
+  <rect x="140" y="250" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="190" y="250" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="240" y="250" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="290" y="250" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="340" y="250" width="40" height="40" class="grid-cell-measured"/>
+
+  <rect x="140" y="300" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="190" y="300" width="40" height="40" class="grid-cell-measured"/>
+  <rect x="240" y="300" width="40" height="40" class="grid-cell-current"/>
+  <rect x="290" y="300" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="340" y="300" width="40" height="40" class="grid-cell-pending"/>
+
+  <rect x="140" y="350" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="190" y="350" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="240" y="350" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="290" y="350" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="340" y="350" width="40" height="40" class="grid-cell-pending"/>
+
+  <rect x="140" y="400" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="190" y="400" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="240" y="400" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="290" y="400" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="340" y="400" width="40" height="40" class="grid-cell-pending"/>
+
+  <rect x="140" y="450" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="190" y="450" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="240" y="450" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="290" y="450" width="40" height="40" class="grid-cell-pending"/>
+  <rect x="340" y="450" width="40" height="40" class="grid-cell-pending"/>
+
+  <!-- Legend -->
+  <rect x="140" y="520" width="15" height="15" class="grid-cell-measured"/>
+  <text x="165" y="532" class="subtitle" font-size="12px">Medido</text>
+
+  <rect x="220" y="520" width="15" height="15" class="grid-cell-current"/>
+  <text x="245" y="532" class="subtitle" font-size="12px">Atual</text>
+
+  <rect x="300" y="520" width="15" height="15" class="grid-cell-pending"/>
+  <text x="325" y="532" class="subtitle" font-size="12px">Pendente</text>
+
+  <!-- Estimated Time -->
+  <rect x="70" y="550" width="380" height="60" rx="4" fill="#E3F2FD"/>
+  <text x="260" y="575" text-anchor="middle" class="label">Tempo Estimado Restante</text>
+  <text x="260" y="598" text-anchor="middle" class="value" fill="#1976D2">⏱️ 01:23</text>
+
+  <!-- Stop Button -->
+  <rect x="120" y="630" width="280" height="50" rx="4" class="button-danger"/>
+  <text x="260" y="661" text-anchor="middle" class="button-danger-text" font-size="16px">🛑 Parar Execução</text>
+
+  <text x="260" y="710" text-anchor="middle" class="subtitle" font-size="11px">Os dados coletados serão descartados</text>
+
+  <!-- Right Panel - Real-time Values -->
+  <rect x="490" y="190" width="890" height="580" rx="4" class="section-bg"/>
+
+  <text x="510" y="220" class="title" font-size="15px">Valores em Tempo Real</text>
+
+  <!-- Current Value Display -->
+  <rect x="510" y="240" width="400" height="100" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <text x="710" y="275" text-anchor="middle" class="label">Tensão Atual</text>
+  <text x="710" y="320" text-anchor="middle" class="value-animated">32.5 N/cm²</text>
+
+  <!-- Statistics -->
+  <rect x="930" y="240" width="430" height="100" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <text x="950" y="270" class="label">Mínima:</text>
+  <text x="1110" y="270" class="value" font-size="15px">28.3 N/cm²</text>
+
+  <text x="950" y="300" class="label">Máxima:</text>
+  <text x="1110" y="300" class="value" font-size="15px">35.1 N/cm²</text>
+
+  <text x="950" y="330" class="label">Média:</text>
+  <text x="1110" y="330" class="value" font-size="15px">31.8 N/cm²</text>
+
+  <!-- Status Badge -->
+  <rect x="510" y="360" width="200" height="40" rx="4" class="status-ok"/>
+  <text x="610" y="386" text-anchor="middle" class="button-text">✅ DENTRO ESPEC</text>
+
+  <!-- Hardware Status -->
+  <rect x="730" y="360" width="650" height="40" rx="4" fill="#F5F5F5"/>
+  <circle cx="760" cy="380" r="6" class="status-ok"/>
+  <text x="775" y="385" class="status-label" fill="#4CAF50">PLC: ✅</text>
+
+  <circle cx="880" cy="380" r="6" class="status-ok"/>
+  <text x="895" y="385" class="status-label" fill="#4CAF50">Tensiômetro: ✅</text>
+
+  <circle cx="1030" cy="380" r="6" class="status-ok"/>
+  <text x="1045" y="385" class="status-label" fill="#4CAF50">Câmera: ✅</text>
+
+  <!-- Measurement Log -->
+  <text x="510" y="440" class="title" font-size="15px">Log de Medição</text>
+
+  <rect x="510" y="455" width="850" height="300" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+
+  <!-- Log Entries -->
+  <text x="530" y="480" class="subtitle" font-size="12px">12. X=125, Y=78 → 32.5 N/cm² ✓</text>
+  <text x="530" y="505" class="subtitle" font-size="12px">11. X=125, Y=63 → 31.8 N/cm² ✓</text>
+  <text x="530" y="530" class="subtitle" font-size="12px">10. X=125, Y=48 → 30.2 N/cm² ✓</text>
+  <text x="530" y="555" class="subtitle" font-size="12px">09. X=125, Y=33 → 29.7 N/cm² ✓</text>
+  <text x="530" y="580" class="subtitle" font-size="12px">08. X=125, Y=18 → 28.9 N/cm² ✓</text>
+  <text x="530" y="605" class="subtitle" font-size="12px">07. X=110, Y=78 → 31.5 N/cm² ✓</text>
+  <text x="530" y="630" class="subtitle" font-size="12px">06. X=110, Y=63 → 30.8 N/cm² ✓</text>
+  <text x="530" y="655" class="subtitle" font-size="12px">05. X=110, Y=48 → 32.1 N/cm² ✓</text>
+  <text x="530" y="680" class="subtitle" font-size="12px">04. X=110, Y=33 → 31.3 N/cm² ✓</text>
+  <text x="530" y="705" class="subtitle" font-size="12px">03. X=110, Y=18 → 30.5 N/cm² ✓</text>
+  <text x="530" y="730" class="subtitle" font-size="12px">02. X=95, Y=78 → 29.8 N/cm² ✓</text>
+  <text x="530" y="755" class="subtitle" font-size="12px">01. X=95, Y=63 → 28.3 N/cm² ✓</text>
+
+  <!-- Animated Indicator -->
+  <circle cx="1330" cy="760" r="8" fill="#4CAF50">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </circle>
+  <text x="1350" y="765" class="label">Medindo...</text>
+</svg>

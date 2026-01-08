@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 22px; font-weight: 700; fill: #1976D2; }
+      .text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #424242; }
+      .text-bold { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #212121; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .icon-circle { fill: #E3F2FD; }
+      .icon-stencil { fill: none; stroke: #1976D2; stroke-width: 3; }
+      .button-primary { fill: #1976D2; }
+      .button-cancel { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .check-item { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 400; fill: #616161; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="800" height="600" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="150" y="100" width="500" height="400" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="150" y="100" width="500" height="400" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="400" y="140" text-anchor="middle" class="title">Confirmação de Posicionamento</text>
+
+  <!-- Stencil Icon -->
+  <circle cx="400" cy="210" r="40" class="icon-circle"/>
+  <rect x="375" y="195" width="50" height="30" rx="2" class="icon-stencil"/>
+  <line x1="380" y1="205" x2="420" y2="205" stroke="#1976D2" stroke-width="2"/>
+  <line x1="380" y1="215" x2="420" y2="215" stroke="#1976D2" stroke-width="2"/>
+
+  <!-- Message -->
+  <text x="400" y="280" text-anchor="middle" class="text-bold" font-size="15px">Confirme que o stencil STENCIL-ABC-123</text>
+  <text x="400" y="300" text-anchor="middle" class="text-bold" font-size="15px">está corretamente posicionado na máquina.</text>
+
+  <!-- Checklist -->
+  <text x="180" y="335" class="text-bold" font-size="13px">Verifique:</text>
+
+  <circle cx="195" cy="355" r="4" fill="#BDBEBD"/>
+  <text x="210" y="360" class="check-item">O código do stencil corresponde</text>
+
+  <circle cx="195" cy="375" r="4" fill="#BDBEBD"/>
+  <text x="210" y="380" class="check-item">O stencil está fixado corretamente</text>
+
+  <circle cx="195" cy="395" r="4" fill="#BDBEBD"/>
+  <text x="210" y="400" class="check-item">A área de medição está acessível</text>
+
+  <!-- Warning Box -->
+  <rect x="180" y="415" width="440" height="30" rx="4" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+  <text x="400" y="435" text-anchor="middle" class="check-item" fill="#E65100">⚠️ Emergency Stop monitorado para cancelamento automático</text>
+
+  <!-- Buttons -->
+  <rect x="230" y="455" width="140" height="35" rx="4" class="button-cancel"/>
+  <text x="300" y="478" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+  <rect x="430" y="455" width="140" height="35" rx="4" class="button-primary"/>
+  <text x="500" y="478" text-anchor="middle" class="button-text">Confirmar</text>
+</svg>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 28px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #424242; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .input-bg { fill: #FFFFFF; stroke: #BDBDBD; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-cancel { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .window-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .header-bg { fill: #1976D2; }
+      .logo-text { font-family: 'Roboto', sans-serif; font-size: 32px; font-weight: 700; fill: #FFFFFF; }
+    </style>
+  </defs>
+
+  <!-- Window Shadow -->
+  <rect x="150" y="50" width="500" height="500" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Window -->
+  <rect x="150" y="50" width="500" height="500" rx="8" class="window-bg"/>
+
+  <!-- Header -->
+  <rect x="150" y="50" width="500" height="80" rx="8" class="header-bg"/>
+  <rect x="150" y="120" width="500" height="10" fill="#1976D2"/>
+  <text x="400" y="100" text-anchor="middle" class="logo-text">TENSIO METRO</text>
+
+  <!-- Logo Icon -->
+  <circle cx="400" cy="180" r="40" fill="#E3F2FD"/>
+  <path d="M385 180 L395 170 L405 180 L415 170" stroke="#1976D2" stroke-width="3" fill="none"/>
+  <circle cx="400" cy="180" r="25" stroke="#1976D2" stroke-width="2" fill="none"/>
+
+  <!-- Title -->
+  <text x="400" y="250" text-anchor="middle" class="title">Login do Sistema</text>
+  <text x="400" y="275" text-anchor="middle" class="subtitle">Entre com suas credenciais para acessar</text>
+
+  <!-- Username Field -->
+  <text x="200" y="315" class="label">Usuário:</text>
+  <rect x="200" y="325" width="400" height="40" rx="4" class="input-bg"/>
+  <text x="210" y="350" class="cancel-text">joao.silva</text>
+
+  <!-- Password Field -->
+  <text x="200" y="385" class="label">Senha:</text>
+  <rect x="200" y="395" width="400" height="40" rx="4" class="input-bg"/>
+  <circle cx="220" cy="415" r="3" fill="#BDBDBD"/>
+  <circle cx="230" cy="415" r="3" fill="#BDBEBD"/>
+  <circle cx="240" cy="415" r="3" fill="#BDBEBD"/>
+  <circle cx="250" cy="415" r="3" fill="#BDBEBD"/>
+  <circle cx="260" cy="415" r="3" fill="#BDBEBD"/>
+  <circle cx="270" cy="415" r="3" fill="#BDBEBD"/>
+  <circle cx="280" cy="415" r="3" fill="#BDBEBD"/>
+
+  <!-- Buttons -->
+  <rect x="200" y="455" width="120" height="40" rx="4" class="button-cancel"/>
+  <text x="260" y="480" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+  <rect x="480" y="455" width="120" height="40" rx="4" class="button-primary"/>
+  <text x="540" y="480" text-anchor="middle" class="button-text">Entrar</text>
+
+  <!-- Footer Info -->
+  <text x="400" y="525" text-anchor="middle" class="subtitle" font-size="12px">Versão 0.4.0 | Sistema de Inspeção de Stencils</text>
+</svg>

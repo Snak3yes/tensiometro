@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .card-title { font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; fill: #212121; }
+      .card-desc { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .card-time { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #4CAF50; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 2; }
+      .card-bg-hover { fill: #E3F2FD; stroke: #1976D2; stroke-width: 2; }
+      .button-primary { fill: #1976D2; }
+      .button-cancel { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .icon-large { font-size: 48px; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1200" height="700" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1000" height="600" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1000" height="600" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="600" y="100" text-anchor="middle" class="title">Selecionar Modo de Inspeção</text>
+  <text x="600" y="130" text-anchor="middle" class="subtitle">Selecione o modo de inspeção para STENCIL-ABC-123:</text>
+
+  <!-- Card 1: Tensão -->
+  <rect x="140" y="160" width="280" height="380" rx="8" class="card-bg"/>
+
+  <!-- Icon -->
+  <circle cx="280" cy="220" r="40" fill="#E3F2FD"/>
+  <text x="280" y="235" text-anchor="middle" class="icon-large" fill="#1976D2">⚙️</text>
+
+  <text x="280" y="290" text-anchor="middle" class="card-title">Medição de Tensão</text>
+
+  <text x="280" y="330" text-anchor="middle" class="card-desc">Medir tensão superficial</text>
+  <text x="280" y="350" text-anchor="middle" class="card-desc">em grade NxN</text>
+
+  <rect x="160" y="375" width="240" height="60" rx="4" fill="#F5F5F5"/>
+  <text x="280" y="395" text-anchor="middle" class="card-desc" font-size="12px">Grade de medição:</text>
+  <text x="280" y="415" text-anchor="middle" class="card-desc">5x5 = 25 pontos</text>
+
+  <text x="280" y="470" text-anchor="middle" class="card-time">⏱️ Duração estimada: ~3 min</text>
+
+  <rect x="190" y="490" width="180" height="35" rx="4" class="button-primary"/>
+  <text x="280" y="513" text-anchor="middle" class="button-text">Selecionar</text>
+
+  <!-- Card 2: Inspeção Visual -->
+  <rect x="460" y="160" width="280" height="380" rx="8" class="card-bg"/>
+
+  <!-- Icon -->
+  <circle cx="600" cy="220" r="40" fill="#E8F5E9"/>
+  <text x="600" y="235" text-anchor="middle" class="icon-large" fill="#4CAF50">🔍</text>
+
+  <text x="600" y="290" text-anchor="middle" class="card-title">Inspeção Visual</text>
+
+  <text x="600" y="330" text-anchor="middle" class="card-desc">Inspecionar aberturas</text>
+  <text x="600" y="350" text-anchor="middle" class="card-desc">do stencil</text>
+
+  <rect x="480" y="375" width="240" height="60" rx="4" fill="#F5F5F5"/>
+  <text x="600" y="395" text-anchor="middle" class="card-desc" font-size="12px">Análise automática:</text>
+  <text x="600" y="415" text-anchor="middle" class="card-desc">~1000 aberturas</text>
+
+  <text x="600" y="470" text-anchor="middle" class="card-time">⏱️ Duração estimada: ~5 min</text>
+
+  <rect x="510" y="490" width="180" height="35" rx="4" class="button-primary"/>
+  <text x="600" y="513" text-anchor="middle" class="button-text">Selecionar</text>
+
+  <!-- Card 3: Ambos -->
+  <rect x="780" y="160" width="280" height="380" rx="8" class="card-bg-hover"/>
+
+  <!-- Recommended Badge -->
+  <rect x="880" y="175" width="80" height="24" rx="12" fill="#4CAF50"/>
+  <text x="920" y="191" text-anchor="middle" class="button-text" font-size="11px">Recomendado</text>
+
+  <!-- Icon -->
+  <circle cx="920" cy="220" r="40" fill="#E3F2FD"/>
+  <text x="920" y="235" text-anchor="middle" class="icon-large" fill="#1976D2">⚙️ + 🔍</text>
+
+  <text x="920" y="290" text-anchor="middle" class="card-title">Ambos (Completo)</text>
+
+  <text x="920" y="330" text-anchor="middle" class="card-desc">Medir tensão +</text>
+  <text x="920" y="350" text-anchor="middle" class="card-desc">Inspecionar visualmente</text>
+
+  <rect x="800" y="375" width="240" height="60" rx="4" fill="#F5F5F5"/>
+  <text x="920" y="395" text-anchor="middle" class="card-desc" font-size="12px">Grade + Análise:</text>
+  <text x="920" y="415" text-anchor="middle" class="card-desc">25 pontos + 1000 aberturas</text>
+
+  <text x="920" y="470" text-anchor="middle" class="card-time">⏱️ Duração estimada: ~8 min</text>
+
+  <rect x="830" y="490" width="180" height="35" rx="4" class="button-primary"/>
+  <text x="920" y="513" text-anchor="middle" class="button-text">Selecionar</text>
+
+  <!-- Cancel Button -->
+  <rect x="500" y="570" width="200" height="35" rx="4" class="button-cancel"/>
+  <text x="600" y="593" text-anchor="middle" class="cancel-text">Cancelar</text>
+</svg>
