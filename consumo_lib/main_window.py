@@ -173,23 +173,57 @@ class AOIControllerApp(QMainWindow):
         """
         Handler: Solicitação de inspeção da TreeView
 
+        Fluxo: TreeView → Posicionamento → Modo → Execução
+
         Args:
             stencil: Dicionário com dados do stencil
         """
         logger.info(f"Solicitação de inspeção: {stencil.get('code', 'N/A')}")
-        # TODO: Implementar fluxo de inspeção
-        # Por enquanto, apenas exibe mensagem
+
+        # FASE 3: Confirmar posicionamento
+        if not self.show_positioning_confirmation(stencil):
+            # Usuário cancelou
+            logger.info("Posicionamento cancelado pelo usuário")
+            return
+
+        # Posicionamento confirmado - FASE 4 será implementada a seguir
         QMessageBox.information(
             self,
-            "Inspeção Solicitada",
-            f"Inspeção do stencil {stencil.get('code')} solicitada.\n\n"
-            f"Fluxo completo será implementado nas próximas fases:\n"
-            f"1. Confirmação de Posicionamento\n"
-            f"2. Escolha de Modo\n"
-            f"3. Execução Automática\n"
-            f"4. Análise Visual (se houver defeitos)\n\n"
-            f"Estágio atual: FASE 2 concluída ✅"
+            "Posicionamento Confirmado",
+            f"Posicionamento do stencil {stencil.get('code')} confirmado!\n\n"
+            f"FASE 4 (Escolha de Modo) será implementada a seguir.\n\n"
+            f"Fluxo planejado:\n"
+            f"1. ✅ Login (FASE 1)\n"
+            f"2. ✅ TreeView (FASE 2)\n"
+            f"3. ✅ Posicionamento (FASE 3)\n"
+            f"4. ⏳ Escolha de Modo (FASE 4 - próxima)\n"
+            f"5. ⏳ Execução Automática (FASE 5)\n"
+            f"6. ⏳ Análise Visual (FASE 6)\n"
         )
+
+    def show_positioning_confirmation(self, stencil: dict) -> bool:
+        """
+        Exibe dialog de confirmação de posicionamento
+
+        Args:
+            stencil: Dicionário com dados do stencil
+
+        Returns:
+            True se usuário confirmou, False se cancelou
+        """
+        from consumo_lib.dialogs import ConfirmPositioningDialog
+
+        dialog = ConfirmPositioningDialog(stencil['code'], self)
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            checklist_state = dialog.get_checklist_state()
+            logger.info(f"Posicionamento confirmado: {stencil['code']}")
+            logger.info(f"Checklist: {checklist_state}")
+            return True
+        else:
+            logger.info(f"Posicionamento cancelado: {stencil['code']}")
+            return False
 
     def _attempt_auto_connect(self):
         """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""

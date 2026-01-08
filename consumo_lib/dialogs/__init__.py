@@ -43,3 +43,7 @@ __all__ = [
 # Auth dialogs (NOVO - FASE 1)
 from .login_dialog import LoginDialog
 __all__.append('LoginDialog')
+
+# Positioning dialogs (NOVO - FASE 3)
+from .confirm_positioning_dialog import ConfirmPositioningDialog
+__all__.append('ConfirmPositioningDialog')
