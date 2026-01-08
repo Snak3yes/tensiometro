@@ -51,3 +51,7 @@ __all__.append('ConfirmPositioningDialog')
 # Mode selection dialogs (NOVO - FASE 4)
 from .mode_selection_dialog import ModeSelectionDialog
 __all__.append('ModeSelectionDialog')
+
+# Progress dialogs (NOVO - FASE 5)
+from .inspection_progress_dialog import InspectionProgressDialog
+__all__.append('InspectionProgressDialog')

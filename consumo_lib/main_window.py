@@ -262,21 +262,83 @@ class AOIControllerApp(QMainWindow):
             logger.info("Seleção de modo cancelada pelo usuário")
             return
 
-        # Modo selecionado - FASE 5 será implementada a seguir
-        QMessageBox.information(
-            self,
-            "Modo Selecionado",
-            f"Modo de inspeção selecionado com sucesso!\n\n"
-            f"FASE 5 (Execução) será implementada a seguir.\n\n"
-            f"Fluxo planejado:\n"
-            f"1. ✅ Login (FASE 1)\n"
-            f"2. ✅ TreeView (FASE 2)\n"
-            f"3. ✅ Posicionamento (FASE 3)\n"
-            f"4. ✅ Escolha de Modo (FASE 4)\n"
-            f"5. ⏳ Execução (FASE 5 - próxima)\n"
-            f"6. ⏳ Análise Visual (FASE 6)\n"
-            f"7. ⏳ Histórico (FASE 7)\n"
+        # FASE 5: Executar inspeção
+        self.run_inspection(stencil)
+
+    def run_inspection(self, stencil: dict):
+        """
+        Executa inspeção com tela de progresso
+
+        Args:
+            stencil: Dicionário com dados do stencil
+        """
+        from consumo_lib.dialogs import InspectionProgressDialog
+        from consumo_lib.threads import InspectionWorker
+
+        mode = getattr(self, 'selected_inspection_mode', 'tension')
+
+        # Cria dialog de progresso
+        progress_dialog = InspectionProgressDialog(
+            stencil['code'],
+            mode,
+            self
         )
+
+        # Cria worker thread
+        worker = InspectionWorker(
+            stencil['code'],
+            mode,
+            self
+        )
+
+        # Conecta sinais
+        worker.execution_complete.connect(
+            lambda success, msg: self.on_inspection_complete(success, msg, stencil)
+        )
+
+        # Inicia execução
+        progress_dialog.start_execution(worker)
+
+        # Mostra dialog modal
+        progress_dialog.exec()
+
+        # Se completou com sucesso, armazena resultados
+        if progress_dialog.is_complete:
+            self.inspection_results = progress_dialog.get_results()
+            logger.info(f"Resultados da inspeção: {self.inspection_results}")
+
+    def on_inspection_complete(self, success: bool, message: str, stencil: dict):
+        """
+        Handler: Inspeção completada
+
+        Args:
+            success: True se sucesso
+            message: Mensagem de resultado
+            stencil: Dados do stencil
+        """
+        if success:
+            logger.info(f"Inspeção concluída: {stencil['code']} - {message}")
+            QMessageBox.information(
+                self,
+                "Inspeção Concluída",
+                f"Inspeção do stencil {stencil['code']} concluída com sucesso!\n\n"
+                f"{message}\n\n"
+                f"FASE 6 (Análise Visual) será implementada a seguir.\n\n"
+                f"Fluxo planejado:\n"
+                f"1. ✅ Login (FASE 1)\n"
+                f"2. ✅ TreeView (FASE 2)\n"
+                f"3. ✅ Posicionamento (FASE 3)\n"
+                f"4. ✅ Escolha de Modo (FASE 4)\n"
+                f"5. ✅ Execução (FASE 5)\n"
+                f"6. ⏳ Análise Visual (FASE 6 - próxima)\n"
+            )
+        else:
+            logger.error(f"Inspeção falhou: {stencil['code']} - {message}")
+            QMessageBox.warning(
+                self,
+                "Erro na Inspeção",
+                f"A inspeção não pôde ser concluída:\n\n{message}"
+            )
 
     def show_positioning_confirmation(self, stencil: dict) -> bool:
         """
