@@ -12,7 +12,7 @@ from PyQt6.QtWidgets import (
     QPushButton, QProgressBar, QTextEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QThread
-from PyQt6.QtGui import QFont, QTextCursor
+from PyQt6.QtGui import QFont
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +239,8 @@ class InspectionProgressDialog(QDialog):
         log_line = f"[{timestamp}] {message}"
 
         self.log_text.append(log_line)
-        self.log_text.moveCursor(QTextCursor.End)
+        scrollbar = self.log_text.verticalScrollBar()
+        scrollbar.setValue(scrollbar.maximum())
 
         logger.info(f"Progress: {message}")
 
