@@ -207,7 +207,12 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 **Q36:** Para inspeção: é **cada abertura** que tem OK/PARTIAL/BLOCKED? Ou o stencil inteiro é aprovado se X% estiver OK?
 
-<font color="gray">*Resposta:*</font> cada abertura vai ter um aprovado ou reprovado de acordo com as regras de inspeção, se um ponto estiver reprovado o stencil inteiro vai ser reprovado, mas o usuário terá recurso para marcar como aprovado, sendo que irá ficar registrado no histórico aprovado pelo operador e o resultados da inspeção e sua imagem do que foi aprovado pelo operado irão ficar guardados para futuras análises.
+<font color="gray">*Resposta:*</font> cada abertura vai ter um aprovado ou reprovado de acordo com as regras de inspeção. Existem **3 status finais possíveis** para o stencil:
+1. ✅ **Aprovado Automático** (Verde vibrante): Sistema aprovou sem intervenção do usuário, todos os pontos dentro da especificação.
+2. ✅ **Aprovado com Julgamento** (Verde-amarelo): Sistema identificou defeitos, mas usuário julgou como "falhas falsas" (override do sistema), fica registrado no histórico que foi aprovado pelo operador.
+3. ❌ **Reprovado** (Vermelho): Sistema identificou defeitos, usuário confirmou como "defeitos reais" e finalizou a operação sem correção.
+
+Se um ponto estiver reprovado o stencil inteiro vai ser reprovado, mas o usuário terá recursos para marcar como aprovado ou corrigir e retestar (ver Q41a-c).
 
 ### 5.3 Ações Disponíveis
 
@@ -256,11 +261,39 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 <font color="gray">*Resposta:*</font> sim, a engenharia vai ter um campo onde pode cadastrar uma lista de defeitos. essa lista vai ser usada para que o usuário possa fazer o julgamento final. pode ser um dropdown que exibe as opções cadastradas pela engenharia para que o operador escolha entre elas. essa classificação pode gerar relatórios mais ricos no futuro.
 
+**Q41a:** Quando o usuário identifica um defeito durante a inspeção, quais ações ele pode tomar para cada ponto?
+
+<font color="gray">*Resposta:*</font> o usuário tem 3 opções para cada defeito identificado:
+1. **Confirmar como Defeito Real**: Marca o ponto como defeito confirmado, registrando no histórico.
+2. **Aprovar (Falha Falsa)**: Marca o ponto como aprovado (override do sistema), registrando no histórico que foi julgado pelo operador.
+3. **Corrigir e Retestar** ⭐ NOVO: Permite que o usuário faça uma correção no ponto (ex: limpar novamente) e o sistema reteste apenas esse ponto específico (não precisa medir tudo de novo), tudo na mesma sessão de inspeção.
+
+**Q41b:** Quantas vezes o usuário pode corrigir e retestar um ponto na mesma sessão de inspeção?
+
+<font color="gray">*Resposta:*</font> ilimitado. o usuário pode corrigir e retestar quantas vezes forem necessárias até que o ponto fique bom ou até que ele decida reprovar definitivamente a sessão. cada iteração é registrada no histórico com timestamp e imagem.
+
+**Q41c:** Quando o usuário escolhe "Corrigir e Retestar", como funciona o fluxo?
+
+<font color="gray">*Resposta:*</font> o fluxo é:
+1. Usuário clica em "Corrigir e Retestar" para um defeito específico
+2. Sistema PAUSA a inspeção e permite que o usuário faça a correção (limpar, ajustar, etc.)
+3. Usuário indica que terminou a correção (botão "Retestar Agora")
+4. Sistema move a câmera/CNC APENAS para os pontos marcados para correção (não precisa medir tudo de novo)
+5. Sistema captura nova imagem e reavalia apenas esses pontos
+6. Sistema atualiza o status dos pontos retestados:
+   - Se aprovado → Sai da lista de defeitos
+   - Se reprovado → Volta para lista de defeitos para novo julgamento
+7. Usuário pode julgar novamente ou fazer nova correção
+8. Isso se repete até usuário aprovar ou reprovar definitivamente a sessão inteira.
+
 ### 6.3 Resultado da Confirmação
 
 **Q44:** O que acontece se o usuário **discordar do sistema**? Ex: sistema disse "reprovado" mas usuário confirma "não é defeito" - esse ponto passa a ser OK?
 
-<font color="gray">*Resposta:*</font> sim, esse ponto vai ser considerado como ok mas vai ficar registrado que foi julgado pelo operador, e vai ficar no histórico [uma imagem do defeito e a classificação do operador e o nome do operado logado que realizou o julgamento].
+<font color="gray">*Resposta:*</font> o usuário tem 3 opções:
+1. **Aprovar (Falha Falsa)**: Ponto é considerado OK, mas fica registrado no histórico que foi julgado pelo operador (imagem + classificação + nome do operador).
+2. **Confirmar como Defeito Real**: Ponto é mantido como defeito, registrado no histórico.
+3. **Corrigir e Retestar** ⭐ NOVO: Permite correção e reteste do ponto na mesma sessão (ver Q41c para fluxo detalhado).
 
 **Q45:** Essa confirmação humana **salva junto com os dados**? Fica registrado que usuário revisou?
 
@@ -284,7 +317,7 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 **Q48:** O histórico mostra **quais informações**? Data, status, valores médios, quem operou?
 
-<font color="gray">*Resposta:*</font> data-hora, status, valores medidos, operador, resultado (aprovado ou reprovado), 
+<font color="gray">*Resposta:*</font> data-hora, status (agora com 3 opções: Aprovado Automático, Aprovado com Julgamento, Reprovado), valores medidos, operador, resultado, número de iterações da sessão, defeitos encontrados vs corrigidos. para sessões com iterações, mostra também: quantas correções foram feitas, quais pontos foram corrigidos, e histórico de imagens de cada iteração. 
 
 **Q49:** Pode **clicar numa medição antiga** e ver os detalhes completos (todos os pontos, imagens)?
 
@@ -314,23 +347,23 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 **Q53:** Antes de começar execução, o usuário pode **ajustar parâmetros**? Ex: mudar grid de 5x5 para 3x3? Mudar limites de tensão?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> o usuário operador não tem acesso a esse tipo de modificação, apenas a engenharia pode fazer isso.
 
 **Q54:** Esses ajustes **salvam no programa** ou são válidos apenas para essa medição?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> não deve haver a possibilidade de fazer uma modificação temporaria nem para a engenharia, o usuário operado define o comportamento do programa e salva, o usuário operador apenas seleciona e executa o que foi predeterminado pela engenharia para aquele stencil.
 
 ### 8.3 Recomeço
 
 **Q55:** Se a execução **falhar no meio** (ex: queda de energia), ao reiniciar, o usuário pode **continuar de onde parou** ou precisa recomeçar do zero?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> 
 
 ### 8.4 Troca de Operador
 
 **Q56:** Se um operador começa uma medição e outro **termina**, isso fica registrado? Tem login de operador?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> não é possível logar/deslogar no meio de uma inspeção. o que pode acontecer, um operador inicia uma inspeção, chega outro operado, cancela a inspeção atual, os dados são descartados, o novo operador desloga e loga com o seu login, e inicia uma nova inspeção.
 
 ---
 
@@ -340,21 +373,21 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 **Q57:** Antes de começar execução, o sistema **verifica se hardware está conectado**? Ex: PLC OK? Tensiômetro OK? Câmera OK?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> sim, o sistema deve verificar se o hardware está conectado e funcionando corretamente. caso algo não esteja funcionando corretamente exibe erro e bloqueia a execução.
 
 **Q58:** Se algum hardware **não estiver conectado**, o que acontece? Bloqueia execução? Avisa mas permite?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> sim, o sistema deve verificar se o hardware está conectado e funcionando corretamente. caso algo não esteja funcionando corretamente exibe erro e bloqueia a execução.
 
 ### 9.2 Leitura de Código de Barras do Stencil Físico
 
 **Q59:** O stencil físico tem **código de barras gravado**? Onde? No corpo? Na plaquinha?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> existe uma placa de identificação no stencil, essa placa exibe os dados do stencil e possui um código de barras, na criação do programa as informações do stencil serão associadas a esse código de barras.
 
 **Q60:** O sistema **lê esse código** para validar que é o mesmo código selecionado na TreeView?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> não, a leitura do código de barras é mais um atalho para selecionar o programa correto.
 
 ---
 
@@ -364,21 +397,21 @@ Por favor, responda a cada pergunta o mais detalhadamente possível.
 
 **Q61:** Depois que os resultados são salvos no histórico, **o que acontece**? Volta para a TreeView? Fica na tela de resultados?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> retorna para a tela de TreeView. que é a tela inicial.
 
 **Q62:** Pode **iniciar nova medição do mesmo stencil** sem voltar para a TreeView? Ex: botão "Medir Novamente"?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> não, para realizar uma nova medição do mesmo stencil é necessário voltar para a tela de TreeView e selecionar o stencil novamente.
 
 ### 10.2 Integração com Outros Sistemas
 
 **Q63:** Os resultados **sincronizam** com algum sistema externo? MES/ERP? Ou ficam apenas local?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> os resultados ficam guardados localmente mas é gerado um arquivo json mais simples e específico que é enviado para uma API, deve existir uma configuração no sistema onde o usuário habilita ou desabilita do envio para a API e define a URL da API.
 
 **Q64:** Gera algum **alerta** se o stencil for reprovado? Ex: envia email, mostra aviso em outro sistema?
 
-<font color="gray">*Resposta:*</font> _______________________________
+<font color="gray">*Resposta:*</font> não por enquanto mas essa ideia vai ser levada ao cliente para que decida se vamos fazer algo nessa linha.
 
 ---
 
@@ -399,16 +432,16 @@ Use este espaço para adicionar qualquer informação que não foi coberta pelas
 
 Após responder, use este checklist para verificar se respondeu tudo:
 
-- [ ] Seção 1 - Tela Inicial & TreeView (9 perguntas)
-- [ ] Seção 2 - Confirmação de Posicionamento (5 perguntas)
-- [ ] Seção 3 - Escolha do Modo (7 perguntas)
-- [ ] Seção 4 - Execução Automática (11 perguntas)
-- [ ] Seção 5 - Tela de Resultados (7 perguntas)
-- [ ] Seção 6 - Análise Visual Humana (6 perguntas)
-- [ ] Seção 7 - Histórico (6 perguntas)
-- [ ] Seção 8 - Fluxos Alternativos & Exceções (5 perguntas)
-- [ ] Seção 9 - Hardware & Integração (4 perguntas)
-- [ ] Seção 10 - Pós-Processo (4 perguntas)
+- [v] Seção 1 - Tela Inicial & TreeView (9 perguntas)
+- [v] Seção 2 - Confirmação de Posicionamento (5 perguntas)
+- [v] Seção 3 - Escolha do Modo (7 perguntas)
+- [v] Seção 4 - Execução Automática (11 perguntas)
+- [v] Seção 5 - Tela de Resultados (7 perguntas)
+- [v] Seção 6 - Análise Visual Humana (6 perguntas)
+- [v] Seção 7 - Histórico (6 perguntas)
+- [v] Seção 8 - Fluxos Alternativos & Exceções (5 perguntas)
+- [v] Seção 9 - Hardware & Integração (4 perguntas)
+- [v] Seção 10 - Pós-Processo (4 perguntas)
 
 **Total:** 64 perguntas
 
