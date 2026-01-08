@@ -300,6 +300,17 @@ class MainUIBuilder:
 
     def _build_remaining_tabs(self, parent):
         """Cria abas restantes do painel direito."""
+        # NOVO - FASE 2: Aba TreeView (Lista de Programas)
+        from consumo_lib.tabs import TreeViewTab
+        self.window.tree_view_tab = TreeViewTab(
+            stencil_manager=self.window.stencil_tracker,
+            parent=self.window
+        )
+        self.window.tree_view_tab.inspect_requested.connect(
+            self.window._on_inspect_requested
+        )
+        parent.addTab(self.window.tree_view_tab, "📋 Programas")
+
         # Aba 2: Monitor CLP
         self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
         parent.addTab(self.window.plc_monitor, "Monitor CLP")

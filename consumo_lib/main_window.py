@@ -6,6 +6,9 @@ import logging
 
 # Configure logger
 logger = logging.getLogger(__name__)
+
+# Autenticação (NOVO - FASE 1)
+from aoi_lib.auth import AuthService
 import json
 import cv2
 import numpy as np
@@ -60,7 +63,8 @@ except ImportError:
 from consumo_lib.dialogs import (
     StencilManagerDialog, StencilCreateDialog,
     FOVCalibrationDialog, CrosshairSettingsDialog,
-    InspectionSettingsDialog, ReportSettingsDialog, AboutDialog
+    InspectionSettingsDialog, ReportSettingsDialog, AboutDialog,
+    LoginDialog  # NOVO - FASE 1
 )
 from consumo_lib.tabs import (
     CNCControlTab, TensionTab, TrackingTab, InspectionTab, MapTab
@@ -108,6 +112,14 @@ class AOIControllerApp(QMainWindow):
         # Inicialização básica da janela
         super().__init__()
 
+        # NOVO - FASE 1: Autenticação de usuário
+        # Exibe dialog de login antes de continuar
+        self.auth_service = AuthService()
+        if not self.show_login_dialog():
+            # Usuário cancelou o login ou fechou o dialog
+            logger.info("Login cancelado pelo usuário, fechando aplicação")
+            sys.exit(0)
+
         # Usa SetupCoordinator para orquestrar toda inicialização
         setup_coordinator = SetupCoordinator(AOIControllerApp)
         setup_coordinator.setup(self)
@@ -133,6 +145,51 @@ class AOIControllerApp(QMainWindow):
             return getattr(self.dialog_router, name)
         # Comportamento padrão para atributos não encontrados
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+    # =========================================================================
+    # AUTENTICAÇÃO (NOVO - FASE 1)
+    # =========================================================================
+
+    def show_login_dialog(self) -> bool:
+        """
+        Exibe dialog de login e aguarda autenticação.
+
+        Returns:
+            True se login foi bem-sucedido, False se cancelado
+        """
+        login_dialog = LoginDialog(self.auth_service, self)
+        result = login_dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            # Login bem-sucedido
+            user = self.auth_service.get_current_user()
+            logger.info(f"Usuário logado: {user}")
+            return True
+        else:
+            # Usuário cancelou ou fechou o dialog
+            return False
+
+    def _on_inspect_requested(self, stencil: dict):
+        """
+        Handler: Solicitação de inspeção da TreeView
+
+        Args:
+            stencil: Dicionário com dados do stencil
+        """
+        logger.info(f"Solicitação de inspeção: {stencil.get('code', 'N/A')}")
+        # TODO: Implementar fluxo de inspeção
+        # Por enquanto, apenas exibe mensagem
+        QMessageBox.information(
+            self,
+            "Inspeção Solicitada",
+            f"Inspeção do stencil {stencil.get('code')} solicitada.\n\n"
+            f"Fluxo completo será implementado nas próximas fases:\n"
+            f"1. Confirmação de Posicionamento\n"
+            f"2. Escolha de Modo\n"
+            f"3. Execução Automática\n"
+            f"4. Análise Visual (se houver defeitos)\n\n"
+            f"Estágio atual: FASE 2 concluída ✅"
+        )
 
     def _attempt_auto_connect(self):
         """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""

@@ -39,3 +39,7 @@ __all__ = [
 # - CameraSettingsDialog (precisa verificar se existe)
 # - CalibrationTestDialog (precisa verificar se existe)
 # - MapDefinitionDialog (show_definir_mapa_dialog - ~421 linhas, médio)
+
+# Auth dialogs (NOVO - FASE 1)
+from .login_dialog import LoginDialog
+__all__.append('LoginDialog')

@@ -8,6 +8,7 @@ from .tension_tab import TensionTab
 from .tracking_tab import TrackingTab
 from .inspection_tab import InspectionTab
 from .map_tab import MapTab
+from .tree_view_tab import TreeViewTab  # NOVO - FASE 2
 
 __all__ = [
     'BaseTab',
@@ -15,5 +16,6 @@ __all__ = [
     'TensionTab',
     'TrackingTab',
     'InspectionTab',
-    'MapTab'
+    'MapTab',
+    'TreeViewTab'  # NOVO - FASE 2
 ]
