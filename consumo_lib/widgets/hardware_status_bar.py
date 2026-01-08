@@ -67,6 +67,12 @@ class HardwareStatusBar(QWidget):
             QLabel {
                 font-size: 12px;
                 padding: 2px;
+                color: #333333;
+                background-color: #F5F5F5;
+            }
+            QLabel:hover {
+                background-color: #E8E8E8;
+                color: #000000;
             }
         """)
 
