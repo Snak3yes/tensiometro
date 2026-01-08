@@ -47,3 +47,7 @@ __all__.append('LoginDialog')
 # Positioning dialogs (NOVO - FASE 3)
 from .confirm_positioning_dialog import ConfirmPositioningDialog
 __all__.append('ConfirmPositioningDialog')
+
+# Mode selection dialogs (NOVO - FASE 4)
+from .mode_selection_dialog import ModeSelectionDialog
+__all__.append('ModeSelectionDialog')

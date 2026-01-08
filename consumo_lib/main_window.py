@@ -257,19 +257,25 @@ class AOIControllerApp(QMainWindow):
             logger.info("Posicionamento cancelado pelo usuário")
             return
 
-        # Posicionamento confirmado - FASE 4 será implementada a seguir
+        # FASE 4: Escolher modo de inspeção
+        if not self.show_mode_selection(stencil):
+            logger.info("Seleção de modo cancelada pelo usuário")
+            return
+
+        # Modo selecionado - FASE 5 será implementada a seguir
         QMessageBox.information(
             self,
-            "Posicionamento Confirmado",
-            f"Posicionamento do stencil {stencil.get('code')} confirmado!\n\n"
-            f"FASE 4 (Escolha de Modo) será implementada a seguir.\n\n"
+            "Modo Selecionado",
+            f"Modo de inspeção selecionado com sucesso!\n\n"
+            f"FASE 5 (Execução) será implementada a seguir.\n\n"
             f"Fluxo planejado:\n"
             f"1. ✅ Login (FASE 1)\n"
             f"2. ✅ TreeView (FASE 2)\n"
             f"3. ✅ Posicionamento (FASE 3)\n"
-            f"4. ⏳ Escolha de Modo (FASE 4 - próxima)\n"
-            f"5. ⏳ Execução Automática (FASE 5)\n"
+            f"4. ✅ Escolha de Modo (FASE 4)\n"
+            f"5. ⏳ Execução (FASE 5 - próxima)\n"
             f"6. ⏳ Análise Visual (FASE 6)\n"
+            f"7. ⏳ Histórico (FASE 7)\n"
         )
 
     def show_positioning_confirmation(self, stencil: dict) -> bool:
@@ -295,6 +301,45 @@ class AOIControllerApp(QMainWindow):
         else:
             logger.info(f"Posicionamento cancelado: {stencil['code']}")
             return False
+
+    def show_mode_selection(self, stencil: dict) -> bool:
+        """
+        Exibe dialog de seleção de modo de inspeção
+
+        Args:
+            stencil: Dicionário com dados do stencil
+
+        Returns:
+            True se usuário selecionou modo, False se cancelou
+        """
+        from consumo_lib.dialogs import ModeSelectionDialog
+
+        dialog = ModeSelectionDialog(stencil['code'], self)
+        dialog.mode_selected.connect(self.on_mode_selected)
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            selected_mode = dialog.get_selected_mode()
+            logger.info(f"Modo de inspeção selecionado: {selected_mode}")
+            return True
+        else:
+            logger.info(f"Seleção de modo cancelada: {stencil['code']}")
+            return False
+
+    def on_mode_selected(self, data: dict):
+        """
+        Handler: Modo de inspeção selecionado
+
+        Args:
+            data: Dict com "mode" e "stencil_code"
+        """
+        mode = data.get("mode")
+        stencil_code = data.get("stencil_code")
+
+        logger.info(f"Modo selecionado: {mode} para stencil {stencil_code}")
+
+        # Armazena modo selecionado para uso na FASE 5
+        self.selected_inspection_mode = mode
 
     def _attempt_auto_connect(self):
         """Tenta conexão automática ao PLC e câmera ao iniciar a aplicação."""
