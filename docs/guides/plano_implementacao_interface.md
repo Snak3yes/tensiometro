@@ -1,9 +1,20 @@
 # Plano de Implementação - Interface do Operador
 
 **Data:** 2026-01-08
-**Versão:** 1.0
-**Status:** 📋 Planejamento
-**Baseado em:** `docs/guides/fluxo_usuario_operador.md`
+**Versão:** 2.0 (Abordagem Simplificada)
+**Status:** 📋 Planejamento Atualizado
+**Baseado em:** `docs/guides/fluxo_usuario_operador.md` v2.0
+
+**⚠️ ATUALIZAÇÃO v2.0:**
+- Adotada abordagem "descartar e recomeçar" aprovada pelo cliente
+- Reduzida complexidade em ~30% (removido loop iterativo)
+- Histórico limpo (sem informações de iteração)
+- 3 status finais: A-AUTO, A-USER, REPROV
+
+**Veja também:**
+- `docs/guides/ANALISE_PROPOSTA_SIMPLIFICADA.md` - Análise comparativa
+- `docs/wireframes/svg/06_analise_visual_humana_v2.svg` - Tela de análise
+- `docs/wireframes/svg/07_tela_historico_v2.svg` - Tela de histórico
 
 ---
 
@@ -46,8 +57,9 @@ Implementar a interface completa do usuário operador do sistema Tensiômetro, b
 
 ### Premissas
 
-1. **Wireframes Aprovados:** Cliente validou todos os wireframes SVG
-2. **Hardware Funcional:** PLC, Tensiômetro e Câmera estão operacionais
+1. **Wireframes Aprovados:** Cliente validou todos os wireframes SVG (v2.0 para telas 06 e 07)
+2. **Abordagem Simplificada:** Cliente aprovou fluxo "descartar e recomeçar" (mais simples que iterativo)
+3. **Hardware Funcional:** PLC, Tensiômetro e Câmera estão operacionais
 3. **Backend Pronto:** `aoi_lib/` tem toda a lógica de negócio implementada
 4. **PyQt6:** Framework de interface escolhido
 5. **Python 3.10+:** Versão mínima do Python
@@ -308,13 +320,17 @@ Data Layer (SQLite, JSON)
 
 ### FASE 5: Análise Visual Humana (Semana 7-8)
 
-**Objetivo:** Implementar tela de julgamento de defeitos
+**Objetivo:** Implementar tela de julgamento de defeitos com abordagem simplificada
+
+**⚠️ ATUALIZAÇÃO v2.0:** Abordagem simplificada "descartar e recomeçar" aprovada pelo cliente.
 
 **Componentes:**
 1. `consumo_lib/gui/widgets/defect_list_widget.py`
 2. `consumo_lib/gui/screens/analysis_screen.py`
 3. `consumo_lib/gui/dialogs/defect_judgment_dialog.py`
-4. `consumo_lib/gui/controllers/analysis_controller.py`
+4. `consumo_lib/gui/dialogs/final_decision_dialog.py` (NOVO - Descartar/Reprovar)
+5. `consumo_lib/gui/controllers/analysis_controller.py`
+6. `aoi_lib/audit_log.py` (NOVO - Log de auditoria para inspeções descartadas)
 
 **Funcionalidades:**
 - Lista de defeitos com paginação
@@ -322,14 +338,17 @@ Data Layer (SQLite, JSON)
 - Controles de zoom
 - Dropdown de tipos de defeitos (configurável)
 - Campo de anotações
-- Julgamento:
-  - Confirmar como defeito
-  - Aprovar (override do sistema)
+- **Julgamento simplificado (2 opções):**
+  - ✓ Aprovar (Falha Falsa)
+  - ✓ Confirmar como Defeito Real
 - Navegação (Anterior/Próximo)
 - Progresso de análise (ex: "3 de 15 analisados")
-- Botão Finalizar
+- Botão Finalizar Análise
+- **Dialog final (se há defeitos confirmados):**
+  - 🗑️ Descartar Inspeção (NÃO salva no histórico)
+  - ❌ Reprovar Sessão (Salva como reprovado)
 
-**Wireframe Referência:** `06_analise_visual_humana.svg`
+**Wireframe Referência:** `06_analise_visual_humana_v2.svg`
 
 **Dados de Configuração:**
 ```json
@@ -339,9 +358,35 @@ Data Layer (SQLite, JSON)
     {"id": 2, "name": "Abertura deformada", "severity": "medium"},
     {"id": 3, "name": "Dano mecânico", "severity": "high"},
     {"id": 4, "name": "Sujidade generalizada", "severity": "medium"}
-  ]
+  ],
+  "approval_status": {
+    "auto_approved": {
+      "code": "A-AUTO",
+      "label": "Aprovado Automático",
+      "color": "#4CAF50",
+      "description": "Sistema aprovou sem intervenção do usuário"
+    },
+    "user_approved": {
+      "code": "A-USER",
+      "label": "Aprovado com Julgamento",
+      "color": "#CDDC39",
+      "description": "Sistema identificou defeitos, usuário julgou como falhas falsas"
+    },
+    "rejected": {
+      "code": "REPROV",
+      "label": "Reprovado",
+      "color": "#F44336",
+      "description": "Sistema identificou defeitos, usuário confirmou como reais"
+    }
+  }
 }
 ```
+
+**Status Finais Implementados:**
+1. **A-AUTO**: Sem defeitos detectados → Salva direto no histórico
+2. **A-USER**: Defeitos julgados como falhas falsas → Salva no histórico
+3. **REPROV**: Defeitos confirmados como reais → Salva no histórico
+4. **DISCARDED**: Inspeção descartada → NÃO salva, apenas log de auditoria
 
 **Critérios de Sucesso:**
 - [ ] Lista de defeitos exibida
@@ -349,44 +394,109 @@ Data Layer (SQLite, JSON)
 - [ ] Zoom funcionando
 - [ ] Dropdown de defeitos populado
 - [ ] Anotações funcionando
-- [ ] Julgamento registrando corretamente
+- [ ] Julgamento (2 opções) registrando corretamente
 - [ ] Navegação funcionando
 - [ ] Progresso atualizando
-- [ ] Finalizar salvando tudo
+- [ ] **Dialog final (Descartar/Reprovar) funcionando**
+- [ ] **Descarte registrando em log de auditoria**
+- [ ] **3 status finais salvos corretamente**
 - [ ] Testes passando
+
+**Mudanças vs Original (-30% complexidade):**
+- ❌ REMOVIDO: Loop de correção e reteste
+- ❌ REMOVIDO: Indicadores de iteração
+- ❌ REMOVIDO: Histórico de iterações do ponto
+- ✅ ADICIONADO: Dialog final Descartar/Reprovar
+- ✅ ADICIONADO: Log de auditoria para inspeções descartadas
+- ✅ SIMPLIFICADO: 2 opções de julgamento (era 3)
 
 ---
 
 ### FASE 6: Tela de Histórico (Semana 9)
 
-**Objetivo:** Implementar tela de histórico com exportação
+**Objetivo:** Implementar tela de histórico com 3 status badges e exportação
+
+**⚠️ ATUALIZAÇÃO v2.0:** Histórico limpo com 3 status distintos.
 
 **Componentes:**
 1. `consumo_lib/gui/screens/history_screen.py`
 2. `consumo_lib/gui/dialogs/history_dialog.py`
+3. `consumo_lib/widgets/status_badge.py` (NOVO - Badges coloridos para status)
 
 **Funcionalidades:**
-- Tabela de medições
+- Tabela de medições com **3 status badges:**
+  - **[A-AUTO]** ✅ (Verde #4CAF50): Aprovado Automático
+  - **[A-USER]** ✅ (Verde-amarelo #CDDC39): Aprovado com Julgamento
+  - **[REPROV]** ❌ (Vermelho #F44336): Reprovado
 - Filtros de período (7, 30, 60, 90, 180, 365 dias)
-- Filtros de status (Todos, Aprovados, Reprovados)
-- Estatísticas do período
+- **Filtros de status atualizados:**
+  - Todos
+  - A-AUTO (Aprovado Automático)
+  - A-USER (Aprovado com Julgamento)
+  - REPROV (Reprovado)
+- **Estatísticas separadas por tipo:**
+  - Total de medições
+  - A-AUTO: X (Y%)
+  - A-USER: X (Y%)
+  - REPROV: X (Y%)
+- **Coluna "Defeitos" com formato:**
+  - "Encontrados / Julgados"
+  - Exemplo: "12 / 3" (12 falhas falsas, 3 defeitos reais)
 - Ações:
   - Ver detalhes
   - Gerar PDF
   - Exportar CSV
+- **Legenda:** "Inspeções descartadas NÃO ficam no histórico (apenas log de auditoria)"
 - Paginação da tabela
 
-**Wireframe Referência:** `07_tela_historico.svg`
+**Wireframe Referência:** `07_tela_historico_v2.svg`
+
+**Modelo de Dados (Simplificado):**
+```python
+@dataclass
+class InspectionRecord:
+    session_id: str
+    timestamp: datetime
+    operator: str
+    mode: str  # "Tensão", "Inspeção", "Completo"
+
+    # Status final (3 opções)
+    status: Literal["A-AUTO", "A-USER", "REPROV"]
+
+    # Defeitos
+    defects_found: int
+    defects_judged_false_alarms: int  # Aprovados (falhas falsas)
+    defects_confirmed_real: int       # Reprovados (defeitos reais)
+
+    # Dados de medição
+    tension_data: Optional[TensionData]
+    inspection_data: Optional[InspectionData]
+
+    # Caminhos
+    pdf_report_path: Optional[str]
+    images_path: Optional[str]
+```
 
 **Critérios de Sucesso:**
 - [ ] Tabela populada com medições
-- [ ] Filtros funcionando
-- [ ] Estatísticas calculadas corretamente
+- [ ] **3 status badges exibidos corretamente**
+- [ ] **Filtros de status (A-AUTO, A-USER, REPROV) funcionando**
+- [ ] **Estatísticas separadas por tipo calculadas corretamente**
+- [ ] **Coluna "Defeitos" mostrando "Encontrados / Julgados"**
+- [ ] [ ] Legenda sobre inspeções descartadas exibida
 - [ ] Detalhes exibindo corretamente
 - [ ] PDF gerando
 - [ ] CSV exportando
 - [ ] Paginação funcionando
 - [ ] Testes passando
+
+**Mudanças vs Original:**
+- ❌ REMOVIDO: Informações de iteração
+- ❌ REMOVIDO: Contador de iterações
+- ❌ REMOVIDO: Histórico de tentativas
+- ✅ ADICIONADO: 3 status badges com cores distintas
+- ✅ ADICIONADO: Estatísticas separadas por tipo de aprovação
+- ✅ ADICIONADO: Legenda sobre inspeções descartadas
 
 ---
 
