@@ -881,6 +881,7 @@ tensiometro/
 - Entry points: `main.py`
 - Essential guides: `README.md`, `CLAUDE.md`, `PROJECT_ORGANIZATION_GUIDELINES.md`
 - Build configs: `pytest.ini`, `requirements.txt`
+- Test runner wrappers: `run_tests.bat`, `run_tests.sh` (delegates to `tests/scripts/`)
 - Virtual env: `.venv/`, `.conda/`
 - Git: `.git/`, `.gitignore`
 - Tool configs: `.vscode/`, `.claude/`
@@ -1005,6 +1006,10 @@ tests/
 ├── fixtures/               # Test data
 │   ├── gerber/
 │   └── images/
+├── scripts/                # Test runner utilities
+│   ├── run_tests.bat       # Main test runner (Windows)
+│   ├── run_tests.sh        # Main test runner (Unix/Linux)
+│   └── README.md           # Test scripts documentation
 └── conftest.py             # Global fixtures
 ```
 
