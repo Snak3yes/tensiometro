@@ -17,18 +17,28 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Version:** 0.4.0 (see aoi_lib/__init__.py)
 
+**Code Statistics (2026-01-08):**
+- Total Python files: 145
+- Total lines of code: 48,827
+- aoi_lib: 38 files, 18,343 lines (core business logic)
+- consumo_lib: 69 files, 18,105 lines (modular GUI)
+
 **Recent Changes (2025-12-12):**
 - Simplified FOV calibration for fixed camera (removed dual-Z-height logic)
 - Fixed Y-axis movement inversion bug (click-to-move now works correctly)
 - Added crosshair customization dialog
 - Fixed FOV calibration save bug (ConfigAdapter keyword argument)
 
-**Latest Updates (2026-01-07):**
-- **Project Reorganization:** Restructured project root, moved documentation to `docs/`, archived test files to `archive/`
-- **Modular Refactoring:** `consumo_lib.py` refactored from 6,245 to 592 lines as modular package structure
+**Latest Updates (2026-01-08):**
+- **Project Organization:** Adopted PROJECT_ORGANIZATION_GUIDELINES.md standards
+- **Clean Root:** Reduced root .md files from 7 to 3 (README.md, CLAUDE.md, PROJECT_ORGANIZATION_GUIDELINES.md)
+- **Documentation Structure:** Organized docs/ with subdirectories (guides/, architecture/, meetings/, reports/)
+- **Test Scripts Reorganized:** Moved run_tests.bat to tests/scripts/, created wrappers in root
+- **Project Reorganization (2026-01-07):** Restructured project root, moved documentation to `docs/`, archived test files to `archive/`
+- **Modular Refactoring:** `consumo_lib.py` refactored from 6,245 to 646 lines as modular package structure (69 files)
 - **POC Gerber:** Renamed `testes_gerber/` → `poc_gerber/` (Proof of Concept Gerber viewer)
-- **Auto-Connect PLC:** Enabled `auto_connect_plc: true` in `aoi_config.json` for automatic PLC connection on startup
-- **Bug Fixes:**
+- **Auto-Connect PLC:** Enabled `auto_connect_plc: true` in `config/aoi_config.json` for automatic PLC connection on startup
+- **Bug Fixes (2026-01-07):**
   - Fixed import path from `testes_gerber` to `poc_gerber` in `aoi_lib/gerber_parser.py`
   - Fixed `log` undefined error in `fiducial_alignment_widget.py`
   - Fixed duplicate movement bug in POC Gerber viewer `_move_objects()` method
@@ -36,6 +46,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Added robust validation to Gerber parser functions
   - Fixed Modbus interpolation addressing (X/Y use shared coil M1050)
   - Added extensive logging to PLC movement and wait_for_idle
+- **Recent UI Updates (2026-01-08):**
+  - Fixed CNC status label reference
+  - Removed "Posição Atual" groupbox from left panel
+  - Added CNC status display to MovementControlWidget
+  - Added position display inside Movement Controls groupbox
+  - Fixed AboutDialog and updated "About" text
 - **Branch Strategy:** Migrated from `master` to `main` as primary branch
 - **SSH Configuration:** SSH keys properly configured for passwordless Git operations
 - **Repository Size:** Currently ~2.0 GB (needs cleanup of large .rar files from history)
@@ -87,8 +103,8 @@ Primary testing is through practical validation with real hardware (PLC, tensiom
 - **Primary Branch:** `main` (migrated from `master` on 2026-01-05)
 - **Active Branches:** `main`, `clp`, `clp-release`
 - **Remote:** `git@github.com:RONALDBUZAGLO/tensiometro.git` (SSH configured)
-- **Repository Size:** ~2.0 GB (133 Python files, 42,618 lines of code)
-- **Last Major Update:** 2026-01-07 - PLC movement fixes and extensive logging
+- **Repository Size:** ~2.0 GB (145 Python files, 48,827 lines of code)
+- **Last Major Update:** 2026-01-08 - Project organization and test scripts reorganization
 
 ### Module Import Patterns
 
@@ -249,7 +265,7 @@ Located in `poc_gerber/` (formerly `testes_gerber/`) - Proof of Concept for stan
 - **ReportGenerator** ([aoi_lib/report_generator.py](aoi_lib/report_generator.py)) - PDF generation using reportlab with heatmaps and trend analysis
 
 ### Main Application (Modular Architecture)
-**consumo_lib/** package - Refactored from monolithic 6,245-line file to modular structure:
+**consumo_lib/** package - Refactored from monolithic 6,245-line file to modular structure (69 files, 18,105 lines):
 - **main_window.py** (646 lines) - PyQt6 main window orchestrator with tabs:
   - CNC Control: Manual jogging, camera preview with click-to-move
   - Tension Measurement: Grid-based sampling with heatmap visualization
@@ -262,6 +278,9 @@ Located in `poc_gerber/` (formerly `testes_gerber/`) - Proof of Concept for stan
 - **managers/** - Business logic wrappers (RecipeManagerWrapper, StencilManagerWrapper)
 - **handlers/** - Event handling (KeyboardHandler, MenuHandler, DialogHandler)
 - **threads/** - Worker threads (TensionMeasurementThread, MapGeneratorThread)
+
+**Entry Point:**
+- **main.py** (34 lines) - Application entry point that initializes and launches MainWindow
 
 ## Critical Data Flows
 
@@ -346,14 +365,14 @@ PLCAxisController.move_absolute('Y', current_y + dy_pulses)
 
 ### Dependency Graph
 ```
-consumo_lib/main_window.py (589 lines - orchestrator only)
+consumo_lib/main_window.py (646 lines - orchestrator only)
   ├── consumo_lib/coordinators/SetupCoordinator (initialization)
   │   ├── consumo_lib/managers/ (RecipeManagerWrapper, StencilManagerWrapper, etc.)
   │   ├── consumo_lib/controllers/ (various UI controllers)
   │   └── consumo_lib/handlers/ (keyboard, menu, dialogs)
   ├── consumo_lib/tabs/ (CNCControlTab, TensionTab, InspectionTab, etc.)
   │   └── consumo_lib/widgets/ (reusable UI components)
-  └── aoi_lib/ (CORE BUSINESS LOGIC - ~15,439 lines)
+  └── aoi_lib/ (CORE BUSINESS LOGIC - 38 files, 18,343 lines)
       ├── plc_axis_controller.py (Modbus TCP - hardware layer)
       ├── camera_controller.py (OpenCV - hardware layer)
       ├── stencil_tension.py (Serial RS-232 - hardware layer)
@@ -569,11 +588,13 @@ logger.error("❌ Falha na leitura do tensiômetro")
 - **Camera:** USB camera compatible with OpenCV (or HTTP stream support)
 
 ### Configuration Files
-- **aoi_config.json** - System-wide settings (connection, calibration, UI state)
+- **config/aoi_config.json** - System-wide settings (connection, calibration, UI state)
   - **Important:** Contains `auto_connect_plc: true` (enabled 2026-01-05) for automatic PLC connection
   - Contains `auto_connect_camera: true` for automatic camera connection
   - PLC connection: `plc_host: "192.168.1.5"`, `plc_port: 502`
-- **camera_calibration.json** - FOV calibration data
+  - Calibration: `pulses_per_rev: 800.0`, `fuso_pitch: 0.0`
+  - CNC: `system_type: "corexy"`, `steps_per_unit: 80.0`
+- **config/camera_calibration.json** - FOV calibration data
 - **recipes/*.json** - Recipe definitions per stencil model
 - **data/stencils/*.json** - Individual stencil history files
 
@@ -595,15 +616,16 @@ assets/          # Project assets
   calibration/    # Calibration checkerboard images
 poc_gerber/      # POC Gerber viewer (renamed from testes_gerber/)
 aoi_lib/         # Core AOI library
-consumo_lib/     # Main GUI application (modular package, 592 lines main_window.py)
+consumo_lib/     # Main GUI application (modular package, 646 lines main_window.py)
 ```
 
 ### Known Issues & Quirks
 1. **Repository Size:** Currently ~2.0 GB due to large .rar files in Git history (needs cleanup with BFG or git-filter-repo)
-2. **Refactoring Completed:** `consumo_lib.py` was successfully refactored from 6,245 to 646 lines as modular package (2026-01-05)
+2. **Refactoring Completed:** `consumo_lib.py` was successfully refactored from 6,245 to 646 lines as modular package with 69 files (2026-01-05 to 2026-01-08)
 3. **Legacy Code:** Some references to "ADESIVADORA" project (adhesive dispenser) - code was adapted from that project
 4. **Dual Persistence:** Both JSON and SQLite supported - SQLite migration is partial/optional
 5. **POC Gerber:** Located in `poc_gerber/` directory, contains experimental Gerber viewer with corrected obround geometry
+6. **Build Artifacts in Root:** `coverage.xml`, `.coverage`, `htmlcov/` visible during development (properly in .gitignore)
 
 ### Coordinate Systems and Important Gotchas
 
@@ -813,7 +835,7 @@ Solutions:
 ## Project Organization Standards
 
 **Last Updated:** 2026-01-08
-**Status:** Enforced - Follow these principles for all new code
+**Status:** Enforced - Follow PROJECT_ORGANIZATION_GUIDELINES.md for all new code
 
 ### Directory Structure Principles
 
@@ -827,7 +849,15 @@ tensiometro/
 ├── PROJECT_ORGANIZATION_GUIDELINES.md  # Organization standards (ACCEPTED in root)
 │
 ├── aoi_lib/                    # Core AOI library modules
-├── consumo_lib/                # Main GUI application (modular package, 646 lines)
+├── consumo_lib/                # Main GUI application (modular package, 69 files, 18,105 lines)
+│   ├── main_window.py          # Main orchestrator (646 lines)
+│   ├── tabs/                   # Tab implementations
+│   ├── widgets/                # Reusable UI components
+│   ├── controllers/            # Hardware control wrappers
+│   ├── coordinators/           # Complex workflow orchestration
+│   ├── managers/               # Business logic wrappers
+│   ├── handlers/               # Event handling
+│   └── threads/                # Worker threads
 │
 ├── tests/                      # Test suite
 │   ├── unit/                   # Fast unit tests
