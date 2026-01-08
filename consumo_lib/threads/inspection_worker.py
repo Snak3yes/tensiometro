@@ -89,6 +89,9 @@ class InspectionWorker(QThread):
         self.results = {
             "mode": "tension",
             "tension_avg": 32.5,
+            "tension_min": 30.2,
+            "tension_max": 34.8,
+            "tension_std": 1.45,
             "points_measured": steps,
             "grid_size": "5x5",
             "classification": "OK"
@@ -123,7 +126,9 @@ class InspectionWorker(QThread):
             "classification": "OK",
             "ok_count": 45,
             "partial_count": 5,
-            "blocked_count": 0
+            "blocked_count": 0,
+            "partial_apertures": [12, 27, 33, 41, 48],
+            "blocked_apertures": []
         }
 
         self.log_message.emit(f"✅ Classificação: {self.results['classification']}")
@@ -142,7 +147,35 @@ class InspectionWorker(QThread):
 
         if not self._is_cancelled:
             # Combina resultados
-            self.results["mode"] = "both"
+            tension_results = {
+                "mode": "tension",
+                "tension_avg": 32.5,
+                "tension_min": 30.2,
+                "tension_max": 34.8,
+                "tension_std": 1.45,
+                "points_measured": 25,
+                "grid_size": "5x5",
+                "classification": "OK"
+            }
+
+            inspection_results = {
+                "mode": "inspection",
+                "apertures_analyzed": 50,
+                "classification": "OK",
+                "ok_count": 45,
+                "partial_count": 5,
+                "blocked_count": 0,
+                "partial_apertures": [12, 27, 33, 41, 48],
+                "blocked_apertures": []
+            }
+
+            self.results = {
+                "mode": "both",
+                "tension_results": tension_results,
+                "inspection_results": inspection_results,
+                "combined_classification": "OK"
+            }
+
             self.log_message.emit("✅ Inspeção completa concluída")
 
     def cancel(self):

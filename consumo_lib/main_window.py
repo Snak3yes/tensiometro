@@ -318,20 +318,9 @@ class AOIControllerApp(QMainWindow):
         """
         if success:
             logger.info(f"Inspeção concluída: {stencil['code']} - {message}")
-            QMessageBox.information(
-                self,
-                "Inspeção Concluída",
-                f"Inspeção do stencil {stencil['code']} concluída com sucesso!\n\n"
-                f"{message}\n\n"
-                f"FASE 6 (Análise Visual) será implementada a seguir.\n\n"
-                f"Fluxo planejado:\n"
-                f"1. ✅ Login (FASE 1)\n"
-                f"2. ✅ TreeView (FASE 2)\n"
-                f"3. ✅ Posicionamento (FASE 3)\n"
-                f"4. ✅ Escolha de Modo (FASE 4)\n"
-                f"5. ✅ Execução (FASE 5)\n"
-                f"6. ⏳ Análise Visual (FASE 6 - próxima)\n"
-            )
+
+            # FASE 6: Exibir resultados
+            self.show_inspection_results(stencil)
         else:
             logger.error(f"Inspeção falhou: {stencil['code']} - {message}")
             QMessageBox.warning(
@@ -339,6 +328,27 @@ class AOIControllerApp(QMainWindow):
                 "Erro na Inspeção",
                 f"A inspeção não pôde ser concluída:\n\n{message}"
             )
+
+    def show_inspection_results(self, stencil: dict):
+        """
+        Exibe dialog de resultados da inspeção
+
+        Args:
+            stencil: Dicionário com dados do stencil
+        """
+        from consumo_lib.dialogs import InspectionResultsDialog
+
+        mode = getattr(self, 'selected_inspection_mode', 'tension')
+        results = getattr(self, 'inspection_results', {})
+
+        dialog = InspectionResultsDialog(
+            stencil['code'],
+            mode,
+            results,
+            self
+        )
+
+        dialog.exec()
 
     def show_positioning_confirmation(self, stencil: dict) -> bool:
         """

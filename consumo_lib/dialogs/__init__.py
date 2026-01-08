@@ -55,3 +55,7 @@ __all__.append('ModeSelectionDialog')
 # Progress dialogs (NOVO - FASE 5)
 from .inspection_progress_dialog import InspectionProgressDialog
 __all__.append('InspectionProgressDialog')
+
+# Results dialogs (NOVO - FASE 6)
+from .inspection_results_dialog import InspectionResultsDialog
+__all__.append('InspectionResultsDialog')
