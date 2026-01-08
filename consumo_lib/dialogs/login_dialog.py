@@ -43,7 +43,7 @@ class LoginDialog(QDialog):
         """Configura interface do dialog"""
         self.setWindowTitle("TENSIO METRO - Login")
         self.setModal(True)
-        self.setFixedSize(450, 350)
+        self.setFixedSize(450, 480)  # Aumentado de 350 para 480 para não cortar conteúdo
 
         layout = QVBoxLayout(self)
         layout.setSpacing(20)
