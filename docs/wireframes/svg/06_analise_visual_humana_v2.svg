@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 20px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .value { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #212121; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .header-bg { fill: #1976D2; }
+      .header-text { font-family: 'Roboto', sans-serif; font-size: 18px; font-weight: 700; fill: #FFFFFF; }
+      .panel-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .section-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .defect-item { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .defect-item-current { fill: #FFF3E0; stroke: #FF9800; stroke-width: 2; }
+      .button-primary { fill: #1976D2; }
+      .button-success { fill: #4CAF50; }
+      .button-warning { fill: #FF9800; }
+      .button-danger { fill: #F44336; }
+      .button-cancel { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .status-blocked { fill: #F44336; }
+      .status-partial { fill: #FF9800; }
+      .status-ok { fill: #4CAF50; }
+      .image-placeholder { fill: #E0E0E0; stroke: #BDBEBD; stroke-width: 1; }
+      .dropdown-bg { fill: #FFFFFF; stroke: #BDBDBD; stroke-width: 1; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 2; }
+      .overlay-bg { fill: #000000; opacity: 0.7; }
+    </style>
+  </defs>
+
+  <!-- Main Window Background -->
+  <rect x="0" y="0" width="1400" height="900" fill="#FAFAFA"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="1400" height="60" class="header-bg"/>
+  <text x="30" y="38" class="header-text">Análise de Defeitos - Julgamento</text>
+  <text x="1300" y="38" text-anchor="end" class="header-text" font-size="14px">STENCIL-ABC-123 | Modo: Inspeção Visual</text>
+
+  <!-- Main Content Area -->
+  <rect x="20" y="80" width="1360" height="820" rx="4" class="panel-bg"/>
+
+  <!-- Progress Bar -->
+  <text x="50" y="115" class="title" font-size="16px">Defeitos Identificados: 3 de 15 analisados</text>
+
+  <rect x="50" y="130" width="1300" height="30" rx="4" fill="#E0E0E0"/>
+  <rect x="50" y="130" width="260" height="30" rx="4" fill="#4CAF50"/>
+
+  <!-- Left Panel - Defect List -->
+  <rect x="50" y="175" width="400" height="720" rx="4" class="section-bg"/>
+
+  <text x="70" y="205" class="title" font-size="15px">Lista de Defeitos</text>
+
+  <!-- Defect 1 - Analyzed -->
+  <rect x="70" y="225" width="360" height="70" rx="4" class="defect-item"/>
+  <circle cx="95" cy="245" r="6" class="status-ok"/>
+  <text x="110" y="250" class="value" font-weight="500">Defeito #1 - ✅ APROVADO</text>
+  <text x="95" y="270" class="subtitle" font-size="12px">X=125, Y=78</text>
+  <text x="95" y="285" class="subtitle" font-size="11px" fill="#4CAF50">Julgado: Falha falsa</text>
+
+  <!-- Defect 2 - Analyzed -->
+  <rect x="70" y="305" width="360" height="70" rx="4" class="defect-item"/>
+  <circle cx="95" cy="325" r="6" class="status-ok"/>
+  <text x="110" y="330" class="value" font-weight="500">Defeito #2 - ✅ APROVADO</text>
+  <text x="95" y="355" class="subtitle" font-size="12px">X=140, Y=92</text>
+  <text x="95" y="370" class="subtitle" font-size="11px" fill="#4CAF50">Julgado: Falha falsa</text>
+
+  <!-- Defect 3 - Current -->
+  <rect x="70" y="385" width="360" height="100" rx="4" class="defect-item-current"/>
+  <circle cx="95" cy="410" r="6" class="status-blocked"/>
+  <text x="110" y="415" class="value" font-weight="700" fill="#FF9800">Defeito #3 - EM ANÁLISE</text>
+  <text x="95" y="440" class="subtitle" font-size="12px">X=155, Y=106</text>
+  <text x="95" y="460" class="subtitle" font-size="12px">Tipo: Abertura bloqueada</text>
+  <text x="95" y="475" class="subtitle" font-size="11px" fill="#F44336">26% aberto (74% bloqueado)</text>
+
+  <!-- Defect 4-5 - Pending -->
+  <rect x="70" y="495" width="360" height="60" rx="4" class="defect-item"/>
+  <circle cx="95" cy="515" r="6" fill="#BDBEBD"/>
+  <text x="110" y="520" class="value">Defeito #4 - Pendente</text>
+  <text x="95" y="543" class="subtitle" font-size="12px">X=170, Y=120</text>
+
+  <rect x="70" y="565" width="360" height="60" rx="4" class="defect-item"/>
+  <circle cx="95" cy="585" r="6" fill="#BDBEBD"/>
+  <text x="110" y="590" class="value">Defeito #5 - Pendente</text>
+  <text x="95" y="613" class="subtitle" font-size="12px">X=185, Y=134</text>
+
+  <!-- More defects indicator -->
+  <text x="250" y="645" text-anchor="middle" class="subtitle" font-size="12px">... mais 10 defeitos</text>
+
+  <!-- Navigation Buttons -->
+  <rect x="70" y="665" width="175" height="35" rx="4" class="button-cancel"/>
+  <text x="157" y="688" text-anchor="middle" class="value">◀ Anterior</text>
+
+  <rect x="255" y="665" width="175" height="35" rx="4" class="button-primary"/>
+  <text x="342" y="688" text-anchor="middle" class="button-text">Próximo ▶</text>
+
+  <!-- Finish Analysis Button -->
+  <rect x="70" y="715" width="360" height="40" rx="4" class="button-warning"/>
+  <text x="250" y="741" text-anchor="middle" class="button-text" font-size="15px">📋 Finalizar Análise</text>
+
+  <!-- Right Panel - Defect Analysis -->
+  <rect x="470" y="175" width="910" height="720" rx="4" class="section-bg"/>
+
+  <!-- Image Section -->
+  <text x="490" y="205" class="title" font-size="15px">Imagem do Defeito #3</text>
+
+  <rect x="490" y="220" width="420" height="300" rx="4" class="image-placeholder"/>
+  <text x="700" y="365" text-anchor="middle" class="subtitle" font-size="16px">[Imagem Capturada da Abertura]</text>
+  <text x="700" y="390" text-anchor="middle" class="subtitle" font-size="12px">Bloqueio por resíduo de pasta</text>
+
+  <!-- Zoom Controls -->
+  <rect x="795" y="495" width="100" height="25" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="845" y="512" text-anchor="middle" class="subtitle" font-size="11px">Zoom: [-] [+] [Reset]</text>
+
+  <!-- Analysis Section -->
+  <text x="930" y="205" class="title" font-size="15px">Análise do Sistema</text>
+
+  <rect x="930" y="220" width="430" height="120" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <text x="950" y="250" class="label">Área Esperada:</text>
+  <text x="1120" y="250" class="value" font-weight="700">2.3 mm²</text>
+
+  <text x="950" y="275" class="label">Área Observada:</text>
+  <text x="1120" y="275" class="value" font-weight="700">0.6 mm²</text>
+
+  <text x="950" y="300" class="label">% Aberta:</text>
+  <rect x="1050" y="290" width="310" height="20" rx="4" fill="#E0E0E0"/>
+  <rect x="1050" y="290" width="81" height="20" rx="4" class="status-blocked"/>
+  <text x="1145" y="305" text-anchor="middle" class="button-text" font-size="11px">26%</text>
+
+  <text x="950" y="330" class="value" font-weight="500" fill="#F44336">⚠️ BLOQUEADO - Fora de especificação</text>
+
+  <!-- Judgment Section -->
+  <text x="490" y="545" class="title" font-size="15px">Seu Julgamento</text>
+
+  <rect x="490" y="565" width="420" height="130" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="2"/>
+
+  <text x="510" y="595" class="label">Este defeito é REAL?</text>
+
+  <!-- Option 1: Approve -->
+  <rect x="510" y="615" width="380" height="35" rx="4" class="button-success"/>
+  <text x="700" y="639" text-anchor="middle" class="button-text">✓ Não, APROVAR (Falha Falsa)</text>
+
+  <!-- Option 2: Confirm -->
+  <rect x="510" y="660" width="380" height="35" rx="4" class="button-primary"/>
+  <text x="700" y="684" text-anchor="middle" class="button-text">✓ Sim, CONFIRMAR como Defeito Real</text>
+
+  <!-- Notes Section -->
+  <text x="930" y="545" class="title" font-size="15px">Anotações (Opcional)</text>
+
+  <rect x="930" y="565" width="430" height="100" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+  <text x="950" y="590" class="subtitle" font-size="12px">[Campo de texto para observações]</text>
+  <text x="950" y="610" class="subtitle" font-size="12px">[</text>
+  <text x="950" y="630" class="subtitle" font-size="12px">[</text>
+  <text x="950" y="650" class="subtitle" font-size="12px">[</text>
+
+  <!-- Defect Type Dropdown -->
+  <text x="930" y="685" class="title" font-size="15px">Tipo de Defeito</text>
+
+  <rect x="930" y="700" width="430" height="30" rx="4" class="dropdown-bg"/>
+  <text x="950" y="720" class="value">Bloqueado por resíduo de pasta ▼</text>
+
+  <!-- Final Analysis Dialog -->
+  <rect x="200" y="250" width="1000" height="400" rx="8" class="dialog-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="200" y="250" width="1000" height="400" rx="8" fill="#000000" opacity="0.3"/>
+
+  <!-- Dialog Title -->
+  <text x="700" y="285" text-anchor="middle" class="title" font-size="20px">Análise Completa - Decisão Final</text>
+
+  <!-- Summary -->
+  <rect x="250" y="310" width="900" height="120" rx="4" fill="#E3F2FD"/>
+
+  <text x="700" y="340" text-anchor="middle" class="value" font-size="16px" font-weight="700">15 defeitos analisados</text>
+
+  <text x="270" y="370" class="value" font-size="14px">✅ 12 aprovados (falhas falsas)</text>
+  <text x="270" y="395" class="value" font-size="14px">❌ 3 confirmados como defeitos reais</text>
+
+  <text x="700" y="420" text-anchor="middle" class="subtitle" font-size="13px">Há defeitos confirmados. O que deseja fazer?</text>
+
+  <!-- Option 1: Discard -->
+  <rect x="250" y="445" width="450" height="90" rx="6" fill="#FF9800" stroke="#F57C00" stroke-width="2"/>
+
+  <text x="475" y="470" text-anchor="middle" class="button-text" font-size="16px">🗑️ Descartar Inspeção</text>
+  <text x="475" y="490" text-anchor="middle" class="button-text" font-size="11px">Não salva no histórico</text>
+  <text x="475" y="508" text-anchor="middle" class="button-text" font-size="11px">Faça correção e inspecione novamente do zero</text>
+
+  <!-- Option 2: Reject -->
+  <rect x="750" y="445" width="400" height="90" rx="6" class="button-danger"/>
+
+  <text x="950" y="480" text-anchor="middle" class="button-text" font-size="16px">❌ Reprovar Sessão</text>
+  <text x="950" y="505" text-anchor="middle" class="button-text" font-size="11px">Salva no histórico como Reprovado</text>
+
+  <!-- Info Box -->
+  <rect x="250" y="555" width="900" height="70" rx="4" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+  <text x="700" y="580" text-anchor="middle" class="value" font-size="12px">💡 Se descartar, você pode fazer a correção necessária e iniciar uma nova inspeção do zero.</text>
+  <text x="700" y="600" text-anchor="middle" class="value" font-size="12px">O histórico permanecerá limpo, sem registros de tentativas frustradas.</text>
+
+  <!-- Buttons -->
+  <rect x="550" y="635" width="140" height="30" rx="4" class="button-cancel"/>
+  <text x="620" y="655" text-anchor="middle" class="value">Voltar à Análise</text>
+
+  <rect x="710" y="635" width="140" height="30" rx="4" class="button-success"/>
+  <text x="780" y="655" text-anchor="middle" class="button-text">Confirmar</text>
+</svg>
