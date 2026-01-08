@@ -263,37 +263,27 @@ Se um ponto estiver reprovado o stencil inteiro vai ser reprovado, mas o usuári
 
 **Q41a:** Quando o usuário identifica um defeito durante a inspeção, quais ações ele pode tomar para cada ponto?
 
-<font color="gray">*Resposta:*</font> o usuário tem 3 opções para cada defeito identificado:
-1. **Confirmar como Defeito Real**: Marca o ponto como defeito confirmado, registrando no histórico.
-2. **Aprovar (Falha Falsa)**: Marca o ponto como aprovado (override do sistema), registrando no histórico que foi julgado pelo operador.
-3. **Corrigir e Retestar** ⭐ NOVO: Permite que o usuário faça uma correção no ponto (ex: limpar novamente) e o sistema reteste apenas esse ponto específico (não precisa medir tudo de novo), tudo na mesma sessão de inspeção.
+<font color="gray">*Resposta:*</font> o usuário tem 2 opções para cada defeito identificado:
+1. **Aprovar (Falha Falsa)**: Marca o ponto como aprovado (override do sistema), registrando no histórico que foi julgado pelo operador.
+2. **Confirmar como Defeito Real**: Marca o ponto como defeito confirmado, mantém na lista de defeitos.
 
-**Q41b:** Quantas vezes o usuário pode corrigir e retestar um ponto na mesma sessão de inspeção?
+**Q44a:** Ao final da análise, se houver defeitos confirmados, quais opções o usuário tem?
 
-<font color="gray">*Resposta:*</font> ilimitado. o usuário pode corrigir e retestar quantas vezes forem necessárias até que o ponto fique bom ou até que ele decida reprovar definitivamente a sessão. cada iteração é registrada no histórico com timestamp e imagem.
-
-**Q41c:** Quando o usuário escolhe "Corrigir e Retestar", como funciona o fluxo?
-
-<font color="gray">*Resposta:*</font> o fluxo é:
-1. Usuário clica em "Corrigir e Retestar" para um defeito específico
-2. Sistema PAUSA a inspeção e permite que o usuário faça a correção (limpar, ajustar, etc.)
-3. Usuário indica que terminou a correção (botão "Retestar Agora")
-4. Sistema move a câmera/CNC APENAS para os pontos marcados para correção (não precisa medir tudo de novo)
-5. Sistema captura nova imagem e reavalia apenas esses pontos
-6. Sistema atualiza o status dos pontos retestados:
-   - Se aprovado → Sai da lista de defeitos
-   - Se reprovado → Volta para lista de defeitos para novo julgamento
-7. Usuário pode julgar novamente ou fazer nova correção
-8. Isso se repete até usuário aprovar ou reprovar definitivamente a sessão inteira.
+<font color="gray">*Resposta:*</font> se houver defeitos confirmados ao final da análise, o usuário tem 2 opções:
+1. **Descartar Inspeção** ⭐ NOVO: NÃO salva no histórico (apenas log de auditoria interno), usuário pode fazer correção necessária e inspecionar novamente do zero. Isso mantém o histórico limpo, sem retrabalhos.
+2. **Reprovar Sessão**: Salva no histórico como reprovado, registrando os defeitos confirmados. Usuário pode então fazer nova limpeza e inspecionar em nova sessão.
 
 ### 6.3 Resultado da Confirmação
 
 **Q44:** O que acontece se o usuário **discordar do sistema**? Ex: sistema disse "reprovado" mas usuário confirma "não é defeito" - esse ponto passa a ser OK?
 
-<font color="gray">*Resposta:*</font> o usuário tem 3 opções:
+<font color="gray">*Resposta:*</font> o usuário tem 2 opções:
 1. **Aprovar (Falha Falsa)**: Ponto é considerado OK, mas fica registrado no histórico que foi julgado pelo operador (imagem + classificação + nome do operador).
-2. **Confirmar como Defeito Real**: Ponto é mantido como defeito, registrado no histórico.
-3. **Corrigir e Retestar** ⭐ NOVO: Permite correção e reteste do ponto na mesma sessão (ver Q41c para fluxo detalhado).
+2. **Confirmar como Defeito Real**: Ponto é mantido como defeito, registrado na lista.
+
+Ao final da análise, se houver defeitos confirmados, usuário escolhe entre:
+- **Descartar Inspeção**: Não salva no histórico (apenas log de auditoria), faz correção e inspeciona novamente do zero.
+- **Reprovar Sessão**: Salva no histórico como reprovado.
 
 **Q45:** Essa confirmação humana **salva junto com os dados**? Fica registrado que usuário revisou?
 
@@ -317,7 +307,7 @@ Se um ponto estiver reprovado o stencil inteiro vai ser reprovado, mas o usuári
 
 **Q48:** O histórico mostra **quais informações**? Data, status, valores médios, quem operou?
 
-<font color="gray">*Resposta:*</font> data-hora, status (agora com 3 opções: Aprovado Automático, Aprovado com Julgamento, Reprovado), valores medidos, operador, resultado, número de iterações da sessão, defeitos encontrados vs corrigidos. para sessões com iterações, mostra também: quantas correções foram feitas, quais pontos foram corrigidos, e histórico de imagens de cada iteração. 
+<font color="gray">*Resposta:*</font> data-hora, status (3 opções: Aprovado Automático, Aprovado com Julgamento, Reprovado), valores medidos, operador, resultado, defeitos encontrados vs julgados (quantos foram aprovados como falha falsa vs confirmados como defeito real). não mostra informações de iterações porque inspeções com problemas não são salvas no histórico (são descartadas). 
 
 **Q49:** Pode **clicar numa medição antiga** e ver os detalhes completos (todos os pontos, imagens)?
 
