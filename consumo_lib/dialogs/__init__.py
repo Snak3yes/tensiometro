@@ -63,3 +63,11 @@ __all__.append('InspectionResultsDialog')
 # History dialogs (NOVO - FASE 7)
 from .inspection_history_dialog import InspectionHistoryDialog
 __all__.append('InspectionHistoryDialog')
+
+# Final decision dialogs (NOVO - FASE 5)
+from .final_decision_dialog import FinalDecisionDialog
+__all__.append('FinalDecisionDialog')
+
+# Defect judgment dialogs (NOVO - FASE 5)
+from .defect_judgment_dialog import DefectJudgmentDialog
+__all__.append('DefectJudgmentDialog')
