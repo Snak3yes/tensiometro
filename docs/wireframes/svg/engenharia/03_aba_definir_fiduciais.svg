@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .body-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .small-text { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; fill: #6B7280; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .tab-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .panel-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .tab-active { fill: #1976D2; }
+      .tab-complete { fill: #4CAF50; }
+      .tab-pending { fill: #E0E0E0; }
+      .gerber-preview { fill: #FAFAFA; stroke: #E0E0E0; stroke-width: 1; }
+      .fiducial-marker { fill: none; stroke: #4CAF50; stroke-width: 2; }
+      .fiducial-selected { fill: #4CAF50; stroke: #4CAF50; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1400" height="900" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="700" y="95" text-anchor="middle" class="title">Criar Programa de Inspeção Visual</text>
+
+  <!-- Tab Navigation -->
+  <g transform="translate(120, 120)">
+    <!-- Tab 1: Dados (COMPLETE) -->
+    <rect x="0" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="75" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 1. Dados</text>
+
+    <!-- Tab 2: Gerber (COMPLETE) -->
+    <rect x="160" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="235" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 2. Gerber</text>
+
+    <!-- Tab 3: Fiduciais (ACTIVE) -->
+    <rect x="320" y="0" width="150" height="40" rx="4" class="tab-active"/>
+    <text x="395" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">3. Fiduciais</text>
+
+    <!-- Tab 4: Posição (PENDING) -->
+    <rect x="480" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="555" y="25" text-anchor="middle" class="tab-text" fill="#757575">4. Posição</text>
+
+    <!-- Tab 5: Alinhamento (PENDING) -->
+    <rect x="640" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="715" y="25" text-anchor="middle" class="tab-text" fill="#757575">5. Alinhamento</text>
+
+    <!-- Tab 6: Janelas (PENDING) -->
+    <rect x="800" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="875" y="25" text-anchor="middle" class="tab-text" fill="#757575">6. Janelas</text>
+
+    <!-- Tab 7: Confirmar (PENDING) -->
+    <rect x="960" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="1035" y="25" text-anchor="middle" class="tab-text" fill="#757575">7. Confirmar</text>
+  </g>
+
+  <!-- Content Area -->
+  <g transform="translate(140, 190)">
+    <!-- Section Title -->
+    <text x="0" y="0" class="title" font-size="20px">Definir Fiduciais</text>
+    <text x="0" y="25" class="subtitle">Selecione 2 pontos fiduciais no arquivo Gerber para alinhamento.</text>
+
+    <!-- Gerber Preview Area -->
+    <rect x="0" y="60" width="720" height="500" rx="8" class="gerber-preview"/>
+
+    <!-- Simulated Gerber Grid -->
+    <g transform="translate(20, 80)">
+      <!-- Grid lines -->
+      <line x1="0" y1="0" x2="680" y2="0" stroke="#E0E0E0" stroke-width="1"/>
+      <line x1="0" y1="460" x2="680" y2="460" stroke="#E0E0E0" stroke-width="1"/>
+      <line x1="0" y1="0" x2="0" y2="460" stroke="#E0E0E0" stroke-width="1"/>
+      <line x1="680" y1="0" x2="680" y2="460" stroke="#E0E0E0" stroke-width="1"/>
+
+      <!-- Center lines -->
+      <line x1="340" y1="0" x2="340" y2="460" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="5,5"/>
+      <line x1="0" y1="230" x2="680" y2="230" stroke="#E0E0E0" stroke-width="1" stroke-dasharray="5,5"/>
+
+      <!-- Apertures simulation (small rectangles) -->
+      <rect x="100" y="100" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+      <rect x="150" y="100" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+      <rect x="200" y="100" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+
+      <rect x="500" y="100" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+      <rect x="550" y="100" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+
+      <rect x="100" y="350" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+      <rect x="150" y="350" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+
+      <rect x="500" y="350" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+      <rect x="550" y="350" width="30" height="20" fill="#E0E0E0" stroke="#BDBEBD" stroke-width="1"/>
+
+      <!-- Fiducial 1 (SELECTED) -->
+      <circle cx="50" cy="50" r="25" class="fiducial-selected" fill-opacity="0.2"/>
+      <circle cx="50" cy="50" r="15" class="fiducial-selected" fill-opacity="0.4"/>
+      <circle cx="50" cy="50" r="5" fill="#4CAF50"/>
+      <text x="50" y="55" text-anchor="middle" class="label" font-size="12px" fill="#FFFFFF" font-weight="700">1</text>
+
+      <!-- Label Fiducial 1 -->
+      <rect x="20" y="10" width="60" height="20" rx="2" fill="#4CAF50"/>
+      <text x="50" y="24" text-anchor="middle" class="label" font-size="10px" fill="#FFFFFF">Fid. 1</text>
+
+      <!-- Fiducial 2 (SELECTED) -->
+      <circle cx="630" cy="50" r="25" class="fiducial-selected" fill-opacity="0.2"/>
+      <circle cx="630" cy="50" r="15" class="fiducial-selected" fill-opacity="0.4"/>
+      <circle cx="630" cy="50" r="5" fill="#4CAF50"/>
+      <text x="630" y="55" text-anchor="middle" class="label" font-size="12px" fill="#FFFFFF" font-weight="700">2</text>
+
+      <!-- Label Fiducial 2 -->
+      <rect x="600" y="10" width="60" height="20" rx="2" fill="#4CAF50"/>
+      <text x="630" y="24" text-anchor="middle" class="label" font-size="10px" fill="#FFFFFF">Fid. 2</text>
+
+      <!-- Crosshairs -->
+      <line x1="25" y1="50" x2="75" y2="50" stroke="#4CAF50" stroke-width="1"/>
+      <line x1="50" y1="25" x2="50" y2="75" stroke="#4CAF50" stroke-width="1"/>
+
+      <line x1="605" y1="50" x2="655" y2="50" stroke="#4CAF50" stroke-width="1"/>
+      <line x1="630" y1="25" x2="630" y2="75" stroke="#4CAF50" stroke-width="1"/>
+    </g>
+
+    <!-- Zoom Controls -->
+    <g transform="translate(580, 570)">
+      <rect x="0" y="0" width="140" height="40" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="20" y="25" class="label">🔍</text>
+      <rect x="40" y="8" width="30" height="24" rx="2" fill="#E0E0E0"/>
+      <text x="55" y="25" text-anchor="middle" class="small-text">100%</text>
+      <text x="80" y="25" class="label">[-] [+]</text>
+    </g>
+  </g>
+
+  <!-- Right Panel: Controls -->
+  <g transform="translate(890, 190)">
+    <rect x="0" y="60" width="370" height="500" rx="8" class="panel-bg"/>
+
+    <text x="25" y="100" class="title" font-size="16px">📍 Seleção de Fiduciais</text>
+
+    <!-- Radio Button: Fiducial 1 -->
+    <g transform="translate(25, 130)">
+      <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+      <circle cx="12" cy="12" r="6" fill="#FFFFFF"/>
+      <circle cx="12" cy="12" r="3" fill="#4CAF50"/>
+
+      <text x="35" y="17" class="label" font-size="14px" fill="#4CAF50">Fiducial 1</text>
+      <text x="35" y="40" class="small-text">X: 15.2 mm</text>
+      <text x="35" y="55" class="small-text">Y: 20.3 mm</text>
+
+      <rect x="260" y="0" width="70" height="30" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="295" y="19" text-anchor="middle" class="label" font-size="10px" fill="#1976D2">Editar</text>
+    </g>
+
+    <!-- Radio Button: Fiducial 2 -->
+    <g transform="translate(25, 210)">
+      <circle cx="12" cy="12" r="10" fill="#4CAF50"/>
+      <circle cx="12" cy="12" r="6" fill="#FFFFFF"/>
+      <circle cx="12" cy="12" r="3" fill="#4CAF50"/>
+
+      <text x="35" y="17" class="label" font-size="14px" fill="#4CAF50">Fiducial 2</text>
+      <text x="35" y="40" class="small-text">X: 180.5 mm</text>
+      <text x="35" y="55" class="small-text">Y: 20.3 mm</text>
+
+      <rect x="260" y="0" width="70" height="30" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="295" y="19" text-anchor="middle" class="label" font-size="10px" fill="#1976D2">Editar</text>
+    </g>
+
+    <!-- Manual Reference Checkbox -->
+    <g transform="translate(25, 290)">
+      <rect x="0" y="0" width="20" height="20" rx="3" fill="#FFFFFF" stroke="#BDBEBD" stroke-width="1"/>
+      <text x="35" y="15" class="label" font-size="12px">Fiduciais não visíveis - usar</text>
+      <text x="35" y="30" class="label" font-size="12px">ponto/grupo como referência</text>
+    </g>
+
+    <!-- Instructions Box -->
+    <g transform="translate(25, 340)">
+      <rect x="0" y="0" width="320" height="100" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="15" y="25" class="label" font-size="11px" fill="#1976D2">ℹ️ Instruções:</text>
+      <text x="15" y="45" class="small-text" fill="#1976D2">1. Clique no Gerber para selecionar fiducial 1</text>
+      <text x="15" y="60" class="small-text" fill="#1976D2">2. Clique novamente para fiducial 2</text>
+      <text x="15" y="75" class="small-text" fill="#1976D2">3. Use zoom para melhor precisão</text>
+      <text x="15" y="90" class="small-text" fill="#1976D2">4. Arraste para ajustar posição se necessário</text>
+    </g>
+
+    <!-- Reset Button -->
+    <g transform="translate(25, 455)">
+      <rect x="0" y="0" width="320" height="40" rx="4" fill="#FF9800"/>
+      <text x="160" y="25" text-anchor="middle" class="button-text">🔄 Redefinir Fiduciais</text>
+    </g>
+  </g>
+
+  <!-- Footer Buttons -->
+  <g transform="translate(120, 770)">
+    <rect x="0" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="60" y="25" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+    <rect x="840" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="900" y="25" text-anchor="middle" class="cancel-text">← Anterior</text>
+
+    <rect x="970" y="0" width="120" height="40" rx="4" class="button-primary"/>
+    <text x="1030" y="25" text-anchor="middle" class="button-text">Próximo →</text>
+  </g>
+
+  <!-- Help Button -->
+  <circle cx="1250" cy="790" r="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <text x="1250" y="796" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">?</text>
+</svg>

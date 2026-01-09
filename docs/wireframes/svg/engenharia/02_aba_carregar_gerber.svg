@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .body-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .small-text { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; fill: #6B7280; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .tab-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .panel-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .tab-active { fill: #1976D2; }
+      .tab-complete { fill: #4CAF50; }
+      .tab-pending { fill: #E0E0E0; }
+      .upload-area { fill: #E3F2FD; stroke: #1976D2; stroke-width: 2; stroke-dasharray: 5,5; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1400" height="900" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="700" y="95" text-anchor="middle" class="title">Criar Programa de Inspeção Visual</text>
+
+  <!-- Tab Navigation -->
+  <g transform="translate(120, 120)">
+    <!-- Tab 1: Dados (COMPLETE) -->
+    <rect x="0" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="75" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 1. Dados</text>
+
+    <!-- Tab 2: Gerber (ACTIVE) -->
+    <rect x="160" y="0" width="150" height="40" rx="4" class="tab-active"/>
+    <text x="235" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">2. Gerber</text>
+
+    <!-- Tab 3: Fiduciais (PENDING) -->
+    <rect x="320" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="395" y="25" text-anchor="middle" class="tab-text" fill="#757575">3. Fiduciais</text>
+
+    <!-- Tab 4: Posição (PENDING) -->
+    <rect x="480" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="555" y="25" text-anchor="middle" class="tab-text" fill="#757575">4. Posição</text>
+
+    <!-- Tab 5: Alinhamento (PENDING) -->
+    <rect x="640" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="715" y="25" text-anchor="middle" class="tab-text" fill="#757575">5. Alinhamento</text>
+
+    <!-- Tab 6: Janelas (PENDING) -->
+    <rect x="800" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="875" y="25" text-anchor="middle" class="tab-text" fill="#757575">6. Janelas</text>
+
+    <!-- Tab 7: Confirmar (PENDING) -->
+    <rect x="960" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="1035" y="25" text-anchor="middle" class="tab-text" fill="#757575">7. Confirmar</text>
+  </g>
+
+  <!-- Content Area -->
+  <g transform="translate(140, 190)">
+    <!-- Section Title -->
+    <text x="0" y="0" class="title" font-size="20px">Carregar Arquivo Gerber</text>
+    <text x="0" y="25" class="subtitle">Carregue o arquivo Gerber do stencil para análise das aberturas.</text>
+
+    <!-- Upload Area -->
+    <rect x="0" y="60" width="580" height="200" rx="8" class="upload-area"/>
+
+    <g transform="translate(290, 160)">
+      <text x="0" y="-30" text-anchor="middle" class="title" font-size="48px" fill="#1976D2">📁</text>
+      <text x="0" y="10" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">Arraste o arquivo Gerber aqui</text>
+      <text x="0" y="30" text-anchor="middle" class="small-text" fill="#1976D2">ou</text>
+      <rect x="-80" y="45" width="160" height="40" rx="4" fill="#1976D2"/>
+      <text x="0" y="70" text-anchor="middle" class="button-text" font-size="12px">Selecionar Arquivo</text>
+    </g>
+
+    <!-- File Info Panel -->
+    <rect x="0" y="280" width="580" height="180" rx="8" class="card-bg"/>
+
+    <text x="20" y="310" class="title" font-size="16px">📊 Informações do Arquivo</text>
+
+    <g transform="translate(40, 340)">
+      <text x="0" y="0" class="label">Nome do Arquivo:</text>
+      <text x="150" y="0" class="body-text" font-weight="700">stencil_abc_123.gbr</text>
+
+      <text x="0" y="30" class="label">Dimensões:</text>
+      <text x="150" y="30" class="body-text">350.0 × 250.0 mm</text>
+
+      <text x="0" y="60" class="label">Apertures:</text>
+      <text x="150" y="60" class="body-text" fill="#4CAF50" font-weight="700">245 aberturas detectadas</text>
+
+      <text x="0" y="90" class="label">Fiduciais:</text>
+      <text x="150" y="90" class="body-text" fill="#4CAF50" font-weight="700">3 candidatos detectados</text>
+
+      <text x="0" y="120" class="label">Formato:</text>
+      <text x="150" y="120" class="body-text">RS-274X (Extended Gerber)</text>
+    </g>
+
+    <!-- Action Buttons -->
+    <rect x="0" y="480" width="280" height="45" rx="4" fill="#FF9800"/>
+    <text x="140" y="507" text-anchor="middle" class="button-text">🧹 Limpar Gerber</text>
+
+    <rect x="300" y="480" width="280" height="45" rx="4" fill="#F44336"/>
+    <text x="440" y="507" text-anchor="middle" class="button-text">🗑️ Remover Arquivo</text>
+  </g>
+
+  <!-- Right Panel: Fiduciais Detectados -->
+  <g transform="translate(750, 190)">
+    <rect x="0" y="60" width="510" height="600" rx="8" class="panel-bg"/>
+
+    <text x="25" y="100" class="title" font-size="16px">🎯 Fiduciais Detectados</text>
+
+    <!-- Fiducial List -->
+    <rect x="25" y="120" width="460" height="520" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+
+    <!-- Fiducial 1 -->
+    <g transform="translate(45, 150)">
+      <rect x="0" y="0" width="420" height="80" rx="4" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1"/>
+      <circle cx="30" cy="40" r="20" fill="#4CAF50"/>
+      <text x="30" y="46" text-anchor="middle" class="label" font-size="14px" fill="#FFFFFF">1</text>
+
+      <text x="65" y="25" class="label">Fiducial Principal</text>
+      <text x="65" y="45" class="body-text" font-size="12px">Posição: (15.2, 20.3) mm</text>
+      <text x="65" y="65" class="small-text" fill="#4CAF50">✓ Círculo, 1.5mm - Detectado</text>
+
+      <rect x="320" y="20" width="80" height="30" rx="4" fill="#4CAF50"/>
+      <text x="360" y="40" text-anchor="middle" class="button-text" font-size="11px">Usar</text>
+    </g>
+
+    <!-- Fiducial 2 -->
+    <g transform="translate(45, 245)">
+      <rect x="0" y="0" width="420" height="80" rx="4" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1"/>
+      <circle cx="30" cy="40" r="20" fill="#4CAF50"/>
+      <text x="30" y="46" text-anchor="middle" class="label" font-size="14px" fill="#FFFFFF">2</text>
+
+      <text x="65" y="25" class="label">Fiducial Secundário</text>
+      <text x="65" y="45" class="body-text" font-size="12px">Posição: (180.5, 20.3) mm</text>
+      <text x="65" y="65" class="small-text" fill="#4CAF50">✓ Círculo, 1.5mm - Detectado</text>
+
+      <rect x="320" y="20" width="80" height="30" rx="4" fill="#4CAF50"/>
+      <text x="360" y="40" text-anchor="middle" class="button-text" font-size="11px">Usar</text>
+    </g>
+
+    <!-- Fiducial 3 -->
+    <g transform="translate(45, 340)">
+      <rect x="0" y="0" width="420" height="80" rx="4" fill="#FFF3E0" stroke="#FF9800" stroke-width="1"/>
+      <circle cx="30" cy="40" r="20" fill="#FF9800"/>
+      <text x="30" y="46" text-anchor="middle" class="label" font-size="14px" fill="#FFFFFF">3</text>
+
+      <text x="65" y="25" class="label">Fiducial Alternativo</text>
+      <text x="65" y="45" class="body-text" font-size="12px">Posição: (15.2, 230.5) mm</text>
+      <text x="65" y="65" class="small-text" fill="#FF9800">⚠ Círculo, 1.2mm - Menor precisão</text>
+
+      <rect x="320" y="20" width="80" height="30" rx="4" fill="#FF9800"/>
+      <text x="360" y="40" text-anchor="middle" class="button-text" font-size="11px">Usar</text>
+    </g>
+
+    <!-- Info Box -->
+    <g transform="translate(45, 440)">
+      <rect x="0" y="0" width="420" height="40" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="210" y="25" text-anchor="middle" class="small-text" fill="#1976D2">
+        ℹ️ Selecione 2 fiduciais ou defina manualmente na próxima aba
+      </text>
+    </g>
+
+    <!-- Add Manual Button -->
+    <g transform="translate(45, 495)">
+      <rect x="0" y="0" width="420" height="35" rx="4" fill="none" stroke="#1976D2" stroke-width="1" stroke-dasharray="5,5"/>
+      <text x="210" y="22" text-anchor="middle" class="label" fill="#1976D2">+ Adicionar Fiducial Manualmente</text>
+    </g>
+  </g>
+
+  <!-- Footer Buttons -->
+  <g transform="translate(120, 770)">
+    <rect x="0" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="60" y="25" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+    <rect x="840" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="900" y="25" text-anchor="middle" class="cancel-text">← Anterior</text>
+
+    <rect x="970" y="0" width="120" height="40" rx="4" fill="#BDBEBD"/>
+    <text x="1030" y="25" text-anchor="middle" class="cancel-text">Próximo →</text>
+  </g>
+
+  <!-- Help Button -->
+  <circle cx="1250" cy="790" r="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <text x="1250" y="796" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">?</text>
+</svg>

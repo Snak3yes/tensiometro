@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .body-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .small-text { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; fill: #6B7280; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .tab-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .panel-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .button-success { fill: #4CAF50; }
+      .tab-active { fill: #1976D2; }
+      .tab-complete { fill: #4CAF50; }
+      .tab-pending { fill: #E0E0E0; }
+      .summary-box { fill: #E8F5E9; stroke: #4CAF50; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1400" height="900" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="700" y="95" text-anchor="middle" class="title">Criar Programa de Inspeção Visual</text>
+
+  <!-- Tab Navigation -->
+  <g transform="translate(120, 120)">
+    <rect x="0" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="75" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 1. Dados</text>
+
+    <rect x="160" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="235" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 2. Gerber</text>
+
+    <rect x="320" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="395" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 3. Fiduciais</text>
+
+    <rect x="480" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="555" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 4. Posição</text>
+
+    <rect x="640" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="715" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 5. Alinhamento</text>
+
+    <rect x="800" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="875" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 6. Janelas</text>
+
+    <rect x="960" y="0" width="150" height="40" rx="4" class="tab-active"/>
+    <text x="1035" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">7. Confirmar</text>
+  </g>
+
+  <!-- Content Area -->
+  <g transform="translate(140, 190)">
+    <!-- Section Title -->
+    <text x="0" y="0" class="title" font-size="20px">Confirmar e Salvar Programa</text>
+    <text x="0" y="25" class="subtitle">Revise todas as informações antes de salvar o programa de inspeção.</text>
+
+    <!-- Summary Panel -->
+    <rect x="0" y="60" width="1120" height="350" rx="8" class="summary-box"/>
+
+    <text x="25" y="95" class="title" font-size="18px" fill="#4CAF50">📋 Resumo do Programa</text>
+
+    <!-- Summary Items -->
+    <g transform="translate(40, 125)">
+      <!-- Item 1 -->
+      <text x="0" y="0" class="label" font-size="14px" fill="#4CAF50">✅ Stencil:</text>
+      <text x="100" y="0" class="body-text" font-weight="700">STENCIL-ABC-123</text>
+      <text x="250" y="0" class="small-text">Stencil principal linha A</text>
+
+      <!-- Item 2 -->
+      <text x="0" y="30" class="label" font-size="14px" fill="#4CAF50">✅ Nome do Programa:</text>
+      <text x="160" y="30" class="body-text" font-weight="700">Inspeção Padrão - 0.5mm</text>
+
+      <!-- Item 3 -->
+      <text x="0" y="60" class="label" font-size="14px" fill="#4CAF50">✅ Arquivo Gerber:</text>
+      <text x="140" y="60" class="body-text">stencil_abc_123.gbr</text>
+      <text x="320" y="60" class="body-text" fill="#4CAF50" font-weight="700">(245 apertures)</text>
+
+      <!-- Item 4 -->
+      <text x="0" y="90" class="label" font-size="14px" fill="#4CAF50">✅ Fiduciais:</text>
+      <text x="110" y="90" class="body-text">2 definidos</text>
+      <text x="200" y="90" class="small-text">Fid.1: (15.2, 20.3) | Fid.2: (180.5, 20.3)</text>
+
+      <!-- Item 5 -->
+      <text x="0" y="120" class="label" font-size="14px" fill="#4CAF50">✅ Alinhamento:</text>
+      <text x="130" y="120" class="body-text">tx=1.2mm, ty=-0.5mm, θ=0.3°, scale=1.01</text>
+      <text x="500" y="120" class="body-text" fill="#4CAF50" font-weight="700">Score: 87%</text>
+
+      <!-- Item 6 -->
+      <text x="0" y="150" class="label" font-size="14px" fill="#4CAF50">✅ Mosaico Capturado:</text>
+      <text x="180" y="150" class="body-text">4×4 grid = 16 FOVs</text>
+      <text x="340" y="150" class="small-text">Área: 175.0 × 230.0 mm</text>
+
+      <!-- Item 7 -->
+      <text x="0" y="180" class="label" font-size="14px" fill="#4CAF50">✅ Janelas de Inspeção:</text>
+      <text x="180" y="180" class="body-text">8 grupos configurados</text>
+      <text x="340" y="180" class="body-text" fill="#4CAF50" font-weight="700">245 aberturas totais</text>
+
+      <!-- Group breakdown -->
+      <text x="40" y="210" class="label" font-size="12px">Grupos: 0.5mm(145✓) | 0.8mm(82🟢) | 1.2mm(23🟢) | 2.0mm(12🟢) | Oblong_3x1(8🟢)</text>
+    </g>
+  </g>
+
+  <!-- Statistics Panel -->
+  <g transform="translate(140, 560)">
+    <rect x="0" y="0" width="540" height="180" rx="8" class="panel-bg"/>
+
+    <text x="25" y="35" class="title" font-size="16px">📊 Estimativas de Execução</text>
+
+    <g transform="translate(40, 65)">
+      <!-- Stat 1 -->
+      <text x="0" y="0" class="label">Tempo Estimado:</text>
+      <text x="120" y="0" class="body-text" font-weight="700" fill="#1976D2">~5 minutos</text>
+
+      <!-- Stat 2 -->
+      <text x="0" y="30" class="label">Memória Estimada:</text>
+      <text x="130" y="30" class="body-text" font-weight="700">~150 MB</text>
+
+      <!-- Stat 3 -->
+      <text x="0" y="60" class="label">Qualidade Esperada:</text>
+      <text x="150" y="60" class="body-text" font-weight="700" fill="#4CAF50">95%</text>
+
+      <!-- Stat 4 -->
+      <text x="0" y="90" class="label">Precisão de Alinhamento:</text>
+      <text x="180" y="90" class="body-text" font-weight="700">±0.1 mm</text>
+    </g>
+  </g>
+
+  <!-- Validation Panel -->
+  <g transform="translate(700, 560)">
+    <rect x="0" y="0" width="560" height="180" rx="8" class="card-bg"/>
+
+    <text x="25" y="35" class="title" font-size="16px">✅ Validações</text>
+
+    <g transform="translate(40, 65)">
+      <text x="0" y="0" class="body-text" fill="#4CAF50">✓ Todos os campos obrigatórios preenchidos</text>
+      <text x="0" y="25" class="body-text" fill="#4CAF50">✓ Arquivo Gerber válido carregado</text>
+      <text x="0" y="50" class="body-text" fill="#4CAF50">✓ Fiduciais definidos e alinhados</text>
+      <text x="0" y="75" class="body-text" fill="#4CAF50">✓ Mosaico capturado com sucesso</text>
+      <text x="0" y="100" class="body-text" fill="#4CAF50">✓ Todos os grupos de janelas configurados</text>
+      <text x="0" y="125" class="body-text" font-weight="700" fill="#4CAF50">✓ Programa pronto para uso!</text>
+    </g>
+  </g>
+
+  <!-- Footer Buttons -->
+  <g transform="translate(120, 770)">
+    <rect x="0" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="60" y="25" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+    <rect x="700" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="760" y="25" text-anchor="middle" class="cancel-text">← Anterior</text>
+
+    <rect x="830" y="0" width="150" height="40" rx="4" fill="#1976D2"/>
+    <text x="905" y="25" text-anchor="middle" class="button-text">🧪 Testar</text>
+
+    <rect x="990" y="0" width="150" height="40" rx="4" class="button-success"/>
+    <text x="1065" y="25" text-anchor="middle" class="button-text">💾 Salvar</text>
+  </g>
+
+  <!-- Help Button -->
+  <circle cx="1250" cy="790" r="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <text x="1250" y="796" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">?</text>
+</svg>

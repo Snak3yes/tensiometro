@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .body-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .small-text { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; fill: #6B7280; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .tab-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .panel-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .tab-active { fill: #1976D2; }
+      .tab-complete { fill: #4CAF50; }
+      .tab-pending { fill: #E0E0E0; }
+      .alignment-preview { fill: #FAFAFA; stroke: #E0E0E0; stroke-width: 1; }
+      .gerber-overlay { fill: none; stroke: #1976D2; stroke-width: 2; stroke-opacity="0.5"; }
+      .fiducial-marker { fill: #4CAF50; stroke: #4CAF50; stroke-width: 2; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1400" height="900" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="700" y="95" text-anchor="middle" class="title">Criar Programa de Inspeção Visual</text>
+
+  <!-- Tab Navigation -->
+  <g transform="translate(120, 120)">
+    <rect x="0" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="75" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 1. Dados</text>
+
+    <rect x="160" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="235" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 2. Gerber</text>
+
+    <rect x="320" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="395" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 3. Fiduciais</text>
+
+    <rect x="480" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="555" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 4. Posição</text>
+
+    <rect x="640" y="0" width="150" height="40" rx="4" class="tab-active"/>
+    <text x="715" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">5. Alinhamento</text>
+
+    <rect x="800" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="875" y="25" text-anchor="middle" class="tab-text" fill="#757575">6. Janelas</text>
+
+    <rect x="960" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="1035" y="25" text-anchor="middle" class="tab-text" fill="#757575">7. Confirmar</text>
+  </g>
+
+  <!-- Content Area -->
+  <g transform="translate(140, 190)">
+    <!-- Section Title -->
+    <text x="0" y="0" class="title" font-size="20px">Alinhamento Gerber ↔ Imagem</text>
+    <text x="0" y="25" class="subtitle">Ajuste o Gerber sobre a imagem capturada para alinhar os fiduciais.</text>
+
+    <!-- Alignment Preview -->
+    <rect x="0" y="60" width="780" height="500" rx="8" class="alignment-preview"/>
+
+    <!-- Mosaic Image Background (simulated) -->
+    <g transform="translate(20, 80)">
+      <!-- Stencil Image Grid -->
+      <rect x="0" y="0" width="740" height="460" fill="#F5F5F5" stroke="#E0E0E0" stroke-width="1"/>
+
+      <!-- Simulated apertures (dark rectangles) -->
+      <rect x="50" y="100" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+      <rect x="100" y="100" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+      <rect x="150" y="100" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+
+      <rect x="600" y="100" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+      <rect x="650" y="100" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+
+      <rect x="50" y="350" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+      <rect x="100" y="350" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+
+      <rect x="600" y="350" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+      <rect x="650" y="350" width="40" height="30" fill="#424242" stroke="#212121" stroke-width="1"/>
+
+      <!-- Gerber Overlay (50% opacity) -->
+      <rect x="20" y="70" width="700" height="320" fill="none" stroke="#1976D2" stroke-width="2" stroke-opacity="0.5" stroke-dasharray="10,5"/>
+
+      <!-- Fiducial Markers -->
+      <circle cx="70" cy="120" r="20" class="fiducial-marker" fill-opacity="0.3"/>
+      <circle cx="70" cy="120" r="12" class="fiducial-marker" fill-opacity="0.5"/>
+      <circle cx="70" cy="120" r="4" fill="#4CAF50"/>
+
+      <circle cx="670" cy="120" r="20" class="fiducial-marker" fill-opacity="0.3"/>
+      <circle cx="670" cy="120" r="12" class="fiducial-marker" fill-opacity="0.5"/>
+      <circle cx="670" cy="120" r="4" fill="#4CAF50"/>
+
+      <!-- Alignment Lines -->
+      <line x1="70" y1="120" x2="670" y2="120" stroke="#4CAF50" stroke-width="2" stroke-dasharray="5,5" stroke-opacity="0.7"/>
+      <text x="370" y="115" text-anchor="middle" class="small-text" fill="#4CAF50" font-weight="700">Distance: 600.0 mm</text>
+
+      <!-- Transformation Info -->
+      <rect x="20" y="420" width="700" height="30" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="370" y="440" text-anchor="middle" class="small-text" fill="#1976D2">
+        Transform: tx=1.2mm, ty=-0.5mm, θ=0.3°, scale=1.01 | Score: 87%
+      </text>
+    </g>
+
+    <!-- Zoom/Pan Controls -->
+    <g transform="translate(680, 570)">
+      <rect x="0" y="0" width="100" height="40" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="20" y="25" class="label">🔍</text>
+      <text x="50" y="25" class="small-text">100% [-] [+]</text>
+    </g>
+  </g>
+
+  <!-- Right Panel: Controls -->
+  <g transform="translate(940, 190)">
+    <rect x="0" y="60" width="320" height="500" rx="8" class="panel-bg"/>
+
+    <text x="20" y="100" class="title" font-size="16px">⚙️ Ajustes de Alinhamento</text>
+
+    <!-- Translation X -->
+    <g transform="translate(20, 140)">
+      <text x="0" y="0" class="label">Translação X (mm):</text>
+      <rect x="150" y="-15" width="130" height="24" rx="2" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="215" y="2" text-anchor="middle" class="body-text">1.2</text>
+    </g>
+
+    <!-- Translation Y -->
+    <g transform="translate(20, 185)">
+      <text x="0" y="0" class="label">Translação Y (mm):</text>
+      <rect x="150" y="-15" width="130" height="24" rx="2" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="215" y="2" text-anchor="middle" class="body-text">-0.5</text>
+    </g>
+
+    <!-- Rotation -->
+    <g transform="translate(20, 230)">
+      <text x="0" y="0" class="label">Rotação (graus):</text>
+      <rect x="150" y="-15" width="130" height="24" rx="2" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="215" y="2" text-anchor="middle" class="body-text">0.3°</text>
+    </g>
+
+    <!-- Scale -->
+    <g transform="translate(20, 275)">
+      <text x="0" y="0" class="label">Escala:</text>
+      <rect x="150" y="-15" width="130" height="24" rx="2" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+      <text x="215" y="2" text-anchor="middle" class="body-text">1.01</text>
+    </g>
+
+    <!-- Score Display -->
+    <g transform="translate(20, 320)">
+      <rect x="0" y="0" width="280" height="50" rx="4" fill="#E8F5E9" stroke="#4CAF50" stroke-width="1"/>
+      <text x="140" y="20" text-anchor="middle" class="label" fill="#4CAF50">Score de Alinhamento</text>
+      <text x="140" y="40" text-anchor="middle" class="title" font-size="20px" fill="#4CAF50">87%</text>
+    </g>
+
+    <!-- Auto-Tuning Button -->
+    <g transform="translate(20, 385)">
+      <rect x="0" y="0" width="280" height="45" rx="4" fill="#1976D2"/>
+      <text x="140" y="28" text-anchor="middle" class="button-text">🎯 Auto-Tuning</text>
+    </g>
+
+    <!-- Reset Button -->
+    <g transform="translate(20, 440)">
+      <rect x="0" y="0" width="135" height="40" rx="4" fill="#FF9800"/>
+      <text x="67" y="25" text-anchor="middle" class="button-text" font-size="12px">🔄 Reset</text>
+    </g>
+
+    <!-- Apply Button -->
+    <g transform="translate(165, 440)">
+      <rect x="0" y="0" width="135" height="40" rx="4" fill="#4CAF50"/>
+      <text x="67" y="25" text-anchor="middle" class="button-text" font-size="12px">✓ Aplicar</text>
+    </g>
+  </g>
+
+  <!-- Footer Buttons -->
+  <g transform="translate(120, 770)">
+    <rect x="0" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="60" y="25" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+    <rect x="840" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="900" y="25" text-anchor="middle" class="cancel-text">← Anterior</text>
+
+    <rect x="970" y="0" width="120" height="40" rx="4" class="button-primary"/>
+    <text x="1030" y="25" text-anchor="middle" class="button-text">Próximo →</text>
+  </g>
+
+  <!-- Help Button -->
+  <circle cx="1250" cy="790" r="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <text x="1250" y="796" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">?</text>
+</svg>

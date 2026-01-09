@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1400" height="900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap');
+      .title { font-family: 'Roboto', sans-serif; font-size: 24px; font-weight: 700; fill: #1976D2; }
+      .subtitle { font-family: 'Roboto', sans-serif; font-size: 16px; font-weight: 400; fill: #616161; }
+      .label { font-family: 'Roboto', sans-serif; font-size: 13px; font-weight: 500; fill: #424242; }
+      .body-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 400; fill: #616161; }
+      .small-text { font-family: 'Roboto', sans-serif; font-size: 11px; font-weight: 400; fill: #6B7280; }
+      .button-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #FFFFFF; }
+      .cancel-text { font-family: 'Roboto', sans-serif; font-size: 14px; font-weight: 500; fill: #757575; }
+      .tab-text { font-family: 'Roboto', sans-serif; font-size: 12px; font-weight: 500; }
+      .dialog-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .overlay-bg { fill: #000000; opacity: 0.5; }
+      .card-bg { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+      .panel-bg { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .button-primary { fill: #1976D2; }
+      .button-secondary { fill: #F5F5F5; stroke: #BDBEBD; stroke-width: 1; }
+      .tab-active { fill: #1976D2; }
+      .tab-complete { fill: #4CAF50; }
+      .tab-pending { fill: #E0E0E0; }
+      .grid-cell { fill: none; stroke: #E0E0E0; stroke-width: 1; }
+      .grid-cell-captured { fill: #4CAF50; stroke: #4CAF50; stroke-width: 1; }
+      .grid-cell-current { fill: #FF9800; stroke: #FF9800; stroke-width: 2; }
+      .grid-cell-pending { fill: #F5F5F5; stroke: #E0E0E0; stroke-width: 1; }
+      .input-field { fill: #FFFFFF; stroke: #E0E0E0; stroke-width: 1; }
+    </style>
+  </defs>
+
+  <!-- Overlay Background -->
+  <rect x="0" y="0" width="1400" height="900" class="overlay-bg"/>
+
+  <!-- Dialog Shadow -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" fill="#000000" opacity="0.1"/>
+
+  <!-- Main Dialog -->
+  <rect x="100" y="50" width="1200" height="800" rx="8" class="dialog-bg"/>
+
+  <!-- Title -->
+  <text x="700" y="95" text-anchor="middle" class="title">Criar Programa de Inspeção Visual</text>
+
+  <!-- Tab Navigation -->
+  <g transform="translate(120, 120)">
+    <rect x="0" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="75" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 1. Dados</text>
+
+    <rect x="160" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="235" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 2. Gerber</text>
+
+    <rect x="320" y="0" width="150" height="40" rx="4" class="tab-complete"/>
+    <text x="395" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">✓ 3. Fiduciais</text>
+
+    <rect x="480" y="0" width="150" height="40" rx="4" class="tab-active"/>
+    <text x="555" y="25" text-anchor="middle" class="tab-text" fill="#FFFFFF">4. Posição</text>
+
+    <rect x="640" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="715" y="25" text-anchor="middle" class="tab-text" fill="#757575">5. Alinhamento</text>
+
+    <rect x="800" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="875" y="25" text-anchor="middle" class="tab-text" fill="#757575">6. Janelas</text>
+
+    <rect x="960" y="0" width="150" height="40" rx="4" class="tab-pending"/>
+    <text x="1035" y="25" text-anchor="middle" class="tab-text" fill="#757575">7. Confirmar</text>
+  </g>
+
+  <!-- Content Area -->
+  <g transform="translate(140, 190)">
+    <!-- Section Title -->
+    <text x="0" y="0" class="title" font-size="20px">Posicionamento e Captura</text>
+    <text x="0" y="25" class="subtitle">Mova a máquina para os fiduciais e capture o mosaico do stencil.</text>
+
+    <!-- Left Panel: Movement Controls -->
+    <rect x="0" y="60" width="450" height="520" rx="8" class="panel-bg"/>
+
+    <text x="25" y="100" class="title" font-size="16px">🎮 Controles de Movimento</text>
+
+    <!-- Position Display -->
+    <g transform="translate(25, 130)">
+      <text x="0" y="0" class="label">Posição Atual:</text>
+      <rect x="100" y="-15" width="320" height="30" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="110" y="5" class="body-text" font-weight="700">X: 15.2 mm | Y: 20.3 mm | Z: 0.0 mm</text>
+    </g>
+
+    <!-- Step 1: Fiducial 1 -->
+    <g transform="translate(25, 180)">
+      <circle cx="10" cy="10" r="12" fill="#4CAF50"/>
+      <text x="10" y="15" text-anchor="middle" class="label" font-size="11px" fill="#FFFFFF">1</text>
+      <text x="35" y="15" class="label">Mover até Fiducial 1:</text>
+
+      <rect x="0" y="25" width="400" height="50" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+
+      <!-- X Input -->
+      <text x="15" y="50" class="label" font-size="11px">X:</text>
+      <rect x="40" y="38" width="80" height="24" rx="2" class="input-field"/>
+      <text x="80" y="54" text-anchor="middle" class="small-text">15.2</text>
+
+      <!-- Y Input -->
+      <text x="135" y="50" class="label" font-size="11px">Y:</text>
+      <rect x="160" y="38" width="80" height="24" rx="2" class="input-field"/>
+      <text x="200" y="54" text-anchor="middle" class="small-text">20.3</text>
+
+      <!-- Define Button -->
+      <rect x="255" y="38" width="135" height="24" rx="2" fill="#4CAF50"/>
+      <text x="322" y="54" text-anchor="middle" class="button-text" font-size="10px">✓ Definir Ponto</text>
+    </g>
+
+    <!-- Step 2: Fiducial 2 -->
+    <g transform="translate(25, 265)">
+      <circle cx="10" cy="10" r="12" fill="#4CAF50"/>
+      <text x="10" y="15" text-anchor="middle" class="label" font-size="11px" fill="#FFFFFF">2</text>
+      <text x="35" y="15" class="label">Mover até Fiducial 2:</text>
+
+      <rect x="0" y="25" width="400" height="50" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+
+      <!-- X Input -->
+      <text x="15" y="50" class="label" font-size="11px">X:</text>
+      <rect x="40" y="38" width="80" height="24" rx="2" class="input-field"/>
+      <text x="80" y="54" text-anchor="middle" class="small-text">180.5</text>
+
+      <!-- Y Input -->
+      <text x="135" y="50" class="label" font-size="11px">Y:</text>
+      <rect x="160" y="38" width="80" height="24" rx="2" class="input-field"/>
+      <text x="200" y="54" text-anchor="middle" class="small-text">20.3</text>
+
+      <!-- Define Button -->
+      <rect x="255" y="38" width="135" height="24" rx="2" fill="#4CAF50"/>
+      <text x="322" y="54" text-anchor="middle" class="button-text" font-size="10px">✓ Definir Ponto</text>
+    </g>
+
+    <!-- Step 3: Define Corners -->
+    <g transform="translate(25, 350)">
+      <circle cx="10" cy="10" r="12" fill="#FF9800"/>
+      <text x="10" y="15" text-anchor="middle" class="label" font-size="11px" fill="#FFFFFF">3</text>
+      <text x="35" y="15" class="label">Definir Área de Captura:</text>
+
+      <rect x="0" y="25" width="400" height="70" rx="4" fill="#FFFFFF" stroke="#E0E0E0" stroke-width="1"/>
+
+      <!-- Canto 1 -->
+      <text x="15" y="50" class="label" font-size="11px">Canto 1 (X, Y):</text>
+      <rect x="110" y="38" width="60" height="20" rx="2" class="input-field"/>
+      <text x="140" y="52" text-anchor="middle" class="small-text">10.0</text>
+      <rect x="175" y="38" width="60" height="20" rx="2" class="input-field"/>
+      <text x="205" y="52" text-anchor="middle" class="small-text">10.0</text>
+
+      <!-- Canto 2 -->
+      <text x="15" y="80" class="label" font-size="11px">Canto 2 (X, Y):</text>
+      <rect x="110" y="68" width="60" height="20" rx="2" class="input-field"/>
+      <text x="140" y="82" text-anchor="middle" class="small-text">185.0</text>
+      <rect x="175" y="68" width="60" height="20" rx="2" class="input-field"/>
+      <text x="205" y="82" text-anchor="middle" class="small-text">240.0</text>
+
+      <!-- Auto Calculate Button -->
+      <rect x="280" y="42" width="110" height="45" rx="4" fill="#1976D2"/>
+      <text x="335" y="70" text-anchor="middle" class="button-text" font-size="11px">Auto-Calcular</text>
+    </g>
+
+    <!-- Capture Button -->
+    <g transform="translate(25, 445)">
+      <rect x="0" y="0" width="400" height="60" rx="4" fill="#4CAF50"/>
+      <text x="200" y="25" text-anchor="middle" class="button-text" font-size="16px">📷 Realizar Captura</text>
+      <text x="200" y="48" text-anchor="middle" class="small-text" fill="#FFFFFF">4×4 grid = 16 FOVs</text>
+    </g>
+
+    <!-- Progress Bar -->
+    <g transform="translate(25, 520)">
+      <text x="0" y="0" class="label" font-size="11px">Progresso da Captura:</text>
+      <rect x="0" y="10" width="400" height="20" rx="4" fill="#E0E0E0"/>
+      <rect x="0" y="10" width="200" height="20" rx="4" fill="#4CAF50"/>
+      <text x="200" y="24" text-anchor="middle" class="small-text" fill="#FFFFFF">8/16 FOVs (50%)</text>
+    </g>
+  </g>
+
+  <!-- Right Panel: Grid Preview -->
+  <g transform="translate(610, 190)">
+    <rect x="0" y="60" width="650" height="520" rx="8" class="card-bg"/>
+
+    <text x="25" y="100" class="title" font-size="16px">📊 Grid de Captura</text>
+
+    <!-- Grid Visualization (4x4) -->
+    <g transform="translate(150, 140)">
+      <!-- Row 1 -->
+      <rect x="0" y="0" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="75" y="0" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="150" y="0" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="225" y="0" width="70" height="70" class="grid-cell-captured"/>
+
+      <!-- Row 2 -->
+      <rect x="0" y="75" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="75" y="75" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="150" y="75" width="70" height="70" class="grid-cell-captured"/>
+      <rect x="225" y="75" width="70" height="70" class="grid-cell-captured"/>
+
+      <!-- Row 3 (current) -->
+      <rect x="0" y="150" width="70" height="70" class="grid-cell-current"/>
+      <rect x="75" y="150" width="70" height="70" class="grid-cell-pending"/>
+      <rect x="150" y="150" width="70" height="70" class="grid-cell-pending"/>
+      <rect x="225" y="150" width="70" height="70" class="grid-cell-pending"/>
+
+      <!-- Row 4 (pending) -->
+      <rect x="0" y="225" width="70" height="70" class="grid-cell-pending"/>
+      <rect x="75" y="225" width="70" height="70" class="grid-cell-pending"/>
+      <rect x="150" y="225" width="70" height="70" class="grid-cell-pending"/>
+      <rect x="225" y="225" width="70" height="70" class="grid-cell-pending"/>
+    </g>
+
+    <!-- Legend -->
+    <g transform="translate(150, 470)">
+      <rect x="0" y="0" width="15" height="15" class="grid-cell-captured"/>
+      <text x="25" y="12" class="small-text">Capturado</text>
+
+      <rect x="90" y="0" width="15" height="15" class="grid-cell-current"/>
+      <text x="115" y="12" class="small-text">Atual</text>
+
+      <rect x="170" y="0" width="15" height="15" class="grid-cell-pending"/>
+      <text x="195" y="12" class="small-text">Pendente</text>
+    </g>
+
+    <!-- Info Box -->
+    <g transform="translate(25, 510)">
+      <rect x="0" y="0" width="600" height="50" rx="4" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+      <text x="300" y="20" text-anchor="middle" class="label" font-size="11px" fill="#1976D2">Área de Captura: 175.0 × 230.0 mm</text>
+      <text x="300" y="40" text-anchor="middle" class="small-text" fill="#1976D2">Resolução estimada: 0.5 mm/px | Tempo estimado: ~3 min</text>
+    </g>
+  </g>
+
+  <!-- Footer Buttons -->
+  <g transform="translate(120, 770)">
+    <rect x="0" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="60" y="25" text-anchor="middle" class="cancel-text">Cancelar</text>
+
+    <rect x="840" y="0" width="120" height="40" rx="4" class="button-secondary"/>
+    <text x="900" y="25" text-anchor="middle" class="cancel-text">← Anterior</text>
+
+    <rect x="970" y="0" width="120" height="40" rx="4" fill="#BDBEBD"/>
+    <text x="1030" y="25" text-anchor="middle" class="cancel-text">Próximo →</text>
+  </g>
+
+  <!-- Help Button -->
+  <circle cx="1250" cy="790" r="20" fill="#E3F2FD" stroke="#1976D2" stroke-width="1"/>
+  <text x="1250" y="796" text-anchor="middle" class="label" font-size="16px" fill="#1976D2">?</text>
+</svg>
