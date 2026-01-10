@@ -12,6 +12,6 @@
 - [x] Tarefa: Implementar correções para passar nos testes em `stencil_database.py` <!-- 74df431 -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Testes de Bibliotecas Core' (Protocol in workflow.md)
 
-## Fase 3: Verificação de Integridade (Smoke Test)
+## Fase 3: Verificação de Integridade (Smoke Test) [checkpoint: d11620a]
 - [x] Tarefa: Executar Smoke Test em `main.py` e validar inicialização <!-- 26456 -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 3: Verificação de Integridade (Smoke Test)' (Protocol in workflow.md)
