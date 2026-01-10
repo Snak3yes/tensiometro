@@ -3,7 +3,7 @@
 ## Fase 1: Abstração do Controle de Movimento
 - [x] Tarefa: Criar `MovementOrchestrator` em `aoi_lib` (camada lógica pura)
 - [x] Tarefa: Criar testes unitários para `MovementOrchestrator`
-- [ ] Tarefa: Refatorar `MovementControlWidget` para delegar ações ao `MovementOrchestrator`
+- [x] Tarefa: Refatorar `MovementControlWidget` para delegar ações ao `MovementOrchestrator`
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Abstração do Controle de Movimento' (Protocol in workflow.md)
 
 ## Fase 2: Desacoplamento do Fluxo de Inspeção
