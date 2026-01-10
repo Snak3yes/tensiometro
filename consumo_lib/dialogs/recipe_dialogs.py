@@ -28,7 +28,7 @@ from PyQt6.QtGui import QFont, QColor
 from aoi_lib.recipe_manager import (
     Recipe, RecipeManager, StencilInfo, TensionConfig, 
     TensionAcceptance, CaptureConfig, InspectionConfig,
-    Point2D, create_sample_recipe
+    Point2D, create_sample_recipe, MACHINE_LIMITS
 )
 
 logger = logging.getLogger(__name__)
@@ -200,19 +200,17 @@ class RecipeEditorDialog(QDialog):
         dim_group = QGroupBox("Dimensões do Stencil")
         dim_grid = QGridLayout(dim_group)
         
-        dim_grid.addWidget(QLabel("Largura (mm):"), 0, 0)
+        layout.addWidget(QLabel("Largura (mm):"), 0, 0)
         self.spin_width = QDoubleSpinBox()
-        self.spin_width.setRange(1, 2000)
+        self.spin_width.setRange(1, MACHINE_LIMITS["max_width_mm"])
         self.spin_width.setValue(400)
-        self.spin_width.setDecimals(1)
-        dim_grid.addWidget(self.spin_width, 0, 1)
+        layout.addWidget(self.spin_width, 0, 1)
         
-        dim_grid.addWidget(QLabel("Altura (mm):"), 1, 0)
+        layout.addWidget(QLabel("Altura (mm):"), 0, 2)
         self.spin_height = QDoubleSpinBox()
-        self.spin_height.setRange(1, 2000)
+        self.spin_height.setRange(1, MACHINE_LIMITS["max_height_mm"])
         self.spin_height.setValue(300)
-        self.spin_height.setDecimals(1)
-        dim_grid.addWidget(self.spin_height, 1, 1)
+        layout.addWidget(self.spin_height, 0, 3)
         
         dim_grid.addWidget(QLabel("Espessura (mm):"), 2, 0)
         self.spin_thickness = QDoubleSpinBox()
@@ -270,25 +268,25 @@ class RecipeEditorDialog(QDialog):
         
         grid_layout.addWidget(QLabel("Ponto Inicial X:"), 1, 0)
         self.spin_tension_start_x = QDoubleSpinBox()
-        self.spin_tension_start_x.setRange(0, 2000)
+        self.spin_tension_start_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
         self.spin_tension_start_x.setValue(50)
         grid_layout.addWidget(self.spin_tension_start_x, 1, 1)
         
         grid_layout.addWidget(QLabel("Y:"), 1, 2)
         self.spin_tension_start_y = QDoubleSpinBox()
-        self.spin_tension_start_y.setRange(0, 2000)
+        self.spin_tension_start_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
         self.spin_tension_start_y.setValue(50)
         grid_layout.addWidget(self.spin_tension_start_y, 1, 3)
         
         grid_layout.addWidget(QLabel("Ponto Final X:"), 2, 0)
         self.spin_tension_end_x = QDoubleSpinBox()
-        self.spin_tension_end_x.setRange(0, 2000)
+        self.spin_tension_end_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
         self.spin_tension_end_x.setValue(350)
         grid_layout.addWidget(self.spin_tension_end_x, 2, 1)
         
         grid_layout.addWidget(QLabel("Y:"), 2, 2)
         self.spin_tension_end_y = QDoubleSpinBox()
-        self.spin_tension_end_y.setRange(0, 2000)
+        self.spin_tension_end_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
         self.spin_tension_end_y.setValue(250)
         grid_layout.addWidget(self.spin_tension_end_y, 2, 3)
         
@@ -300,25 +298,25 @@ class RecipeEditorDialog(QDialog):
         
         acc_layout.addWidget(QLabel("Tensão Mínima:"), 0, 0)
         self.spin_tension_min = QDoubleSpinBox()
-        self.spin_tension_min.setRange(0, 100)
+        self.spin_tension_min.setRange(0, MACHINE_LIMITS["max_tension"])
         self.spin_tension_min.setValue(25)
         acc_layout.addWidget(self.spin_tension_min, 0, 1)
         
         acc_layout.addWidget(QLabel("Tensão Máxima:"), 0, 2)
         self.spin_tension_max = QDoubleSpinBox()
-        self.spin_tension_max.setRange(0, 100)
+        self.spin_tension_max.setRange(0, MACHINE_LIMITS["max_tension"])
         self.spin_tension_max.setValue(45)
         acc_layout.addWidget(self.spin_tension_max, 0, 3)
         
         acc_layout.addWidget(QLabel("Warning Baixo:"), 1, 0)
         self.spin_warning_low = QDoubleSpinBox()
-        self.spin_warning_low.setRange(0, 100)
+        self.spin_warning_low.setRange(0, MACHINE_LIMITS["max_tension"])
         self.spin_warning_low.setValue(28)
         acc_layout.addWidget(self.spin_warning_low, 1, 1)
         
         acc_layout.addWidget(QLabel("Warning Alto:"), 1, 2)
         self.spin_warning_high = QDoubleSpinBox()
-        self.spin_warning_high.setRange(0, 100)
+        self.spin_warning_high.setRange(0, MACHINE_LIMITS["max_tension"])
         self.spin_warning_high.setValue(42)
         acc_layout.addWidget(self.spin_warning_high, 1, 3)
         
@@ -347,26 +345,26 @@ class RecipeEditorDialog(QDialog):
         
         area_layout.addWidget(QLabel("Origem X:"), 0, 0)
         self.spin_capture_origin_x = QDoubleSpinBox()
-        self.spin_capture_origin_x.setRange(0, 2000)
+        self.spin_capture_origin_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
         self.spin_capture_origin_x.setValue(0)
         area_layout.addWidget(self.spin_capture_origin_x, 0, 1)
         
         area_layout.addWidget(QLabel("Y:"), 0, 2)
         self.spin_capture_origin_y = QDoubleSpinBox()
-        self.spin_capture_origin_y.setRange(0, 2000)
+        self.spin_capture_origin_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
         self.spin_capture_origin_y.setValue(0)
         area_layout.addWidget(self.spin_capture_origin_y, 0, 3)
         
         area_layout.addWidget(QLabel("Final X:"), 1, 0)
         self.spin_capture_end_x = QDoubleSpinBox()
-        self.spin_capture_end_x.setRange(0, 2000)
-        self.spin_capture_end_x.setValue(400)
+        self.spin_capture_end_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
+        self.spin_capture_end_x.setValue(300)
         area_layout.addWidget(self.spin_capture_end_x, 1, 1)
         
         area_layout.addWidget(QLabel("Y:"), 1, 2)
         self.spin_capture_end_y = QDoubleSpinBox()
-        self.spin_capture_end_y.setRange(0, 2000)
-        self.spin_capture_end_y.setValue(300)
+        self.spin_capture_end_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
+        self.spin_capture_end_y.setValue(200)
         area_layout.addWidget(self.spin_capture_end_y, 1, 3)
         
         layout.addWidget(area_group)

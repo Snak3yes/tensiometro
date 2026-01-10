@@ -117,6 +117,14 @@ class TensionAcceptance:
             warning_low=data.get("warning_low", 28.0),
             warning_high=data.get("warning_high", 42.0)
         )
+        
+    def classify(self, value: float) -> str:
+        """Classifica um valor de tensão."""
+        if value < self.min_tension or value > self.max_tension:
+            return "NOK"
+        if value < self.warning_low or value > self.warning_high:
+            return "WARNING"
+        return "OK"
 
 
 @dataclass
@@ -129,6 +137,11 @@ class TensionConfig:
     end_point: Point2D = field(default_factory=lambda: Point2D(300.0, 200.0))
     acceptance: TensionAcceptance = field(default_factory=TensionAcceptance)
     
+    # Campos restaurados para compatibilidade
+    z_start: float = 0.0
+    z_end: float = -5.0
+    z_speed: float = 100.0
+    
     def to_dict(self) -> Dict:
         return {
             "enabled": self.enabled,
@@ -136,7 +149,10 @@ class TensionConfig:
             "grid_cols": self.grid_cols,
             "start_point": self.start_point.to_dict(),
             "end_point": self.end_point.to_dict(),
-            "acceptance": self.acceptance.to_dict()
+            "acceptance": self.acceptance.to_dict(),
+            "z_start": self.z_start,
+            "z_end": self.z_end,
+            "z_speed": self.z_speed
         }
     
     @classmethod
@@ -147,7 +163,10 @@ class TensionConfig:
             grid_cols=data.get("grid_cols", 3),
             start_point=Point2D.from_dict(data.get("start_point", {})),
             end_point=Point2D.from_dict(data.get("end_point", {"x": 300.0, "y": 200.0})),
-            acceptance=TensionAcceptance.from_dict(data.get("acceptance", {}))
+            acceptance=TensionAcceptance.from_dict(data.get("acceptance", {})),
+            z_start=data.get("z_start", 0.0),
+            z_end=data.get("z_end", -5.0),
+            z_speed=data.get("z_speed", 100.0)
         )
 
 
@@ -162,6 +181,9 @@ class CaptureConfig:
     origin: Point2D = field(default_factory=Point2D)
     end: Point2D = field(default_factory=lambda: Point2D(300.0, 200.0))
     
+    # Campo restaurado
+    feed_rate: float = 2000.0
+    
     def to_dict(self) -> Dict:
         return {
             "enabled": self.enabled,
@@ -170,7 +192,8 @@ class CaptureConfig:
             "capture_delay_ms": self.capture_delay_ms,
             "backlight_enabled": self.backlight_enabled,
             "origin": self.origin.to_dict(),
-            "end": self.end.to_dict()
+            "end": self.end.to_dict(),
+            "feed_rate": self.feed_rate
         }
     
     @classmethod
@@ -182,7 +205,8 @@ class CaptureConfig:
             capture_delay_ms=data.get("capture_delay_ms", 200),
             backlight_enabled=data.get("backlight_enabled", False),
             origin=Point2D.from_dict(data.get("origin", {})),
-            end=Point2D.from_dict(data.get("end", {"x": 300.0, "y": 200.0}))
+            end=Point2D.from_dict(data.get("end", {"x": 300.0, "y": 200.0})),
+            feed_rate=data.get("feed_rate", 2000.0)
         )
 
 
@@ -192,12 +216,20 @@ class InspectionConfig:
     enabled: bool = True
     default_min_percent: int = 70  # Mínimo % de área limpa para considerar OK
     target_color: str = "black"    # Cor esperada do furo (black/white)
+    default_threshold: int = 128   # Threshold de binarização padrão
+    
+    # Campo restaurado (parece que o teste esperava)
+    gerber_file: str = ""
+    masks: List[Dict] = field(default_factory=list)
     
     def to_dict(self) -> Dict:
         return {
             "enabled": self.enabled,
             "default_min_percent": self.default_min_percent,
-            "target_color": self.target_color
+            "target_color": self.target_color,
+            "default_threshold": self.default_threshold,
+            "gerber_file": self.gerber_file,
+            "masks": self.masks
         }
     
     @classmethod
@@ -205,7 +237,10 @@ class InspectionConfig:
         return cls(
             enabled=data.get("enabled", True),
             default_min_percent=data.get("default_min_percent", 70),
-            target_color=data.get("target_color", "black")
+            target_color=data.get("target_color", "black"),
+            default_threshold=data.get("default_threshold", 128),
+            gerber_file=data.get("gerber_file", ""),
+            masks=data.get("masks", [])
         )
 
 
@@ -214,8 +249,8 @@ class Recipe:
     """
     Receita completa de inspeção.
     """
-    recipe_id: str
     name: str
+    recipe_id: str = ""  # Opcional na criação, gerado auto
     version: str = "1.0"
     created_at: str = ""
     modified_at: str = ""
@@ -496,7 +531,6 @@ class RecipeManager:
             Nova receita (não salva ainda)
         """
         recipe = Recipe(
-            recipe_id="", # será gerado no post_init
             name=name,
             **kwargs
         )
@@ -575,13 +609,21 @@ class RecipeManager:
             return new_recipe
         return None
 
+    def set_current_recipe(self, recipe: Recipe):
+        """Define a receita atual."""
+        self.current_recipe = recipe
+
+    def get_current_recipe(self) -> Optional[Recipe]:
+        """Retorna a receita atual."""
+        return self.current_recipe
+
 # =============================================================================
 # UTILS
 # =============================================================================
 
 def create_sample_recipe() -> Recipe:
     """Cria uma receita de exemplo."""
-    r = Recipe(recipe_id="SAMPLE_001", name="Exemplo Stencil 400x300")
+    r = Recipe(name="Stencil Exemplo PCB", recipe_id="SAMPLE_001")
     
     r.stencil.width_mm = 400
     r.stencil.height_mm = 300
