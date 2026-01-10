@@ -504,7 +504,7 @@ Assumindo **Q1.1 = B** (Programa Genérico):
 
 **Q20.2 - Onde é salvo?**
 
-- [ ] Em arquivo JSON: `data/inspection_programs/nome_do_programa.json`
+- [X] Em arquivo JSON: `data/inspection_programs/nome_do_programa.json`
 - [ ] No banco de dados do stencil (SQLite)
 - [ ] Na estrutura de pastas do stencil
 - [ ] Outro (descrever):
