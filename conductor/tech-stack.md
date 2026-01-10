@@ -19,3 +19,4 @@
 ## Qualidade & Desenvolvimento
 - **Framework de Testes:** Pytest (Testes unitários e de integração).
 - **Cobertura de Testes:** Coverage.py.
+- **Testes Unitários:** Implementada suite de testes unitários para gerenciamento de configuração e persistência de dados.
