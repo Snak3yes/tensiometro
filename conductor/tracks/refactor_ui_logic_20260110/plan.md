@@ -7,8 +7,8 @@
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Abstração do Controle de Movimento' (Protocol in workflow.md)
 
 ## Fase 2: Desacoplamento do Fluxo de Inspeção
-- [ ] Tarefa: Analisar `InspectionUIController` e identificar lógica de negócio misturada com UI
-- [ ] Tarefa: Extrair lógica para `InspectionFlowService` em `aoi_lib`
+- [~] Tarefa: Analisar `InspectionUIController` e identificar lógica de negócio misturada com UI
+- [x] Tarefa: Extrair lógica para `InspectionFlowService` em `aoi_lib`
 - [ ] Tarefa: Criar testes unitários para `InspectionFlowService`
 - [ ] Tarefa: Atualizar `InspectionUIController` para usar o novo serviço
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Desacoplamento do Fluxo de Inspeção' (Protocol in workflow.md)
