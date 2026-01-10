@@ -6,7 +6,7 @@
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Análise e Setup de Testes' (Protocol in workflow.md)
 
 ## Fase 2: Testes de Bibliotecas Core
-- [ ] Tarefa: Escrever Testes para `aoi_lib/config_manager.py`
+- [x] Tarefa: Escrever Testes para `aoi_lib/config_manager.py` <!-- 460bd9a -->
 - [ ] Tarefa: Implementar correções para passar nos testes em `config_manager.py`
 - [ ] Tarefa: Escrever Testes para `aoi_lib/stencil_database.py`
 - [ ] Tarefa: Implementar correções para passar nos testes em `stencil_database.py`
