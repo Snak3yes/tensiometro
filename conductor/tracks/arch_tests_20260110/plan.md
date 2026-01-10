@@ -7,7 +7,7 @@
 
 ## Fase 2: Testes de Bibliotecas Core
 - [x] Tarefa: Escrever Testes para `aoi_lib/config_manager.py` <!-- 460bd9a -->
-- [ ] Tarefa: Implementar correções para passar nos testes em `config_manager.py`
+- [x] Tarefa: Implementar correções para passar nos testes em `config_manager.py` <!-- 688f9d3 -->
 - [ ] Tarefa: Escrever Testes para `aoi_lib/stencil_database.py`
 - [ ] Tarefa: Implementar correções para passar nos testes em `stencil_database.py`
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Testes de Bibliotecas Core' (Protocol in workflow.md)
