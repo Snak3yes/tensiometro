@@ -131,9 +131,9 @@ Assumindo resposta **Q1.1 = B** (Programa Genérico):
 
 Marque TODOS os campos que devem estar presentes:
 
-- [x] **Nome do Programa de Inspeção** (obrigatório)
+- [] **Nome do Programa de Inspeção** (obrigatório)
   - Exemplo: "Inspeção Padrão 0.5mm - Linha A"
-- [x] **Descrição/Comentários** (opcional)
+- [] **Descrição/Comentários** (opcional)
   - Exemplo: "Programa para stencils da linha A fabricados de Jan/2025 em diante"
 - [ ] **Código do Stencil de Referência** (opcional)
   - Exemplo: "STENCIL-ABC-123" usado apenas como base para testes
@@ -173,7 +173,7 @@ Diagrama menciona: "diálogo para realizar a limpeza do gerber, se necessário."
 - [ ] **Ambos**: Automaticamente se detectar problemas + botão manual
 - [ ] **Nunca**: Limpeza de Gerber não é necessária
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** após carregar o gerber, sempre, mesmo que não haja problemas, é uma etapa onde o usuário visualiza o gerber atual e remove partes do arquivo que não são aberturas, a nossa aplicação vai usar o desenho do gerber para criar as regiões de inspeção, então detalhes como texto, círculos, linhas, etc, não são necessários e deverão ser removidos nessa etapa. caso o gerber usado já venha limpo, o usuário irá apenas visualizar e prosseguir marcando como concluída a etapa de limpeza.
 
 ---
 
@@ -190,7 +190,7 @@ Assinale TODAS as operações que o diálogo de limpeza deve permitir:
 - [ ] Cortar/trimar área útil do Gerber
 - [ ] Corrigir erros de parsing
 
-**Sua resposta:** Lista as operações acima.
+**Sua resposta:** o desenho completo do gerber deve ser exibido, o usuário irá selecionar as partes que não são aberturas e removê-las, selecionando por clique com o botão esquerdo do mouse ou por seleção de área. a exibição do gerber deve ser feita ajustando o gerber a janela, a exibição do gerber deve ser feita de forma vetorial para que não se perca resolução ao aplicar zoom, e a janela onde o gerber vai ser exibido deve ter zoom in e zoom out acionado pela giro do scroll do mouse, deve ter pan acionado pelo clica e segura do botão do scroll do mouse, tambem deve existir um botão para ajustar a imagem a janela para visualizar todos os pontos.
 
 ---
 
@@ -202,7 +202,9 @@ Assinale TODAS as operações que o diálogo de limpeza deve permitir:
 - [ ] Fluxo é BLOQUEADO até que fiduciais sejam identificados
 - [ ] Sistema sugere "usar ponto ou grupo como referência" (conforme diagrama)
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** o sistema não vai detectar automaticamente os fiduciais, percebemos que não ser possível usar um fiducial oficial pois ele existe apenas na parte inferior do stencil e as medições irão acontecer na parte superior do stencil, para resolver isso vamos usar qualquer outra abertura ou grupo de aberturas que exista na parte superior do stencil como referência de posicionamento, equivalente ao fiducial.
+
+aqui na aba 2 o o usuário irá selecionar duas aberturas quaisquer para que seja usada como referência para posicionar o gerber sobre a imagem do stencil, mas isso ainda não será o fiducial, será apenas uma posição de referência que poderá ser usada pelo sistema para se deslocar até essa posição e pegar a imagem real do fiducial que será usada, aí sim nesse momento o usuário irá definir se irá usar apenas um ponto ou uma região maior como referência.
 
 ---
 
@@ -222,7 +224,7 @@ Se fiduciais não estão visíveis:
 - [ ] Usar **intersecção de linhas** do Gerber (ex: "intersecção das linhas de grade do painel")
 - [ ] Outro (descrever):
 
-**Sua resposta:** Escolha acima ou descreva.
+**Sua resposta:** o usuário vai deslocar manualmente usando os botões de jog da máquina a camera para o ponto onde o fiducial está localizado. nesse momento ele vai definir a posição (xyz) do fiducial. e irá capturar a primeira imagem de referência para o fiducial e irá fazer os testes de visualização para garantir que o posicionamento usando essa imagem está funcionando corretamente. isso para os dois fiduciais. um por vez, considerando que eles ficam em partes opostas do stencil.
 
 ---
 
@@ -230,7 +232,7 @@ Se fiduciais não estão visíveis:
 
 **Q9.1 - O sistema DEVE suportar:**
 
-- [ ] Exatamente 2 fiduciais (fixo)
+- [x] Exatamente 2 fiduciais (fixo)
 - [ ] 2 a 4 fiduciais (usuário escolhe quantos usar)
 - [ ] 2 ou mais fiduciais (flexível)
 
@@ -254,7 +256,7 @@ Minha proposal trocou "centro" por "canto".
 
 **Q10.1 - Qual é a ordem correta?**
 
-- [ ] **Minha proposta**: Mover para fiduciais → Definir pontos → Definir cantos → Capturar
+- [X] **Minha proposta**: Mover para fiduciais → Definir pontos → Definir cantos → Capturar
 - [ ] **Diagrama original**: Mover para fiduciais → Definir pontos → Definir centros → Capturar
 - [ ] **Outra ordem** (descrever):
 
@@ -269,23 +271,25 @@ Minha proposal trocou "centro" por "canto".
 - [ ] **Grid fixo**: Sempre 4×4 (16 FOVs), independente do tamanho do stencil
 - [ ] **Grid calculado**: Baseado na área definida (centro 1 e centro 2 / canto 1 e canto 2)
 - [ ] **Configurável**: Usuário define NxM (ex: 3×3, 4×4, 5×5) antes de capturar
-- [ ] **Automático**: Sistema calcula número ideal de FOVs baseado no tamanho total do Gerber
+- [x] **Automático**: Sistema calcula número ideal de FOVs baseado no tamanho total do Gerber
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** o calculo tambem deve levar em conta detalhes tecnicos sobre a camera e a resolução da mesma.
+
 
 ---
 
 **Q11.2 - Durante a captura:**
 
 - [ ] Usuário vê preview de cada FOV capturada
-- [ ] Usuário vê apenas barra de progresso
-- [ ] Usuário pode CANCELAR captura no meio do processo
+- [X] Usuário vê apenas barra de progresso
+- [X] Usuário pode CANCELAR captura no meio do processo
 - [ ] Se uma FOV falhar, sistema:
-  - [ ] Tenta capturar novamente automaticamente
+  - [X] Tenta capturar novamente automaticamente
   - [ ] Pergunta ao usuário o que fazer
   - [ ] Marca FOV como falha e continua
 
-**Sua resposta:** Assinale as opções acima.
+**Sua resposta:** Tenta mais duas vezes, se a falha persistir, o sistema deve perguntar ao usuário o que deseja fazer.
+
 
 ---
 
@@ -295,7 +299,7 @@ Minha proposal trocou "centro" por "canto".
 
 - [ ] **Apenas salvar coordenadas**: Sistema registra posição atual (X, Y) como posição do fiducial
 - [ ] **Capturar template**: Sistema captura imagem do fiducial para usar no alinhamento (template matching)
-- [ ] **Ambos**: Salva coordenadas E captura template
+- [X] **Ambos**: Salva coordenadas E captura template
 
 **Sua resposta:** Escolha acima.
 
@@ -311,7 +315,7 @@ Diagrama: "gerber editado é 'plotado' sobre a imagem capturada, como se fosse u
 
 - [ ] Fixa em 50%
 - [ ] Ajustável pelo usuário (slider de 0% a 100%)
-- [ ] Ajustável entre 30% e 70%
+- [X] Ajustável entre 30% e 70%
 
 **Sua resposta:** Escolha acima.
 
@@ -323,11 +327,11 @@ Diagrama: "o usuário vai clicar, manter pressionado e arrastar até uma posiç�
 
 Isso significa:
 
-- [ ] **Drag & Drop do Gerber inteiro**: Usuário clica em qualquer lugar do overlay do Gerber e arrasta TODO o Gerber para ajustar alinhamento global
+- [X] **Drag & Drop do Gerber inteiro**: Usuário clica em qualquer lugar do overlay do Gerber e arrasta TODO o Gerber para ajustar alinhamento global
 - [ ] **Arrastar fiduciais individualmente**: Usuário pode arrastar fiducial 1 e fiducial 2 separadamente
 - [ ] **Ambas opções** acima
 - [ ] **Controles manuais**: Apenas spinboxes para translação, rotação e escala (sem drag & drop)
-- [ ] **Combinação**: Drag & drop + controles manuais + botão de auto-tuning
+- [X] **Combinação**: Drag & drop + controles manuais
 
 **Sua resposta:** Escolha acima.
 
@@ -340,10 +344,10 @@ Diagrama: "talvez seja necessário criar um sistema de auto tuning para melhorar
 **Q14.1 - Auto-tuning deve:**
 
 - [ ] Ser OBRIGATÓRIO (executa automaticamente após captura)
-- [ ] Ser OPCIONAL (botão que usuário pode clicar se quiser melhorar)
+- [X] Ser OPCIONAL (botão que usuário pode clicar se quiser melhorar)
 - [ ] Ser SUGERIDO (sistema sugere "Deseja melhorar o alinhamento?" se score < 80%)
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** em outro momento podemos detalhar como funcionará o auto-tuning.
 
 ---
 
@@ -354,9 +358,9 @@ Diagrama: "talvez seja necessário criar um sistema de auto tuning para melhorar
 - [ ] Ajusta apenas translação (X, Y)
 - [ ] Ajusta translação + rotação
 - [ ] Ajusta translação + rotação + escala
-- [ ] Refina alinhamento já feito pelo usuário (não começa do zero)
+- [X] Refina alinhamento já feito pelo usuário (não começa do zero)
 
-**Sua resposta:** Assinale as operações acima.
+**Sua resposta:** em outro momento podemos detalhar como funcionará o auto-tuning.
 
 ---
 
@@ -370,11 +374,11 @@ Há um erro de digitação: "perfeitamente iguais, devem ter suas configuraçõe
 
 **Q15.1 - Qual é a frase correta?**
 
-- [ ] "as janelas de inspeção que forem **PERFEITAMENTE IGUAIS** devem ser agrupadas..."
+- [X] "as janelas de inspeção que forem **PERFEITAMENTE IGUAIS** devem ser agrupadas..."
 - [ ] "as janelas de inspeção devem ser **AGRUPADAS**; janelas perfeitamente iguais devem ter suas configurações ajustadas..."
 - [ ] Outra interpretação:
 
-**Sua resposta:** Escolha acima ou corrija.
+**Sua resposta:** as janelas que são perfeitamente iguais devem ter suas configurações agrupadas. dessa forma o usuário pode realizar as configurações de inspeção de forma mais fácil e simples. mas ainda deve ser possível criar uma configuração específica para uma abertura mesmo que ela seja igual a outras.
 
 ---
 
@@ -384,7 +388,7 @@ Janelas são consideradas "perfeitamente iguais" se:
 
 - [ ] **Dimensões EXATAMENTE iguais**: Ex: 0.5mm × 0.5mm = 0.5mm × 0.5mm
 - [ ] **Dimensões COM TOLERÂNCIA**: Ex: 0.48mm a 0.52mm são agrupadas como "0.5mm"
-- [ ] **Dimensões + Forma**: 0.5mm círculo é DIFERENTE de 0.5mm quadrado
+- [X] **Dimensões + Forma**: 0.5mm círculo é DIFERENTE de 0.5mm quadrado
 - [ ] **Todas acima** (dimensão + forma + tolerância)
 
 **Sua resposta:** Escolha acima.
@@ -398,17 +402,17 @@ Diagrama: "no agrupamento deve existir a possibilidade de fazer uma configuraç�
 **Q16.1 - Como usuário cria uma exceção?**
 
 - [ ] Clica na aperture específica na lista e seleciona "Criar Exceção"
-- [ ] Expande o grupo e seleciona as apertures que deseja exceção
+- [X] Expande o grupo e seleciona as apertures que deseja exceção
 - [ ] Botão "Adicionar Exceção" que pede IDs das apertures (ex: "ID=45, ID=78")
-- [ ] Clica na aperture no preview visual e marca como exceção
+- [X] Clica na aperture no preview visual e marca como exceção
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** no caso de expandir o grupo e selecionar as apertures que deseja exceção, o usuário pode selecionar mais de uma aperture para exceção. e a abertura selecionada deve ser destacada na visualização do preview visual. para indicar que aquela está selecionada, o mesmo vale se mais de uma for selecionada.
 
 ---
 
 **Q16.2 - Exceção aparece onde?**
 
-- [ ] **Como sub-item do grupo**: Ex: "📦 0.5mm (145) → ├─ Padrão (142) └─ Exceções (3)"
+- [X] **Como sub-item do grupo**: Ex: "📦 0.5mm (145) → ├─ Padrão (142) └─ Exceções (3)"
 - [ ] **Como grupo separado**: Ex: "📦 0.5mm Padrão (142)" + "📦 0.5mm Exceção 1 (1)"
 - [ ] **Como lista à parte**: Ex: "📦 0.5mm (142)" + "⚙️ Exceções Individuais (3)"
 
@@ -425,14 +429,14 @@ Diagrama: "os agrupamentos devem ser exibidos de uma forma que o usuário possa 
 Assinale o que é possível fazer:
 
 - [ ] Ver preview de 3+ aperturas do grupo selecionado
-- [ ] Clicar em uma aperture no preview e ver ela destacada no Gerber
-- [ ] Ajustar manualmente a janela de inspeção daquela aperture (redimensionar)
+- [X] Clicar em uma aperture no preview e ver ela destacada no Gerber
+- [X] Ajustar manualmente a janela de inspeção daquela aperture (redimensionar)
 - [ ] Ver resultado da análise (OK/PARTIAL/BLOCKED) para aquela aperture com configurações atuais
 - [ ] Comparar resultado antes/depois de ajustar configurações
 - [ ] Arrastar e soltar janela de inspeção para reposicionar
 - [ ] Ver sobreposição de múltiplas janelas (detectar conflitos)
 
-**Sua resposta:** Assinale as operações acima.
+**Sua resposta:** Considere edição visual como edição manual, me referi a edição dos parâmetros de inspeção da abertura, relacionado aos algoritmos de inspeção usados.
 
 ---
 
@@ -443,19 +447,19 @@ Diagrama: "deve existir feedback visual para mostrar quais aberturas já foram c
 **Q18.1 - O que significa "configurada" vs "confirmada"?**
 
 - [ ] **Configurada**: Usuário definiu thresholds, mas NÃO validou ainda
-- [ ] **Confirmada**: Usuário revisou e aprovou as configurações
+- [X] **Confirmada**: Usuário revisou e aprovou as configurações
 - [ ] **Ambos são iguais**: Não há distinção entre configurado e confirmado
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** existem valores padrão de thresholds que o sistema aplica automaticamente quando o usuário cria um novo programa, esses valores padrão podem ser modificados pelo usuário. mesmo com os valores padrão aplicados na criação do programa, o usuário pode confirmar as configurações ou avançar sem confirmar. então devemos ter uma indicação visual que mostra as aberturas que ainda não foram confirmadas e as aberturas que já foram confirmadas.
 
 ---
 
 **Q18.2 - Onde aparece esse feedback?**
 
-- [ ] Na árvore de grupos (ícones: ⚪ configurada | ✅ confirmada)
-- [ ] No preview visual (cores de borda: cinza configurada | verde confirmada)
-- [ ] No Gerber overlay (janelas confirmadas aparecem em verde sobre o Gerber)
-- [ ] Todas as acima
+- [X] Na árvore de grupos (ícones: ⚪ configurada | ✅ confirmada)
+- [X] No preview visual (cores de borda: cinza configurada | verde confirmada)
+- [X] No Gerber overlay (janelas confirmadas aparecem em verde sobre o Gerber)
+- [X] Todas as acima
 
 **Sua resposta:** Escolha acima.
 
@@ -473,7 +477,7 @@ Diagrama: "o usuário pode configurar as edições visuais em uma biblioteca par
 - [ ] Biblioteca é GLOBAL (compartilhada entre todos os programas)
 - [ ] Biblioteca é POR PROGRAMA (cada programa tem sua própria biblioteca)
 
-**Sua resposta:** Escolha acima.
+**Sua resposta:** a biblioteca é gerada automaticamente com base no nome automatico da abertura. o nome automatico da abertura é a dimensão da abertura + forma da abertura. vai ser salva uma configuração padrão para aquela abertura, que será aplicada automaticamente quando o usuário criar um novo programa, uma das etapas interna do processo de criação de um novo programa é consultar na biblioteca de configurações aquela abertura e aplicar as configurações padrão, caso sim elas são carregadas automaticamente.
 
 ---
 
