@@ -16,7 +16,7 @@
 - [x] Tarefa: Executar Smoke Test em `main.py` e validar inicialização <!-- 26456 -->
 - [x] Tarefa: Conductor - User Manual Verification 'Fase 3: Verificação de Integridade (Smoke Test)' (Protocol in workflow.md)
 
-## Fase 4: Aumento de Cobertura (Meta: 95%)
+## Fase 4: Aumento de Cobertura (Meta: 95%) [checkpoint: 104831c]
 - [x] Tarefa: Identificar módulos críticos com baixa cobertura <!-- manual -->
 - [x] Tarefa: Criar testes unitários para `aoi_lib/aoi_controller.py` <!-- 1f57d4c -->
 - [~] Tarefa: Criar testes unitários para `aoi_lib/plc_axis_controller.py` (com mocks)
