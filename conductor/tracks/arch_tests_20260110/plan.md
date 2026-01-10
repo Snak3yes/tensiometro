@@ -5,7 +5,7 @@
 - [x] Tarefa: Configurar ambiente de teste unificado (pytest + coverage)
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Análise e Setup de Testes' (Protocol in workflow.md)
 
-## Fase 2: Testes de Bibliotecas Core
+## Fase 2: Testes de Bibliotecas Core [checkpoint: 0e0f303]
 - [x] Tarefa: Escrever Testes para `aoi_lib/config_manager.py` <!-- 460bd9a -->
 - [x] Tarefa: Implementar correções para passar nos testes em `config_manager.py` <!-- 688f9d3 -->
 - [x] Tarefa: Escrever Testes para `aoi_lib/stencil_database.py` <!-- 3adc05f -->
