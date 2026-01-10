@@ -13,7 +13,7 @@
 - [~] Tarefa: Atualizar `InspectionUIController` para usar o novo serviço
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Desacoplamento do Fluxo de Inspeção' (Protocol in workflow.md)
 
-## Fase 3: Validação Final e Limpeza
+## Fase 3: Validação Final e Limpeza [checkpoint: 8405192]
 - [~] Tarefa: Executar Smoke Test da aplicação para garantir que refatorações não quebraram a UI
 - [ ] Tarefa: Verificar cobertura de testes dos novos módulos
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 3: Validação Final e Limpeza' (Protocol in workflow.md)
