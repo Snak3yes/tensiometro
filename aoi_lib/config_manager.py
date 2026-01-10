@@ -1,6 +1,6 @@
 #config_manager.py
 
-import os, json, logging
+import os, json, logging, copy
 from pathlib import Path
 
 # ------------------------------------------------------------
@@ -194,10 +194,10 @@ class AOIConfigManager:
                 self.log.info("Config carregada de %s", self.cfg_path)
             except Exception as e:
                 self.log.error("Falha ao ler config, usando padrão: %s", e)
-                self.data = self._DEFAULT_CFG.copy()
+                self.data = copy.deepcopy(self._DEFAULT_CFG)
         else:
             self.log.info("Arquivo de config inexistente – criando padrão em %s", self.cfg_path)
-            self.data = self._DEFAULT_CFG.copy()
+            self.data = copy.deepcopy(self._DEFAULT_CFG)
             self.save()
 
     def save(self):

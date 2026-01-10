@@ -21,8 +21,38 @@ def test_save_failure_logs_error(caplog):
         assert "Erro salvando config: Disco Cheio" in caplog.text
 
 def test_default_path_is_correct():
+
     """Testa que o caminho padrão é resolvido corretamente para config/aoi_config.json."""
+
     manager = AOIConfigManager()
+
     assert manager.cfg_path.name == "aoi_config.json"
+
     assert manager.cfg_path.parent.name == "config"
+
+
+
+def test_modification_does_not_affect_default_cfg():
+
+    """Testa que a modificação da instância não altera o dicionário _DEFAULT_CFG original (deep copy test)."""
+
+    manager = AOIConfigManager(cfg_path="/non/existent/path.json")
+
+    # Modifica um valor aninhado
+
+    manager.set("cnc", "system_type", value="MODIFIED")
+
+    
+
+    # Cria novo manager (que deve usar o default novamente)
+
+    manager2 = AOIConfigManager(cfg_path="/another/non/existent/path.json")
+
+    assert manager2.get("cnc", "system_type") == "cartesian"
+
+    assert AOIConfigManager._DEFAULT_CFG["cnc"]["system_type"] == "cartesian"
+
+
+
+
 
