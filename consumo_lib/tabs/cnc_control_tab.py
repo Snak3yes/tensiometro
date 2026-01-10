@@ -55,13 +55,21 @@ class CNCControlTab(BaseTab):
         )
         from consumo_lib.services import MovementService, ClickToMoveService
         from aoi_lib.fov_calibration import CameraFOVConverter, FOVCalibration
+        from aoi_lib.movement_orchestrator import MovementOrchestrator
 
-        # Criar MovementService
+        # Criar MovementService (Legado para ClickToMove)
         self.movement_service = MovementService(
             cnc_controller=self.controller.cnc,
             config_manager=self.config_manager
         )
         logger.debug("MovementService criado para CNCControlTab")
+        
+        # Criar MovementOrchestrator (Novo para MovementWidget)
+        self.orchestrator = MovementOrchestrator(
+            controller=self.controller.cnc,
+            config_manager=self.config_manager
+        )
+        logger.debug("MovementOrchestrator criado para CNCControlTab")
 
         # Criar FOVConverter para ClickToMoveService
         fov_converter = CameraFOVConverter()
@@ -105,7 +113,7 @@ class CNCControlTab(BaseTab):
         self.movement_widget = MovementControlWidget(
             self.controller,
             self.config_manager,
-            movement_service=self.movement_service  # Passa o service
+            orchestrator=self.orchestrator  # Passa o novo orchestrator
         )
         cm_left_layout.addWidget(self.movement_widget)
 
