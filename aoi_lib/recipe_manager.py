@@ -28,6 +28,15 @@ logger = logging.getLogger(__name__)
 # Diretório padrão para receitas
 DEFAULT_RECIPES_DIR = "recipes"
 
+# Limites da máquina (para validação)
+MACHINE_LIMITS = {
+    "max_width_mm": 800.0,
+    "max_height_mm": 800.0,
+    "min_step_mm": 0.1,
+    "min_tension": 5.0,
+    "max_tension": 100.0
+}
+
 
 # =============================================================================
 # DATA CLASSES
@@ -108,116 +117,85 @@ class TensionAcceptance:
             warning_low=data.get("warning_low", 28.0),
             warning_high=data.get("warning_high", 42.0)
         )
-    
-    def classify(self, value: float) -> str:
-        """
-        Classifica um valor de tensão.
-        
-        Returns:
-            'OK', 'WARNING', ou 'NOK'
-        """
-        if value < self.min_tension or value > self.max_tension:
-            return 'NOK'
-        if value < self.warning_low or value > self.warning_high:
-            return 'WARNING'
-        return 'OK'
 
 
 @dataclass
 class TensionConfig:
     """Configuração de medição de tensão."""
-    enabled: bool = True
-    grid_rows: int = 5
-    grid_cols: int = 5
+    enabled: bool = False
+    grid_rows: int = 3
+    grid_cols: int = 3
     start_point: Point2D = field(default_factory=Point2D)
-    end_point: Point2D = field(default_factory=lambda: Point2D(350, 250))
-    z_start: float = 0.0  # Altura inicial do sensor
-    z_end: float = -5.0  # Altura final (sobre o stencil)
-    z_speed: float = 100.0  # Velocidade de descida mm/min
+    end_point: Point2D = field(default_factory=lambda: Point2D(300.0, 200.0))
     acceptance: TensionAcceptance = field(default_factory=TensionAcceptance)
     
     def to_dict(self) -> Dict:
         return {
             "enabled": self.enabled,
-            "grid": {"rows": self.grid_rows, "cols": self.grid_cols},
+            "grid_rows": self.grid_rows,
+            "grid_cols": self.grid_cols,
             "start_point": self.start_point.to_dict(),
             "end_point": self.end_point.to_dict(),
-            "z_params": {
-                "start_z": self.z_start,
-                "end_z": self.z_end,
-                "speed": self.z_speed
-            },
             "acceptance": self.acceptance.to_dict()
         }
     
     @classmethod
     def from_dict(cls, data: Dict) -> 'TensionConfig':
-        grid = data.get("grid", {})
-        z_params = data.get("z_params", {})
         return cls(
-            enabled=data.get("enabled", True),
-            grid_rows=grid.get("rows", 5),
-            grid_cols=grid.get("cols", 5),
+            enabled=data.get("enabled", False),
+            grid_rows=data.get("grid_rows", 3),
+            grid_cols=data.get("grid_cols", 3),
             start_point=Point2D.from_dict(data.get("start_point", {})),
-            end_point=Point2D.from_dict(data.get("end_point", {})),
-            z_start=z_params.get("start_z", 0.0),
-            z_end=z_params.get("end_z", -5.0),
-            z_speed=z_params.get("speed", 100.0),
+            end_point=Point2D.from_dict(data.get("end_point", {"x": 300.0, "y": 200.0})),
             acceptance=TensionAcceptance.from_dict(data.get("acceptance", {}))
         )
 
 
 @dataclass
 class CaptureConfig:
-    """Configuração de captura de imagem/mapa."""
+    """Configuração de captura de imagem (mosaico)."""
+    enabled: bool = True
+    step_x: float = 50.0  # Passo em mm
+    step_y: float = 50.0
+    capture_delay_ms: int = 200
+    backlight_enabled: bool = False
     origin: Point2D = field(default_factory=Point2D)
-    end: Point2D = field(default_factory=lambda: Point2D(400, 300))
-    step_x: float = 50.0  # Passo em X (mm)
-    step_y: float = 50.0  # Passo em Y (mm)
-    feed_rate: float = 2000.0  # Velocidade de movimento (mm/min)
-    capture_delay_ms: int = 200  # Delay após movimento (ms)
-    backlight_enabled: bool = True  # Usar backlight na captura
+    end: Point2D = field(default_factory=lambda: Point2D(300.0, 200.0))
     
     def to_dict(self) -> Dict:
         return {
-            "origin": self.origin.to_dict(),
-            "end": self.end.to_dict(),
+            "enabled": self.enabled,
             "step_x": self.step_x,
             "step_y": self.step_y,
-            "feed_rate": self.feed_rate,
             "capture_delay_ms": self.capture_delay_ms,
-            "backlight_enabled": self.backlight_enabled
+            "backlight_enabled": self.backlight_enabled,
+            "origin": self.origin.to_dict(),
+            "end": self.end.to_dict()
         }
     
     @classmethod
     def from_dict(cls, data: Dict) -> 'CaptureConfig':
         return cls(
-            origin=Point2D.from_dict(data.get("origin", {})),
-            end=Point2D.from_dict(data.get("end", {})),
+            enabled=data.get("enabled", True),
             step_x=data.get("step_x", 50.0),
             step_y=data.get("step_y", 50.0),
-            feed_rate=data.get("feed_rate", 2000.0),
             capture_delay_ms=data.get("capture_delay_ms", 200),
-            backlight_enabled=data.get("backlight_enabled", True)
+            backlight_enabled=data.get("backlight_enabled", False),
+            origin=Point2D.from_dict(data.get("origin", {})),
+            end=Point2D.from_dict(data.get("end", {"x": 300.0, "y": 200.0}))
         )
 
 
 @dataclass
 class InspectionConfig:
-    """Configuração de inspeção visual (para uso futuro com Gerber)."""
-    enabled: bool = False
-    gerber_file: Optional[str] = None  # Caminho do arquivo Gerber
-    masks: List[Dict] = field(default_factory=list)  # Máscaras geradas
-    default_threshold: int = 128  # Threshold padrão
-    default_min_percent: float = 95.0  # % mínimo de aprovação
-    target_color: str = "white"  # 'white' ou 'black'
+    """Configuração de inspeção visual (AOI)."""
+    enabled: bool = True
+    default_min_percent: int = 70  # Mínimo % de área limpa para considerar OK
+    target_color: str = "black"    # Cor esperada do furo (black/white)
     
     def to_dict(self) -> Dict:
         return {
             "enabled": self.enabled,
-            "gerber_file": self.gerber_file,
-            "masks": self.masks,
-            "default_threshold": self.default_threshold,
             "default_min_percent": self.default_min_percent,
             "target_color": self.target_color
         }
@@ -225,29 +203,19 @@ class InspectionConfig:
     @classmethod
     def from_dict(cls, data: Dict) -> 'InspectionConfig':
         return cls(
-            enabled=data.get("enabled", False),
-            gerber_file=data.get("gerber_file"),
-            masks=data.get("masks", []),
-            default_threshold=data.get("default_threshold", 128),
-            default_min_percent=data.get("default_min_percent", 95.0),
-            target_color=data.get("target_color", "white")
+            enabled=data.get("enabled", True),
+            default_min_percent=data.get("default_min_percent", 70),
+            target_color=data.get("target_color", "black")
         )
 
 
 @dataclass
 class Recipe:
     """
-    Receita completa para inspeção de um modelo de stencil.
-    
-    Contém todas as configurações necessárias para:
-    - Identificar o modelo de stencil
-    - Medir tensão superficial
-    - Capturar imagens para mosaico
-    - Inspecionar aberturas (futuro)
+    Receita completa de inspeção.
     """
-    # Metadados
-    recipe_id: str = ""
-    name: str = "Nova Receita"
+    recipe_id: str
+    name: str
     version: str = "1.0"
     created_at: str = ""
     modified_at: str = ""
@@ -267,8 +235,8 @@ class Recipe:
         if not self.modified_at:
             self.modified_at = now
         if not self.recipe_id:
-            # Gera ID baseado no timestamp
-            self.recipe_id = f"RECIPE_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            # Gera ID baseado no timestamp com microsegundos para evitar colisão
+            self.recipe_id = f"RECIPE_{datetime.now().strftime('%Y%m%d_%H%M%S_%f')}"
     
     def to_dict(self) -> Dict:
         """Serializa a receita para dicionário."""
@@ -324,26 +292,48 @@ class Recipe:
         """
         errors = []
         
+        # 1. Validação Básica
         if not self.name or self.name.strip() == "":
             errors.append("Nome da receita não pode estar vazio")
         
+        # 2. Validação Stencil
         if self.stencil.width_mm <= 0:
             errors.append("Largura do stencil deve ser maior que zero")
-        
+        elif self.stencil.width_mm > MACHINE_LIMITS["max_width_mm"]:
+            errors.append(f"Largura excede limite da máquina ({MACHINE_LIMITS['max_width_mm']}mm)")
+            
         if self.stencil.height_mm <= 0:
             errors.append("Altura do stencil deve ser maior que zero")
+        elif self.stencil.height_mm > MACHINE_LIMITS["max_height_mm"]:
+            errors.append(f"Altura excede limite da máquina ({MACHINE_LIMITS['max_height_mm']}mm)")
         
+        # 3. Validação Tensão
         if self.tension.enabled:
             if self.tension.grid_rows < 1 or self.tension.grid_cols < 1:
                 errors.append("Grid de tensão deve ter pelo menos 1x1")
             
             acc = self.tension.acceptance
+            if acc.min_tension < MACHINE_LIMITS["min_tension"]:
+                errors.append(f"Tensão mínima abaixo do limite físico ({MACHINE_LIMITS['min_tension']})")
+            if acc.max_tension > MACHINE_LIMITS["max_tension"]:
+                errors.append(f"Tensão máxima acima do limite físico ({MACHINE_LIMITS['max_tension']})")
             if acc.min_tension >= acc.max_tension:
                 errors.append("Tensão mínima deve ser menor que máxima")
+            
+            # Valida área de tensão dentro do stencil
+            sp = self.tension.start_point
+            ep = self.tension.end_point
+            if sp.x < 0 or sp.y < 0 or ep.x < 0 or ep.y < 0:
+                errors.append("Pontos de medição não podem ser negativos")
+            if sp.x > self.stencil.width_mm or ep.x > self.stencil.width_mm:
+                errors.append("Área de tensão excede largura do stencil")
+            if sp.y > self.stencil.height_mm or ep.y > self.stencil.height_mm:
+                errors.append("Área de tensão excede altura do stencil")
         
-        if self.capture.step_x <= 0 or self.capture.step_y <= 0:
-            errors.append("Steps de captura devem ser maiores que zero")
-        
+        # 4. Validação Captura
+        if self.capture.step_x < MACHINE_LIMITS["min_step_mm"] or self.capture.step_y < MACHINE_LIMITS["min_step_mm"]:
+            errors.append(f"Steps de captura muito pequenos (mínimo {MACHINE_LIMITS['min_step_mm']}mm)")
+            
         return errors
 
 
@@ -354,49 +344,52 @@ class Recipe:
 class RecipeManager:
     """
     Gerenciador de receitas.
-    
-    Responsável por:
-    - Listar receitas disponíveis
-    - Carregar/Salvar receitas
-    - Criar/Editar/Excluir receitas
-    - Validar receitas
+    Responsável por salvar, carregar e listar receitas em disco.
     """
     
     def __init__(self, recipes_dir: str = None):
         """
-        Inicializa o gerenciador de receitas.
+        Inicializa o RecipeManager.
         
         Args:
-            recipes_dir: Diretório para armazenar receitas.
-                         Se None, usa DEFAULT_RECIPES_DIR.
+            recipes_dir: Diretório onde as receitas serão salvas.
+                         Se None, usa diretório padrão relativo ao projeto.
         """
-        self.recipes_dir = Path(recipes_dir or DEFAULT_RECIPES_DIR)
-        self._ensure_recipes_dir()
+        if recipes_dir is None:
+            # Usa diretório relativo ao projeto
+            base = Path(__file__).parent.parent
+            recipes_dir = base / DEFAULT_RECIPES_DIR
+        
+        self.recipes_dir = Path(recipes_dir)
+        self._ensure_directory()
         
         self.current_recipe: Optional[Recipe] = None
         self._recipes_cache: Dict[str, Recipe] = {}
+        
+        logger.info(f"RecipeManager inicializado em: {self.recipes_dir}")
     
-    def _ensure_recipes_dir(self):
-        """Garante que o diretório de receitas existe."""
+    def _ensure_directory(self):
+        """Cria o diretório de receitas se não existir."""
         self.recipes_dir.mkdir(parents=True, exist_ok=True)
-        logger.info(f"Diretório de receitas: {self.recipes_dir.absolute()}")
     
-    def list_recipes(self) -> List[Dict[str, str]]:
+    def list_recipes(self) -> List[Dict]:
         """
         Lista todas as receitas disponíveis.
         
         Returns:
-            Lista de dicionários com 'recipe_id', 'name', 'modified_at'
+            Lista de dicionários com metadados das receitas.
         """
         recipes = []
-        
+        if not self.recipes_dir.exists():
+            return recipes
+            
         for file_path in self.recipes_dir.glob("*.json"):
             try:
                 with open(file_path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     recipes.append({
+                        'name': data.get('name', 'Sem Nome'),
                         'recipe_id': data.get('recipe_id', file_path.stem),
-                        'name': data.get('name', 'Sem nome'),
                         'modified_at': data.get('modified_at', ''),
                         'file_path': str(file_path)
                     })
@@ -498,28 +491,38 @@ class RecipeManager:
         Args:
             name: Nome da receita
             **kwargs: Outros parâmetros da receita
-        
+            
         Returns:
-            Objeto Recipe criado
+            Nova receita (não salva ainda)
         """
-        recipe = Recipe(name=name, **kwargs)
-        self.current_recipe = recipe
+        recipe = Recipe(
+            recipe_id="", # será gerado no post_init
+            name=name,
+            **kwargs
+        )
         return recipe
     
     def delete_recipe(self, recipe_id: str) -> bool:
         """
-        Exclui uma receita.
+        Remove uma receita.
         
         Args:
             recipe_id: ID da receita
-        
+            
         Returns:
-            True se excluiu com sucesso
+            True se removida com sucesso
         """
         file_path = self.recipes_dir / f"{recipe_id}.json"
         
         if not file_path.exists():
-            # Busca pelo ID
+            # Tenta buscar pelo conteúdo
+            recipe = self.load_recipe(recipe_id)
+            if not recipe:
+                return False
+            # Recalcula path (caso load_recipe tenha achado por outro nome)
+            # Mas load_recipe não retorna path.
+            # Vamos assumir que ID = filename por padrão.
+            # Se não, busca arquivo
             for fp in self.recipes_dir.glob("*.json"):
                 try:
                     with open(fp, 'r', encoding='utf-8') as f:
@@ -532,146 +535,66 @@ class RecipeManager:
         
         if file_path.exists():
             try:
-                file_path.unlink()
+                os.remove(file_path)
                 self._recipes_cache.pop(recipe_id, None)
-                logger.info(f"Receita excluída: {recipe_id}")
+                if self.current_recipe and self.current_recipe.recipe_id == recipe_id:
+                    self.current_recipe = None
+                logger.info(f"Receita removida: {recipe_id}")
                 return True
             except Exception as e:
-                logger.error(f"Erro ao excluir receita: {e}")
+                logger.error(f"Erro ao remover receita: {e}")
                 return False
         
-        logger.warning(f"Receita não encontrada para exclusão: {recipe_id}")
         return False
-    
+        
     def duplicate_recipe(self, recipe_id: str, new_name: str) -> Optional[Recipe]:
         """
         Duplica uma receita existente.
         
         Args:
             recipe_id: ID da receita original
-            new_name: Nome para a nova receita
-        
+            new_name: Nome da nova receita
+            
         Returns:
-            Nova receita ou None se falhar
+            Nova receita salva ou None
         """
         original = self.load_recipe(recipe_id)
         if not original:
             return None
+            
+        # Cria cópia dos dados
+        data = original.to_dict()
+        data['name'] = new_name
+        data['recipe_id'] = "" # Reset ID para gerar novo
+        data['created_at'] = "" # Reset datas
+        data['modified_at'] = ""
         
-        # Cria cópia
-        new_recipe = Recipe.from_dict(original.to_dict())
-        new_recipe.name = new_name
-        new_recipe.recipe_id = f"RECIPE_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        new_recipe.created_at = datetime.now().isoformat()
-        new_recipe.modified_at = new_recipe.created_at
+        new_recipe = Recipe.from_dict(data)
         
-        return new_recipe
-    
-    def get_current_recipe(self) -> Optional[Recipe]:
-        """Retorna a receita atualmente carregada."""
-        return self.current_recipe
-    
-    def set_current_recipe(self, recipe: Recipe):
-        """Define a receita atual."""
-        self.current_recipe = recipe
-
+        if self.save_recipe(new_recipe):
+            return new_recipe
+        return None
 
 # =============================================================================
-# FUNÇÕES UTILITÁRIAS
+# UTILS
 # =============================================================================
 
 def create_sample_recipe() -> Recipe:
-    """
-    Cria uma receita de exemplo para testes.
+    """Cria uma receita de exemplo."""
+    r = Recipe(recipe_id="SAMPLE_001", name="Exemplo Stencil 400x300")
     
-    Returns:
-        Receita de exemplo
-    """
-    recipe = Recipe(
-        name="Stencil Exemplo PCB",
-        recipe_id="SAMPLE_001",
-        stencil=StencilInfo(
-            width_mm=400,
-            height_mm=300,
-            thickness_mm=0.12,
-            material="Inox 304",
-            notes="Stencil de exemplo para testes"
-        ),
-        tension=TensionConfig(
-            enabled=True,
-            grid_rows=5,
-            grid_cols=5,
-            start_point=Point2D(50, 50),
-            end_point=Point2D(350, 250),
-            z_start=0,
-            z_end=-5,
-            z_speed=100,
-            acceptance=TensionAcceptance(
-                min_tension=25.0,
-                max_tension=45.0,
-                warning_low=28.0,
-                warning_high=42.0
-            )
-        ),
-        capture=CaptureConfig(
-            origin=Point2D(0, 0),
-            end=Point2D(400, 300),
-            step_x=50,
-            step_y=50,
-            feed_rate=2000,
-            capture_delay_ms=200,
-            backlight_enabled=True
-        ),
-        inspection=InspectionConfig(
-            enabled=False,
-            default_threshold=128,
-            default_min_percent=95.0
-        )
-    )
-    return recipe
-
-
-# =============================================================================
-# TESTE
-# =============================================================================
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    print("=== Teste do Sistema de Receitas ===\n")
+    r.stencil.width_mm = 400
+    r.stencil.height_mm = 300
+    r.stencil.material = "Inox"
     
-    # Cria gerenciador
-    manager = RecipeManager()
+    r.tension.enabled = True
+    r.tension.grid_rows = 3
+    r.tension.grid_cols = 3
+    r.tension.start_point = Point2D(50, 50)
+    r.tension.end_point = Point2D(350, 250)
     
-    # Cria receita de exemplo
-    recipe = create_sample_recipe()
-    print(f"Receita criada: {recipe.name}")
-    print(f"  ID: {recipe.recipe_id}")
-    print(f"  Stencil: {recipe.stencil.width_mm}x{recipe.stencil.height_mm} mm")
-    print(f"  Tensão: Grid {recipe.tension.grid_rows}x{recipe.tension.grid_cols}")
-    print(f"  Aceitação: {recipe.tension.acceptance.min_tension}-{recipe.tension.acceptance.max_tension} N/cm²")
+    r.capture.enabled = True
+    r.capture.step_x = 50
+    r.capture.step_y = 50
     
-    # Valida
-    errors = recipe.validate()
-    if errors:
-        print(f"\n❌ Erros de validação: {errors}")
-    else:
-        print("\n✅ Receita válida")
-    
-    # Salva
-    if manager.save_recipe(recipe):
-        print(f"\n✅ Receita salva em: {manager.recipes_dir}")
-    
-    # Lista receitas
-    recipes = manager.list_recipes()
-    print(f"\n📋 Receitas disponíveis: {len(recipes)}")
-    for r in recipes:
-        print(f"  - {r['name']} ({r['recipe_id']})")
-    
-    # Testa classificação de tensão
-    print("\n🎯 Teste de classificação de tensão:")
-    acc = recipe.tension.acceptance
-    for val in [20, 26, 30, 40, 44, 50]:
-        result = acc.classify(val)
-        print(f"  {val} N/cm² → {result}")
-    
-    print("\n=== Teste concluído! ===")
+    return r

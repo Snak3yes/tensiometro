@@ -3,6 +3,7 @@
 ## Core
 - **Linguagem:** Python 3.x
 - **Interface Gráfica (GUI):** PyQt6 (Framework principal para desenvolvimento da interface moderna e minimalista).
+- **Arquitetura de Serviços:** Implementada camada de orquestração (MovementOrchestrator, InspectionFlowService) para desacoplar lógica de negócio da interface Qt.
 
 ## Hardware & Automação
 - **Comunicação CLP:** PyModbus (Protocolo Modbus TCP/RTU para interação com o CLP e controle de eixos).
