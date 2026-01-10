@@ -19,6 +19,6 @@
 ## Fase 4: Aumento de Cobertura (Meta: 95%)
 - [x] Tarefa: Identificar módulos críticos com baixa cobertura <!-- manual -->
 - [x] Tarefa: Criar testes unitários para `aoi_lib/aoi_controller.py` <!-- 1f57d4c -->
-- [ ] Tarefa: Criar testes unitários para `aoi_lib/plc_axis_controller.py` (com mocks)
-- [ ] Tarefa: Verificar cobertura total e ajustar testes faltantes
+- [~] Tarefa: Criar testes unitários para `aoi_lib/plc_axis_controller.py` (com mocks)
+- [x] Tarefa: Verificar cobertura total e ajustar testes faltantes <!-- f6f38ab -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 4: Aumento de Cobertura (Meta: 95%)' (Protocol in workflow.md)
