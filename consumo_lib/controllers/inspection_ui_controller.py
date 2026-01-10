@@ -1,4 +1,5 @@
-"InspectionUIController - Controller para UI de Inspeção Visual
+"""
+InspectionUIController - Controller para UI de Inspeção Visual
 
 Este controller gerencia a interface de usuário para execução de inspeção visual,
 incluindo diálogo de configuração e exibição de resultados.
@@ -15,7 +16,7 @@ Signals Emitidos:
 - inspection_completed(result: InspectionResult, overlay: np.ndarray) - Inspeção completada
 - inspection_failed(error: str) - Inspeção falhou
 - settings_updated(thresholds: InspectionThresholds) - Configurações atualizadas
-"
+"""
 
 import os
 import logging
@@ -45,7 +46,7 @@ class InspectionUIController(QObject):
     Controller para UI de inspeção visual.
 
     Responsável por gerenciar todo o fluxo de UI para inspeção visual,
-    desde a seleção de arquivos até a exibição de resultados.
+desde a seleção de arquivos até a exibição de resultados.
     """
 
     # Signals
