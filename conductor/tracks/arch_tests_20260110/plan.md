@@ -9,7 +9,7 @@
 - [x] Tarefa: Escrever Testes para `aoi_lib/config_manager.py` <!-- 460bd9a -->
 - [x] Tarefa: Implementar correções para passar nos testes em `config_manager.py` <!-- 688f9d3 -->
 - [x] Tarefa: Escrever Testes para `aoi_lib/stencil_database.py` <!-- 3adc05f -->
-- [ ] Tarefa: Implementar correções para passar nos testes em `stencil_database.py`
+- [x] Tarefa: Implementar correções para passar nos testes em `stencil_database.py` <!-- 74df431 -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Testes de Bibliotecas Core' (Protocol in workflow.md)
 
 ## Fase 3: Verificação de Integridade (Smoke Test)
