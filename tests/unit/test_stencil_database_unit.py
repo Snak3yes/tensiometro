@@ -96,3 +96,31 @@ def test_add_and_get_inspection_records(db):
     assert len(history) == 1
     assert history[0].total_apertures == 100
     assert history[0].result == "PASS"
+
+def test_get_combined_history(db):
+    """Testa recuperação do histórico combinado."""
+    db.create_stencil(code="STENCIL_COMB")
+    
+    # Adiciona um registro de cada tipo
+    db.add_tension_record("STENCIL_COMB", TensionRecord(timestamp="2026-01-10T10:00:00", result="OK"))
+    db.add_inspection_record("STENCIL_COMB", InspectionRecord(timestamp="2026-01-10T11:00:00", result="PASS"))
+    
+    combined = db.get_combined_history("STENCIL_COMB")
+    assert len(combined) == 2
+    assert combined[0]["type"] == "inspection" # Mais recente primeiro
+    assert combined[1]["type"] == "tension"
+
+def test_get_inspection_stats(db):
+    """Testa cálculo de estatísticas de inspeção."""
+    db.create_stencil(code="STENCIL_STATS")
+    
+    # 2 PASS, 1 FAIL
+    db.add_inspection_record("STENCIL_STATS", InspectionRecord(timestamp="2026-01-10T10:00:00", result="PASS", pass_rate=100))
+    db.add_inspection_record("STENCIL_STATS", InspectionRecord(timestamp="2026-01-10T11:00:00", result="PASS", pass_rate=90))
+    db.add_inspection_record("STENCIL_STATS", InspectionRecord(timestamp="2026-01-10T12:00:00", result="FAIL", pass_rate=50))
+    
+    stats = db.get_inspection_stats("STENCIL_STATS")
+    assert stats["total_inspections"] == 3
+    assert stats["pass_count"] == 2
+    assert stats["fail_count"] == 1
+    assert stats["avg_pass_rate"] == pytest.approx(80.0) # (100+90+50)/3 = 240/3 = 80
