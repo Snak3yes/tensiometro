@@ -1,6 +1,6 @@
 # Plano da Track: Refatoração da Gestão de Receitas
 
-## Fase 1: Análise e Criação do Serviço
+## Fase 1: Análise e Criação do Serviço [checkpoint: 3137ff7]
 - [~] Tarefa: Analisar `RecipeManager` (aoi_lib) e `RecipeDialog` (consumo_lib) para mapear a lógica existente
 - [~] Tarefa: Aprimorar `RecipeManager` em `aoi_lib` para incluir validações robustas (centralizar lógica)
 - [ ] Tarefa: Criar testes unitários para o `RecipeManager` aprimorado (CRUD + Validações)
