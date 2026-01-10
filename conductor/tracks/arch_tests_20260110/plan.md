@@ -13,5 +13,5 @@
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 2: Testes de Bibliotecas Core' (Protocol in workflow.md)
 
 ## Fase 3: Verificação de Integridade (Smoke Test)
-- [ ] Tarefa: Executar Smoke Test em `main.py` e validar inicialização
+- [x] Tarefa: Executar Smoke Test em `main.py` e validar inicialização <!-- 26456 -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 3: Verificação de Integridade (Smoke Test)' (Protocol in workflow.md)
