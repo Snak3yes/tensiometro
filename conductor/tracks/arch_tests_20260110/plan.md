@@ -17,7 +17,7 @@
 - [x] Tarefa: Conductor - User Manual Verification 'Fase 3: Verificação de Integridade (Smoke Test)' (Protocol in workflow.md)
 
 ## Fase 4: Aumento de Cobertura (Meta: 95%)
-- [ ] Tarefa: Identificar módulos críticos com baixa cobertura
+- [x] Tarefa: Identificar módulos críticos com baixa cobertura <!-- manual -->
 - [ ] Tarefa: Criar testes unitários para `aoi_lib/aoi_controller.py`
 - [ ] Tarefa: Criar testes unitários para `aoi_lib/plc_axis_controller.py` (com mocks)
 - [ ] Tarefa: Verificar cobertura total e ajustar testes faltantes
