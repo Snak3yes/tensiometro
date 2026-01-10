@@ -9,6 +9,6 @@ Estabelecer uma base sólida e testável para o projeto, garantindo que as modif
 - Verificação de execução (Smoke Test) para garantir integridade após refatorações.
 
 ## Critérios de Aceite
-- Testes unitários cobrindo pelo menos 80% dos módulos modificados.
+- Testes unitários cobrindo pelo menos 95% dos módulos modificados.
 - Aplicação iniciando corretamente sem erros após as alterações.
 - Código seguindo as diretrizes de estilo Python definidas.
