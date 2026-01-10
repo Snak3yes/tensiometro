@@ -2,7 +2,7 @@
 
 ## Fase 1: Análise e Setup de Testes
 - [x] Tarefa: Analisar dependências circulares e acoplamento em `aoi_lib` <!-- c5b623c -->
-- [ ] Tarefa: Configurar ambiente de teste unificado (pytest + coverage)
+- [x] Tarefa: Configurar ambiente de teste unificado (pytest + coverage)
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Análise e Setup de Testes' (Protocol in workflow.md)
 
 ## Fase 2: Testes de Bibliotecas Core
