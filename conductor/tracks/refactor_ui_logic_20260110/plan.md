@@ -6,7 +6,7 @@
 - [x] Tarefa: Refatorar `MovementControlWidget` para delegar ações ao `MovementOrchestrator`
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Abstração do Controle de Movimento' (Protocol in workflow.md)
 
-## Fase 2: Desacoplamento do Fluxo de Inspeção
+## Fase 2: Desacoplamento do Fluxo de Inspeção [checkpoint: 50e095d]
 - [~] Tarefa: Analisar `InspectionUIController` e identificar lógica de negócio misturada com UI
 - [x] Tarefa: Extrair lógica para `InspectionFlowService` em `aoi_lib`
 - [x] Tarefa: Criar testes unitários para `InspectionFlowService`
