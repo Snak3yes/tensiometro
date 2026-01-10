@@ -1,7 +1,7 @@
 # Plano da Track: Melhoria da Arquitetura e Implementação de Testes Básicos
 
 ## Fase 1: Análise e Setup de Testes
-- [ ] Tarefa: Analisar dependências circulares e acoplamento em `aoi_lib`
+- [~] Tarefa: Analisar dependências circulares e acoplamento em `aoi_lib`
 - [ ] Tarefa: Configurar ambiente de teste unificado (pytest + coverage)
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Análise e Setup de Testes' (Protocol in workflow.md)
 
