@@ -1,5 +1,4 @@
-"""
-InspectionUIController - Controller para UI de Inspeção Visual
+"InspectionUIController - Controller para UI de Inspeção Visual
 
 Este controller gerencia a interface de usuário para execução de inspeção visual,
 incluindo diálogo de configuração e exibição de resultados.
@@ -7,7 +6,7 @@ incluindo diálogo de configuração e exibição de resultados.
 Responsabilidade:
 - Criar e gerenciar diálogo de inspeção
 - Coletar parâmetros de entrada (Gerber, mosaico, alinhamento)
-- Executar inspeção via InspectionManager
+- Executar inspeção via InspectionFlowService
 - Exibir resultados em janela dedicada
 - Gerenciar exportação de PDF
 
@@ -16,7 +15,7 @@ Signals Emitidos:
 - inspection_completed(result: InspectionResult, overlay: np.ndarray) - Inspeção completada
 - inspection_failed(error: str) - Inspeção falhou
 - settings_updated(thresholds: InspectionThresholds) - Configurações atualizadas
-"""
+"
 
 import os
 import logging
@@ -35,6 +34,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 from aoi_lib.stencil_inspector import InspectionResult, InspectionThresholds
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
+from aoi_lib.inspection_flow_service import InspectionFlowService
 from consumo_lib.dialogs import InspectionSettingsDialog
 
 logger = logging.getLogger("consumo_lib")
@@ -59,7 +59,7 @@ class InspectionUIController(QObject):
         Inicializa o InspectionUIController.
 
         Args:
-            inspection_manager: Instância de InspectionManager
+            inspection_manager: Instância de InspectionManager (mantido para compatibilidade/thresholds)
             config_manager: Instância de AOIConfigManager
             parent: Widget pai (geralmente main_window)
         """
@@ -67,6 +67,9 @@ class InspectionUIController(QObject):
         self.inspection_manager = inspection_manager
         self.config = config_manager
         self.parent_window = parent
+        
+        # Novo service de fluxo
+        self.flow_service = InspectionFlowService()
 
         # Estado interno
         self._last_result: Optional[InspectionResult] = None
@@ -406,7 +409,7 @@ class InspectionUIController(QObject):
             mosaic_path: Caminho da imagem de mosaico
         """
         try:
-            self._status_label.setText("🔄 Carregando Gerber...")
+            self._status_label.setText("🔄 Executando inspeção...")
             self._progress_bar.setVisible(True)
             self._progress_bar.setValue(10)
             QApplication.processEvents()
@@ -414,56 +417,29 @@ class InspectionUIController(QObject):
             # Emitir signal de inspeção solicitada
             self.inspection_requested.emit(gerber_path)
 
-            # Carregar Gerber
-            if not self.inspection_manager.load_gerber(gerber_path):
-                self.inspection_failed.emit("Falha ao carregar arquivo Gerber")
-                return
-
-            self._status_label.setText("🔄 Carregando mosaico...")
-            self._progress_bar.setValue(30)
-            QApplication.processEvents()
-
-            # Carregar mosaico
-            mosaic = cv2.imread(mosaic_path)
-            if mosaic is None:
-                raise ValueError(f"Não foi possível carregar: {mosaic_path}")
-
-            self.inspection_manager.set_mosaic(mosaic)
-
-            # Carregar transformação de alinhamento se selecionada
+            # Preparar config de alinhamento
+            align_config = None
             if self._use_alignment_checkbox.isChecked():
-                from aoi_lib.gerber_renderer import AlignmentTransform
-                tx = self.config.get("fiducial_alignment", "last_tx", default=0)
-                ty = self.config.get("fiducial_alignment", "last_ty", default=0)
-                angle = self.config.get("fiducial_alignment", "last_angle", default=0)
-                scale = self.config.get("fiducial_alignment", "last_scale", default=1)
-
-                transform = AlignmentTransform(
-                    tx=tx, ty=ty, angle=angle,
-                    scale_x=scale, scale_y=scale
-                )
-                self.inspection_manager.set_alignment(transform)
-                self._status_label.setText("🔄 Aplicando alinhamento...")
-                QApplication.processEvents()
-
-            self._status_label.setText("🔄 Executando inspeção...")
-            self._progress_bar.setValue(50)
-            QApplication.processEvents()
-
-            # Executar inspeção via manager
-            result, overlay = self.inspection_manager.run_inspection()
-
-            if result is None:
-                # Erro já tratado pelo signal inspection_failed
-                return
+                align_config = {
+                    'tx': self.config.get("fiducial_alignment", "last_tx", default=0),
+                    'ty': self.config.get("fiducial_alignment", "last_ty", default=0),
+                    'angle': self.config.get("fiducial_alignment", "last_angle", default=0),
+                    'scale': self.config.get("fiducial_alignment", "last_scale", default=1)
+                }
+            
+            # Usar Service para executar o fluxo
+            result, overlay = self.flow_service.execute_inspection(
+                gerber_path=gerber_path,
+                mosaic_path=mosaic_path,
+                alignment_config=align_config,
+                thresholds=self.inspection_manager.get_thresholds()
+            )
 
             self._progress_bar.setValue(100)
 
             # Salvar referências
             self._last_result = result
             self._last_overlay = overlay
-            result.gerber_file = gerber_path
-            result.mosaic_file = mosaic_path
 
             # Fechar diálogo e mostrar resultado
             self._dialog.accept()
