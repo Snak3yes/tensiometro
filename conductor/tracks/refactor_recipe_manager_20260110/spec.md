@@ -12,5 +12,6 @@ Centralizar toda a lógica de validação, persistência e manipulação de rece
 ## Critérios de Aceite
 - Todas as operações de CRUD de receitas devem ser possíveis via código (testes), sem instanciar `QDialog`.
 - `RecipeDialog` deve apenas coletar inputs e exibir erros retornados pelo serviço.
-- Testes unitários para `RecipeService` (ou equivalente) devem ter cobertura >95%.
+- Testes funcionais para `RecipeManager` devem ter cobertura >85% (focada em comportamentos, não linhas de código).
+- Testes devem verificar funcionalidades reais: persistência em disco, validações, CRUD completo.
 - Nenhuma regressão funcional na criação/edição de receitas via interface.

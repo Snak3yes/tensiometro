@@ -5,7 +5,7 @@
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
 3. **Test-Driven Development:** Write unit tests before implementing functionality
-4. **High Code Coverage:** Aim for >95% code coverage for all modules
+4. **Functional Testing:** Aim for >85% functional coverage - test behaviors and features, not just lines of code. Focus on what the code DOES, not how it's implemented.
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 7. **Smoke Test Verification:** After every modification and before verifying tests, run the application to ensure it starts without errors.
@@ -39,7 +39,13 @@ All tasks follow a strict lifecycle:
    ```bash
    pytest --cov=app --cov-report=html
    ```
-   Target: >95% coverage for new code. The specific tools and commands will vary by language and framework.
+   Target: >85% functional coverage for new code. Focus on testing behaviors and use cases, not individual lines of code. Integration tests that verify real functionality are preferred over line-coverage metrics.
+
+   **Important:** Functional coverage measures whether features and behaviors work correctly, not just how many lines were executed. Prefer:
+   - Integration tests that test complete workflows
+   - Tests that verify real file I/O, database operations, or API calls
+   - Tests that validate user-facing behaviors
+   - Tests that verify error handling and edge cases actually occur
 
 7. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
