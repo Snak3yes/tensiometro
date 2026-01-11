@@ -88,6 +88,9 @@ class MenuHandler(QObject):
         # Menu Inspeção Visual
         self._create_inspection_menu(menubar)
 
+        # Menu Operador (NOVO - FASE 3)
+        self._create_operator_menu(menubar)
+
         # Menu Ajuda
         self._create_help_menu(menubar)
 
@@ -315,6 +318,27 @@ class MenuHandler(QObject):
         settings_action.triggered.connect(self.main_window.show_inspection_settings)
         menu.addAction(settings_action)
         self._register_action('inspection.settings', settings_action)
+
+    def _create_operator_menu(self, menubar: QMenuBar):
+        """Cria o menu Operador (NOVO - FASE 3)."""
+        menu = menubar.addMenu('&Operador')
+
+        # Workflow de Inspeção (One-Click)
+        workflow_action = QAction('▶ Workflow de Inspeção...', self.main_window)
+        workflow_action.setShortcut('Ctrl+Shift+I')
+        workflow_action.setToolTip('Interface simplificada para execução de inspeção one-click')
+        workflow_action.triggered.connect(self.main_window.show_operator_workflow)
+        menu.addAction(workflow_action)
+        self._register_action('operator.workflow', workflow_action)
+
+        menu.addSeparator()
+
+        # Verificar Permissões
+        permissions_action = QAction('🔐 Verificar Permissões', self.main_window)
+        permissions_action.setToolTip('Exibe as permissões do usuário atual')
+        permissions_action.triggered.connect(self.main_window.show_permissions_info)
+        menu.addAction(permissions_action)
+        self._register_action('operator.permissions', permissions_action)
 
     def _create_help_menu(self, menubar: QMenuBar):
         """Cria o menu Ajuda."""

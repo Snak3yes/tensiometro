@@ -71,3 +71,7 @@ __all__.append('FinalDecisionDialog')
 # Defect judgment dialogs (NOVO - FASE 5)
 from .defect_judgment_dialog import DefectJudgmentDialog
 __all__.append('DefectJudgmentDialog')
+
+# Operator workflow dialogs (NOVO - FASE 3)
+from .operator_workflow_dialog import OperatorWorkflowDialog
+__all__.append('OperatorWorkflowDialog')

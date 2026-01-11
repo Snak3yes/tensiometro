@@ -430,3 +430,86 @@ class DialogRouter:
             from consumo_lib.dialogs import AboutDialog
             dialog = AboutDialog(self.window)
             dialog.exec()
+
+    # =========================================================================
+    # WORKFLOW DE OPERADOR (NOVO - FASE 3)
+    # =========================================================================
+
+    def show_operator_workflow(self):
+        """
+        Abre diálogo de workflow simplificado para operadores.
+
+        Interface one-click para execução de inspeções.
+        """
+        from consumo_lib.dialogs import OperatorWorkflowDialog
+
+        # Obtém usuário atual
+        user = self.main_window.auth_service.get_current_user()
+        operator_id = user.username if user else "OPERADOR"
+
+        # Obtém lista de stencils
+        stencils_list = []
+        if hasattr(self.main_window.stencil_tracker, 'stencils'):
+            for code, stencil in self.main_window.stencil_tracker.stencils.items():
+                stencils_list.append({
+                    "code": code,
+                    "description": getattr(stencil, 'description', code)
+                })
+
+        # Cria dialog
+        dialog = OperatorWorkflowDialog(
+            coordinator=self.main_window.operator_inspection_coordinator,
+            stencils=stencils_list,
+            operator_id=operator_id,
+            parent=self.window
+        )
+
+        # Executa dialog
+        result = dialog.exec()
+
+        if result == QDialog.DialogCode.Accepted:
+            last_result = dialog.get_last_result()
+            if last_result:
+                logger.info(f"Workflow finalizado: {last_result.get('classification', 'UNKNOWN')}")
+
+    def show_permissions_info(self):
+        """
+        Exibe informações sobre as permissões do usuário atual.
+        """
+        from consumo_lib.managers import UserRole
+
+        user = self.main_window.auth_service.get_current_user()
+        if not user:
+            QMessageBox.warning(
+                self.window, "Usuário Não Logado",
+                "Nenhum usuário está logado no momento."
+            )
+            return
+
+        # Obtém role atual
+        current_role = self.main_window.role_manager.get_current_role()
+
+        # Mapeia role para nome legível
+        role_names = {
+            UserRole.OPERATOR: "Operador",
+            UserRole.ENGINEERING: "Engenharia",
+            UserRole.QUALITY: "Qualidade",
+            UserRole.ADMIN: "Administrador"
+        }
+
+        role_name = role_names.get(current_role, current_role.value)
+
+        # Obtém lista de permissões
+        permissions = self.main_window.role_manager.get_permissions()
+
+        # Cria mensagem
+        message = f"Usuário: {user.username}\n"
+        message += f"Role: {role_name}\n\n"
+        message += "Permissões:\n"
+        for perm in permissions:
+            message += f"  • {perm}\n"
+
+        QMessageBox.information(
+            self.window, "Permissões do Usuário",
+            message
+        )
