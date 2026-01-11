@@ -23,7 +23,7 @@
   "connections": {
     "last_cnc_port": "COM3",
     "auto_connect_cnc": true,
-    "last_camera_id": 2,
+    "last_camera_id": 0,
     "auto_connect_camera": true,
     "plc_host": "192.168.1.5",
     "plc_port": 502,
