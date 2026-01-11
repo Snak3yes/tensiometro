@@ -18,6 +18,11 @@ from .position_registry import PositionRegistryWidget
 from .sequence_control import SequenceControlWidget
 from .tension_viz import TensionVisualizationWidget, TensionCanvas
 from .preview_suspender import _PreviewSuspender
+from .operator_interface import (
+    StencilSelector,
+    ProgramSelector,
+    InspectionResultsWidget
+)
 
 __all__ = [
     'CameraPreviewWidget',
@@ -30,4 +35,7 @@ __all__ = [
     'TensionVisualizationWidget',
     'TensionCanvas',
     '_PreviewSuspender',
+    'StencilSelector',
+    'ProgramSelector',
+    'InspectionResultsWidget',
 ]
