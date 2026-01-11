@@ -1,0 +1,17 @@
+{
+  "name": "conductor-archive",
+  "description": "Archive a completed Conductor track to prevent cluttering the active track list",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "track": {
+      "type": "string",
+      "description": "Track identifier to archive",
+      "required": true
+    },
+    "confirm": {
+      "type": "boolean",
+      "description": "Skip confirmation prompt",
+      "default": false
+    }
+  }
+}

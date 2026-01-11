@@ -1,11 +1,11 @@
 {
   "name": "conductor-implement",
-  "description": "Execute a Conductor track with automatic TDD workflow",
+  "description": "Execute a Conductor track plan with automatic TDD workflow (Red-Green-Refactor cycle)",
   "author": "Claude Sonnet 4.5",
   "parameters": {
-    "track_id": {
+    "track": {
       "type": "string",
-      "description": "Track identifier (e.g., feature_add_oauth_20260111)",
+      "description": "Track identifier (e.g., feature_implement_operator_workflow_20260111)",
       "required": true
     },
     "start_phase": {
@@ -18,6 +18,5 @@
       "description": "Run without user interaction (demo mode)",
       "default": false
     }
-  },
-  "handler": "python claude-conductor/implementation_agent.py --track"
+  }
 }

@@ -1,0 +1,32 @@
+{
+  "name": "conductor",
+  "description": "Conductor system for Claude Code - Project management with tracks, specs, plans and TDD automation",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "command": {
+      "type": "string",
+      "description": "Conductor command to execute",
+      "enum": ["setup", "status", "new", "implement", "revert", "update", "archive"],
+      "default": "status"
+    },
+    "track": {
+      "type": "string",
+      "description": "Track identifier (for implement, revert commands)"
+    },
+    "phase": {
+      "type": "number",
+      "description": "Phase number (for revert command)"
+    },
+    "reconfigure": {
+      "type": "boolean",
+      "description": "Reconfigure even if setup already exists (for setup command)",
+      "default": false
+    },
+    "doc": {
+      "type": "string",
+      "description": "Document type to update (for update command)",
+      "enum": ["product", "tech-stack", "workflow", "all"],
+      "default": "all"
+    }
+  }
+}

@@ -1,13 +1,12 @@
 {
   "name": "conductor-status",
-  "description": "Show Conductor track status dashboard",
+  "description": "Show status of all Conductor tracks with progress percentages and current phase/task",
   "author": "Claude Sonnet 4.5",
   "parameters": {
     "verbose": {
       "type": "boolean",
-      "description": "Show detailed phase-by-phase information",
+      "description": "Show detailed information about each track",
       "default": false
     }
-  },
-  "handler": "python claude-conductor/support_commands.py status --verbose"
+  }
 }

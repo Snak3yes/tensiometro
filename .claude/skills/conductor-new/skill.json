@@ -1,0 +1,13 @@
+{
+  "name": "conductor-new",
+  "description": "Create a new Conductor track (feature/bugfix/refactor) with automatic spec and plan generation",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "type": {
+      "type": "string",
+      "description": "Track type",
+      "enum": ["feature", "bugfix", "refactor", "experiment"],
+      "default": "feature"
+    }
+  }
+}
