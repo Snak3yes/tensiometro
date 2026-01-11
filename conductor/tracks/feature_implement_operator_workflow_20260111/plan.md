@@ -33,11 +33,11 @@
 - [x] Tarefa: Integrar com código existente <!-- ae895ba -->
 - [x] Tarefa: Conductor - User Manual Verification 'Fase 2' <!-- 0196f73 -->
 
-## Fase 3: Integração e Interface
-- [ ] Tarefa: Conectar funcionalidade com interface do usuário (se aplicável)
-- [ ] Tarefa: Implementar tratamento de erros
-- [ ] Tarefa: Escrever testes de integração
-- [ ] Tarefa: Conductor - User Manual Verification 'Fase 3'
+## Fase 3: Integração e Interface [checkpoint: 4748ad5]
+- [x] Tarefa: Conectar funcionalidade com interface do usuário (se aplicável) <!-- 9b75e68 -->
+- [x] Tarefa: Implementar tratamento de erros <!-- 9b75e68 -->
+- [x] Tarefa: Escrever testes de integração <!-- 6737c65 -->
+- [x] Tarefa: Conductor - User Manual Verification 'Fase 3' <!-- 4748ad5 -->
 
 
 
