@@ -1,0 +1,21 @@
+{
+  "name": "conductor-commit",
+  "description": "Commit changes after task/phase completion with git notes",
+  "parameters": {
+    "message": {
+      "type": "string",
+      "description": "Commit message (succinct, following conductor format)",
+      "default": null
+    },
+    "note": {
+      "type": "string",
+      "description": "Git note content (detailed description of what was done)",
+      "default": null
+    },
+    "auto_detect": {
+      "type": "boolean",
+      "description": "Auto-detect modified files and generate commit message",
+      "default": true
+    }
+  }
+}

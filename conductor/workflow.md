@@ -10,6 +10,52 @@
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
 7. **Smoke Test Verification:** After every modification and before verifying tests, run the application to ensure it starts without errors.
 
+## Project Configuration
+
+### Commit Authorship
+
+All commits and git notes should use the configured author information. This is typically set during the initial Conductor setup interview.
+
+**Configuration location:** `conductor/setup_state.json`
+
+**Fields:**
+- `commit_author_name`: Name to use for commits (e.g., "Ronald Buzaglo")
+- `commit_author_email`: Email for commits (optional)
+- `co_author_text`: Co-author text for git notes (default: "Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>")
+
+**Usage in commits:**
+```bash
+git commit -m "feat(module): Description
+
+Co-Authored-By: Ronald Buzaglo <ronald@example.com>"
+```
+
+**Usage in git notes:**
+```bash
+git notes add -m "Task Summary
+================
+Author: Ronald Buzaglo
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
+
+Changes Made:
+- Change 1
+- Change 2" <commit_sha>
+```
+
+### If Not Configured
+
+If `commit_author_name` is not set in `setup_state.json`, ask the user before creating commits:
+
+**Example prompt:**
+```
+Before committing, I need to know the author name for this commit.
+
+What name should be used as the author?
+- Use your real name (recommended for professional projects)
+- Use a pseudonym (if preferred)
+- Leave blank to use default (Claude Sonnet 4.5)
+```
+
 ## Task Workflow
 
 All tasks follow a strict lifecycle:
