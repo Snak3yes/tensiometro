@@ -5,7 +5,17 @@
       "Bash(python:*)",
       "Bash(for:*)",
       "Bash(do:*)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(git notes:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "outputStyle": "default",
+  "defaultMode": "bypassPermissions"
 }

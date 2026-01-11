@@ -4,7 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-*No tracks created yet. Use `/conductor:newTrack` to create your first track.*
-
----
-*This document is managed by Conductor. Last updated: 2026-01-11 12:25:33*
+## [x] Track: Refatoração da Gestão de Receitas
+*Link: [./conductor/tracks/refactor_recipe_manager_20260110/](./conductor/tracks/refactor_recipe_manager_20260110/)*
