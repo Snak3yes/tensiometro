@@ -195,31 +195,34 @@ class RecipeEditorDialog(QDialog):
         """Cria tab de informações do stencil."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        
+
         # Dimensões
         dim_group = QGroupBox("Dimensões do Stencil")
         dim_grid = QGridLayout(dim_group)
-        
-        layout.addWidget(QLabel("Largura (mm):"), 0, 0)
+
+        # Largura
+        dim_grid.addWidget(QLabel("Largura (mm):"), 0, 0)
         self.spin_width = QDoubleSpinBox()
         self.spin_width.setRange(1, MACHINE_LIMITS["max_width_mm"])
         self.spin_width.setValue(400)
-        layout.addWidget(self.spin_width, 0, 1)
-        
-        layout.addWidget(QLabel("Altura (mm):"), 0, 2)
+        dim_grid.addWidget(self.spin_width, 0, 1)
+
+        # Altura
+        dim_grid.addWidget(QLabel("Altura (mm):"), 0, 2)
         self.spin_height = QDoubleSpinBox()
         self.spin_height.setRange(1, MACHINE_LIMITS["max_height_mm"])
         self.spin_height.setValue(300)
-        layout.addWidget(self.spin_height, 0, 3)
-        
-        dim_grid.addWidget(QLabel("Espessura (mm):"), 2, 0)
+        dim_grid.addWidget(self.spin_height, 0, 3)
+
+        # Espessura
+        dim_grid.addWidget(QLabel("Espessura (mm):"), 1, 0)
         self.spin_thickness = QDoubleSpinBox()
         self.spin_thickness.setRange(0.01, 1.0)
         self.spin_thickness.setValue(0.12)
         self.spin_thickness.setDecimals(3)
         self.spin_thickness.setSingleStep(0.01)
-        dim_grid.addWidget(self.spin_thickness, 2, 1)
-        
+        dim_grid.addWidget(self.spin_thickness, 1, 1)
+
         layout.addWidget(dim_group)
         
         # Material
