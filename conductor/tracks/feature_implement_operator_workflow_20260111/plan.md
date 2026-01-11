@@ -21,9 +21,9 @@
 ## Fases
 
 ## Fase 1: Configuração e Fundação
-- [~] Tarefa: Criar estrutura básica de módulos/pacotes
-- [~] Tarefa: Instalar dependências necessárias (se aplicável)
-- [ ] Tarefa: Escrever testes de aceitação para critérios principais
+- [x] Tarefa: Criar estrutura básica de módulos/pacotes <!-- d2d78ef -->
+- [x] Tarefa: Instalar dependências necessárias (se aplicável) <!-- d2d78ef -->
+- [x] Tarefa: Escrever testes de aceitação para critérios principais <!-- d2d78ef -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1'
 
 ## Fase 2: Implementação Core
