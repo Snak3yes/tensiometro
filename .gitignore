@@ -346,3 +346,8 @@ programas_teste/
 Projetos/
 tension_routines/
 
+# =============================================================================
+# CLAUDE CONDUCTOR REFERENCE (not used in production)
+# =============================================================================
+claude-conductor/
+
