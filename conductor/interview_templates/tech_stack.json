@@ -1,0 +1,83 @@
+{
+  "phase": "tech_stack",
+  "title": "Technology Stack",
+  "description": "Define languages, frameworks, libraries, and technical preferences",
+  "questions": [
+    {
+      "id": "primary_language",
+      "type": "detect_or_select",
+      "header": "Language",
+      "question": "What is the primary programming language?",
+      "auto_detect": true,
+      "options": [
+        {"label": "Python", "description": "Python 3.x"},
+        {"label": "JavaScript/TypeScript", "description": "Node.js or browser"},
+        {"label": "Java", "description": "Java or Kotlin"},
+        {"label": "C#", "description": ".NET Framework or .NET Core"},
+        {"label": "Go", "description": "Golang"},
+        {"label": "Rust", "description": "Rust language"},
+        {"label": "C/C++", "description": "C or C++"}
+      ]
+    },
+    {
+      "id": "frameworks",
+      "type": "text",
+      "question": "What frameworks or major libraries are being used?",
+      "auto_detect": true,
+      "placeholder": "Example:\n- PyQt6 (GUI framework)\n- OpenCV (Computer vision)\n- FastAPI (Web framework)\n- React (Frontend)"
+    },
+    {
+      "id": "database",
+      "type": "single_choice",
+      "header": "Database",
+      "question": "What database system is used (if any)?",
+      "options": [
+        {"label": "SQLite", "description": "Embedded, file-based SQL database"},
+        {"label": "PostgreSQL", "description": "Advanced open-source relational DB"},
+        {"label": "MySQL/MariaDB", "description": "Popular relational database"},
+        {"label": "MongoDB", "description": "NoSQL document database"},
+        {"label": "Redis", "description": "In-memory data store"},
+        {"label": "JSON Files", "description": "Simple file-based persistence"},
+        {"label": "None", "description": "No database needed"}
+      ]
+    },
+    {
+      "id": "testing_framework",
+      "type": "detect_or_select",
+      "header": "Testing",
+      "question": "What testing framework should be used?",
+      "auto_detect": true,
+      "options": [
+        {"label": "pytest", "description": "Python testing framework"},
+        {"label": "unittest", "description": "Python built-in testing"},
+        {"label": "Jest", "description": "JavaScript testing framework"},
+        {"label": "JUnit", "description": "Java testing framework"},
+        {"label": "xUnit", "description": ".NET testing framework"},
+        {"label": "Go testing", "description": "Go built-in testing"}
+      ]
+    },
+    {
+      "id": "package_manager",
+      "type": "detect_or_select",
+      "header": "Packages",
+      "question": "What package manager is used?",
+      "auto_detect": true,
+      "options": [
+        {"label": "pip (requirements.txt)", "description": "Python pip"},
+        {"label": "pip (pyproject.toml)", "description": "Python poetry/modern"},
+        {"label": "npm", "description": "Node.js npm"},
+        {"label": "yarn", "description": "Node.js yarn"},
+        {"label": "Maven", "description": "Java Maven"},
+        {"label": "Gradle", "description": "Java/Kotlin Gradle"},
+        {"label": "NuGet", "description": ".NET NuGet"},
+        {"label": "Go modules", "description": "Go modules"}
+      ]
+    },
+    {
+      "id": "additional_tools",
+      "type": "text",
+      "question": "Any additional tools, libraries, or technical constraints?",
+      "placeholder": "Example:\n- Hardware: Modbus TCP for PLC communication\n- Serial: RS-232 @ 2400 baud\n- Image processing: NumPy, Matplotlib\n- Reports: ReportLab for PDFs"
+    }
+  ]
+}

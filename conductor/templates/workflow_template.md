@@ -4,11 +4,11 @@
 
 1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
 2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
-3. **Test-Driven Development (TDD):** Follow strict TDD protocol: Red-Green-Refactor cycle
-4. **Code Coverage Target:** 80% or higher
+3. **{development_methodology}:** {methodology_description}
+4. **Code Coverage Target:** {coverage_target}
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
-7. **Smoke Test After Each Task:** Run application to ensure it starts without errors
+7. **{smoke_test_policy}:** {smoke_test_description}
 
 ## Task Workflow
 
@@ -20,26 +20,24 @@ All tasks follow a strict lifecycle:
 
 2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
 
-3. **Write Failing Tests (Red Phase):**
-   - Create a new test file for the feature or bug fix.
-   - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
-   - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.
+3. **{tdd_phase_name}:**
+{tdd_workflow_description}
 
 4. **Implement to Pass Tests (Green Phase):**
    - Write the minimum amount of application code necessary to make the failing tests pass.
-      - **Smoke Test:** Run the application (e.g., `python main.py`) to verify it starts and runs without immediate crashes. If it fails, fix the error and repeat.
+   {smoke_test_step}
    - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
 
 5. **Refactor (Optional but Recommended):**
    - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
-      - **Smoke Test:** Run the application again to ensure refactoring didn't break startup.
+   {smoke_test_refactor_step}
    - Rerun tests to ensure they still pass after refactoring.
 
 6. **Verify Coverage:** Run coverage reports using the project's chosen tools. For example, in a Python project, this might look like:
    ```bash
    pytest --cov=app --cov-report=html
    ```
-   Target: 80% or higher coverage for new code.
+   Target: {coverage_target} coverage for new code.
 
 7. **Document Deviations:** If implementation differs from tech stack:
    - **STOP** implementation
@@ -49,17 +47,10 @@ All tasks follow a strict lifecycle:
 
 8. **Commit Code Changes:**
    - Stage all code changes related to the task.
-   - Create commit with format: `type(scope): description`
+   - Create commit with format: `{commit_convention}`
    - Perform the commit.
 
-9. **Attach Task Summary with Git Notes:**
-   - **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
-   - **Step 9.2: Draft Note Content:** Create a detailed summary for the completed task. This should include the task name, a summary of changes, a list of all created/modified files, and the core "why" for the change.
-   - **Step 9.3: Attach Note:** Use the `git notes` command to attach the summary to the commit.
-     ```bash
-     # The note content from the previous step is passed via the -m flag.
-     git notes add -m "<note content>" <commit_hash>
-     ```
+{git_notes_section}
 
 10. **Get and Record Task Commit SHA:**
     - **Step 10.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
@@ -71,16 +62,14 @@ All tasks follow a strict lifecycle:
 
 ### Phase Completion Verification and Checkpointing Protocol
 
-**Trigger:** User can choose whether to use checkpoints for each track.
-
-Manual verification steps are simplified but still recommended at phase boundaries.
+{checkpoint_protocol}
 
 ### Quality Gates
 
 Before marking any task complete, verify:
 
 - [ ] All tests pass
-- [ ] Code coverage meets requirements (80% or higher)
+- [ ] Code coverage meets requirements ({coverage_target})
 - [ ] Application starts and runs without errors (Smoke Test)
 - [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
 - [ ] All public functions/methods are documented
@@ -93,26 +82,24 @@ Before marking any task complete, verify:
 
 ### Testing
 ```bash
-pytest
+{test_command}
 ```
 
 ### Coverage
 ```bash
-pytest --cov=aoi_lib --cov=consumo_lib --cov-report=html --cov-report=term
+{coverage_command}
 ```
 
 ### Smoke Test
 ```bash
-python main.py  # Or your app's entry point
+{smoke_test_command}
 ```
 
 ## Commit Guidelines
 
 ### Message Format
 ```
-feat(auth): Add OAuth2 support
-fix(api): Handle null responses
-refactor(ui): Simplify form logic
+{commit_format_example}
 ```
 
 ### Types
@@ -137,22 +124,16 @@ A task is complete when:
 
 1. All code implemented to specification
 2. Unit tests written and passing
-3. Application executes without errors (Smoke Test pass)
-4. Code coverage meets project requirements (80% or higher)
+3. {smoke_test_done}
+4. Code coverage meets project requirements ({coverage_target})
 5. Documentation complete (if applicable)
 6. Code passes all configured linting and static analysis checks
 7. Implementation notes added to `plan.md`
 8. Changes committed with proper message
-10. Git note with task summary attached to the commit
+{git_notes_done}
 
 ## Additional Preferences
-- Test runner: pytest with coverage.py
-- Code style: Google Python Style Guide (see code_styleguides/python.md)
-- Linting: pylint (configured)
-- Entry point: python main.py
-- Virtual environment: .venv (standard Python venv)
-- Branch strategy: main branch (migrated from master)
-- Git remote: SSH configured for passwordless operations
+{additional_preferences}
 
 ---
-*This document is managed by Conductor. Last updated: 2026-01-11 12:25:33*
+*This document is managed by Conductor. Last updated: {timestamp}*

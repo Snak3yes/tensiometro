@@ -1,27 +1,33 @@
-# Initial Concept
-E:\PycharmProjects\Tensiometro
+# Product Guide
 
-# Guia do Produto
+## Product Vision
+Industrial Automated Optical Inspection (AOI) system for solder stencil quality control in SMT manufacturing
 
-## Visão do Produto
-Sistema de automação industrial para controle de qualidade de stencils, integrando medição de tensão superficial e inspeção visual automática (AOI). O sistema visa garantir a integridade e limpeza dos stencils através de comparação com arquivos Gerber e controle preciso de hardware via CLP.
+## Product Type
+**Type:** Industrial/Embedded System
 
-## Perfis de Usuário
-O sistema adota um modelo de permissões hierárquico:
-- **Operadores:** Foco na execução e simplicidade. Apenas selecionam programas/receitas predefinidas e iniciam o processo de inspeção/medição.
-- **Qualidade:** Foco em análise e relatórios. Acesso ao histórico de medições para gerar relatórios individuais, de tendências e gráficos temporais.
-- **Engenharia:** Acesso irrestrito. Responsáveis pela criação de receitas, configuração de parâmetros de comunicação (CLP), ajustes de eixos e manutenção do sistema.
+## User Personas
+- **Operators**
+- **Analysts/Quality**
+- **Engineers/Developers**
 
-## Objetivos Principais
-1. **Automação de Medição:** Executar medição de tensão em múltiplos pontos predefinidos de forma autônoma.
-2. **Inspeção Visual (AOI):** Validar limpeza e desobstrução de furos comparando captura de imagem com arquivos Gerber originais.
-3. **Rastreabilidade:** Centralizar o gerenciamento de receitas e garantir rastreabilidade completa através de logs e banco de dados.
+## Primary Goals
+1. Automate quality control inspection
+2. Generate comprehensive audit reports  
+3. Hardware integration (PLC, sensors, cameras)
+4. Vitórias rápidas:
+   - Criação de fluxo de operador
+   - Criação de fluxo de engenharia
+   - Criação de programa de medição
+   - Criação de programa de inspeção
 
-## Funcionalidades Chave
-- **Interface (GUI):** Design intuitivo para seleção de receitas.
-- **Visão Computacional:** Algoritmos precisos para alinhamento via fiduciais e detecção de obstruções.
-- **Controle de Hardware:** Comunicação robusta com CLP para controle preciso de eixos e movimentação coordenada.
-- **Gestão de Dados e Relatórios:**
-    - Armazenamento em banco de dados associado ao código único do stencil.
-    - Funcionalidade de busca por medição específica ou período.
-    - Geração de relatórios variados: Medição individual, análise de tendência e gráficos de evolução temporal.
+## Key Features
+- Hardware integration: Delta PLC (Modbus TCP), AS-120N tensiometer (RS-232), USB camera
+- Surface tension measurement with automated grid sampling
+- Visual inspection using computer vision and Gerber comparison
+- Individual stencil traceability with historical trends
+- PDF report generation with heatmaps and statistics
+- Modular GUI with role-based workflows
+
+---
+*This document is managed by Conductor. Last updated: 2026-01-11 12:25:33*

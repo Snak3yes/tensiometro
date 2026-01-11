@@ -1,0 +1,105 @@
+{
+  "phase": "product_guidelines",
+  "title": "Product Guidelines & Standards",
+  "description": "Define brand voice, UI/UX principles, and communication standards",
+  "questions": [
+    {
+      "id": "ui_style",
+      "type": "single_choice",
+      "header": "UI Style",
+      "question": "What is the primary visual style for the interface?",
+      "options": [
+        {
+          "label": "Modern & Minimalist",
+          "description": "Clean, uncluttered, focus on essentials"
+        },
+        {
+          "label": "Industrial/Technical",
+          "description": "Functional, data-dense, professional"
+        },
+        {
+          "label": "Playful & Colorful",
+          "description": "Vibrant, engaging, consumer-friendly"
+        },
+        {
+          "label": "Enterprise/Corporate",
+          "description": "Professional, formal, business-oriented"
+        }
+      ]
+    },
+    {
+      "id": "theme",
+      "type": "single_choice",
+      "header": "Theme",
+      "question": "What is the preferred color theme?",
+      "options": [
+        {
+          "label": "Dark Mode",
+          "description": "Dark backgrounds with light text (modern, reduces eye strain)"
+        },
+        {
+          "label": "Light Mode",
+          "description": "Light backgrounds with dark text (traditional, high contrast)"
+        },
+        {
+          "label": "System Default",
+          "description": "Follow user's OS theme preference"
+        },
+        {
+          "label": "Both (User Configurable)",
+          "description": "Support both with user toggle"
+        }
+      ]
+    },
+    {
+      "id": "tone_of_voice",
+      "type": "single_choice",
+      "header": "Tone",
+      "question": "What is the communication tone for messages and documentation?",
+      "options": [
+        {
+          "label": "Professional & Technical",
+          "description": "Precise, formal, industry-specific terminology"
+        },
+        {
+          "label": "Friendly & Helpful",
+          "description": "Approachable, supportive, conversational"
+        },
+        {
+          "label": "Concise & Direct",
+          "description": "Brief, to-the-point, no fluff"
+        },
+        {
+          "label": "Educational & Instructive",
+          "description": "Explanatory, guides users through processes"
+        }
+      ]
+    },
+    {
+      "id": "error_handling",
+      "type": "single_choice",
+      "header": "Error Messages",
+      "question": "How should error messages be presented?",
+      "options": [
+        {
+          "label": "Technical with Details",
+          "description": "Show technical errors, stack traces, debug info"
+        },
+        {
+          "label": "User-Friendly with Guidance",
+          "description": "Plain language, suggest solutions, hide technical details"
+        },
+        {
+          "label": "Hybrid (Role-Based)",
+          "description": "Technical for engineers, user-friendly for operators"
+        }
+      ]
+    },
+    {
+      "id": "design_principles",
+      "type": "text",
+      "question": "Any specific design principles or guidelines to follow?",
+      "placeholder": "Example:\n- Clarity over aesthetics\n- Consistent icons and buttons\n- Generous spacing for touch interfaces\n- Accessibility (WCAG 2.1 AA compliance)"
+    }
+  ]
+}

@@ -1,23 +1,43 @@
-# Stack Tecnológica
+# Technology Stack
 
-## Core
-- **Linguagem:** Python 3.x
-- **Interface Gráfica (GUI):** PyQt6 (Framework principal para desenvolvimento da interface moderna e minimalista).
-- **Arquitetura de Serviços:** Implementada camada de orquestração (MovementOrchestrator, InspectionFlowService) para desacoplar lógica de negócio da interface Qt.
+## Core Technology
 
-## Hardware & Automação
-- **Comunicação CLP:** PyModbus (Protocolo Modbus TCP/RTU para interação com o CLP e controle de eixos).
-- **Comunicação Serial:** PySerial (Para periféricos ou sensores que utilizam interface serial).
+### Primary Language
+**Language:** Python 3.x
 
-## Processamento & Visão
-- **Visão Computacional:** OpenCV (Processamento de imagens para alinhamento e detecção de obstruções).
-- **Cálculo Numérico:** NumPy (Suporte para operações matriciais e processamento de dados).
-- **Visualização de Dados:** Matplotlib (Geração de gráficos para análise de tendências e medições).
+### Frameworks & Libraries
+- PyQt6 (GUI framework - modern and minimalista)
+- OpenCV (Computer vision for inspection)
+- NumPy (Numerical operations and array processing)
+- Matplotlib (Charts and trend visualization)
+- PyModbus (Modbus TCP communication with PLC)
+- PySerial (RS-232 serial communication with tensiometer)
+- ReportLab (PDF report generation)
 
-## Utilitários & Relatórios
-- **Gerador de PDF:** ReportLab (Criação de relatórios de inspeção e medição personalizados).
+### Database
+**Database:** Multiple (SQLite + JSON)
 
-## Qualidade & Desenvolvimento
-- **Framework de Testes:** Pytest (Testes unitários e de integração).
-- **Cobertura de Testes:** Coverage.py.
-- **Testes Unitários:** Implementada suite de testes unitários para gerenciamento de configuração e persistência de dados.
+Hybrid approach: SQLite for structured stencil data and history, JSON files for configuration and recipes. Migration to full SQLite in progress.
+
+## Development & Quality
+
+### Testing Framework
+**Testing:** pytest
+
+### Package Manager
+**Package Manager:** pip (requirements.txt)
+
+## Additional Tools & Constraints
+Hardware Integration:
+- Delta PLC (CLP): Modbus TCP @ 192.168.1.5:502 for 3-axis (X,Y,Z) CNC control
+- AS-120N Tensiometer: RS-232 serial @ 2400 baud, 9-byte binary protocol
+- USB Camera: OpenCV-compatible for real-time preview and capture
+
+Specialized Libraries:
+- pymodbus: PLC communication
+- pyserial: Serial protocol handling
+- opencv-python: Image processing and computer vision
+- reportlab: Professional PDF generation
+
+---
+*This document is managed by Conductor. Last updated: 2026-01-11 12:25:33*
