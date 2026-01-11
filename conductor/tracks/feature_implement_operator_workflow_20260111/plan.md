@@ -20,11 +20,11 @@
 
 ## Fases
 
-## Fase 1: Configuração e Fundação
+## Fase 1: Configuração e Fundação [checkpoint: 59a6afd]
 - [x] Tarefa: Criar estrutura básica de módulos/pacotes <!-- d2d78ef -->
 - [x] Tarefa: Instalar dependências necessárias (se aplicável) <!-- d2d78ef -->
 - [x] Tarefa: Escrever testes de aceitação para critérios principais <!-- d2d78ef -->
-- [ ] Tarefa: Conductor - User Manual Verification 'Fase 1'
+- [x] Tarefa: Conductor - User Manual Verification 'Fase 1' <!-- 59a6afd -->
 
 ## Fase 2: Implementação Core
 - [ ] Tarefa: Implementar funcionalidade principal
