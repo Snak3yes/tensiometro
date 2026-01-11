@@ -99,7 +99,7 @@ class SetupCoordinator:
 
     def _setup_coordinators(self):
         """Cria todos os coordinators."""
-        from consumo_lib.coordinators import ConnectionCoordinator, InspectionCoordinator, TensionCoordinator
+        from consumo_lib.coordinators import ConnectionCoordinator, InspectionCoordinator, TensionCoordinator, OperatorInspectionCoordinator
         from consumo_lib.managers import ConnectionManager
 
         # Connection Manager (gerencia PLC, GRBL, serial ports)
@@ -127,16 +127,38 @@ class SetupCoordinator:
             self.window.config
         )
 
-        logger.debug("Coordinators criados: connection, inspection, tension")
+        # Operator Inspection Coordinator (NOVO - Operator Workflow Fase 2)
+        # Nota: role_manager e session_logger são criados em _setup_managers
+        self.window.operator_inspection_coordinator = OperatorInspectionCoordinator(
+            inspection_coordinator=self.window.inspection_coordinator,
+            role_manager=self.window.role_manager,
+            session_logger=self.window.session_logger
+        )
+        logger.debug("OperatorInspectionCoordinator criado")
+
+        logger.debug("Coordinators criados: connection, inspection, tension, operator_inspection")
 
     def _setup_managers(self):
-        """Cria todos os managers (recipe, stencil, report, inspection)."""
-        from consumo_lib.managers import RecipeManagerWrapper, StencilManagerWrapper, ReportManagerWrapper, InspectionManager
+        """Cria todos os managers (recipe, stencil, report, inspection, role, session)."""
+        from consumo_lib.managers import (
+            RecipeManagerWrapper, StencilManagerWrapper, ReportManagerWrapper, InspectionManager,
+            RoleManager, SessionLogger
+        )
         from consumo_lib.controllers import RecipeManagerController
 
         # Estado interno
         self.window.current_sequence = None
         self.window.is_running_sequence = False
+
+        # Role Manager (NOVO - Operator Workflow Fase 2)
+        self.window.role_manager = RoleManager()
+        logger.debug("RoleManager criado")
+
+        # Session Logger (NOVO - Operator Workflow Fase 2)
+        from pathlib import Path
+        log_dir = Path(self.window.config.config_path).parent / "data" / "sessions"
+        self.window.session_logger = SessionLogger(log_dir=str(log_dir))
+        logger.debug(f"SessionLogger criado com log_dir={log_dir}")
 
         # Recipe Manager
         self.window.recipe_manager_wrapper = RecipeManagerWrapper(parent=self.window)
