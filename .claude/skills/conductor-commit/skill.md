@@ -70,10 +70,12 @@ Get the full commit SHA for git notes attachment.
 ```json
 {
   "commit_author_name": "Ronald Buzaglo",
-  "commit_author_email": "",
-  "co_author_text": "Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>"
+  "commit_author_email": ""
 }
 ```
+
+**If `commit_author_name` is empty or not set:**
+- Use "Claude Sonnet 4.5" as fallback author
 
 **Structure:**
 
@@ -82,7 +84,6 @@ Task Completion Summary
 =======================
 
 Author: Ronald Buzaglo
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 Type: <task_type>
 Scope: <module_name>

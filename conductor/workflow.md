@@ -14,14 +14,13 @@
 
 ### Commit Authorship
 
-All commits and git notes should use the configured author information. This is typically set during the initial Conductor setup interview.
+All commits should use the configured author information from `conductor/setup_state.json`.
 
 **Configuration location:** `conductor/setup_state.json`
 
 **Fields:**
 - `commit_author_name`: Name to use for commits (e.g., "Ronald Buzaglo")
 - `commit_author_email`: Email for commits (optional)
-- `co_author_text`: Co-author text for git notes (default: "Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>")
 
 **Usage in commits:**
 ```bash
@@ -35,7 +34,6 @@ Co-Authored-By: Ronald Buzaglo <ronald@example.com>"
 git notes add -m "Task Summary
 ================
 Author: Ronald Buzaglo
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 Changes Made:
 - Change 1
@@ -44,17 +42,20 @@ Changes Made:
 
 ### If Not Configured
 
-If `commit_author_name` is not set in `setup_state.json`, ask the user before creating commits:
+If `commit_author_name` is not set in `setup_state.json` (empty string), ask the user during initial setup:
 
 **Example prompt:**
 ```
-Before committing, I need to know the author name for this commit.
+Before proceeding, I need to configure the author name for commits.
 
 What name should be used as the author?
 - Use your real name (recommended for professional projects)
 - Use a pseudonym (if preferred)
 - Leave blank to use default (Claude Sonnet 4.5)
 ```
+
+**Fallback:**
+If the user leaves the name blank during setup, use "Claude Sonnet 4.5" as the author name.
 
 ## Task Workflow
 
