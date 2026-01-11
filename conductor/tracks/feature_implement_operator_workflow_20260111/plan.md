@@ -22,7 +22,7 @@
 
 ## Fase 1: Configuração e Fundação
 - [~] Tarefa: Criar estrutura básica de módulos/pacotes
-- [ ] Tarefa: Instalar dependências necessárias (se aplicável)
+- [~] Tarefa: Instalar dependências necessárias (se aplicável)
 - [ ] Tarefa: Escrever testes de aceitação para critérios principais
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1'
 
