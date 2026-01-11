@@ -26,11 +26,12 @@
 - [x] Tarefa: Escrever testes de aceitação para critérios principais <!-- d2d78ef -->
 - [x] Tarefa: Conductor - User Manual Verification 'Fase 1' <!-- 59a6afd -->
 
-## Fase 2: Implementação Core
-- [ ] Tarefa: Implementar funcionalidade principal
-- [ ] Tarefa: Escrever testes unitários para módulos criados
-- [ ] Tarefa: Integrar com código existente
-- [ ] Tarefa: Conductor - User Manual Verification 'Fase 2'
+## Fase 2: Implementação Core [checkpoint: 0196f73]
+- [x] Tarefa: Implementar funcionalidade principal <!-- 93a7a2a -->
+- [x] Tarefa: Escrever testes unitários para módulos criados <!-- 93a7a2a -->
+- [x] Tarefa: Executar testes unitários <!-- 93a7a2a -->
+- [x] Tarefa: Integrar com código existente <!-- ae895ba -->
+- [x] Tarefa: Conductor - User Manual Verification 'Fase 2' <!-- 0196f73 -->
 
 ## Fase 3: Integração e Interface
 - [ ] Tarefa: Conectar funcionalidade com interface do usuário (se aplicável)
