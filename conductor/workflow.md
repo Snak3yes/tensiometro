@@ -45,18 +45,44 @@ Changes Made:
 - Change 2" <commit_sha>
 ```
 
-### If Not Configured
+### Automatic Configuration from Git Local
 
-If `commit_author_name` is not set in `setup_state.json` (empty string), ask the user during initial setup:
+During initial Conductor setup, automatically detect and configure author information:
 
-**Example prompt:**
+**Step 1: Check git local configuration**
+
+```bash
+git config user.name
+git config user.email
 ```
-Before proceeding, I need to configure the author name for commits.
 
-What name should be used as the author?
-- Use your real name (recommended for professional projects)
-- Use a pseudonym (if preferred)
-- Leave blank to use default (Claude Sonnet 4.5)
+**Step 2: If both name and email are configured, ask user:**
+
+```
+Detectado configuração git local:
+  Nome: RONALDBUZAGLO
+  Email: senseironald@gmail.com
+
+Deseja usar estas configurações como padrão para commits do Conductor?
+- Sim (recomendado) - Usa nome e email do git local
+- Não - Vou fornecer outro nome/email
+```
+
+**Step 3: If user chooses "Não" or git config is incomplete:**
+
+Ask for the information:
+
+```
+Configure as informações de autor para commits:
+
+Nome do autor (obrigatório):
+  Este nome deve ser o mesmo do seu perfil GitHub
+  para que commits apareçam com sua foto e link.
+
+Email do autor (obrigatório):
+  Deve ser um email verificado no seu GitHub
+  (Settings > Emails)
+  Deixe em branco para não incluir email.
 ```
 
 **Fallback:**
