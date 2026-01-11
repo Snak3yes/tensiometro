@@ -156,7 +156,7 @@ class SetupCoordinator:
 
         # Session Logger (NOVO - Operator Workflow Fase 2)
         from pathlib import Path
-        log_dir = Path(self.window.config.config_path).parent / "data" / "sessions"
+        log_dir = Path(self.window.config.cfg_path).parent / "data" / "sessions"
         self.window.session_logger = SessionLogger(log_dir=str(log_dir))
         logger.debug(f"SessionLogger criado com log_dir={log_dir}")
 
