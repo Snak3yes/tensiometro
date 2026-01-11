@@ -113,7 +113,7 @@ class RecipeEditorDialog(QDialog):
     
     def __init__(self, recipe: Recipe = None, parent=None):
         super().__init__(parent)
-        self.recipe = recipe or Recipe()
+        self.recipe = recipe or Recipe(name="Nova Receita")
         self.is_new = recipe is None
         
         self.setWindowTitle("Nova Receita" if self.is_new else f"Editar: {self.recipe.name}")
