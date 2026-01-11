@@ -1,0 +1,13 @@
+{
+  "name": "conductor-setup",
+  "description": "Initialize Conductor system for your project with structured interviews",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "reconfigure": {
+      "type": "boolean",
+      "description": "Reconfigure even if setup already exists",
+      "default": false
+    }
+  },
+  "handler": "python claude-conductor/run_setup_with_responses.py"
+}

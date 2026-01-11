@@ -1,0 +1,19 @@
+{
+  "name": "conductor-update",
+  "description": "Update Conductor base documentation from setup responses",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "doc": {
+      "type": "string",
+      "description": "Document to update (product, tech-stack, workflow, all)",
+      "default": "all",
+      "enum": ["product", "tech-stack", "workflow", "all"]
+    },
+    "confirm": {
+      "type": "boolean",
+      "description": "Skip confirmation prompt",
+      "default": false
+    }
+  },
+  "handler": "python claude-conductor/support_commands.py update --doc"
+}

@@ -1,0 +1,23 @@
+{
+  "name": "conductor-implement",
+  "description": "Execute a Conductor track with automatic TDD workflow",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "track_id": {
+      "type": "string",
+      "description": "Track identifier (e.g., feature_add_oauth_20260111)",
+      "required": true
+    },
+    "start_phase": {
+      "type": "number",
+      "description": "Starting phase number (for resume)",
+      "default": 1
+    },
+    "auto_mode": {
+      "type": "boolean",
+      "description": "Run without user interaction (demo mode)",
+      "default": false
+    }
+  },
+  "handler": "python claude-conductor/implementation_agent.py --track"
+}

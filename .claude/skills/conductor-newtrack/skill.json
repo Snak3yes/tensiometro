@@ -1,0 +1,25 @@
+{
+  "name": "conductor-newtrack",
+  "description": "Create a new Conductor track with specification and implementation plan",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "description": {
+      "type": "string",
+      "description": "Brief description of the feature or bugfix",
+      "required": true
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of track (feature, bugfix, refactor, docs)",
+      "default": "feature",
+      "enum": ["feature", "bugfix", "refactor", "docs"]
+    },
+    "priority": {
+      "type": "string",
+      "description": "Priority level",
+      "default": "Medium",
+      "enum": ["Critical", "High", "Medium", "Low"]
+    }
+  },
+  "handler": "python claude-conductor/planning_agent.py --description"
+}

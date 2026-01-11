@@ -1,0 +1,22 @@
+{
+  "name": "conductor-revert",
+  "description": "Revert a Conductor track, phase, or task using git reset",
+  "author": "Claude Sonnet 4.5",
+  "parameters": {
+    "track_id": {
+      "type": "string",
+      "description": "Track identifier",
+      "required": true
+    },
+    "phase": {
+      "type": "number",
+      "description": "Phase number to revert (optional)"
+    },
+    "confirm": {
+      "type": "boolean",
+      "description": "Skip confirmation prompt",
+      "default": false
+    }
+  },
+  "handler": "python claude-conductor/support_commands.py revert --track"
+}
