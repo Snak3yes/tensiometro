@@ -19,21 +19,26 @@ All commits should use the configured author information from `conductor/setup_s
 **Configuration location:** `conductor/setup_state.json`
 
 **Fields:**
-- `commit_author_name`: Name to use for commits (e.g., "Ronald Buzaglo")
-- `commit_author_email`: Email for commits (optional)
+- `commit_author_name`: Name to use for commits (e.g., "RONALDBUZAGLO")
+- `commit_author_email`: Email for commits (should match GitHub email)
+
+**IMPORTANT:**
+For commits to appear correctly on GitHub with your profile picture and link:
+- Name MUST match your GitHub profile name
+- Email MUST match a verified email on your GitHub account (Settings > Emails)
 
 **Usage in commits:**
 ```bash
 git commit -m "feat(module): Description
 
-Co-Authored-By: Ronald Buzaglo <ronald@example.com>"
+Co-Authored-By: RONALDBUZAGLO <senseironald@gmail.com>"
 ```
 
 **Usage in git notes:**
 ```bash
 git notes add -m "Task Summary
 ================
-Author: Ronald Buzaglo
+Author: RONALDBUZAGLO
 
 Changes Made:
 - Change 1
