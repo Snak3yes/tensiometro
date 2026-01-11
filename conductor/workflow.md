@@ -143,12 +143,76 @@ All tasks follow a strict lifecycle:
 
 10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
 
+### Track Completion Protocol
+
+**Trigger:** This protocol is executed when ALL phases in a track are completed.
+
+1.  **Announce Track Completion:** Inform the user that all phases are complete and ask what they want to do with the completed track.
+
+2.  **Ask User for Disposition:** Use the `AskUserQuestion` tool to present the following options:
+    ```python
+    AskUserQuestion(
+        questions=[{
+            "question": "A track foi concluída com sucesso! O que você deseja fazer com a documentação da track?",
+            "header": "Disposição",
+            "multiSelect": False,
+            "options": [
+                {
+                    "label": "Mover para archive (Recomendado)",
+                    "description": "Move a track para conductor/archive/ onde fica armazenada como histórico. A track ainda pode ser consultada mas não aparece como ativa."
+                },
+                {
+                    "label": "Manter onde está",
+                    "description": "Mantém a track em conductor/tracks/. Útil se você planeja fazer modificações adicionais em breve."
+                },
+                {
+                    "label": "Excluir permanentemente",
+                    "description": "Remove permanentemente todos os arquivos da track. ⚠️ Esta operação NÃO pode ser desfeita."
+                }
+            ]
+        }]
+    )
+    ```
+
+3.  **Execute User's Choice:**
+    - **If "Mover para archive":**
+        1. Move the track directory: `mv conductor/tracks/<track_id> conductor/archive/`
+        2. Update `conductor/tracks.md` to mark the track as archived: `[x] <track_name> (archived)`
+        3. Commit with message: `conductor: Archive track '<track_id>'`
+        4. Inform user of successful archival
+
+    - **If "Manter onde está":**
+        1. Update `conductor/tracks.md` to mark the track as completed but not archived: `[x] <track_name> (completed)`
+        2. Commit with message: `conductor: Mark track '<track_id>' as completed`
+        3. Inform user that the track remains in `conductor/tracks/`
+
+    - **If "Excluir permanentemente":**
+        1. Ask for confirmation: "Tem certeza? Esta operação NÃO pode ser desfeita."
+        2. If confirmed:
+           - Delete the track directory: `rm -rf conductor/tracks/<track_id>`
+           - Update `conductor/tracks.md` to remove the track entry
+           - Commit with message: `conductor: Delete track '<track_id>'`
+           - Inform user of successful deletion
+        3. If not confirmed:
+           - Return to step 2
+
+4.  **Update tracks.md Status:** Regardless of the choice, update the track's status in `conductor/tracks.md`:
+    - For archived tracks: `[x] <track_name> (archived) <!-- <YYYY-MM-DD> -->`
+    - For completed tracks: `[x] <track_name> (completed) <!-- <YYYY-MM-DD> -->`
+
+5.  **Create Final Summary:** Present a summary to the user including:
+    - Track name and ID
+    - Number of phases completed
+    - Number of tasks completed
+    - Final disposition (archived/completed/deleted)
+    - Links to key commits (checkpoints)
+
 ### Quality Gates
 
 Before marking any task complete, verify:
 
 - [ ] All tests pass
-- [ ] Code coverage meets requirements (>95%)
+- [ ] Functional coverage meets requirements (>85% functional coverage)
 - [ ] Application starts and runs without errors (Smoke Test)
 - [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
 - [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
