@@ -3,7 +3,7 @@
 ## Fase 1: Análise e Criação do Serviço [checkpoint: 3137ff7]
 - [x] Tarefa: Analisar `RecipeManager` (aoi_lib) e `RecipeDialog` (consumo_lib) para mapear a lógica existente
 - [x] Tarefa: Aprimorar `RecipeManager` em `aoi_lib` para incluir validações robustas (centralizar lógica)
-- [x] Tarefa: Criar testes unitários para o `RecipeManager` aprimorado (CRUD + Validações) <!-- 35 testes, 96% coverage -->
+- [x] Tarefa: Criar testes unitários para o `RecipeManager` aprimorado (CRUD + Validações) <!-- 35 testes, 96% coverage, d0b3255 -->
 - [ ] Tarefa: Conductor - User Manual Verification 'Fase 1: Análise e Criação do Serviço' (Protocol in workflow.md)
 
 ## Fase 2: Integração com a Interface [checkpoint: passed]
