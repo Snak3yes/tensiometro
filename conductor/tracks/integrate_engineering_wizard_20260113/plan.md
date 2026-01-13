@@ -173,7 +173,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Salvar mosaico em EngineeringWizardState [manual]
 - [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()` [manual]
   - [~] Receber fiducial templates do estado [manual]
-  - [~] Executar template matching
+  - [~] Executar template matching [manual]
   - [~] Salvar transform em EngineeringWizardState
 
 **Critérios de Sucesso:**
