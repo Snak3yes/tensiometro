@@ -203,7 +203,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 
 **Subtarefas:**
 - [~] Modificar `consumo_lib/handlers/menu_handler.py` [manual] [manual]
-  - [~] Adicionar método `setup_engineering_menu()` [manual]
+  - [~] Adicionar método `setup_engineering_menu()` [manual] [manual]
   - [~] Criar menu "Ferramentas" (se não existir) [manual]
   - [~] Adicionar ação "Engineering Wizard..." com atalho Ctrl+Shift+E [manual]
   - [~] Criar menu "Programas" (novo) [manual]
