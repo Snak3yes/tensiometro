@@ -1,0 +1,148 @@
+{
+  "track_id": "engenharia_aba2_carregar_gerber",
+  "type": "feature",
+  "title": "Engineering Wizard Aba 2 - Carregar Gerber",
+  "description": "Implementar widget para carregar arquivo Gerber RS-274X, visualizar preview, limpar aperturas indesejadas e extrair informações (dimensões, fiduciais).",
+  "priority": "High",
+  "complexity": "High",
+  "status": "completed",
+  "created": "2026-01-13",
+  "created_date": "2026-01-13",
+  "completed_date": "2026-01-13",
+  "estimated_duration": "2-3 days",
+  "actual_duration": "1 day",
+  "estimated_phases": 6,
+  "current_phase": 6,
+  "progress_percentage": 100,
+  "phases": [
+    {
+      "phase_number": 1,
+      "title": "Upload e Parse",
+      "tasks": [
+        "Implementar botão de upload",
+        "Implementar filtro de arquivos .gbr",
+        "Parse de Gerber RS-274X",
+        "Extrair informações básicas"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    },
+    {
+      "phase_number": 2,
+      "title": "Preview Visual",
+      "tasks": [
+        "Renderizar Gerber em QWidget",
+        "Implementar zoom e pan",
+        "Exibir informações do arquivo"
+      ],
+      "status": "completed",
+      "tasks_total": 3,
+      "tasks_completed": 3
+    },
+    {
+      "phase_number": 3,
+      "title": "Limpeza de Gerber",
+      "tasks": [
+        "Implementar seleção de aperturas",
+        "Implementar remoção de elementos",
+        "Implementar undo/redo",
+        "Salvar Gerber limpo"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    },
+    {
+      "phase_number": 4,
+      "title": "Extração de Dados",
+      "tasks": [
+        "Contar aperturas",
+        "Detectar fiduciais automaticamente",
+        "Calcular dimensões",
+        "Exibir métricas"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    },
+    {
+      "phase_number": 5,
+      "title": "Validação",
+      "tasks": [
+        "Validar Gerber carregado",
+        "Validar aperturas > 0",
+        "Emitir sinal gerber_loaded",
+        "Método get_gerber_data()"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    },
+    {
+      "phase_number": 6,
+      "title": "Testes",
+      "tasks": [
+        "Criar testes unitários",
+        "Testar upload",
+        "Testar limpeza",
+        "Testar extração de dados"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    }
+  ],
+  "acceptance_criteria": [
+    "GerberLoaderWidget implementado",
+    "Upload de arquivo .gbr funcionando",
+    "Preview visual com zoom/pan",
+    "Limpeza de aperturas funcionando",
+    "Detecção automática de fiduciais",
+    "Extração de dimensões e métricas",
+    "Signal gerber_loaded emitido",
+    "get_gerber_data() retornando dict completo",
+    "Testes unitários passando"
+  ],
+  "metrics": {
+    "before": {
+      "lines_of_code": 0
+    },
+    "after": {
+      "lines_of_code": "~600",
+      "test_coverage": "80%"
+    }
+  },
+  "deliverables": {
+    "code": [
+      "consumo_lib/widgets/engenharia/gerber_loader_widget.py"
+    ],
+    "features": [
+      "Upload de arquivo .gbr",
+      "Preview vetorial",
+      "Limpeza interativa",
+      "Detecção de fiduciais",
+      "Extração de métricas"
+    ]
+  },
+  "dependencies": [
+    "aoi_lib.gerber_parser.GerberParser",
+    "aoi_lib.gerber_renderer.GerberRenderer",
+    "PyQt6.QtWidgets"
+  ],
+  "integration_points": [
+    "EngineeringWizard (aba 2)",
+    "Track 3 (Fiduciais) - recebe gerber_data",
+    "Track 5 (Alinhamento) - recebe gerber_data"
+  ],
+  "risks": [
+    "Arquivos Gerber podem ser muito grandes",
+    "Limpeza manual pode ser demorada"
+  ],
+  "mitigations": [
+    "Limitar preview a região visível",
+    "Detecção automática de fiduciais"
+  ],
+  "rollback_strategy": "Revert commit",
+  "last_updated": "2026-01-13"
+}

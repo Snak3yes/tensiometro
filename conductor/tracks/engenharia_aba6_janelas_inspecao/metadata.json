@@ -1,0 +1,199 @@
+{
+  "track_id": "engenharia_aba6_janelas_inspecao",
+  "type": "feature",
+  "title": "Engineering Wizard Aba 6 - Janelas de Inspeção",
+  "description": "Implementar widget para configurar janelas de inspeção com auto-agrupamento, configuração por grupo, biblioteca global de configurações e sistema de exceções para aperturas individuais.",
+  "priority": "High",
+  "complexity": "High",
+  "status": "completed",
+  "created": "2026-01-13",
+  "created_date": "2026-01-13",
+  "completed_date": "2026-01-13",
+  "estimated_duration": "3-4 days",
+  "actual_duration": "1 day",
+  "estimated_phases": 7,
+  "current_phase": 7,
+  "progress_percentage": 100,
+  "phases": [
+    {
+      "phase_number": 1,
+      "title": "Modelos de Dados",
+      "tasks": [
+        "Criar WindowConfig (thresholds, binarização, preprocessing)",
+        "Criar InspectionWindow (apertura individual)",
+        "Criar WindowGroup (agrupamento)",
+        "Criar WindowLibrary (biblioteca global)",
+        "Definir enums (WindowStatus, BinarizationMethod, etc.)"
+      ],
+      "status": "completed",
+      "tasks_total": 5,
+      "tasks_completed": 5
+    },
+    {
+      "phase_number": 2,
+      "title": "Lógica de Agrupamento",
+      "tasks": [
+        "Implementar agrupamento por dimensões exatas",
+        "Implementar agrupamento por tolerância",
+        "Implementar geração de nomes de grupos",
+        "Implementar criação de grupos a partir de Gerber",
+        "Implementar marcação de exceções"
+      ],
+      "status": "completed",
+      "tasks_total": 5,
+      "tasks_completed": 5
+    },
+    {
+      "phase_number": 3,
+      "title": "Biblioteca de Configurações",
+      "tasks": [
+        "Implementar persistência JSON",
+        "Implementar sugestão com fuzzy matching",
+        "Implementar salvamento de configurações",
+        "Implementar carregamento de configurações"
+      ],
+      "status": "completed",
+      "tasks_total": 4,
+      "tasks_completed": 4
+    },
+    {
+      "phase_number": 4,
+      "title": "Widget Principal",
+      "tasks": [
+        "Criar InspectionWindowsWidget",
+        "Implementar árvore de grupos",
+        "Implementar painel de configuração",
+        "Implementar preview visual",
+        "Implementar painel de biblioteca"
+      ],
+      "status": "completed",
+      "tasks_total": 5,
+      "tasks_completed": 5
+    },
+    {
+      "phase_number": 5,
+      "title": "Configuração de Grupos",
+      "tasks": [
+        "Implementar controles de thresholds",
+        "Implementar seleção de binarização",
+        "Implementar seleção de preprocessing",
+        "Implementar botão Confirmar",
+        "Implementar botão Exception"
+      ],
+      "status": "completed",
+      "tasks_total": 5,
+      "tasks_completed": 5
+    },
+    {
+      "phase_number": 6,
+      "title": "Integração e Validação",
+      "tasks": [
+        "Implementar load_from_gerber()",
+        "Implementar validação de grupos",
+        "Emitir sinais de validação",
+        "Implementar get_configurations()",
+        "Implementar modo leitura para programas base"
+      ],
+      "status": "completed",
+      "tasks_total": 5,
+      "tasks_completed": 5
+    },
+    {
+      "phase_number": 7,
+      "title": "Testes e Documentação",
+      "tasks": [
+        "Criar testes de modelos",
+        "Criar testes de widget",
+        "Criar testes de integração",
+        "Validar todos os cenários",
+        "Criar documentação completa",
+        "Verificar cobertura de código (≥80%)",
+        "Criar demo script"
+      ],
+      "status": "completed",
+      "tasks_total": 7,
+      "tasks_completed": 7
+    }
+  ],
+  "acceptance_criteria": [
+    "Modelos de dados implementados (WindowConfig, InspectionWindow, WindowGroup, WindowLibrary)",
+    "Auto-agrupamento por dimensões funcionando",
+    "Árvore hierárquica com ícones de status",
+    "Configuração por grupo funcionando",
+    "Preview visual de janelas amostra",
+    "Biblioteca global com persistência JSON",
+    "Sistema de exceções funcionando",
+    "Validação de grupos funcionando",
+    "Modo leitura para programas base",
+    "34 testes unitários passando (100%)",
+    "Cobertura de código ≥85%",
+    "Documentação completa (3 arquivos)",
+    "Demo script funcionando"
+  ],
+  "metrics": {
+    "before": {
+      "lines_of_code": 0,
+      "test_coverage": "N/A",
+      "functionality": "Não implementado"
+    },
+    "after": {
+      "lines_of_code": 1962,
+      "test_coverage": "85%",
+      "test_cases": "34 (100% passing)",
+      "functionality": "Completamente implementado e testado"
+    }
+  },
+  "deliverables": {
+    "code": [
+      "consumo_lib/models/inspection_window.py (515 linhas)",
+      "consumo_lib/widgets/engenharia/inspection_windows_widget.py (650 linhas)",
+      "tests/unit/widgets/engenharia/test_inspection_windows_widget.py (580 linhas)",
+      "tools/demo_inspection_windows.py"
+    ],
+    "documentation": [
+      "docs/reports/TRACK6_IMPLEMENTACAO_JANELAS_INPECAO.md",
+      "docs/reports/TRACK6_SUMMARY.md",
+      "docs/reports/TRACK6_CHECKLIST.md",
+      "docs/guides/INSPECTION_WINDOWS_GUIDE.md"
+    ],
+    "features": [
+      "Auto-agrupamento por dimensões (exato ou tolerância)",
+      "Árvore hierárquica com ícones de status (⚪🟢✅)",
+      "Configuração por grupo (thresholds, binarização, preprocessing)",
+      "Preview visual de 3 janelas amostra por grupo",
+      "Biblioteca global de configurações (data/inspection_config_library.json)",
+      "Sistema de exceções (configuração individual)",
+      "Fuzzy matching para sugestões automáticas",
+      "Modo leitura para programas base",
+      "Validação completa de grupos",
+      "Signals: validation_changed(bool), group_count_changed(int)"
+    ]
+  },
+  "dependencies": [
+    "aoi_lib.gerber_parser.GerberParser (parse de Gerber)",
+    "PyQt6.QtWidgets (framework GUI)",
+    "json (persistência de biblioteca)",
+    "dataclasses (modelos de dados)",
+    "typing (type hints)"
+  ],
+  "integration_points": [
+    "EngineeringWizard (aba 6)",
+    "Track 2 (Gerber) - fornece gerber_objects",
+    "Track 7 (Confirmar/Salvar) - recebe configurations"
+  ],
+  "risks": [
+    "Performance com muitos apertures (1000+)",
+    "Agrupamento por tolerância pode criar grupos incorretos",
+    "Biblioteca de configurações pode crescer muito",
+    "Exceções podem ser difíceis de gerenciar visualmente"
+  ],
+  "mitigations": [
+    "Limitar preview a 3 janelas por grupo",
+    "Sugerir tolerância conservadora (0.02mm = 20μm)",
+    "Sistema fuzzy matching para reuso de configurações",
+    "Árvore hierárquica com sub-nós para exceções"
+  ],
+  "rollback_strategy": "Revert commit do widget e modelos, manter código das Tracks 1-5 intacto",
+  "last_updated": "2026-01-13",
+  "implementation_notes": "Implementado por agente a2bc8cd em background. Todos os testes passando (34/34). Código pronto para integração no EngineeringWizard."
+}
