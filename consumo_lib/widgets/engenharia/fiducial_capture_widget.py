@@ -171,7 +171,13 @@ class FiducialCaptureWidget(QWidget):
     fiducial_captured = pyqtSignal(dict)
     validation_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, hardware_coordinator=None):
+        """Inicializa o widget.
+
+        Args:
+            parent: Widget pai
+            hardware_coordinator: EngineeringHardwareCoordinator (opcional)
+        """
         super().__init__(parent)
         logger.info("🎨 Inicializando FiducialCaptureWidget")
 
@@ -181,7 +187,9 @@ class FiducialCaptureWidget(QWidget):
         self._window_size = 50
         self._is_valid = False
 
-        # Hardware (será injetado)
+        # Hardware coordinator (nova arquitetura)
+        self._hardware_coordinator = hardware_coordinator
+        # Legado: camera_controller (para compatibilidade)
         self._camera_controller = None
 
         # Setup UI
@@ -190,7 +198,45 @@ class FiducialCaptureWidget(QWidget):
         # Conectar signals
         self._connect_signals()
 
+        # Atualizar estado inicial
+        self._update_hardware_status()
+
         logger.info("✅ FiducialCaptureWidget inicializado")
+
+    def set_hardware_coordinator(self, coordinator):
+        """Define o coordenador de hardware (injeção de dependência).
+
+        Args:
+            coordinator: EngineeringHardwareCoordinator
+        """
+        self._hardware_coordinator = coordinator
+        self._update_hardware_status()
+        logger.info("🔧 Hardware coordinator definido")
+
+    def _update_hardware_status(self):
+        """Atualiza display de status do hardware."""
+        # Verificar se hardware está disponível
+        has_coordinator = self._hardware_coordinator is not None
+        has_camera = self._camera_controller is not None
+
+        if has_coordinator:
+            # Usar coordinator
+            from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
+            ready, _ = self._hardware_coordinator.is_hardware_ready([
+                HardwareType.CAMERA,
+                HardwareType.PLC
+            ])
+            status = "✅ Pronto" if ready else "⚠️ Hardware não conectado"
+        elif has_camera:
+            # Modo legado
+            ready = self._camera_controller.is_connected
+            status = "✅ Pronto" if ready else "⚠️ Câmera não conectada"
+        else:
+            status = "❌ Sem hardware"
+
+        # Se existir label de hardware status, atualizar
+        if hasattr(self, 'lbl_hardware_status'):
+            self.lbl_hardware_status.setText(f"Hardware: {status}")
 
     def _setup_ui(self):
         """Configura interface do usuário."""
@@ -414,46 +460,62 @@ class FiducialCaptureWidget(QWidget):
     def _capture_fiducial_at(self, x: float, y: float):
         """Captura template na posição especificada."""
         try:
-            if not self._camera_controller or not self._camera_controller.is_connected:
+            # Prioridade: Usar EngineeringHardwareCoordinator se disponível
+            if self._hardware_coordinator:
+                self._capture_with_coordinator(x, y)
+            elif self._camera_controller:
+                self._capture_with_camera_controller(x, y)
+            else:
                 QMessageBox.warning(
                     self,
-                    "Câmera Não Conectada",
-                    "Conecte a câmera antes de capturar fiduciais."
+                    "Hardware Não Disponível",
+                    "Nenhum hardware disponível. Conecte o coordenador de hardware ou câmera."
                 )
                 return
 
-            # Obter frame atual
-            frame = self._camera_controller.capture_frame()
-            if frame is None:
-                QMessageBox.warning(
-                    self,
-                    "Erro de Captura",
-                    "Não foi possível capturar imagem da câmera."
-                )
-                return
+        except Exception as e:
+            logger.error(f"❌ Erro ao capturar fiducial: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro de Captura",
+                f"Não foi possível capturar fiducial:\n{e}"
+            )
 
-            # Extrair template (window ao redor do ponto)
-            half_window = self._window_size // 2
-            h, w = frame.shape[:2]
-            x0 = int(max(0, x - half_window))
-            y0 = int(max(0, y - half_window))
-            x1 = int(min(w, x + half_window))
-            y1 = int(min(h, y + half_window))
+    def _capture_with_coordinator(self, x: float, y: float):
+        """Captura usando EngineeringHardwareCoordinator.
 
-            template = frame[y0:y1, x0:x1]
+        Args:
+            x: Posição X no preview (não usado, captura é no centro)
+            y: Posição Y no preview (não usado, captura é no centro)
+        """
+        from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
 
-            if template.size == 0:
-                QMessageBox.warning(
-                    self,
-                    "Erro de Captura",
-                    "Região de captura inválida."
-                )
-                return
+        # Verificar hardware
+        ready, message = self._hardware_coordinator.is_hardware_ready([
+            HardwareType.CAMERA,
+            HardwareType.PLC
+        ])
+        if not ready:
+            QMessageBox.warning(
+                self,
+                "Hardware Não Pronto",
+                f"Hardware indisponível:\n{message}"
+            )
+            return
 
-            # Obter posição da máquina
-            pos_x = self.spin_x.value()
-            pos_y = self.spin_y.value()
-            pos_z = self.spin_z.value()
+        # Obter posição dos spinboxes
+        pos_x = self.spin_x.value()
+        pos_y = self.spin_y.value()
+        pos_z = self.spin_z.value()
+
+        try:
+            # Capturar usando coordinator
+            result = self._hardware_coordinator.capture_fiducial_template(
+                x=pos_x,
+                y=pos_y,
+                z=pos_z,
+                window_size=self._window_size
+            )
 
             # Criar fiducial
             fiducial = FiducialTemplate(
@@ -461,9 +523,9 @@ class FiducialCaptureWidget(QWidget):
                 x=pos_x,
                 y=pos_y,
                 z=pos_z,
-                image=template,
+                image=result['image'],
                 window_size=self._window_size,
-                captured_at=datetime.now().isoformat()
+                captured_at=result.get('captured_at', datetime.now().isoformat())
             )
 
             # Remover fiducial anterior do mesmo ID se existir
@@ -476,15 +538,85 @@ class FiducialCaptureWidget(QWidget):
             # Atualizar UI
             self._update_status()
 
-            logger.info(f"✅ Fiducial {self._current_fiducial_id + 1} capturado")
+            logger.info(f"✅ Fiducial {self._current_fiducial_id + 1} capturado via coordinator")
 
-        except Exception as e:
-            logger.error(f"❌ Erro ao capturar fiducial: {e}")
-            QMessageBox.critical(
+        except RuntimeError as e:
+            QMessageBox.warning(
                 self,
                 "Erro de Captura",
-                f"Não foi possível capturar fiducial:\n{e}"
+                f"Erro ao capturar fiducial:\n{e}"
             )
+
+    def _capture_with_camera_controller(self, x: float, y: float):
+        """Captura usando camera_controller (modo legado).
+
+        Args:
+            x: Posição X no preview
+            y: Posição Y no preview
+        """
+        if not self._camera_controller or not self._camera_controller.is_connected:
+            QMessageBox.warning(
+                self,
+                "Câmera Não Conectada",
+                "Conecte a câmera antes de capturar fiduciais."
+            )
+            return
+
+        # Obter frame atual
+        frame = self._camera_controller.capture_frame()
+        if frame is None:
+            QMessageBox.warning(
+                self,
+                "Erro de Captura",
+                "Não foi possível capturar imagem da câmera."
+            )
+            return
+
+        # Extrair template (window ao redor do ponto)
+        half_window = self._window_size // 2
+        h, w = frame.shape[:2]
+        x0 = int(max(0, x - half_window))
+        y0 = int(max(0, y - half_window))
+        x1 = int(min(w, x + half_window))
+        y1 = int(min(h, y + half_window))
+
+        template = frame[y0:y1, x0:x1]
+
+        if template.size == 0:
+            QMessageBox.warning(
+                self,
+                "Erro de Captura",
+                "Região de captura inválida."
+            )
+            return
+
+        # Obter posição da máquina
+        pos_x = self.spin_x.value()
+        pos_y = self.spin_y.value()
+        pos_z = self.spin_z.value()
+
+        # Criar fiducial
+        fiducial = FiducialTemplate(
+            id=self._current_fiducial_id,
+            x=pos_x,
+            y=pos_y,
+            z=pos_z,
+            image=template,
+            window_size=self._window_size,
+            captured_at=datetime.now().isoformat()
+        )
+
+        # Remover fiducial anterior do mesmo ID se existir
+        self._fiducials = [f for f in self._fiducials if f.id != self._current_fiducial_id]
+        self._fiducials.append(fiducial)
+
+        # Emitir signal
+        self.fiducial_captured.emit(fiducial.to_dict())
+
+        # Atualizar UI
+        self._update_status()
+
+        logger.info(f"✅ Fiducial {self._current_fiducial_id + 1} capturado (modo legado)")
 
     def _update_status(self):
         """Atualiza display de status."""
