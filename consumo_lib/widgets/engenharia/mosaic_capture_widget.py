@@ -295,7 +295,13 @@ class MosaicCaptureWidget(QWidget):
     mosaic_captured = pyqtSignal(dict)
     validation_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, hardware_coordinator=None):
+        """Inicializa o widget.
+
+        Args:
+            parent: Widget pai
+            hardware_coordinator: EngineeringHardwareCoordinator (opcional)
+        """
         super().__init__(parent)
         logger.info("🎨 Inicializando MosaicCaptureWidget")
 
@@ -305,7 +311,9 @@ class MosaicCaptureWidget(QWidget):
         self._is_valid = False
         self._capture_thread: Optional[MosaicCaptureThread] = None
 
-        # Hardware (será injetado)
+        # Hardware coordinator (nova arquitetura)
+        self._hardware_coordinator = hardware_coordinator
+        # Legado: controllers individuais (para compatibilidade)
         self._camera_controller = None
         self._plc_controller = None
 
@@ -315,7 +323,46 @@ class MosaicCaptureWidget(QWidget):
         # Conectar signals
         self._connect_signals()
 
+        # Atualizar estado inicial
+        self._update_hardware_status()
+
         logger.info("✅ MosaicCaptureWidget inicializado")
+
+    def set_hardware_coordinator(self, coordinator):
+        """Define o coordenador de hardware (injeção de dependência).
+
+        Args:
+            coordinator: EngineeringHardwareCoordinator
+        """
+        self._hardware_coordinator = coordinator
+        self._update_hardware_status()
+        logger.info("🔧 Hardware coordinator definido")
+
+    def _update_hardware_status(self):
+        """Atualiza display de status do hardware."""
+        # Verificar se hardware está disponível
+        has_coordinator = self._hardware_coordinator is not None
+        has_camera = self._camera_controller is not None
+        has_plc = self._plc_controller is not None
+
+        if has_coordinator:
+            # Usar coordinator
+            from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
+            ready, _ = self._hardware_coordinator.is_hardware_ready([
+                HardwareType.CAMERA,
+                HardwareType.PLC
+            ])
+            status = "✅ Pronto" if ready else "⚠️ Hardware não conectado"
+        elif has_camera and has_plc:
+            # Modo legado
+            ready = self._camera_controller.is_connected and self._plc_controller.is_connected
+            status = "✅ Pronto" if ready else "⚠️ Hardware não conectado"
+        else:
+            status = "❌ Sem hardware"
+
+        # Se existir label de hardware status, atualizar
+        if hasattr(self, 'lbl_hardware_status'):
+            self.lbl_hardware_status.setText(f"Hardware: {status}")
 
     def _setup_ui(self):
         """Configura interface."""
@@ -518,7 +565,7 @@ class MosaicCaptureWidget(QWidget):
         """Inicia captura do mosaico."""
         try:
             # Criar configuração
-            self._mosaic_config = MosaicConfig(
+            config = MosaicConfig(
                 x1=self.spin_x1.value(),
                 y1=self.spin_y1.value(),
                 x2=self.spin_x2.value(),
@@ -529,39 +576,135 @@ class MosaicCaptureWidget(QWidget):
                 delay_ms=self.spin_delay.value()
             )
 
-            # Validar hardware
-            if not self._camera_controller or not self._camera_controller.is_connected:
-                QMessageBox.warning(self, "Câmera Não Conectada", "Conecte a câmera primeiro.")
+            # Prioridade: Usar EngineeringHardwareCoordinator se disponível
+            if self._hardware_coordinator:
+                self._capture_with_coordinator(config)
+            elif self._camera_controller and self._plc_controller:
+                self._capture_with_legacy(config)
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Hardware Não Disponível",
+                    "Nenhum hardware disponível. Conecte o coordenador de hardware ou os controllers."
+                )
                 return
-
-            if not self._plc_controller or not self._plc_controller.is_connected:
-                QMessageBox.warning(self, "PLC Não Conectado", "Conecte o PLC primeiro.")
-                return
-
-            # Atualizar UI
-            self.btn_capture.setEnabled(False)
-            self.btn_stop.setEnabled(True)
-            self.progress_bar.setVisible(True)
-            self.progress_bar.setMaximum(self._mosaic_config.rows * self._mosaic_config.cols)
-            self.progress_bar.setValue(0)
-
-            # Iniciar thread de captura
-            self._capture_thread = MosaicCaptureThread(
-                self._mosaic_config,
-                self._camera_controller,
-                self._plc_controller
-            )
-            self._capture_thread.progress_updated.connect(self._on_progress_updated)
-            self._capture_thread.image_captured.connect(self._on_image_captured)
-            self._capture_thread.finished.connect(self._on_capture_finished)
-            self._capture_thread.error_occurred.connect(self._on_capture_error)
-            self._capture_thread.start()
-
-            logger.info("🚀 Captura de mosaico iniciada")
 
         except Exception as e:
             logger.error(f"❌ Erro ao iniciar captura: {e}")
             QMessageBox.critical(self, "Erro", f"Erro ao iniciar captura:\n{e}")
+
+    def _capture_with_coordinator(self, config: MosaicConfig):
+        """Captura mosaico usando EngineeringHardwareCoordinator.
+
+        Args:
+            config: Configuração do mosaico
+        """
+        from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
+
+        # Verificar hardware
+        ready, message = self._hardware_coordinator.is_hardware_ready([
+            HardwareType.CAMERA,
+            HardwareType.PLC
+        ])
+        if not ready:
+            QMessageBox.warning(
+                self,
+                "Hardware Não Pronto",
+                f"Hardware indisponível:\n{message}"
+            )
+            return
+
+        # Atualizar UI
+        self._mosaic_config = config
+        self.btn_capture.setEnabled(False)
+        self.btn_stop.setEnabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setMaximum(config.rows * config.cols)
+        self.progress_bar.setValue(0)
+
+        try:
+            # Capturar usando coordinator (síncrono por enquanto)
+            logger.info(f"🚀 Iniciando captura via coordinator: {config.rows}x{config.cols}")
+
+            result = self._hardware_coordinator.capture_mosaic_grid(config.to_dict())
+
+            # Atualizar UI com resultado
+            if result['captured_count'] > 0:
+                # Criar mosaico simples (primeira imagem como placeholder)
+                # TODO: Implementar stitch real
+                mosaic = result['images'][0] if result['images'] else None
+
+                if mosaic is not None:
+                    self._mosaic_image = mosaic
+                    self.preview_widget.set_mosaic(mosaic)
+
+                # Emitir signal
+                self.mosaic_captured.emit({
+                    **config.to_dict(),
+                    'image_path': result.get('image_path'),
+                    'captured_at': result.get('captured_at')
+                })
+
+                self._is_valid = True
+                self.validation_changed.emit(True)
+
+                logger.info(f"✅ Mosaico capturado: {result['captured_count']}/{result['total_points']} pontos")
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Captura Falhou",
+                    "Nenhuma imagem foi capturada."
+                )
+
+        except RuntimeError as e:
+            QMessageBox.warning(
+                self,
+                "Erro de Captura",
+                f"Erro ao capturar mosaico:\n{e}"
+            )
+            logger.error(f"❌ Erro na captura: {e}")
+        finally:
+            # Reset UI
+            self.btn_capture.setEnabled(True)
+            self.btn_stop.setEnabled(False)
+            self.progress_bar.setVisible(False)
+
+    def _capture_with_legacy(self, config: MosaicConfig):
+        """Captura mosaico usando controllers legados.
+
+        Args:
+            config: Configuração do mosaico
+        """
+        # Validar hardware
+        if not self._camera_controller or not self._camera_controller.is_connected:
+            QMessageBox.warning(self, "Câmera Não Conectada", "Conecte a câmera primeiro.")
+            return
+
+        if not self._plc_controller or not self._plc_controller.is_connected:
+            QMessageBox.warning(self, "PLC Não Conectado", "Conecte o PLC primeiro.")
+            return
+
+        # Atualizar UI
+        self._mosaic_config = config
+        self.btn_capture.setEnabled(False)
+        self.btn_stop.setEnabled(True)
+        self.progress_bar.setVisible(True)
+        self.progress_bar.setMaximum(config.rows * config.cols)
+        self.progress_bar.setValue(0)
+
+        # Iniciar thread de captura
+        self._capture_thread = MosaicCaptureThread(
+            config,
+            self._camera_controller,
+            self._plc_controller
+        )
+        self._capture_thread.progress_updated.connect(self._on_progress_updated)
+        self._capture_thread.image_captured.connect(self._on_image_captured)
+        self._capture_thread.finished.connect(self._on_capture_finished)
+        self._capture_thread.error_occurred.connect(self._on_capture_error)
+        self._capture_thread.start()
+
+        logger.info("🚀 Captura de mosaico iniciada (modo legado)")
 
     def _on_stop_clicked(self):
         """Interrompe captura."""
