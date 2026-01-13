@@ -215,3 +215,91 @@ class RecipeManagerWrapper(QObject):
             recipe: Recipe carregada
         """
         self._set_current_recipe(recipe)
+
+    # =========================================================================
+    #  ENGINEERING WIZARD INTEGRATION (NOVO - FASE 3)
+    # =========================================================================
+
+    def create_recipe_from_program(self, program):
+        """
+        Cria uma Recipe a partir de um ProgramConfig do Engineering Wizard.
+
+        Args:
+            program: ProgramConfig instance
+
+        Returns:
+            Recipe criada ou None se falhar
+
+        Raises:
+            ValueError: Se conversão falhar
+        """
+        from consumo_lib.coordinators.engineering_recipe_coordinator import EngineeringRecipeCoordinator
+
+        logger.info(f"Criando Recipe a partir de ProgramConfig: {program.program_name}")
+
+        try:
+            # Cria coordinator
+            coordinator = EngineeringRecipeCoordinator()
+
+            # Converte ProgramConfig → Recipe
+            recipe = coordinator.program_to_recipe(program)
+
+            # Salva Recipe
+            if self.recipe_manager.save_recipe(recipe):
+                logger.info(f"✅ Recipe criada com sucesso: {recipe.name} ({recipe.recipe_id})")
+                self.recipe_created.emit(recipe.name)
+                self._set_current_recipe(recipe)
+                return recipe
+            else:
+                error_msg = f"Falha ao salvar Recipe '{recipe.name}'"
+                logger.error(error_msg)
+                self.recipe_error.emit(error_msg)
+                return None
+
+        except Exception as e:
+            error_msg = f"Erro ao criar Recipe: {e}"
+            logger.exception(error_msg)
+            self.recipe_error.emit(error_msg)
+            raise
+
+    def load_from_engineering_program(self, program_name: str):
+        """
+        Carrega um programa do EngineeringProgramManager e converte para Recipe.
+
+        Args:
+            program_name: Nome do programa (com ou sem .json)
+
+        Returns:
+            Recipe carregada ou None se falhar
+        """
+        from consumo_lib.managers.engineering_program_manager import EngineeringProgramManager
+        from consumo_lib.coordinators.engineering_recipe_coordinator import EngineeringRecipeCoordinator
+
+        logger.info(f"Carregando programa do Engineering Wizard: {program_name}")
+
+        try:
+            # Carrega ProgramConfig
+            program_manager = EngineeringProgramManager()
+            program = program_manager.load_program(program_name)
+
+            # Converte para Recipe
+            coordinator = EngineeringRecipeCoordinator()
+            recipe = coordinator.program_to_recipe(program)
+
+            # Define como Recipe atual
+            self._set_current_recipe(recipe)
+
+            logger.info(f"✅ Programa '{program_name}' carregado como Recipe '{recipe.name}'")
+            return recipe
+
+        except FileNotFoundError as e:
+            error_msg = f"Programa não encontrado: {program_name}"
+            logger.error(error_msg)
+            self.recipe_error.emit(error_msg)
+            return None
+        except Exception as e:
+            error_msg = f"Erro ao carregar programa: {e}"
+            logger.exception(error_msg)
+            self.recipe_error.emit(error_msg)
+            return None
+

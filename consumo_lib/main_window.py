@@ -703,41 +703,265 @@ class AOIControllerApp(QMainWindow):
         """
         Handler chamado quando Engineering Wizard completa um programa.
 
+        Salva o programa usando EngineeringProgramManager e opcionalmente
+        cria uma Recipe no RecipeManager.
+
         Args:
             program_data: Dicionário com dados do programa criado
         """
+        from consumo_lib.managers.engineering_program_manager import EngineeringProgramManager
+
         logger.info(f"Programa de engenharia criado: {program_data.get('program_name', 'Sem nome')}")
 
-        # TODO: Salvar programa no sistema (será implementado na Fase 3)
-        QMessageBox.information(
-            self,
-            "✅ Programa Criado",
-            f"Programa de inspeção criado com sucesso!\n\n"
-            f"Nome: {program_data.get('program_name', 'N/A')}\n"
-            f"Descrição: {program_data.get('description', 'N/A')}\n\n"
-            f"Funcionalidade de salvamento será implementada na próxima fase."
-        )
+        try:
+            # Salva programa usando EngineeringProgramManager
+            program_manager = EngineeringProgramManager()
+
+            # Recupera ProgramConfig do state do wizard (se disponível)
+            # Nota: program_data pode vir diretamente do ProgramConfig.to_dict()
+            from consumo_lib.models.engineering.program_config import ProgramConfig
+            program = ProgramConfig.from_dict(program_data)
+
+            # Salva programa
+            filepath = program_manager.save_program(program)
+
+            logger.info(f"Programa salvo em: {filepath}")
+
+            # Pergunta se deseja criar Recipe
+            reply = QMessageBox.question(
+                self,
+                "📦 Programa Salvo",
+                f"Programa salvo com sucesso!\n\n"
+                f"Nome: {program.program_name}\n"
+                f"Código Stencil: {program.stencil_code}\n"
+                f"Versão: {program.version}\n\n"
+                f"Deseja criar uma Recipe para usar no sistema?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Cria Recipe usando RecipeManagerWrapper
+                if self.recipe_manager_controller is not None:
+                    recipe = self.recipe_manager_controller.create_recipe_from_program(program)
+
+                    if recipe:
+                        QMessageBox.information(
+                            self,
+                            "✅ Recipe Criada",
+                            f"Recipe '{recipe.name}' criada com sucesso!\n\n"
+                            f"Recipe ID: {recipe.recipe_id}\n\n"
+                            f"A Recipe agora está disponível no sistema."
+                        )
+                    else:
+                        QMessageBox.warning(
+                            self,
+                            "⚠️ Aviso",
+                            "Programa foi salvo, mas houve erro ao criar Recipe.\n"
+                            "Consulte os logs para mais detalhes."
+                        )
+                else:
+                    QMessageBox.warning(
+                        self,
+                        "⚠️ RecipeManager Não Disponível",
+                        "RecipeManagerController não está disponível.\n"
+                        "Programa foi salvo, mas Recipe não foi criada."
+                    )
+            else:
+                QMessageBox.information(
+                    self,
+                    "✅ Concluído",
+                    f"Programa '{program.program_name}' salvo.\n\n"
+                    f"Para criar uma Recipe depois, use o menu:\n"
+                    f"Engenharia → Programas Salvos"
+                )
+
+        except Exception as e:
+            logger.exception("Erro ao salvar programa de engenharia")
+            QMessageBox.critical(
+                self,
+                "Erro - Salvamento",
+                f"Erro ao salvar programa:\n{str(e)}"
+            )
 
     def show_saved_programs(self):
         """
         Mostra gerenciador de programas salvos.
 
-        TODO: Implementar na Fase 3 com EngineeringProgramManager.
+        Lista todos os programas salvos pelo EngineeringProgramManager
+        e permite carregar um programa como Recipe.
         """
-        logger.info("Solicitação para mostrar programas salvos")
+        from consumo_lib.managers.engineering_program_manager import EngineeringProgramManager
+        from PyQt6.QtWidgets import QDialog, QVBoxLayout, QTableWidget, \
+            QTableWidgetItem, QHeaderView, QPushButton, QHBoxLayout, QLabel
 
-        QMessageBox.information(
-            self,
-            "📁 Programas Salvos",
-            "Funcionalidade de gerenciamento de programas salvos "
-            "será implementada na Fase 3 do Engineering Wizard.\n\n"
-            "Esta funcionalidade permitirá:\n"
-            "- Listar programas salvos\n"
-            "- Carregar programa existente\n"
-            "- Editar programa\n"
-            "- Exportar/importar programas\n"
-            "- Excluir programas"
-        )
+        logger.info("Mostrando programas salvos")
+
+        try:
+            # Cria diálogo
+            dialog = QDialog(self)
+            dialog.setWindowTitle("Programas de Inspeção Salvos")
+            dialog.setMinimumSize(700, 400)
+
+            layout = QVBoxLayout(dialog)
+
+            # Título
+            title = QLabel("📁 Programas de Inspeção Salvos")
+            title.setStyleSheet("font-size: 16px; font-weight: bold; color: #1976D2;")
+            layout.addWidget(title)
+
+            # Tabela de programas
+            table = QTableWidget()
+            table.setColumnCount(6)
+            table.setHorizontalHeaderLabels([
+                "Nome", "Stencil", "Versão", "Criado em", "Modificado em", "Caminho"
+            ])
+            table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+            table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+            table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
+            layout.addWidget(table)
+
+            # Botões
+            button_layout = QHBoxLayout()
+
+            btn_load = QPushButton("📂 Carregar como Recipe")
+            btn_load.setEnabled(False)
+            btn_load.clicked.connect(lambda: self._load_selected_program(table, dialog))
+
+            btn_delete = QPushButton("🗑️ Excluir")
+            btn_delete.setEnabled(False)
+            btn_delete.clicked.connect(lambda: self._delete_selected_program(table, dialog))
+
+            btn_close = QPushButton("Fechar")
+            btn_close.clicked.connect(dialog.accept)
+
+            button_layout.addWidget(btn_load)
+            button_layout.addWidget(btn_delete)
+            button_layout.addStretch()
+            button_layout.addWidget(btn_close)
+
+            layout.addLayout(button_layout)
+
+            # Conecta signal de seleção
+            table.itemSelectionChanged.connect(
+                lambda: (
+                    btn_load.setEnabled(True),
+                    btn_delete.setEnabled(True)
+                )
+            )
+
+            # Carrega programas
+            program_manager = EngineeringProgramManager()
+            programs = program_manager.list_programs()
+
+            # Preenche tabela
+            table.setRowCount(len(programs))
+            for row, prog in enumerate(programs):
+                table.setItem(row, 0, QTableWidgetItem(prog.get("program_name", "N/A")))
+                table.setItem(row, 1, QTableWidgetItem(prog.get("stencil_code", "N/A")))
+                table.setItem(row, 2, QTableWidgetItem(prog.get("version", "N/A")))
+                table.setItem(row, 3, QTableWidgetItem(prog.get("created_at", "N/A")[:19]))
+                table.setItem(row, 4, QTableWidgetItem(prog.get("modified_at", "N/A")[:19]))
+                table.setItem(row, 5, QTableWidgetItem(prog.get("filepath", "")))
+
+            table.resizeColumnsToContents()
+
+            # Mostra diálogo
+            dialog.exec()
+
+        except Exception as e:
+            logger.exception("Erro ao listar programas salvos")
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao listar programas:\n{str(e)}"
+            )
+
+    def _load_selected_program(self, table, dialog):
+        """Carrega programa selecionado como Recipe."""
+        try:
+            row = table.currentRow()
+            filepath = table.item(row, 5).text()
+
+            if not filepath:
+                QMessageBox.warning(self, "Aviso", "Caminho do arquivo não encontrado")
+                return
+
+            # Extrai nome do arquivo
+            from pathlib import Path
+            filename = Path(filepath).name
+
+            # Carrega usando RecipeManagerWrapper
+            if self.recipe_manager_controller is not None:
+                recipe = self.recipe_manager_controller.load_from_engineering_program(filename)
+
+                if recipe:
+                    QMessageBox.information(
+                        self,
+                        "✅ Recipe Carregada",
+                        f"Programa '{filename}' carregado como Recipe!\n\n"
+                        f"Recipe: {recipe.name}\n"
+                        f"ID: {recipe.recipe_id}"
+                    )
+                    dialog.accept()
+                else:
+                    QMessageBox.warning(
+                        self,
+                        "⚠️ Erro",
+                        "Falha ao carregar programa como Recipe"
+                    )
+            else:
+                QMessageBox.warning(
+                    self,
+                    "⚠️ RecipeManager Não Disponível",
+                    "RecipeManagerController não está disponível."
+                )
+
+        except Exception as e:
+            logger.exception("Erro ao carregar programa")
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao carregar programa:\n{str(e)}"
+            )
+
+    def _delete_selected_program(self, table, dialog):
+        """Exclui programa selecionado."""
+        try:
+            row = table.currentRow()
+            filepath = table.item(row, 5).text()
+            filename = Path(filepath).name
+
+            # Confirma
+            reply = QMessageBox.question(
+                self,
+                "Confirmar Exclusão",
+                f"Deseja excluir o programa?\n\n{filename}",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                from consumo_lib.managers.engineering_program_manager import EngineeringProgramManager
+
+                program_manager = EngineeringProgramManager()
+                program_manager.delete_program(filename)
+
+                QMessageBox.information(
+                    self,
+                    "✅ Excluído",
+                    f"Programa '{filename}' excluído com sucesso."
+                )
+
+                # Recarrega lista
+                dialog.accept()
+                self.show_saved_programs()
+
+        except Exception as e:
+            logger.exception("Erro ao excluir programa")
+            QMessageBox.critical(
+                self,
+                "Erro",
+                f"Erro ao excluir programa:\n{str(e)}"
+            )
 
     # =========================================================================
     # GERENCIAMENTO DE RECEITAS
