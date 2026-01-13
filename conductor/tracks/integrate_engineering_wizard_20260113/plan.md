@@ -208,7 +208,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Adicionar ação "Engineering Wizard..." com atalho Ctrl+Shift+E [manual]
   - [~] Criar menu "Programas" (novo) [manual]
     - [~] Ação "Listar Programas Salvos..." [manual]
-    - [~] Ação "Carregar Programa..."
+    - [~] Ação "Carregar Programa..." [manual]
 - [~] Modificar `consumo_lib/main_window.py`
   - [~] Chamar `menu_handler.setup_engineering_menu()` na inicialização
   - [~] Adicionar botão na toolbar: "Novo Programa de Inspeção"
@@ -348,7 +348,7 @@ Implementar salvamento/carregamento de programas e integração com o RecipeMana
   - [ ] Chamar RecipeManager para salvar Recipe
   - [ ] Opcionalmente abrir InspectionTab com Recipe carregado
 - [ ] Modificar MenuHandler
-  - [~] Ação "Carregar Programa..." abre diálogo de seleção
+  - [~] Ação "Carregar Programa..." [manual] abre diálogo de seleção
   - [ ] Programa selecionado é convertido para Recipe
   - [ ] Recipe é carregado no sistema
 
