@@ -346,7 +346,13 @@ class AlignmentWidget(QWidget):
     validationChanged = pyqtSignal(bool)  # isValid
     alignmentApplied = pyqtSignal(dict)  # transform data
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, hardware_coordinator=None):
+        """Inicializa o widget.
+
+        Args:
+            parent: Widget pai
+            hardware_coordinator: EngineeringHardwareCoordinator (opcional)
+        """
         super().__init__(parent)
 
         # Estado
@@ -356,12 +362,24 @@ class AlignmentWidget(QWidget):
         self._fiducial_templates: list = []
         self._initial_state: Optional[AlignmentState] = None
 
-        # Componentes
+        # Hardware coordinator (nova arquitetura)
+        self._hardware_coordinator = hardware_coordinator
+        # Legado: aligner individual (para compatibilidade)
         self.aligner = FiducialAligner()
+
         self._build_ui()
         self._connect_signals()
 
         logger.debug("AlignmentWidget inicializado")
+
+    def set_hardware_coordinator(self, coordinator):
+        """Define o coordenador de hardware (injeção de dependência).
+
+        Args:
+            coordinator: EngineeringHardwareCoordinator
+        """
+        self._hardware_coordinator = coordinator
+        logger.info("🔧 Hardware coordinator definido no AlignmentWidget")
 
     def _build_ui(self):
         """Constrói UI."""
@@ -791,7 +809,7 @@ class AlignmentWidget(QWidget):
         self.spin_ty.setValue(self.spin_ty.value() + dy)
 
     def _on_auto_tune(self):
-        """Handler: auto-tuning."""
+        """Handler: auto-tuning (estratégia dual)."""
         if self._mosaic_image is None:
             QMessageBox.warning(
                 self,
@@ -800,94 +818,32 @@ class AlignmentWidget(QWidget):
             )
             return
 
-        if not self.aligner.fiducials:
-            QMessageBox.warning(
-                self,
-                "Erro",
-                "Nenhum fiducial configurado."
-            )
-            return
+        # Verifica pré-condições
+        if self._hardware_coordinator:
+            if len(self._fiducial_templates) < 2:
+                QMessageBox.warning(
+                    self,
+                    "Erro",
+                    "Mínimo de 2 templates fiduciais necessários."
+                )
+                return
+        else:
+            if not self.aligner.fiducials:
+                QMessageBox.warning(
+                    self,
+                    "Erro",
+                    "Nenhum fiducial configurado."
+                )
+                return
 
         try:
             logger.info("Iniciando auto-tuning")
 
-            # Busca fiduciais
-            gray = cv2.cvtColor(self._mosaic_image, cv2.COLOR_BGR2GRAY)
-            results = self.aligner.find_all_fiducials(gray)
-
-            # Verifica se encontrou
-            found_count = sum(1 for r in results if r.found)
-
-            if found_count < 2:
-                QMessageBox.warning(
-                    self,
-                    "Auto-Tuning - Falha",
-                    f"Apenas {found_count}/2 fiduciais encontrados.\n\n"
-                    "Ajuste manualmente ou recapture os templates."
-                )
-                return
-
-            # Calcula transformação
-            transform = self.aligner.calculate_transform_from_fiducials()
-
-            if transform is None:
-                QMessageBox.warning(
-                    self,
-                    "Auto-Tuning - Erro",
-                    "Não foi possível calcular a transformação."
-                )
-                return
-
-            # Aplica transformação
-            self.spin_tx.blockSignals(True)
-            self.spin_ty.blockSignals(True)
-            self.spin_angle.blockSignals(True)
-            self.spin_scale.blockSignals(True)
-
-            self.spin_tx.setValue(transform.tx)
-            self.spin_ty.setValue(transform.ty)
-            self.spin_angle.setValue(transform.angle)
-            self.spin_scale.setValue(transform.scale_x)
-
-            self.spin_tx.blockSignals(False)
-            self.spin_ty.blockSignals(False)
-            self.spin_angle.blockSignals(False)
-            self.spin_scale.blockSignals(False)
-
-            # Atualiza estado e visualização
-            self._on_transform_changed()
-            self._state.fiducials_found = True
-
-            # Atualiza marcadores
-            markers = []
-            for result in results:
-                markers.append((
-                    result.image_x,
-                    result.image_y,
-                    result.found
-                ))
-            self.image_view.set_fiducial_markers(markers)
-
-            # Mostra resultado
-            avg_score = sum(r.similarity for r in results) / len(results)
-            self._state.score = avg_score
-            self._update_score_display()
-
-            QMessageBox.information(
-                self,
-                "✅ Auto-Tuning - Sucesso",
-                f"Transformação calculada:\n\n"
-                f"📍 Translação: ({transform.tx:.1f}, {transform.ty:.1f}) px\n"
-                f"🔄 Rotação: {transform.angle:.2f}°\n"
-                f"📐 Escala: {transform.scale_x:.4f}\n\n"
-                f"Score médio: {avg_score:.1f}%"
-            )
-
-            logger.info(
-                f"Auto-tuning concluído: score={avg_score:.1f}%, "
-                f"tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
-                f"angle={transform.angle:.2f}°"
-            )
+            # Estratégia dual: coordinator vs legacy
+            if self._hardware_coordinator:
+                self._align_with_coordinator()
+            else:
+                self._align_with_legacy()
 
         except Exception as e:
             logger.exception("Erro no auto-tuning")
@@ -896,6 +852,193 @@ class AlignmentWidget(QWidget):
                 "Erro",
                 f"Erro durante auto-tuning:\n{str(e)}"
             )
+
+    def _align_with_coordinator(self):
+        """Executa alinhamento usando EngineeringHardwareCoordinator."""
+        from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
+
+        logger.info("Usando EngineeringHardwareCoordinator para alinhamento")
+
+        # Verifica hardware
+        ready, message = self._hardware_coordinator.is_hardware_ready([])
+        if not ready:
+            QMessageBox.warning(
+                self,
+                "Auto-Tuning - Aviso",
+                f"Hardware não está pronto:\n{message}\n\n"
+                "Continuando mesmo assim..."
+            )
+
+        # Prepara templates no formato esperado pelo coordinator
+        templates_for_coordinator = []
+        for template_data in self._fiducial_templates:
+            templates_for_coordinator.append({
+                'image': template_data.get('image'),
+                'x': template_data.get('position', (0, 0))[0],
+                'y': template_data.get('position', (0, 0))[1],
+                'z': 0.0,
+                'window_size': template_data.get('window_size', 50)
+            })
+
+        # Executa alinhamento via coordinator
+        result = self._hardware_coordinator.perform_fiducial_alignment(
+            fiducial_templates=templates_for_coordinator,
+            mosaic_image=self._mosaic_image
+        )
+
+        # Extrai transformação do resultado
+        transform_data = result.get('transform', {})
+        tx = transform_data.get('tx', 0.0)
+        ty = transform_data.get('ty', 0.0)
+        angle = transform_data.get('angle', 0.0)
+        scale = transform_data.get('scale', 1.0)
+        scores = result.get('scores', [])
+        matched_positions = result.get('matched_positions', [])
+
+        # Verifica se encontrou fiduciais suficientes
+        found_count = len([s for s in scores if s >= 70.0])
+
+        if found_count < 2:
+            QMessageBox.warning(
+                self,
+                "Auto-Tuning - Falha",
+                f"Apenas {found_count}/{len(scores)} fiduciais encontrados.\n\n"
+                "Ajuste manualmente ou recapture os templates."
+            )
+            return
+
+        # Aplica transformação
+        self.spin_tx.blockSignals(True)
+        self.spin_ty.blockSignals(True)
+        self.spin_angle.blockSignals(True)
+        self.spin_scale.blockSignals(True)
+
+        self.spin_tx.setValue(tx)
+        self.spin_ty.setValue(ty)
+        self.spin_angle.setValue(angle)
+        self.spin_scale.setValue(scale)
+
+        self.spin_tx.blockSignals(False)
+        self.spin_ty.blockSignals(False)
+        self.spin_angle.blockSignals(False)
+        self.spin_scale.blockSignals(False)
+
+        # Atualiza estado e visualização
+        self._on_transform_changed()
+        self._state.fiducials_found = True
+
+        # Atualiza marcadores
+        markers = []
+        for i, pos in enumerate(matched_positions):
+            score = scores[i] if i < len(scores) else 0.0
+            markers.append((
+                pos[0],  # image_x
+                pos[1],  # image_y
+                score >= 70.0  # found
+            ))
+        self.image_view.set_fiducial_markers(markers)
+
+        # Mostra resultado
+        avg_score = sum(scores) / len(scores) if scores else 0.0
+        self._state.score = avg_score
+        self._update_score_display()
+
+        QMessageBox.information(
+            self,
+            "✅ Auto-Tuning - Sucesso",
+            f"Transformação calculada:\n\n"
+            f"📍 Translação: ({tx:.1f}, {ty:.1f}) px\n"
+            f"🔄 Rotação: {angle:.2f}°\n"
+            f"📐 Escala: {scale:.4f}\n\n"
+            f"Score médio: {avg_score:.1f}%"
+        )
+
+        logger.info(
+            f"Auto-tuning concluído (coordinator): score={avg_score:.1f}%, "
+            f"tx={tx:.1f}, ty={ty:.1f}, angle={angle:.2f}°"
+        )
+
+    def _align_with_legacy(self):
+        """Executa alinhamento usando FiducialAligner (legado)."""
+        logger.info("Usando FiducialAligner (legado) para alinhamento")
+
+        # Busca fiduciais
+        gray = cv2.cvtColor(self._mosaic_image, cv2.COLOR_BGR2GRAY)
+        results = self.aligner.find_all_fiducials(gray)
+
+        # Verifica se encontrou
+        found_count = sum(1 for r in results if r.found)
+
+        if found_count < 2:
+            QMessageBox.warning(
+                self,
+                "Auto-Tuning - Falha",
+                f"Apenas {found_count}/2 fiduciais encontrados.\n\n"
+                "Ajuste manualmente ou recapture os templates."
+            )
+            return
+
+        # Calcula transformação
+        transform = self.aligner.calculate_transform_from_fiducials()
+
+        if transform is None:
+            QMessageBox.warning(
+                self,
+                "Auto-Tuning - Erro",
+                "Não foi possível calcular a transformação."
+            )
+            return
+
+        # Aplica transformação
+        self.spin_tx.blockSignals(True)
+        self.spin_ty.blockSignals(True)
+        self.spin_angle.blockSignals(True)
+        self.spin_scale.blockSignals(True)
+
+        self.spin_tx.setValue(transform.tx)
+        self.spin_ty.setValue(transform.ty)
+        self.spin_angle.setValue(transform.angle)
+        self.spin_scale.setValue(transform.scale_x)
+
+        self.spin_tx.blockSignals(False)
+        self.spin_ty.blockSignals(False)
+        self.spin_angle.blockSignals(False)
+        self.spin_scale.blockSignals(False)
+
+        # Atualiza estado e visualização
+        self._on_transform_changed()
+        self._state.fiducials_found = True
+
+        # Atualiza marcadores
+        markers = []
+        for result in results:
+            markers.append((
+                result.image_x,
+                result.image_y,
+                result.found
+            ))
+        self.image_view.set_fiducial_markers(markers)
+
+        # Mostra resultado
+        avg_score = sum(r.similarity for r in results) / len(results)
+        self._state.score = avg_score
+        self._update_score_display()
+
+        QMessageBox.information(
+            self,
+            "✅ Auto-Tuning - Sucesso",
+            f"Transformação calculada:\n\n"
+            f"📍 Translação: ({transform.tx:.1f}, {transform.ty:.1f}) px\n"
+            f"🔄 Rotação: {transform.angle:.2f}°\n"
+            f"📐 Escala: {transform.scale_x:.4f}\n\n"
+            f"Score médio: {avg_score:.1f}%"
+        )
+
+        logger.info(
+            f"Auto-tuning concluído (legado): score={avg_score:.1f}%, "
+            f"tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
+            f"angle={transform.angle:.2f}°"
+        )
 
     def _on_reset(self):
         """Handler: resetar."""
