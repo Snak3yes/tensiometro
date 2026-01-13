@@ -75,3 +75,7 @@ __all__.append('DefectJudgmentDialog')
 # Operator workflow dialogs (NOVO - FASE 3)
 from .operator_workflow_dialog import OperatorWorkflowDialog
 __all__.append('OperatorWorkflowDialog')
+
+# Engineering Wizard dialog (NOVO - FASE 1)
+from .engineering_wizard_dialog import EngineeringWizardDialog
+__all__.append('EngineeringWizardDialog')
