@@ -207,7 +207,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Criar menu "Ferramentas" (se não existir) [manual] [manual]
   - [~] Adicionar ação "Engineering Wizard..." com atalho Ctrl+Shift+E [manual] [manual]
   - [~] Criar menu "Programas" (novo) [manual] [manual]
-    - [~] Ação "Listar Programas Salvos..." [manual]
+    - [~] Ação "Listar Programas Salvos..." [manual] [manual]
     - [~] Ação "Carregar Programa..." [manual]
 - [~] Modificar `consumo_lib/main_window.py` [manual]
   - [~] Chamar `menu_handler.setup_engineering_menu()` na inicialização [manual]
