@@ -1,0 +1,147 @@
+{
+  "track_id": "refactor_large_files_20260113",
+  "type": "refactor",
+  "title": "Refactor large monolithic files into modular architecture",
+  "description": "Refactor 38 large Python files (>500 lines) to improve maintainability, testability, and adherence to project architecture. Eliminate anti-patterns like signal_aggregator and separate GUI from business logic.",
+  "priority": "Medium-High",
+  "complexity": "High",
+  "status": "new",
+  "created": "2026-01-13",
+  "created_date": "2026-01-13",
+  "estimated_duration": "4-6 weeks",
+  "estimated_phases": 3,
+  "current_phase": 0,
+  "progress_percentage": 0,
+  "phases": [
+    {
+      "phase_number": 1,
+      "title": "Critical Architecture Fixes (High Priority)",
+      "tasks": [
+        "Split stencil_tension.py into 4 modules",
+        "Eliminate signal_aggregator.py anti-pattern",
+        "Move stencil_tracker_ui.py to consumo_lib",
+        "Validation checkpoint"
+      ],
+      "status": "pending",
+      "tasks_total": 4,
+      "tasks_completed": 0
+    },
+    {
+      "phase_number": 2,
+      "title": "Modularization (Medium Priority)",
+      "tasks": [
+        "Split report_generator.py into specialized modules",
+        "Reduce main_window.py complexity",
+        "Refactor map_controller.py",
+        "Validation checkpoint"
+      ],
+      "status": "pending",
+      "tasks_total": 4,
+      "tasks_completed": 0
+    },
+    {
+      "phase_number": 3,
+      "title": "Code Cleanup and Final Polish (Low Priority)",
+      "tasks": [
+        "Extract reusable widgets",
+        "Evaluate Repository pattern for stencil_database.py",
+        "Evaluate tools/mosaic_builder.py",
+        "Final validation and documentation"
+      ],
+      "status": "pending",
+      "tasks_total": 4,
+      "tasks_completed": 0
+    }
+  ],
+  "acceptance_criteria": [
+    "Zero files >500 lines in aoi_lib/ core",
+    "Zero files >1,000 lines in project",
+    ">90% of files <400 lines",
+    "All tests passing (coverage >80%)",
+    "GUI code 100% in consumo_lib/",
+    "Business logic 100% in aoi_lib/",
+    "signal_aggregator.py eliminated",
+    "CLAUDE.md updated with new structure"
+  ],
+  "metrics": {
+    "before": {
+      "files_over_500_lines": 38,
+      "files_over_1000_lines": 7,
+      "largest_file": "stencil_tension.py (1,409 lines)",
+      "anti_patterns": ["signal_aggregator.py", "GUI in aoi_lib/"]
+    },
+    "after_target": {
+      "files_over_500_lines": "<10 (tests only)",
+      "files_over_1000_lines": 0,
+      "files_under_400_lines": ">90%",
+      "anti_patterns": "None"
+    }
+  },
+  "files_to_refactor": {
+    "phase_1_high_priority": [
+      {
+        "file": "aoi_lib/stencil_tension.py",
+        "lines": 1409,
+        "target": "Split into 4 modules (~300 lines each)"
+      },
+      {
+        "file": "consumo_lib/handlers/signal_aggregator.py",
+        "lines": 1098,
+        "target": "Eliminate (distribute to controllers)"
+      },
+      {
+        "file": "aoi_lib/stencil_tracker_ui.py",
+        "lines": 1301,
+        "target": "Move to consumo_lib (6 files)"
+      }
+    ],
+    "phase_2_medium_priority": [
+      {
+        "file": "aoi_lib/report_generator.py",
+        "lines": 1366,
+        "target": "Split into 6 modules (~200-300 lines each)"
+      },
+      {
+        "file": "consumo_lib/main_window.py",
+        "lines": 1060,
+        "target": "Reduce to 200-300 lines"
+      },
+      {
+        "file": "consumo_lib/controllers/map_controller.py",
+        "lines": 965,
+        "target": "Split into 3 modules"
+      }
+    ],
+    "phase_3_low_priority": [
+      {
+        "file": "consumo_lib/dialogs/defect_judgment_dialog.py",
+        "lines": 924,
+        "target": "Extract reusable widget"
+      },
+      {
+        "file": "aoi_lib/stencil_database.py",
+        "lines": 914,
+        "target": "Evaluate Repository pattern"
+      },
+      {
+        "file": "tools/mosaic_builder.py",
+        "lines": 712,
+        "target": "Evaluate move to aoi_lib"
+      }
+    ]
+  },
+  "risks": [
+    "High complexity - many files to refactor",
+    "Complex dependencies - risk of breaking imports",
+    "Hardware validation required (PLC, tensiometer)",
+    "Time estimate may be optimistic (4-6 weeks)"
+  ],
+  "mitigations": [
+    "Prioritize critical phases first",
+    "Comprehensive automated tests",
+    "Small, frequent commits",
+    "Continuous code review"
+  ],
+  "rollback_strategy": "Git revert by phase, checkpoint commits after each file",
+  "last_updated": "2026-01-13"
+}
