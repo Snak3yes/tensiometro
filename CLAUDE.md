@@ -17,11 +17,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Version:** 0.4.0 (see aoi_lib/__init__.py)
 
-**Code Statistics (2026-01-08):**
-- Total Python files: 145
-- Total lines of code: 48,827
-- aoi_lib: 38 files, 18,343 lines (core business logic)
-- consumo_lib: 69 files, 18,105 lines (modular GUI)
+**Code Statistics (2026-01-13):**
+- Total Python files: 132
+- Total lines of code: 38,314
+- aoi_lib: 44 files, ~16,000 lines (core business logic)
+- consumo_lib: 88 files, ~22,000 lines (modular GUI)
 
 **Recent Changes (2025-12-12):**
 - Simplified FOV calibration for fixed camera (removed dual-Z-height logic)
@@ -35,7 +35,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Documentation Structure:** Organized docs/ with subdirectories (guides/, architecture/, meetings/, reports/)
 - **Test Scripts Reorganized:** Moved run_tests.bat to tests/scripts/, created wrappers in root
 - **Project Reorganization (2026-01-07):** Restructured project root, moved documentation to `docs/`, archived test files to `archive/`
-- **Modular Refactoring:** `consumo_lib.py` refactored from 6,245 to 646 lines as modular package structure (69 files)
+- **Modular Refactoring:** `consumo_lib.py` refactored from 6,245 to 1,060 lines as modular package structure (88 files)
 - **POC Gerber:** Renamed `testes_gerber/` → `poc_gerber/` (Proof of Concept Gerber viewer)
 - **Auto-Connect PLC:** Enabled `auto_connect_plc: true` in `config/aoi_config.json` for automatic PLC connection on startup
 - **Bug Fixes (2026-01-07):**
@@ -56,6 +56,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **SSH Configuration:** SSH keys properly configured for passwordless Git operations
 - **Repository Size:** Currently ~2.0 GB (needs cleanup of large .rar files from history)
 
+**New Features (2026-01-13):**
+- **Operator Workflow:** Guided inspection workflow with role-based access control
+  - Login system with user authentication (RoleManager)
+  - Step-by-step inspection process with progress tracking
+  - Defect judgment dialogs with image annotation
+  - Session logging for traceability (SessionLogger)
+- **Services Layer:** Introduced `consumo_lib/services/` for business logic separation
+  - `MovementService`: Centralized movement control logic
+  - `ClickToMoveService`: Camera click-to-move functionality
+  - `SequenceExecutionService`: Automated sequence execution
+  - `ResourceManager`: Hardware resource lifecycle management
+- **Enhanced UI Components:**
+  - `OperatorInterface`: Dedicated operator workflow UI
+  - `HardwareStatusBar`: Real-time hardware status display
+  - `PositionList`: Position management widget
+  - `SequenceControl`: Sequence execution controls
+- **New Tabs:**
+  - `TreeViewTab`: Hierarchical view of inspection data
+  - Enhanced `MapTab`: Improved mosaic generation interface
+- **Dialog System Expansion:**
+  - `LoginDialog`: User authentication dialog
+  - `ModeSelectionDialog`: Operation mode selection
+  - `ConfirmPositioningDialog`: Position confirmation
+  - `InspectionProgressDialog`: Progress tracking
+  - `InspectionResultsDialog`: Results display
+  - `DefectJudgmentDialog`: Defect classification
+  - `FinalDecisionDialog`: Final approval/rejection
+- **Data Management:**
+  - `data/sessions/`: Session data storage
+  - `data/users/`: User management data
+- **Build Artifacts Cleanup:** Removed htmlcov/, .coverage, coverage.xml, .pytest_cache/ from Git tracking
+
 ## Commands
 
 ### Running the Application
@@ -66,17 +98,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Alternative: run as module
 python -m consumo_lib.main_window
 
-# Mosaic builder utility (standalone)
-python mosaic_builder.py
-
-# Camera calibration utility
-python camera_calibration.py
+# Utilities in tools/
+python tools/mosaic_builder.py
+python tools/camera_calibration.py
+python tools/Leitura_Continua.py [COM_PORT]
 
 # FOV corrections validation test
-python test_fov_corrections.py
-
-# Continuous tensiometer reading utility
-python Leitura_Continua.py [COM_PORT]
+python tests/unit/test_fov_corrections.py
 ```
 
 ### Environment Setup
@@ -135,16 +163,31 @@ from aoi_lib.stencil_inspector import StencilInspector
 from consumo_lib.main_window import MainWindow
 
 # Tabs
-from consumo_lib.tabs import CNCTab, TensionTab, InspectionTab, TrackingTab
+from consumo_lib.tabs import CNCControlTab, TensionTab, InspectionTab, MapTab, TrackingTab, TreeViewTab
 
 # Controllers
-from consumo_lib.controllers import MovementController, CameraController
+from consumo_lib.controllers import (
+    MovementController, CameraController, TensionMeasurementController,
+    FiducialAlignmentController, InspectionUIController
+)
 
 # Managers
-from consumo_lib.managers import RecipeManagerWrapper, StencilManagerWrapper
+from consumo_lib.managers import (
+    RecipeManager, StencilManager, InspectionManager,
+    ReportManager, RoleManager, SessionLogger
+)
+
+# Services
+from consumo_lib.services import (
+    MovementService, ClickToMoveService,
+    SequenceExecutionService, ResourceManager
+)
 
 # Coordinators
-from consumo_lib.coordinators import SetupCoordinator, InspectionCoordinator
+from consumo_lib.coordinators import (
+    SetupCoordinator, InspectionCoordinator,
+    OperatorWorkflow, ConnectionCoordinator
+)
 ```
 
 ## Development Workflow
@@ -265,19 +308,25 @@ Located in `poc_gerber/` (formerly `testes_gerber/`) - Proof of Concept for stan
 - **ReportGenerator** ([aoi_lib/report_generator.py](aoi_lib/report_generator.py)) - PDF generation using reportlab with heatmaps and trend analysis
 
 ### Main Application (Modular Architecture)
-**consumo_lib/** package - Refactored from monolithic 6,245-line file to modular structure (69 files, 18,105 lines):
-- **main_window.py** (646 lines) - PyQt6 main window orchestrator with tabs:
+**consumo_lib/** package - Refactored from monolithic 6,245-line file to modular structure (88 files, ~22,000 lines):
+- **main_window.py** (1,060 lines) - PyQt6 main window orchestrator with tabs:
   - CNC Control: Manual jogging, camera preview with click-to-move
   - Tension Measurement: Grid-based sampling with heatmap visualization
   - Stencil Inspection: Fiducial alignment, Gerber overlay, visual analysis
+  - Map Generation: Image mosaic creation from grid captures
   - Tracking & Reports: Stencil history, trend analysis, PDF generation
-- **tabs/** - Tab implementations (CNCControlTab, TensionTab, InspectionTab, TrackingTab)
-- **widgets/** - Reusable UI components (CameraPreviewWidget, MovementControlWidget, etc.)
-- **controllers/** - Hardware control wrappers (MovementController, CameraControllerWrapper)
-- **coordinators/** - Complex workflow orchestration (SetupCoordinator, InspectionCoordinator)
-- **managers/** - Business logic wrappers (RecipeManagerWrapper, StencilManagerWrapper)
-- **handlers/** - Event handling (KeyboardHandler, MenuHandler, DialogHandler)
-- **threads/** - Worker threads (TensionMeasurementThread, MapGeneratorThread)
+  - Operator Workflow: Guided inspection workflow with role-based access
+- **tabs/** (8 files) - Tab implementations (CNCControlTab, TensionTab, InspectionTab, MapTab, TrackingTab, TreeViewTab)
+- **widgets/** (14 files) - Reusable UI components (CameraPreviewWidget, MovementControlWidget, OperatorInterface, etc.)
+- **controllers/** (13 files) - Hardware control wrappers (MovementController, CameraController, TensionMeasurementController, etc.)
+- **coordinators/** (6 files) - Complex workflow orchestration (SetupCoordinator, InspectionCoordinator, OperatorWorkflow, etc.)
+- **managers/** (8 files) - Business logic wrappers (RecipeManager, StencilManager, SessionLogger, RoleManager, etc.)
+- **handlers/** (4 files) - Event handling (KeyboardHandler, MenuHandler, DialogRouter, SignalAggregator)
+- **services/** (5 files) - Business services (MovementService, ClickToMoveService, SequenceExecutionService, ResourceManager)
+- **ui_builders/** (2 files) - UI construction helpers
+- **dialogs/** (16 files) - Dialog windows (InspectionSettings, CrosshairSettings, LoginDialog, etc.)
+- **threads/** (4 files) - Worker threads (MapGenerator, SequenceRunner, InspectionWorker, OperatorInspectionThread)
+- **utils/** (2 files) - Utility functions (map_params)
 
 **Entry Point:**
 - **main.py** (34 lines) - Application entry point that initializes and launches MainWindow
@@ -365,14 +414,17 @@ PLCAxisController.move_absolute('Y', current_y + dy_pulses)
 
 ### Dependency Graph
 ```
-consumo_lib/main_window.py (646 lines - orchestrator only)
+consumo_lib/main_window.py (1,060 lines - orchestrator only)
   ├── consumo_lib/coordinators/SetupCoordinator (initialization)
-  │   ├── consumo_lib/managers/ (RecipeManagerWrapper, StencilManagerWrapper, etc.)
-  │   ├── consumo_lib/controllers/ (various UI controllers)
-  │   └── consumo_lib/handlers/ (keyboard, menu, dialogs)
-  ├── consumo_lib/tabs/ (CNCControlTab, TensionTab, InspectionTab, etc.)
-  │   └── consumo_lib/widgets/ (reusable UI components)
-  └── aoi_lib/ (CORE BUSINESS LOGIC - 38 files, 18,343 lines)
+  │   ├── consumo_lib/managers/ (RecipeManager, StencilManager, RoleManager, SessionLogger, etc.)
+  │   ├── consumo_lib/controllers/ (MovementController, CameraController, TensionMeasurementController, etc.)
+  │   ├── consumo_lib/services/ (MovementService, ClickToMoveService, SequenceExecutionService, ResourceManager)
+  │   └── consumo_lib/handlers/ (KeyboardHandler, MenuHandler, DialogRouter, SignalAggregator)
+  ├── consumo_lib/tabs/ (CNCControlTab, TensionTab, InspectionTab, MapTab, TrackingTab, TreeViewTab)
+  │   ├── consumo_lib/widgets/ (CameraPreviewWidget, MovementControlWidget, OperatorInterface, etc.)
+  │   ├── consumo_lib/dialogs/ (InspectionSettings, LoginDialog, etc.)
+  │   └── consumo_lib/threads/ (MapGenerator, SequenceRunner, InspectionWorker, OperatorInspectionThread)
+  └── aoi_lib/ (CORE BUSINESS LOGIC - 44 files, ~16,000 lines)
       ├── plc_axis_controller.py (Modbus TCP - hardware layer)
       ├── camera_controller.py (OpenCV - hardware layer)
       ├── stencil_tension.py (Serial RS-232 - hardware layer)
