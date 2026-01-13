@@ -34,8 +34,10 @@ class MenuHandler(QObject):
         - Stencils (3 actions)
         - Relatórios (4 actions)
         - Ferramentas (11 actions)
+        - Engenharia (2 actions) - NOVO
         - Tensão do Stencil (1 action)
         - Inspeção Visual (3 actions)
+        - Operador (2 actions)
         - Ajuda (1 action)
     """
 
@@ -87,6 +89,9 @@ class MenuHandler(QObject):
 
         # Menu Inspeção Visual
         self._create_inspection_menu(menubar)
+
+        # Menu Engenharia (NOVO - Engineering Wizard)
+        self._create_engineering_menu(menubar)
 
         # Menu Operador (NOVO - FASE 3)
         self._create_operator_menu(menubar)
@@ -318,6 +323,31 @@ class MenuHandler(QObject):
         settings_action.triggered.connect(self.main_window.show_inspection_settings)
         menu.addAction(settings_action)
         self._register_action('inspection.settings', settings_action)
+
+    def _create_engineering_menu(self, menubar: QMenuBar):
+        """Cria o menu Engenharia (Engineering Wizard)."""
+        menu = menubar.addMenu('&Engenharia')
+
+        # Engineering Wizard
+        wizard_action = QAction('🔧 Engineering Wizard...', self.main_window)
+        wizard_action.setShortcut('Ctrl+Shift+E')
+        wizard_action.setToolTip(
+            'Abre assistente de criação de programas de inspeção.\n'
+            'Fluxo guiado em 7 etapas: Dados, Gerber, Fiduciais, '
+            'Mosaico, Alinhamento, Janelas e Configuração.'
+        )
+        wizard_action.triggered.connect(self.main_window.open_engineering_wizard)
+        menu.addAction(wizard_action)
+        self._register_action('engineering.wizard', wizard_action)
+
+        menu.addSeparator()
+
+        # Programas Salvos
+        saved_programs_action = QAction('📁 Programas Salvos...', self.main_window)
+        saved_programs_action.setToolTip('Gerencia programas de inspeção salvos')
+        saved_programs_action.triggered.connect(self.main_window.show_saved_programs)
+        menu.addAction(saved_programs_action)
+        self._register_action('engineering.saved_programs', saved_programs_action)
 
     def _create_operator_menu(self, menubar: QMenuBar):
         """Cria o menu Operador (NOVO - FASE 3)."""

@@ -64,7 +64,8 @@ from consumo_lib.dialogs import (
     StencilManagerDialog, StencilCreateDialog,
     FOVCalibrationDialog, CrosshairSettingsDialog,
     InspectionSettingsDialog, ReportSettingsDialog, AboutDialog,
-    LoginDialog  # NOVO - FASE 1
+    LoginDialog,  # NOVO - FASE 1
+    EngineeringWizardDialog  # NOVO - Engineering Wizard
 )
 from consumo_lib.tabs import (
     CNCControlTab, TensionTab, TrackingTab, InspectionTab, MapTab
@@ -76,7 +77,7 @@ from consumo_lib.controllers import (
     TensionMeasurementController, DialogManagerController,
     FileIOController, PositionManagerController, RecipeManagerController
 )
-from consumo_lib.coordinators import SetupCoordinator
+from consumo_lib.coordinators import SetupCoordinator, EngineeringHardwareCoordinator
 from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, SignalAggregator, DialogRouter
 from consumo_lib.ui_builders import MainUIBuilder
 from consumo_lib.services import SequenceExecutionService, ResourceManager
@@ -634,6 +635,109 @@ class AOIControllerApp(QMainWindow):
             from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
             dlg = StencilTensionDialog(self, self.controller.cnc)
             dlg.exec()
+
+    # =========================================================================
+    # ENGINEERING WIZARD (NOVO)
+    # =========================================================================
+
+    def open_engineering_wizard(self):
+        """
+        Abre o Engineering Wizard - Assistente de criação de programas de inspeção.
+
+        Cria EngineeringHardwareCoordinator com os controllers de hardware disponíveis
+        e abre o diálogo com 7 abas para criar programa de inspeção completo.
+        """
+        logger.info("Abrindo Engineering Wizard")
+
+        try:
+            # Cria hardware coordinator com controllers disponíveis
+            camera_ctrl = None
+            plc_ctrl = None
+
+            # Obtém controller de câmera se disponível
+            if hasattr(self, 'camera_controller') and self.camera_controller is not None:
+                camera_ctrl = self.camera_controller
+
+            # Obtém controller de CNC/PLC se disponível
+            if hasattr(self, 'controller') and hasattr(self.controller, 'cnc') and self.controller.cnc is not None:
+                plc_ctrl = self.controller.cnc
+
+            # Cria hardware coordinator
+            hardware_coordinator = EngineeringHardwareCoordinator(
+                camera_controller=camera_ctrl,
+                plc_controller=plc_ctrl,
+                fiducial_aligner=None  # Alinhador fiducial será criado internamente
+            )
+
+            logger.debug(
+                f"Hardware coordinator criado: "
+                f"camera={camera_ctrl is not None}, plc={plc_ctrl is not None}"
+            )
+
+            # Cria e abre diálogo
+            dialog = EngineeringWizardDialog(
+                parent=self,
+                hardware_coordinator=hardware_coordinator
+            )
+
+            # Conecta signal de programa completado
+            dialog.program_completed.connect(self._on_engineering_program_completed)
+
+            # Abre diálogo
+            result = dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                logger.info("Engineering Wizard concluído com sucesso")
+            else:
+                logger.info("Engineering Wizard cancelado")
+
+        except Exception as e:
+            logger.exception("Erro ao abrir Engineering Wizard")
+            QMessageBox.critical(
+                self,
+                "Erro - Engineering Wizard",
+                f"Erro ao abrir Engineering Wizard:\n{str(e)}"
+            )
+
+    def _on_engineering_program_completed(self, program_data: dict):
+        """
+        Handler chamado quando Engineering Wizard completa um programa.
+
+        Args:
+            program_data: Dicionário com dados do programa criado
+        """
+        logger.info(f"Programa de engenharia criado: {program_data.get('program_name', 'Sem nome')}")
+
+        # TODO: Salvar programa no sistema (será implementado na Fase 3)
+        QMessageBox.information(
+            self,
+            "✅ Programa Criado",
+            f"Programa de inspeção criado com sucesso!\n\n"
+            f"Nome: {program_data.get('program_name', 'N/A')}\n"
+            f"Descrição: {program_data.get('description', 'N/A')}\n\n"
+            f"Funcionalidade de salvamento será implementada na próxima fase."
+        )
+
+    def show_saved_programs(self):
+        """
+        Mostra gerenciador de programas salvos.
+
+        TODO: Implementar na Fase 3 com EngineeringProgramManager.
+        """
+        logger.info("Solicitação para mostrar programas salvos")
+
+        QMessageBox.information(
+            self,
+            "📁 Programas Salvos",
+            "Funcionalidade de gerenciamento de programas salvos "
+            "será implementada na Fase 3 do Engineering Wizard.\n\n"
+            "Esta funcionalidade permitirá:\n"
+            "- Listar programas salvos\n"
+            "- Carregar programa existente\n"
+            "- Editar programa\n"
+            "- Exportar/importar programas\n"
+            "- Excluir programas"
+        )
 
     # =========================================================================
     # GERENCIAMENTO DE RECEITAS
