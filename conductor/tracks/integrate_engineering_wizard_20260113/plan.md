@@ -170,7 +170,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 - [~] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()` [manual]
   - [~] Verificar disponibilidade de PLC e câmera [manual]
   - [~] Mostrar erro se hardware desconectado [manual]
-  - [~] Salvar mosaico em EngineeringWizardState
+  - [~] Salvar mosaico em EngineeringWizardState [manual]
 - [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()`
   - [~] Receber fiducial templates do estado
   - [~] Executar template matching
