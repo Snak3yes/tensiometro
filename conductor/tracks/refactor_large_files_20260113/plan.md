@@ -23,14 +23,14 @@
 ## Fase 1: Critical Architecture Fixes (High Priority)
 **Objetivo:** Eliminate anti-patterns and architectural mismatches
 
-### Tarefa 1.1: Split stencil_tension.py into 4 modules
-- [ ] Create `aoi_lib/tensiometer/` package directory
-- [ ] Extract `TensiometerSerialManager` to `serial_protocol.py`
-- [ ] Extract `TensionMeasurementThread` to `measurement_thread.py`
-- [ ] Extract business logic to `tension_measurement.py`
-- [ ] Create `consumo_lib/dialogs/tension_measurement_dialog.py` with GUI code
-- [ ] Update imports in all files that reference old module
-- [ ] Run tests to validate refactoring
+### Tarefa 1.1: Split stencil_tension.py into 4 modules ✅
+- [x] Create `aoi_lib/tensiometer/` package directory <!-- e741cb5 -->
+- [x] Extract `TensiometerSerialManager` to `serial_protocol.py` <!-- e741cb5 -->
+- [x] Extract `TensionMeasurementThread` to `measurement_thread.py` <!-- e741cb5 -->
+- [x] Extract business logic to `tension_measurement.py` <!-- e741cb5 -->
+- [x] Create `consumo_lib/dialogs/tension_measurement_dialog.py` with GUI code <!-- e741cb5 -->
+- [x] Update imports in all files that reference old module <!-- e741cb5 -->
+- [x] Run tests to validate refactoring <!-- e741cb5 -->
 - [ ] Update CLAUDE.md with new structure
 
 ### Tarefa 1.2: Eliminate signal_aggregator.py anti-pattern
