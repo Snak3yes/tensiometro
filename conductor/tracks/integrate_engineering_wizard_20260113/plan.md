@@ -171,7 +171,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Verificar disponibilidade de PLC e câmera [manual] [manual]
   - [~] Mostrar erro se hardware desconectado [manual] [manual]
   - [~] Salvar mosaico em EngineeringWizardState [manual] [manual]
-- [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()` [manual]
+- [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()` [manual] [manual]
   - [~] Receber fiducial templates do estado [manual]
   - [~] Executar template matching [manual]
   - [~] Salvar transform em EngineeringWizardState [manual]
