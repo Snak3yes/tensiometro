@@ -167,7 +167,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Verificar disponibilidade de câmera antes de capturar [manual] [manual]
   - [~] Mostrar erro se câmera desconectada [manual] [manual]
   - [~] Salvar template em EngineeringWizardState [manual] [manual]
-- [~] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()` [manual]
+- [~] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()` [manual] [manual]
   - [~] Verificar disponibilidade de PLC e câmera [manual]
   - [~] Mostrar erro se hardware desconectado [manual]
   - [~] Salvar mosaico em EngineeringWizardState [manual]
