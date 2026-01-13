@@ -7,12 +7,14 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## [x] Track: Refatoração da Gestão de Receitas (archived) <!-- 2026-01-11 -->
 *Link: [./conductor/archive/refactor_recipe_manager_20260110/](./conductor/archive/refactor_recipe_manager_20260110/)*
 
-## [ ] Implement operator workflow (Feature)
+## [x] Track: Implement operator workflow (archived) <!-- 2026-01-13 -->
+*Link: [./conductor/archive/feature_implement_operator_workflow_20260111/](./conductor/archive/feature_implement_operator_workflow_20260111/)*
 - **Track ID:** feature_implement_operator_workflow_20260111
-- **Status:** Planning
+- **Status:** Complete
 - **Created:** 2026-01-11
-- **Plan:** ./tracks/feature_implement_operator_workflow_20260111/plan.md
-- **Spec:** ./tracks/feature_implement_operator_workflow_20260111/spec.md
+- **Completed:** 2026-01-13
+- **Plan:** ./archive/feature_implement_operator_workflow_20260111/plan.md
+- **Spec:** ./archive/feature_implement_operator_workflow_20260111/spec.md
 
 ---
-*Last updated: 2026-01-11*
+*Last updated: 2026-01-13*

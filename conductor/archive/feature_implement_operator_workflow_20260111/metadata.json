@@ -1,0 +1,11 @@
+{
+  "track_id": "feature_implement_operator_workflow_20260111",
+  "name": "Implement operator workflow",
+  "type": "feature",
+  "priority": "High",
+  "status": "planning",
+  "created_at": "2026-01-11T14:59:31.869746",
+  "updated_at": "2026-01-11T14:59:31.869746",
+  "description": "Implement operator workflow with simplified interface for stencil selection and inspection execution",
+  "estimated_duration": "Medium (3-4 phases)"
+}
