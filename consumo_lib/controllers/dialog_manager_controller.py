@@ -163,7 +163,7 @@ class DialogManagerController(QObject):
             return
 
         # Importar diálogo aqui para evitar import circular
-        from aoi_lib.stencil_tension import StencilTensionDialog
+        from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
 
         dlg = StencilTensionDialog(self.parent_window, self.controller.cnc)
         dlg.exec()

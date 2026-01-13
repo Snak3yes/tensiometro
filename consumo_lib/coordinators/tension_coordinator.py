@@ -426,7 +426,7 @@ class TensionCoordinator(QObject):
         """
         try:
             # Importar aqui para evitar circular import
-            from aoi_lib.stencil_tension import TensiometerSerialManager
+            from aoi_lib.tensiometer import TensiometerSerialManager
 
             # Criar gerenciador serial
             serial_mgr = TensiometerSerialManager()

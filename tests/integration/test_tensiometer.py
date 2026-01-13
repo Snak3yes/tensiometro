@@ -10,7 +10,7 @@ Cobertura alvo: 85%+ do módulo stencil_tension.py
 import pytest
 import serial
 from unittest.mock import Mock, MagicMock, patch, PropertyMock
-from aoi_lib.stencil_tension import TensiometerSerialManager
+from aoi_lib.tensiometer import TensiometerSerialManager
 
 
 class MockSerialResponse:
