@@ -23,6 +23,10 @@ from .operator_workflow import (
     InspectionProgram,
     PREDEFINED_PROGRAMS
 )
+from .engineering_hardware_coordinator import (
+    EngineeringHardwareCoordinator,
+    HardwareType
+)
 
 __all__ = [
     'ConnectionCoordinator',
@@ -41,4 +45,6 @@ __all__ = [
     'OperatorInspectionCoordinator',
     'InspectionProgram',
     'PREDEFINED_PROGRAMS',
+    'EngineeringHardwareCoordinator',
+    'HardwareType',
 ]
