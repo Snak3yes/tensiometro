@@ -1,0 +1,225 @@
+{
+  "track_id": "integrate_engineering_wizard_20260113",
+  "title": "Integrar Engineering Wizard ao Programa Principal",
+  "type": "integration",
+  "priority": "Critical",
+  "complexity": "Very High",
+  "estimated_duration": "3-4 weeks",
+  "status": "planned",
+  "created_at": "2026-01-13",
+  "description": "Integrar o Engineering Wizard (fluxo completo de 7 abas para criação de programas de inspeção) ao programa principal Tensiometro. O código de todas as 7 abas já foi implementado (Tracks 1-7) mas ainda não está conectado à aplicação principal. Esta track deve criar a arquitetura de integração, interfaces de usuário, persistência de dados e comunicação com o sistema existente.",
+
+  "objectives": {
+    "primary": [
+      "Criar EngineeringWizardDialog principal conectando todas as 7 abas",
+      "Adicionar entrada no menu principal (Ferramentas → Engineering Wizard)",
+      "Implementar persistência de programas em data/inspection_programs/",
+      "Integrar com RecipeManager para carregar programas salvos",
+      "Reutilizar componentes de InspectionTab e MapTab quando possível",
+      "Implementar coordenação com hardware (PLC, câmera)"
+    ],
+    "secondary": [
+      "Criar botão de 'Novo Programa' na Interface principal",
+      "Implementar lista de programas recentes",
+      "Adicionar opção de editar programas existentes",
+      "Suportar exportação/importação de programas",
+      "Adicionar atalhos de teclado para fluxo rápido"
+    ]
+  },
+
+  "acceptance_criteria": [
+    "Engineering Wizard acessível via menu principal",
+    "Fluxo completo de 7 abas funcional sem erros",
+    "Programas salvos em JSON carregáveis",
+    "Integração com RecipeManager funcional",
+    "Testes de integração passando (≥80% cobertura)",
+    "Tempo de resposta < 1s em todas as operações"
+  ],
+
+  "dependencies": [
+    "Track 1 (engenharia_aba1_dados_programa) - COMPLETA",
+    "Track 2 (engenharia_aba2_carregar_gerber) - COMPLETA",
+    "Track 3 (engenharia_aba3_definir_fiduciais) - COMPLETA",
+    "Track 4 (engenharia_aba4_capturar_mosaico) - COMPLETA",
+    "Track 5 (engenharia_aba5_alinhamento) - COMPLETA",
+    "Track 6 (engenharia_aba6_janelas_inspecao) - COMPLETA",
+    "Track 7 (engenharia_aba7_confirmar_salvar) - COMPLETA",
+    "MainWindow funcional",
+    "RecipeManager implementado",
+    "CameraController, PLCAxisController funcionais"
+  ],
+
+  "testing_requirements": "Full test suite - Testes de unidade + integração + testes manuais com hardware",
+
+  "documentation_requirements": "Code comments - Comentários no código explicando integrações e decisões de arquitetura",
+
+  "performance_impact": "No impact - Código já está otimizado, não deve impactar performance",
+
+  "security_considerations": "None - Nenhuma implicação de segurança além das validações padrão",
+
+  "migration_required": "No - Nenhuma migração necessária, é nova funcionalidade",
+
+  "rollback_strategy": "Easy revert - Revert via Git das mudanças, sem efeitos colaterais. Remoção manual dos arquivos criados se necessário.",
+
+  "tech_stack": [
+    "Python 3.10+",
+    "PyQt6 (GUI framework)",
+    "dataclasses (modelos de dados)",
+    "pathlib (file paths)",
+    "json (serialização)",
+    "logging (logging extensivo)"
+  ],
+
+  "modules_to_create": [
+    "consumo_lib/dialogs/engineering_wizard_dialog.py",
+    "consumo_lib/models/engineering/wizard_state.py",
+    "consumo_lib/coordinators/engineering_hardware_coordinator.py",
+    "consumo_lib/coordinators/engineering_recipe_coordinator.py",
+    "consumo_lib/coordinators/engineering_flow_coordinator.py",
+    "consumo_lib/managers/engineering_program_manager.py"
+  ],
+
+  "modules_to_modify": [
+    "consumo_lib/handlers/menu_handler.py (adicionar menu entries)",
+    "consumo_lib/main_window.py (integrar novo dialog)"
+  ],
+
+  "modules_to_reuse": [
+    "consumo_lib/models/engineering/program_config.py (Track 7)",
+    "consumo_lib/widgets/engenharia/alignment_widget.py (Track 5)",
+    "consumo_lib/widgets/engenharia/inspection_windows_widget.py (Track 6)",
+    "consumo_lib/widgets/engenharia/confirm_save_widget.py (Track 7)"
+  ],
+
+  "integration_points": [
+    "MainWindow (menu principal)",
+    "RecipeManager (conversão ProgramConfig ↔ Recipe)",
+    "CameraController (captura de fiduciais e mosaico)",
+    "PLCAxisController (movimento CNC para mosaico)",
+    "FiducialAligner (alinhamento Gerber ↔ imagem)"
+  ],
+
+  "risks": [
+    {
+      "id": "RISK1",
+      "probability": "High",
+      "impact": "High",
+      "description": "Complexidade de coordenação entre 7 abas com estado compartilhado",
+      "mitigation": "StateManager centralizado e bem testado, validação rigorosa em cada transição, logging extensivo"
+    },
+    {
+      "id": "RISK2",
+      "probability": "Medium",
+      "impact": "Medium",
+      "description": "Schema de ProgramConfig pode não mapear perfeitamente para Recipe",
+      "mitigation": "EngineeringRecipeCoordinator isolado, mapeamento flexível com defaults, testes de conversão bidirecional"
+    },
+    {
+      "id": "RISK3",
+      "probability": "Medium",
+      "impact": "Medium",
+      "description": "Mosaicos de alta resolução podem consumir muita memória",
+      "mitigation": "Limitar tamanho do mosaico, compressão de imagens no auto-save, liberar memória ao fechar wizard"
+    },
+    {
+      "id": "RISK4",
+      "probability": "High",
+      "impact": "Low",
+      "description": "Usuário pode abrir wizard sem PLC/câmera conectados",
+      "mitigation": "Validação de hardware antes de operações críticas, modo offline para abas que não dependem de hardware"
+    }
+  ],
+
+  "phases": [
+    {
+      "phase": 1,
+      "name": "Arquitetura Base e State Manager",
+      "duration": "1 week",
+      "tasks": [
+        "Criar EngineeringWizardState (shared state)",
+        "Criar EngineeringWizardDialog (esqueleto)",
+        "Implementar Auto-Save básico",
+        "Testes unitários do state manager"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "Hardware Coordinator e Integração de Menu",
+      "duration": "1 week",
+      "tasks": [
+        "Criar EngineeringHardwareCoordinator",
+        "Integrar Abas 3, 4, 5 ao Hardware",
+        "Adicionar Menu Entry e Toolbar Button",
+        "Testes de integração com hardware"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Persistência e Integração com RecipeManager",
+      "duration": "1 week",
+      "tasks": [
+        "Criar EngineeringProgramManager",
+        "Criar EngineeringRecipeCoordinator",
+        "Integrar com RecipeManager",
+        "Testes de conversão e salvamento"
+      ]
+    },
+    {
+      "phase": 4,
+      "name": "Validação, Polimento e Documentação",
+      "duration": "1 week",
+      "tasks": [
+        "Implementar Validação Cruzada entre Abas",
+        "Adicionar Tratamento de Erros Robusto",
+        "Melhorar UX e Polimento",
+        "Documentação e Comentários no Código",
+        "Testes End-to-End Manuais"
+      ]
+    }
+  ],
+
+  "success_metrics": {
+    "functional": [
+      "Engineering Wizard acessível via menu principal",
+      "Fluxo completo de 7 abas funcional",
+      "Programas podem ser salvos e carregados",
+      "Integração com RecipeManager funcional",
+      "Hardware coordination funcionando"
+    ],
+    "quality": [
+      "Testes unitários passando (≥80% cobertura)",
+      "Testes de integração passando",
+      "Testes manuais completados sem erros críticos",
+      "Código documentado com docstrings e comentários",
+      "CLAUDE.md atualizado"
+    ],
+    "performance": [
+      "Tempo de carregamento do wizard < 1s",
+      "Transição entre abas < 200ms",
+      "Salvamento de programa < 500ms",
+      "Auto-save não bloqueia UI"
+    ],
+    "usability": [
+      "Interface intuitiva",
+      "Mensagens de erro claras",
+      "Validação robusta",
+      "Confirmações para ações críticas"
+    ]
+  },
+
+  "deliverables": [
+    "consumo_lib/dialogs/engineering_wizard_dialog.py",
+    "consumo_lib/models/engineering/wizard_state.py",
+    "consumo_lib/coordinators/engineering_hardware_coordinator.py",
+    "consumo_lib/coordinators/engineering_recipe_coordinator.py",
+    "consumo_lib/managers/engineering_program_manager.py",
+    "data/inspection_programs/ (directory)",
+    "Testes unitários e de integração",
+    "Documentação atualizada (CLAUDE.md, guides)",
+    "Guia de uso do Engineering Wizard"
+  ],
+
+  "notes": "Esta é a track de integração FINAL do Engineering Wizard. Todas as 7 abas individuais foram implementadas e testadas (Tracks 1-7). O objetivo desta track é conectar todas as peças e criar um fluxo completo funcional para engenheiros criarem programas de inspeção AOI.",
+
+  "last_updated": "2026-01-13"
+}
