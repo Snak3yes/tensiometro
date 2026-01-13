@@ -172,7 +172,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Mostrar erro se hardware desconectado [manual]
   - [~] Salvar mosaico em EngineeringWizardState [manual]
 - [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()` [manual]
-  - [~] Receber fiducial templates do estado
+  - [~] Receber fiducial templates do estado [manual]
   - [~] Executar template matching
   - [~] Salvar transform em EngineeringWizardState
 
