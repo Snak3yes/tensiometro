@@ -23,6 +23,9 @@ from .operator_interface import (
     ProgramSelector,
     InspectionResultsWidget
 )
+from .engenharia import (
+    ConfirmSaveWidget
+)
 
 __all__ = [
     'CameraPreviewWidget',
@@ -38,4 +41,5 @@ __all__ = [
     'StencilSelector',
     'ProgramSelector',
     'InspectionResultsWidget',
+    'ConfirmSaveWidget',
 ]
