@@ -164,7 +164,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 **Subtarefas:**
 - [~] Modificar widgets das Abas 3, 4, 5 para receber EngineeringHardwareCoordinator [manual]
 - [~] **Aba 3 (FiducialCaptureWidget)**: Usar `capture_fiducial_template()` [manual] [manual]
-  - [~] Verificar disponibilidade de câmera antes de capturar [manual]
+  - [~] Verificar disponibilidade de câmera antes de capturar [manual] [manual]
   - [~] Mostrar erro se câmera desconectada [manual]
   - [~] Salvar template em EngineeringWizardState [manual]
 - [~] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()` [manual]
