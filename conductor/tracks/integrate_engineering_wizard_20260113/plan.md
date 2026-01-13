@@ -211,7 +211,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
     - [~] Ação "Carregar Programa..." [manual] [manual]
 - [~] Modificar `consumo_lib/main_window.py` [manual] [manual]
   - [~] Chamar `menu_handler.setup_engineering_menu()` na inicialização [manual] [manual]
-  - [~] Adicionar botão na toolbar: "Novo Programa de Inspeção" [manual]
+  - [~] Adicionar botão na toolbar: "Novo Programa de Inspeção" [manual] [manual]
   - [~] Conectar ação a slot que abre EngineeringWizardDialog [manual]
 - [~] Implementar slot `open_engineering_wizard()` em MainWindow [manual]
   - [~] Instanciar EngineeringWizardDialog [manual]
