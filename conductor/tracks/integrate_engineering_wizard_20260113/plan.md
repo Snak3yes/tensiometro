@@ -215,7 +215,7 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
   - [~] Conectar ação a slot que abre EngineeringWizardDialog [manual] [manual]
 - [~] Implementar slot `open_engineering_wizard()` em MainWindow [manual] [manual]
   - [~] Instanciar EngineeringWizardDialog [manual] [manual]
-  - [~] Passar referências de hardware (controllers) [manual]
+  - [~] Passar referências de hardware (controllers) [manual] [manual]
   - [~] Executar dialog com `dialog.exec()` [manual]
   - [~] Se Accepted, salvar programa via EngineeringProgramManager [manual]
 
