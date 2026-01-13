@@ -126,15 +126,15 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 **Dependencies:** Nenhuma
 
 **Subtarefas:**
-- [ ] Criar arquivo `consumo_lib/coordinators/engineering_hardware_coordinator.py`
-- [ ] Implementar classe `EngineeringHardwareCoordinator`
-  - [ ] Construtor recebe referências para CameraController, PLCAxisController, FiducialAligner
-  - [ ] Método `is_hardware_ready(required)` para verificar disponibilidade
-  - [ ] Método `capture_fiducial_template(x, y)` para Aba 3
-  - [ ] Método `capture_mosaic_grid(config)` para Aba 4
-  - [ ] Método `perform_fiducial_alignment()` para Aba 5
-- [ ] Adicionar tratamento de erros (hardware desconectado, timeout, etc.)
-- [ ] Adicionar logging extensivo (🎯, ⚠️, ❌ para operações)
+- [~] Criar arquivo `consumo_lib/coordinators/engineering_hardware_coordinator.py` [manual]
+- [~] Implementar classe `EngineeringHardwareCoordinator` [manual]
+  - [~] Construtor recebe referências para CameraController, PLCAxisController, FiducialAligner [manual]
+  - [~] Método `is_hardware_ready(required)` para verificar disponibilidade [manual]
+  - [~] Método `capture_fiducial_template(x, y)` para Aba 3 [manual]
+  - [~] Método `capture_mosaic_grid(config)` para Aba 4 [manual]
+  - [~] Método `perform_fiducial_alignment()` para Aba 5 [manual]
+- [~] Adicionar tratamento de erros (hardware desconectado, timeout, etc.) [manual]
+- [~] Adicionar logging extensivo (🎯, ⚠️, ❌ para operações) [manual]
 
 **Critérios de Sucesso:**
 - Coordinator pode ser instanciado com controllers do MainWindow
@@ -162,19 +162,19 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 **Dependencies:** Tarefa 2.1
 
 **Subtarefas:**
-- [ ] Modificar widgets das Abas 3, 4, 5 para receber EngineeringHardwareCoordinator
-- [ ] **Aba 3 (FiducialCaptureWidget)**: Usar `capture_fiducial_template()`
-  - [ ] Verificar disponibilidade de câmera antes de capturar
-  - [ ] Mostrar erro se câmera desconectada
-  - [ ] Salvar template em EngineeringWizardState
-- [ ] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()`
-  - [ ] Verificar disponibilidade de PLC e câmera
-  - [ ] Mostrar erro se hardware desconectado
-  - [ ] Salvar mosaico em EngineeringWizardState
-- [ ] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()`
-  - [ ] Receber fiducial templates do estado
-  - [ ] Executar template matching
-  - [ ] Salvar transform em EngineeringWizardState
+- [~] Modificar widgets das Abas 3, 4, 5 para receber EngineeringHardwareCoordinator
+- [~] **Aba 3 (FiducialCaptureWidget)**: Usar `capture_fiducial_template()`
+  - [~] Verificar disponibilidade de câmera antes de capturar
+  - [~] Mostrar erro se câmera desconectada
+  - [~] Salvar template em EngineeringWizardState
+- [~] **Aba 4 (MosaicCaptureWidget)**: Usar `capture_mosaic_grid()`
+  - [~] Verificar disponibilidade de PLC e câmera
+  - [~] Mostrar erro se hardware desconectado
+  - [~] Salvar mosaico em EngineeringWizardState
+- [~] **Aba 5 (AlignmentWidget)**: Usar `perform_fiducial_alignment()`
+  - [~] Receber fiducial templates do estado
+  - [~] Executar template matching
+  - [~] Salvar transform em EngineeringWizardState
 
 **Critérios de Sucesso:**
 - Abas 3, 4, 5 funcionam com hardware real
@@ -202,22 +202,22 @@ Criar coordenação de hardware e integrar o Engineering Wizard ao menu principa
 **Dependencies:** Tarefa 1.2
 
 **Subtarefas:**
-- [ ] Modificar `consumo_lib/handlers/menu_handler.py`
-  - [ ] Adicionar método `setup_engineering_menu()`
-  - [ ] Criar menu "Ferramentas" (se não existir)
-  - [ ] Adicionar ação "Engineering Wizard..." com atalho Ctrl+Shift+E
-  - [ ] Criar menu "Programas" (novo)
-    - [ ] Ação "Listar Programas Salvos..."
-    - [ ] Ação "Carregar Programa..."
-- [ ] Modificar `consumo_lib/main_window.py`
-  - [ ] Chamar `menu_handler.setup_engineering_menu()` na inicialização
-  - [ ] Adicionar botão na toolbar: "Novo Programa de Inspeção"
-  - [ ] Conectar ação a slot que abre EngineeringWizardDialog
-- [ ] Implementar slot `open_engineering_wizard()` em MainWindow
-  - [ ] Instanciar EngineeringWizardDialog
-  - [ ] Passar referências de hardware (controllers)
-  - [ ] Executar dialog com `dialog.exec()`
-  - [ ] Se Accepted, salvar programa via EngineeringProgramManager
+- [~] Modificar `consumo_lib/handlers/menu_handler.py`
+  - [~] Adicionar método `setup_engineering_menu()`
+  - [~] Criar menu "Ferramentas" (se não existir)
+  - [~] Adicionar ação "Engineering Wizard..." com atalho Ctrl+Shift+E
+  - [~] Criar menu "Programas" (novo)
+    - [~] Ação "Listar Programas Salvos..."
+    - [~] Ação "Carregar Programa..."
+- [~] Modificar `consumo_lib/main_window.py`
+  - [~] Chamar `menu_handler.setup_engineering_menu()` na inicialização
+  - [~] Adicionar botão na toolbar: "Novo Programa de Inspeção"
+  - [~] Conectar ação a slot que abre EngineeringWizardDialog
+- [~] Implementar slot `open_engineering_wizard()` em MainWindow
+  - [~] Instanciar EngineeringWizardDialog
+  - [~] Passar referências de hardware (controllers)
+  - [~] Executar dialog com `dialog.exec()`
+  - [~] Se Accepted, salvar programa via EngineeringProgramManager
 
 **Critérios de Sucesso:**
 - Menu "Ferramentas → Engineering Wizard" abre dialog
@@ -348,7 +348,7 @@ Implementar salvamento/carregamento de programas e integração com o RecipeMana
   - [ ] Chamar RecipeManager para salvar Recipe
   - [ ] Opcionalmente abrir InspectionTab com Recipe carregado
 - [ ] Modificar MenuHandler
-  - [ ] Ação "Carregar Programa..." abre diálogo de seleção
+  - [~] Ação "Carregar Programa..." abre diálogo de seleção
   - [ ] Programa selecionado é convertido para Recipe
   - [ ] Recipe é carregado no sistema
 
