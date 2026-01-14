@@ -963,3 +963,104 @@ class MapController(QObject):
         """
         self.map_progress_dialog.close()
         self.map_error.emit(msg)
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de mapa.
+
+        Este método conecta os signals internos do MapController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals a handlers de UI
+        self.program_saved.connect(self._on_program_saved_update_status)
+        self.program_loaded.connect(self._on_program_loaded_update_status)
+        self.program_deleted.connect(self._on_program_deleted_update_status)
+        self.map_generated.connect(self._on_map_generated_show_message)
+        self.map_progress.connect(self._on_map_progress_log)
+        self.map_error.connect(self._on_map_error_show_message)
+
+        logger.debug("UI handlers conectados no MapController")
+
+    def _on_program_saved_update_status(self, name, path):
+        """
+        Atualiza statusBar quando programa de mapa é salvo.
+
+        Args:
+            name: Nome do programa
+            path: Caminho do arquivo
+        """
+        logger.info(f"Programa de mapa salvo: {name} -> {path}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Programa '{name}' salvo com sucesso", 3000)
+
+    def _on_program_loaded_update_status(self, name, params):
+        """
+        Atualiza statusBar quando programa de mapa é carregado.
+
+        Args:
+            name: Nome do programa
+            params: Parâmetros do programa
+        """
+        logger.info(f"Programa de mapa carregado: {name}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Programa '{name}' carregado", 3000)
+
+    def _on_program_deleted_update_status(self, name):
+        """
+        Atualiza statusBar quando programa de mapa é excluído.
+
+        Args:
+            name: Nome do programa
+        """
+        logger.info(f"Programa de mapa excluído: {name}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Programa '{name}' excluído", 3000)
+
+    def _on_map_generated_show_message(self, image_count, mosaic_path):
+        """
+        Mostra mensagem quando mosaico é gerado.
+
+        Args:
+            image_count: Número de imagens capturadas
+            mosaic_path: Caminho do mosaico gerado
+        """
+        logger.info(f"Mosaico gerado: {mosaic_path} ({image_count} imagens)")
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Mosaico gerado com sucesso", 5000)
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.information(
+            self.parent(),
+            "Mosaico Gerado",
+            f"O mosaico foi gerado com sucesso!\n\n"
+            f"Arquivo: {mosaic_path}"
+        )
+
+    def _on_map_progress_log(self, current, total):
+        """
+        Log progresso da geração do mapa.
+
+        Args:
+            current: Número atual de imagens capturadas
+            total: Total de imagens a capturar
+        """
+        logger.debug(f"Progresso do mapa: {current}/{total}")
+
+    def _on_map_error_show_message(self, error_message):
+        """
+        Mostra mensagem de erro quando geração de mapa falha.
+
+        Args:
+            error_message: Mensagem de erro
+        """
+        logger.error(f"Erro no mapa: {error_message}")
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.critical(self.parent(), "Erro na Geração do Mapa", error_message)

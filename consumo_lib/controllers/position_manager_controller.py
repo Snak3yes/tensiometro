@@ -256,3 +256,98 @@ class PositionManagerController(QObject):
 
         # Emit signal
         self.position_captured.emit(position, image, timestamp)
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de posição.
+
+        Este método conecta os signals internos do PositionManagerController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals a handlers de UI
+        self.position_updated.connect(self._on_position_updated_log)
+        self.position_added.connect(self._on_position_added_log)
+        self.position_removed.connect(self._on_position_removed_log)
+        self.position_selected.connect(self._on_position_selected_log)
+        self.sequence_created.connect(self._on_sequence_created_update_ui)
+        self.position_captured.connect(self._on_position_captured_update_status)
+
+        logger.debug("UI handlers conectados no PositionManagerController")
+
+    def _on_position_updated_log(self, position):
+        """
+        Log quando posição CNC é atualizada.
+
+        Args:
+            position: Dict com posição {x, y, z}
+        """
+        logger.debug(f"Posição atualizada: {position}")
+
+    def _on_position_added_log(self, position):
+        """
+        Log quando posição é adicionada.
+
+        Args:
+            position: InspectionPosition adicionada
+        """
+        logger.info(f"Posição adicionada: {position.name}")
+
+    def _on_position_removed_log(self, position_name):
+        """
+        Log quando posição é removida.
+
+        Args:
+            position_name: Nome da posição removida
+        """
+        logger.info(f"Posição removida: {position_name}")
+
+    def _on_position_selected_log(self, position):
+        """
+        Log quando posição é selecionada.
+
+        Args:
+            position: InspectionPosition selecionada
+        """
+        logger.debug(f"Posição selecionada: {position.name}")
+
+    def _on_sequence_created_update_ui(self, sequence):
+        """
+        Atualiza UI quando sequência é criada.
+
+        Args:
+            sequence: Sequence criada
+        """
+        self.parent_window.current_sequence = sequence
+        logger.info(f"Sequência '{sequence.name}' criada com {len(sequence.positions)} posições")
+
+        if hasattr(self.parent_window, 'statusBar'):
+            self.parent_window.statusBar().showMessage(
+                f"Sequência '{sequence.name}' criada com {len(sequence.positions)} posições",
+                5000
+            )
+
+    def _on_position_captured_update_status(self, position, image, timestamp):
+        """
+        Atualiza statusBar quando posição é capturada.
+
+        Args:
+            position: InspectionPosition capturada
+            image: Imagem capturada
+            timestamp: Timestamp da captura
+        """
+        logger.info(
+            f"Posição capturada: {position.name} "
+            f"({position.x:.3f}, {position.y:.3f})"
+        )
+
+        if hasattr(self.parent_window, 'statusBar'):
+            self.parent_window.statusBar().showMessage(
+                f"Posição capturada: {position.name} ({position.x:.3f}, {position.y:.3f})",
+                3000
+            )

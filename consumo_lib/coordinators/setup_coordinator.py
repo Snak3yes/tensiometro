@@ -247,6 +247,8 @@ class SetupCoordinator:
                 self.window.config,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.map_controller.setup_ui_handlers()
             logger.debug("MapController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar MapController: {e}")
@@ -461,6 +463,8 @@ class SetupCoordinator:
                 self.window.position_list_widget,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.position_manager_controller.setup_ui_handlers()
             logger.debug("PositionManagerController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar PositionManagerController: {e}")

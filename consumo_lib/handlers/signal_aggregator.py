@@ -290,25 +290,30 @@ class SignalAggregator:
         # =========================================================================
         # MAP CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.map_controller:
-            self.main_window.map_controller.program_saved.connect(
-                self._on_map_program_saved
-            )
-            self.main_window.map_controller.program_loaded.connect(
-                self._on_map_program_loaded
-            )
-            self.main_window.map_controller.program_deleted.connect(
-                self._on_map_program_deleted
-            )
-            self.main_window.map_controller.map_generated.connect(
-                self._on_map_generated
-            )
-            self.main_window.map_controller.map_progress.connect(
-                self._on_map_progress
-            )
-            self.main_window.map_controller.map_error.connect(
-                self._on_map_error
-            )
+        # MOVIDO PARA MapController.setup_ui_handlers()
+        # Os handlers de UI de mapa agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.5 - Map & Position Signals (2026-01-14)
+
+        # if self.main_window.map_controller:
+        #     self.main_window.map_controller.program_saved.connect(
+        #         self._on_map_program_saved
+        #     )
+        #     self.main_window.map_controller.program_loaded.connect(
+        #         self._on_map_program_loaded
+        #     )
+        #     self.main_window.map_controller.program_deleted.connect(
+        #         self._on_map_program_deleted
+        #     )
+        #     self.main_window.map_controller.map_generated.connect(
+        #         self._on_map_generated
+        #     )
+        #     self.main_window.map_controller.map_progress.connect(
+        #         self._on_map_progress
+        #     )
+        #     self.main_window.map_controller.map_error.connect(
+        #         self._on_map_error
+        #     )
 
         # =========================================================================
         # CAMERA SETTINGS CONTROLLER SIGNALS
@@ -424,25 +429,30 @@ class SignalAggregator:
         # =========================================================================
         # POSITION MANAGER CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.position_manager_controller:
-            self.main_window.position_manager_controller.position_updated.connect(
-                self._on_position_updated
-            )
-            self.main_window.position_manager_controller.position_added.connect(
-                self._on_position_added
-            )
-            self.main_window.position_manager_controller.position_removed.connect(
-                self._on_position_removed
-            )
-            self.main_window.position_manager_controller.position_selected.connect(
-                self._on_position_selected_from_controller
-            )
-            self.main_window.position_manager_controller.sequence_created.connect(
-                self._on_sequence_created
-            )
-            self.main_window.position_manager_controller.position_captured.connect(
-                self._on_position_captured
-            )
+        # MOVIDO PARA PositionManagerController.setup_ui_handlers()
+        # Os handlers de UI de posição agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.5 - Map & Position Signals (2026-01-14)
+
+        # if self.main_window.position_manager_controller:
+        #     self.main_window.position_manager_controller.position_updated.connect(
+        #         self._on_position_updated
+        #     )
+        #     self.main_window.position_manager_controller.position_added.connect(
+        #         self._on_position_added
+        #     )
+        #     self.main_window.position_manager_controller.position_removed.connect(
+        #         self._on_position_removed
+        #     )
+        #     self.main_window.position_manager_controller.position_selected.connect(
+        #         self._on_position_selected_from_controller
+        #     )
+        #     self.main_window.position_manager_controller.sequence_created.connect(
+        #         self._on_sequence_created
+        #     )
+        #     self.main_window.position_manager_controller.position_captured.connect(
+        #         self._on_position_captured
+        #     )
 
     # =========================================================================
     # RECIPE MANAGER HANDLERS
@@ -924,44 +934,46 @@ class SignalAggregator:
     # =========================================================================
     # MAP CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA MapController
+    # Os handlers de UI de mapa agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.5 - Map & Position Signals (2026-01-14)
 
-    def _on_map_program_saved(self, name, path):
-        """Handler quando um programa de mapa é salvo."""
-        logger.info(f"Programa de mapa salvo: {name} -> {path}")
-        self.main_window.statusBar().showMessage(f"Programa '{name}' salvo com sucesso", 3000)
+    # def _on_map_program_saved(self, name, path):
+    #     """Handler quando um programa de mapa é salvo."""
+    #     logger.info(f"Programa de mapa salvo: {name} -> {path}")
+    #     self.main_window.statusBar().showMessage(f"Programa '{name}' salvo com sucesso", 3000)
 
-    def _on_map_program_loaded(self, name, params):
-        """Handler quando um programa de mapa é carregado."""
-        logger.info(f"Programa de mapa carregado: {name}")
-        self.main_window.statusBar().showMessage(f"Programa '{name}' carregado", 3000)
+    # def _on_map_program_loaded(self, name, params):
+    #     """Handler quando um programa de mapa é carregado."""
+    #     logger.info(f"Programa de mapa carregado: {name}")
+    #     self.main_window.statusBar().showMessage(f"Programa '{name}' carregado", 3000)
 
-    def _on_map_program_deleted(self, name):
-        """Handler quando um programa de mapa é excluído."""
-        logger.info(f"Programa de mapa excluído: {name}")
-        self.main_window.statusBar().showMessage(f"Programa '{name}' excluído", 3000)
+    # def _on_map_program_deleted(self, name):
+    #     """Handler quando um programa de mapa é excluído."""
+    #     logger.info(f"Programa de mapa excluído: {name}")
+    #     self.main_window.statusBar().showMessage(f"Programa '{name}' excluído", 3000)
 
-    def _on_map_generated(self, mosaic_path):
-        """Handler quando geração de mapa é completada."""
-        logger.info(f"Mosaico gerado: {mosaic_path}")
-        self.main_window.statusBar().showMessage(f"Mosaico gerado com sucesso", 5000)
+    # def _on_map_generated(self, mosaic_path):
+    #     """Handler quando geração de mapa é completada."""
+    #     logger.info(f"Mosaico gerado: {mosaic_path}")
+    #     self.main_window.statusBar().showMessage(f"Mosaico gerado com sucesso", 5000)
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     QMessageBox.information(
+    #         self.main_window, "Mosaico Gerado",
+    #         f"O mosaico foi gerado com sucesso!\n\n"
+    #         f"Arquivo: {mosaic_path}"
+    #     )
 
-        from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.information(
-            self.main_window, "Mosaico Gerado",
-            f"O mosaico foi gerado com sucesso!\n\n"
-            f"Arquivo: {mosaic_path}"
-        )
+    # def _on_map_progress(self, current, total, message):
+    #     """Handler durante progresso da geração do mapa."""
+    #     logger.debug(f"Progresso do mapa: {current}/{total} - {message}")
 
-    def _on_map_progress(self, current, total, message):
-        """Handler durante progresso da geração do mapa."""
-        logger.debug(f"Progresso do mapa: {current}/{total} - {message}")
-
-    def _on_map_error(self, error_message):
-        """Handler quando ocorre erro na geração do mapa."""
-        logger.error(f"Erro no mapa: {error_message}")
-
-        from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.critical(self.main_window, "Erro na Geração do Mapa", error_message)
+    # def _on_map_error(self, error_message):
+    #     """Handler quando ocorre erro na geração do mapa."""
+    #     logger.error(f"Erro no mapa: {error_message}")
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     QMessageBox.critical(self.main_window, "Erro na Geração do Mapa", error_message)
 
     # =========================================================================
     # CAMERA SETTINGS CONTROLLER HANDLERS
@@ -1120,19 +1132,23 @@ class SignalAggregator:
     # =========================================================================
     # POSITION MANAGER CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA PositionManagerController
+    # Os handlers de UI de posição agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.5 - Map & Position Signals (2026-01-14)
 
-    def _on_position_updated(self, position):
-        """Handler chamado quando a posição CNC é atualizada."""
-        logger.debug(f"Posição atualizada: {position}")
+    # def _on_position_updated(self, position):
+    #     """Handler chamado quando a posição CNC é atualizada."""
+    #     logger.debug(f"Posição atualizada: {position}")
 
-    def _on_position_added(self, position):
-        """Handler chamado quando uma posição é adicionada."""
-        logger.info(f"Posição adicionada: {position.name}")
+    # def _on_position_added(self, position):
+    #     """Handler chamado quando uma posição é adicionada."""
+    #     logger.info(f"Posição adicionada: {position.name}")
 
-    def _on_position_removed(self, position_name):
-        """Handler chamado quando uma posição é removida."""
-        logger.info(f"Posição removida: {position_name}")
+    # def _on_position_removed(self, position_name):
+    #     """Handler chamado quando uma posição é removida."""
+    #     logger.info(f"Posição removida: {position_name}")
 
-    def _on_position_selected_from_controller(self, position):
-        """Handler chamado quando uma posição é selecionada."""
-        logger.debug(f"Posição selecionada: {position.name}")
+    # def _on_position_selected_from_controller(self, position):
+    #     """Handler chamado quando uma posição é selecionada."""
+    #     logger.debug(f"Posição selecionada: {position.name}")
