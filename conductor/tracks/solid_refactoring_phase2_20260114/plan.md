@@ -55,11 +55,14 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Adicionar testes unitários
   - **Resultado:** 267 linhas, 18 testes, >90% coverage
   - **Métodos:** import_gerber, export_gerber, select_object(s), edit_selected_object(s), delete_selected_objects
-- [ ] 1.1.5. Criar `gerber_core/commands/edit_commands.py`
-  - [ ] Criar abstração `EditObjectCommand` (ABC)
-  - [ ] Implementar comandos concretos (EditCircle, EditRectangle, etc.)
-  - [ ] Implementar undo/redo se aplicável
-  - [ ] Adicionar testes unitários
+- [x] 1.1.5. Criar `gerber_core/commands/edit_commands.py` ✅ `ba90bf3`
+  - [x] Criar abstração `EditObjectCommand` (ABC) com Template Method execute()
+  - [x] Implementar comandos concretos (EditCircle, EditRectangle, EditObround, EditRegion)
+  - [x] Implementar undo/redo com _capture_state() e _restore_state()
+  - [x] Adicionar testes unitários
+  - **Resultado:** 276 linhas, 20 testes, 97% coverage
+  - **Classes:** EditObjectCommand (ABC), EditCircleCommand, EditRectangleCommand, EditObroundCommand, EditRegionCommand, CommandExecutionError
+  - **Benefícios:** Template Method eliminou duplicação (180→62 linhas), complexidade 46→<5
 - [ ] 1.1.6. Refatorar `mainwindow.py` (apenas UI)
   - [ ] Remover lógica de negócio (mover para controller)
   - [ ] Remover manipulação direta de dados (usar model)
