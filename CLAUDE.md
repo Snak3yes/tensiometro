@@ -149,7 +149,9 @@ from aoi_lib import (
 
 # Individual modules can be imported directly
 from aoi_lib.fov_calibration import FOVCalibration, CameraFOVConverter
-from aoi_lib.stencil_tension import TensiometerSerialManager
+from aoi_lib.tensiometer.serial_protocol import TensiometerSerialManager
+from aoi_lib.tensiometer.measurement_thread import TensionMeasurementThread
+from aoi_lib.tensiometer.tension_measurement import StencilTensionMeasurement
 from aoi_lib.recipe_manager import RecipeManager
 from aoi_lib.fiducial_alignment import FiducialAlignment
 from aoi_lib.gerber_parser import GerberParser
@@ -240,7 +242,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 **Key Log Locations:**
 - PLC connection/movement: `aoi_lib/plc_axis_controller.py` (search for "🎯" or "DEBUG PLC")
-- Tensiometer serial: `aoi_lib/stencil_tension.py` (search "read_tension_value")
+- Tensiometer serial: `aoi_lib/tensiometer/serial_protocol.py` (search "read_tension_value")
 - FOV conversion: `aoi_lib/fov_calibration.py` (search "Coeficientes FOV")
 - Fiducial alignment: `aoi_lib/fiducial_alignment.py` (search "Template matching")
 - Inspection: `aoi_lib/stencil_inspector.py` (search "Inspecting aperture")
@@ -277,7 +279,7 @@ converter.get_fov_at_z(0)  # Returns (width_mm, height_mm)
 
 ### Hardware Integration Layer
 - **PLCAxisController** ([aoi_lib/plc_axis_controller.py](aoi_lib/plc_axis_controller.py)) - Modbus TCP communication with Delta CLP for 3-axis (X,Y,Z) movement control
-- **TensiometerSerialManager** ([aoi_lib/stencil_tension.py](aoi_lib/stencil_tension.py)) - RS-232 serial protocol (2400 baud, 9-byte frame) for AS-120N tension sensor
+- **TensiometerSerialManager** ([aoi_lib/tensiometer/serial_protocol.py](aoi_lib/tensiometer/serial_protocol.py)) - RS-232 serial protocol (2400 baud, 9-byte frame) for AS-120N tension sensor
 - **CameraController** ([aoi_lib/camera_controller.py](aoi_lib/camera_controller.py)) - OpenCV USB camera interface with real-time preview
 
 ### Core Business Logic
@@ -427,7 +429,10 @@ consumo_lib/main_window.py (1,060 lines - orchestrator only)
   └── aoi_lib/ (CORE BUSINESS LOGIC - 44 files, ~16,000 lines)
       ├── plc_axis_controller.py (Modbus TCP - hardware layer)
       ├── camera_controller.py (OpenCV - hardware layer)
-      ├── stencil_tension.py (Serial RS-232 - hardware layer)
+      ├── tensiometer/ (Serial RS-232 - hardware layer)
+      │   ├── serial_protocol.py (TensiometerSerialManager)
+      │   ├── measurement_thread.py (TensionMeasurementThread)
+      │   └── tension_measurement.py (StencilTensionMeasurement)
       ├── fov_calibration.py (pixel↔mm conversion)
       ├── fiducial_alignment.py (template matching)
       ├── gerber_parser.py (RS-274X parsing)
@@ -706,7 +711,7 @@ consumo_lib/     # Main GUI application (modular package, 646 lines main_window.
 - See plc_axis_controller.py for register mapping
 
 ### Critical Sections to Preserve
-- **Serial Protocol Decoding:** [aoi_lib/stencil_tension.py](aoi_lib/stencil_tension.py:~200-250) - 9-byte frame parsing is hardware-specific for AS-120N tensiometer (2400 baud, 8N1)
+- **Serial Protocol Decoding:** [aoi_lib/tensiometer/serial_protocol.py](aoi_lib/tensiometer/serial_protocol.py:~200-250) - 9-byte frame parsing is hardware-specific for AS-120N tensiometer (2400 baud, 8N1)
 - **Modbus Register Mapping:** [aoi_lib/plc_axis_controller.py](aoi_lib/plc_axis_controller.py:~50-100) - PLC-specific addresses for Delta CLP series
 - **FOV Conversion Logic:** [aoi_lib/fov_calibration.py](aoi_lib/fov_calibration.py:~150-250) - Pixel-to-pulse calculations for click-to-move functionality
 - **Fiducial Alignment Transform:** [aoi_lib/fiducial_alignment.py](aoi_lib/fiducial_alignment.py) - Template matching for Gerber-to-image alignment

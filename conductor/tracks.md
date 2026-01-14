@@ -82,9 +82,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Plan:** ./archive/feature_implement_operator_workflow_20260111/plan.md
 - **Spec:** ./archive/feature_implement_operator_workflow_20260111/spec.md
 
-## [ ] Track: Refactor large monolithic files (Refactor)
+## [~] Track: Refactor large monolithic files (Refactor)
 - **Track ID:** refactor_large_files_20260113
-- **Status:** New
+- **Status:** In Progress
 - **Priority:** Medium-High
 - **Created:** 2026-01-13
 - **Est. Duration:** 4-6 weeks
