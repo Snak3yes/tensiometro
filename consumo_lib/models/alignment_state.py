@@ -248,6 +248,7 @@ class AlignmentState:
             self.metrics = AlignmentMetrics.from_matches(self.fiducial_matches)
             self.score = self.metrics.overall_score
             self.fiducials_found = self.metrics.fiducials_found > 0
+            self.is_valid = self.metrics.is_acceptable
 
     def reset_transform(self) -> None:
         """Reseta transformação para valores padrão."""
