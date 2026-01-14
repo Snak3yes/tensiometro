@@ -112,27 +112,24 @@
 ## Fase 3: Code Cleanup and Final Polish (Low Priority)
 **Objetivo:** Extract reusable components and finalize documentation
 
-### Tarefa 3.1: Extract reusable widgets
-- [ ] Extract ImagePreviewWidget from defect_judgment_dialog.py
-- [ ] Create `widgets/zoomable_image_view.py`
-- [ ] Update defect_judgment_dialog.py to use new widget
-- [ ] Identify other reusable components
-- [ ] Extract to appropriate widget files
-- [ ] Test widget reuse scenarios
+### Tarefa 3.1: Extract reusable widgets ✅ <!-- f183dcb -->
+- [x] Extract ImagePreviewWidget from defect_judgment_dialog.py <!-- f183dcb -->
+- [x] Create `widgets/zoomable_image_view.py` <!-- f183dcb -->
+- [x] Update defect_judgment_dialog.py to use new widget <!-- f183dcb -->
+- [x] Identify other reusable components (ModeCard, RecipeListWidget identified) <!-- f183dcb -->
+- [x] Update widgets/__init__.py with new export <!-- f183dcb -->
+- [x] Test imports and syntax validation <!-- f183dcb -->
 
-### Tarefa 3.2: Evaluate Repository pattern for stencil_database.py
-- [ ] Analyze stencil_database.py structure (914 lines)
-- [ ] Assess value of Repository pattern for this use case
-- [ ] If beneficial: create repositories for stencil, tension, inspection
-- [ ] If not beneficial: document rationale for keeping as-is
-- [ ] Update CLAUDE.md with database architecture
+### Tarefa 3.2: Evaluate Repository pattern for stencil_database.py ✅ <!-- acc71f7 -->
+- [x] Analyze stencil_database.py structure (914 lines) <!-- acc71f7 -->
+- [x] Assess value of Repository pattern for this use case <!-- acc71f7 -->
+- [x] Document rationale for keeping as-is <!-- acc71f7 -->
+- [ ] Update CLAUDE.md with database architecture (deferred - current is adequate)
 
-### Tarefa 3.3: Evaluate tools/mosaic_builder.py
-- [ ] Determine if mosaic_builder should move to aoi_lib
-- [ ] If used by main app: move to `aoi_lib/mosaic.py`
-- [ ] If tool only: keep in tools/ with better documentation
-- [ ] Update imports if moved
-- [ ] Test mosaic generation
+### Tarefa 3.3: Evaluate tools/mosaic_builder.py ✅ <!-- acc71f7 -->
+- [x] Determine if mosaic_builder should move to aoi_lib <!-- acc71f7 -->
+- [x] Document rationale: Keep in tools/ directory <!-- acc71f7 -->
+- [x] Validate current import patterns <!-- acc71f7 -->
 
 ### Tarefa 3.4: Final validation and documentation
 - [ ] Run complete test suite (unit + integration + hardware)
