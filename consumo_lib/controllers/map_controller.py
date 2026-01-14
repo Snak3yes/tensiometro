@@ -14,7 +14,7 @@ from typing import Optional
 
 from PyQt6.QtCore import QObject, pyqtSignal, Qt
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QGroupBox,
+    QWidget, QDialog, QVBoxLayout, QHBoxLayout, QGroupBox,
     QLabel, QLineEdit, QPushButton, QTreeWidget, QTreeWidgetItem,
     QFileDialog, QMessageBox, QProgressDialog, QApplication,
     QCheckBox, QSpinBox, QSplitter
