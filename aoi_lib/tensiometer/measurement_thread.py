@@ -1,175 +1,204 @@
 """
-Módulo: measurement_thread.py
-Descrição: Thread QThread para medição de tensão em background
-Permite medição assíncrona mantendo a interface responsiva
+Measurement Thread for Tension Measurement
+
+Executes tension measurement in background thread using QThread.
+Keeps UI responsive during measurement operations.
+
+Created: 2026-01-14 (Phase 1 - SOLID Refactoring)
+Extracted from: aoi_lib/stencil_tension.py (lines 203-324)
 """
 
 import logging
 import time
+from typing import List, Optional
 from PyQt6.QtCore import QThread, pyqtSignal
+from .models import GridPoint, TensionMeasurement, MeasurementSession
 
 logger = logging.getLogger(__name__)
 
 
 class TensionMeasurementThread(QThread):
     """
-    Thread responsável por executar a medição de tensão em background,
-    permitindo que a interface continue responsiva.
-
-    Workflow:
-    1. Move para safe height (Z_move)
-    2. Para cada ponto (X, Y):
-       a. Move XY mantendo safe height
-       b. Desce para Z_down
-       c. Aguarda estabilização
-       d. Lê tensão do tensiômetro
-       e. Sobe para safe height
-    3. Emite sinal finalizado com lista de medições
+    Thread responsável por executar a medição de tensão em background.
 
     Sinais:
-        progress_updated: (ponto_atual, total_pontos, status_msg)
-        measurement_completed: (dict) - Ponto medido com dados {x, y, z, tension}
-        finished: (list) - Lista completa de medições
-        error_occurred: (str) - Mensagem de erro
+        progress_updated: (current, total, message) - Progresso da medição
+        measurement_completed: (measurement_dict) - Medição individual finalizada
+        finished: (measurements_list) - Todas medições completadas
+        error_occurred: (error_message) - Erro durante medição
+
+    Attributes:
+        cnc: Controller CNC para movimentação
+        tensiometer: Gerenciador serial do tensiômetro
+        points: Lista de GridPoint para medir
+        z_height: Altura Z de medição
+        z_move: Altura Z segura para movimentação
+        user_feed: Avanço para movimentos CNC (mm/min)
+        stabilization_time_ms: Tempo de estabilização após descida Z (ms)
+        session: MeasurementSession para armazenar resultados
+        _stop_requested: Flag para solicitação de parada
     """
 
-    # Sinais para comunicação com a interface
-    progress_updated = pyqtSignal(int, int, str)  # ponto_atual, total_pontos, status_msg
-    measurement_completed = pyqtSignal(dict)      # ponto medido com dados
-    finished = pyqtSignal(list)                   # lista completa de medições
+    # Sinais PyQt6
+    progress_updated = pyqtSignal(int, int, str)  # atual, total, mensagem
+    measurement_completed = pyqtSignal(dict)      # dict com medição
+    finished = pyqtSignal(list)                   # lista de dicts
     error_occurred = pyqtSignal(str)              # mensagem de erro
 
-    def __init__(self, cnc_controller, tensiometer, points, z_down, z_move,
-                 user_feed, stabilization_time, parameters):
+    def __init__(
+        self,
+        cnc,
+        tensiometer,
+        points: List[GridPoint],
+        z_height: float,
+        z_move: float = 5.0,
+        user_feed: float = 1000.0,
+        stabilization_time_ms: int = 500
+    ):
         """
         Inicializa thread de medição.
 
         Args:
-            cnc_controller: Controlador CNC (PLCAxisController)
-            tensiometer: Gerenciador serial do tensiômetro
-            points: Lista de pontos [(x1, y1), (x2, y2), ...]
-            z_down: Altura Z para medição (contato com stencil)
-            z_move: Altura Z para movimentação (safe height)
-            user_feed: Velocidade de avanço (mm/min)
-            stabilization_time: Tempo de estabilização (ms)
-            parameters: Parâmetros adicionais da medição
+            cnc: Controller CNC (deve ter move_to_absolute_position e wait_for_idle)
+            tensiometer: TensiometerSerialManager
+            points: Lista de GridPoint ordenados
+            z_height: Altura Z para medição (mm)
+            z_move: Altura Z segura para movimento entre pontos (mm)
+            user_feed: Avanço (mm/min)
+            stabilization_time_ms: Tempo de estabilização (ms)
         """
         super().__init__()
-        self.cnc = cnc_controller
+        self.cnc = cnc
         self.tensiometer = tensiometer
         self.points = points
-        self.z_down = z_down
+        self.z_height = z_height
         self.z_move = z_move
         self.user_feed = user_feed
-        self.stabilization_time = stabilization_time
-        self.parameters = parameters
-        self.measurements = []
+        self.stabilization_time_ms = stabilization_time_ms
+        self.session = MeasurementSession(
+            parameters=None,  # Será configurado pelo caller
+            measurements=[],
+            user_feed=user_feed,
+            stabilization_time_ms=stabilization_time_ms
+        )
         self._stop_requested = False
 
-    def request_stop(self):
-        """Solicita parada da medição."""
+    def request_stop(self) -> None:
+        """Solicita parada graciosa da medição."""
+        logger.info("Solicitação de parada recebida")
         self._stop_requested = True
 
-    def run(self):
-        """Executa o processo de medição."""
+    def run(self) -> None:
+        """Executa o processo de medição em background."""
         try:
-            log = logging.getLogger("TensionMeasurementThread")
-            log.info("Iniciando medição de tensão em thread separada")
+            logger.info(f"Iniciando medição de {len(self.points)} pontos")
 
-            # Garante modo absoluto
-            if hasattr(self.cnc, "set_absolute_mode"):
-                self.cnc.set_absolute_mode()
-            else:
-                if hasattr(self.cnc, "send_raw_gcode"):
-                    self.cnc.send_raw_gcode("G90")
+            # Configura modo absoluto
+            self._setup_absolute_mode()
 
-            # Move para altura de movimentação (safe height)
+            # Move para altura segura inicial
+            logger.debug(f"Movendo para altura segura Z={self.z_move}")
             self._move_abs(z=self.z_move, feed=self.user_feed)
 
             total_points = len(self.points)
 
-            for idx, (x, y) in enumerate(self.points, 1):
-                # Verifica se foi solicitada a parada
+            for idx, point in enumerate(self.points, 1):
+                # Verifica parada solicitada
                 if self._stop_requested:
-                    log.info("Medição interrompida pelo usuário")
+                    logger.info("Medição interrompida pelo usuário")
                     self.error_occurred.emit("Medição interrompida pelo usuário")
                     return
 
-                log.debug("Ponto %d de %d -> X%.3f Y%.3f", idx, total_points, x, y)
+                # Log detalhado
+                logger.debug(
+                    f"Ponto {idx}/{total_points}: ({point.x:.3f}, {point.y:.3f})"
+                )
 
                 # Emite progresso
-                self.progress_updated.emit(idx, total_points, f"Medindo ponto {idx}/{total_points}")
+                self.progress_updated.emit(
+                    idx,
+                    total_points,
+                    f"Medindo ponto {idx}/{total_points}"
+                )
 
-                # 1) Move XY mantendo a safe height
-                self._move_abs(x=x, y=y, z=self.z_move, feed=self.user_feed)
+                # 1) Move XY mantendo altura segura
+                self._move_abs(
+                    x=point.x,
+                    y=point.y,
+                    z=self.z_move,
+                    feed=self.user_feed
+                )
 
-                # 2) Desce até a altura de medição
-                self._move_abs(z=self.z_down, feed=self.user_feed)
+                # 2) Desce para altura de medição
+                logger.debug(f"Descendo para Z={self.z_height}")
+                self._move_abs(z=self.z_height, feed=self.user_feed)
 
                 # 3) Aguarda estabilização
-                stabilization_sec = self.stabilization_time / 1000.0
-                log.debug("Aguardando estabilização por %.1fs...", stabilization_sec)
+                stabilization_sec = self.stabilization_time_ms / 1000.0
+                logger.debug(f"Estabilizando por {stabilization_sec:.1f}s...")
                 time.sleep(stabilization_sec)
 
                 # 4) Lê tensão
-                tension = self.tensiometer.read_tension_value()
-                log.debug("Tensão medida no ponto %d: %s", idx, tension)
+                tension_value = self.tensiometer.read_tension_value()
+                logger.debug(f"Tensão lida: {tension_value}")
 
-                # 5) Salva medição
-                measurement = {"x": x, "y": y, "z": self.z_down, "tension": tension}
-                self.measurements.append(measurement)
+                # 5) Cria objeto de medição
+                measurement = TensionMeasurement(
+                    point=point,
+                    z_height=self.z_height,
+                    tension_value=tension_value
+                )
+                self.session.add_measurement(measurement)
 
-                # Emite medição individual
-                self.measurement_completed.emit(measurement)
+                # 6) Emite sinal com medição individual
+                self.measurement_completed.emit(measurement.to_dict())
 
-                # 6) Retorna para a safe height
+                # 7) Retorna para altura segura
+                logger.debug(f"Subindo para Z={self.z_move}")
                 self._move_abs(z=self.z_move, feed=self.user_feed)
 
-                # 7) Pequena pausa entre pontos
+                # 8) Pequena pausa entre pontos
                 time.sleep(0.1)
 
+            # Medição completa com sucesso
+            logger.info("Medição concluída com sucesso!")
+            logger.info(
+                f"Total medido: {len(self.session.measurements)} pontos"
+            )
+
+            # Desliga sensor de tensão (pulso na coil M0)
+            self._disable_tension_sensor()
+
             # Emite resultado final
-            log.info("Medição de tensão concluída com sucesso")
-
-            # Desliga o sensor de tensão (pulso de 3000 ms na memória M0)
-            try:
-                if hasattr(self.cnc, "_pulse_coil"):
-                    self.cnc._pulse_coil(0, 3000)
-            except Exception as e:
-                log.error(f"Falha ao desligar sensor: {e}")
-
-            # Emite sinal de finalização
-            self.finished.emit(self.measurements)
+            measurements_dict = [m.to_dict() for m in self.session.measurements]
+            self.finished.emit(measurements_dict)
 
         except Exception as e:
-            log.error(f"Erro durante medição: {e}", exc_info=True)
+            logger.error(f"Erro durante medição: {e}", exc_info=True)
             self.error_occurred.emit(f"Erro durante medição: {str(e)}")
 
-    def _move_abs(self, *, x=None, y=None, z=None, feed=None):
+    def _setup_absolute_mode(self) -> None:
+        """Configura CNC para modo de coordenadas absolutas (G90)."""
+        try:
+            if hasattr(self.cnc, 'set_absolute_mode'):
+                self.cnc.set_absolute_mode()
+            elif hasattr(self.cnc, 'send_raw_gcode'):
+                self.cnc.send_raw_gcode('G90')
+            else:
+                logger.warning("Não foi possível configurar modo absoluto")
+        except Exception as e:
+            logger.error(f"Erro ao configurar modo absoluto: {e}")
+
+    def _move_abs(self, x: Optional[float] = None, y: Optional[float] = None,
+                  z: Optional[float] = None, feed: Optional[float] = None) -> None:
         """
-        Move em coordenadas absolutas.
+        Move para coordenadas absolutas.
 
         Args:
-            x: Coordenada X (opcional)
-            y: Coordenada Y (opcional)
-            z: Coordenada Z (opcional)
-            feed: Velocidade de avanço (opcional)
-        """
-        if feed is not None:
-            self.cnc.move_to_absolute_position(x=x, y=y, z=z, feed_rate=feed)
-        else:
-            self.cnc.move_to_absolute_position(x=x, y=y, z=z)
-        self.cnc.wait_for_idle()
-
-    def _move_rel(self, *, x=None, y=None, z=None, feed=None):
-        """
-        Move em coordenadas relativas.
-
-        Args:
-            x: Deslocamento X (opcional)
-            y: Deslocamento Y (opcional)
-            z: Deslocamento Z (opcional)
-            feed: Velocidade de avanço (opcional)
+            x: Coordenada X (mm)
+            y: Coordenada Y (mm)
+            z: Coordenada Z (mm)
+            feed: Avanço (mm/min)
         """
         kwargs = {}
         if x is not None:
@@ -178,8 +207,31 @@ class TensionMeasurementThread(QThread):
             kwargs['y'] = y
         if z is not None:
             kwargs['z'] = z
+
         if feed is not None:
             kwargs['feed_rate'] = feed
 
-        self.cnc.move_relative(**kwargs)
+        # Executa movimento
+        self.cnc.move_to_absolute_position(**kwargs)
+
+        # Aguarda movimento completar
         self.cnc.wait_for_idle()
+
+    def _disable_tension_sensor(self) -> None:
+        """Desliga o sensor de tensão (pulso de 3000ms na coil M0)."""
+        try:
+            if hasattr(self.cnc, '_pulse_coil'):
+                self.cnc._pulse_coil(0, 3000)
+                logger.debug("Sensor de tensão desligado")
+        except Exception as e:
+            logger.error(f"Erro ao desligar sensor: {e}")
+
+    @property
+    def measurements(self) -> List[TensionMeasurement]:
+        """Retorna lista de medições realizadas."""
+        return self.session.measurements
+
+    @property
+    def is_running(self) -> bool:
+        """Verifica se thread está em execução."""
+        return self.isRunning()
