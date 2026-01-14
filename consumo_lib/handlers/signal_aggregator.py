@@ -1,12 +1,23 @@
 """
 Signal Aggregator
 
-Este módulo contém o agregador de signals que centraliza TODOS os handlers
-de events do main_window, removendo a necessidade de 93 métodos _on_*
-espalhados pelo código.
+⚠️  AVISO: ESTE ARQUIVO ESTÁ OBSOLETO! ⚠️
 
-Autor: Refatoração Session 20
-Data: 2026-01-05
+Refatoração Fases 1.2.1 a 1.2.8 (2026-01-14):
+- TODOS os handlers de signals foram migrados para seus respectivos controllers
+- Cada controller agora gerencia seus próprios handlers via setup_ui_handlers()
+- Este arquivo é mantido APENAS para referência histórica
+- SignalAggregator NÃO é mais instanciado no SetupCoordinator
+
+Histórico:
+- Autor: Refatoração Session 20
+- Data: 2026-01-05
+- Obsoleto: 2026-01-14 (Fase 1.2.8)
+
+Para ver a nova arquitetura, consulte:
+- consumo_lib/controllers/*_controller.py (cada controller tem setup_ui_handlers())
+- consumo_lib/managers/stencil_manager.py (StencilManagerWrapper tem setup_ui_handlers())
+- consumo_lib/coordinators/setup_coordinator.py (não cria mais SignalAggregator)
 """
 
 import logging
@@ -18,14 +29,20 @@ logger = logging.getLogger("consumo_lib")
 
 class SignalAggregator:
     """
-    Centraliza TODOS os handlers de signals do main_window.
+    ⚠️  CLASSE OBSOLETA - NÃO UTILIZAR! ⚠️
 
-    Responsabilidade:
+    Esta classe foi completamente removida da arquitetura.
+    Todos os handlers foram migrados para seus respectivos controllers.
+
+    Responsibilidade Antiga:
     - Conectar signals de TODOS os controllers/coordinators/managers
     - Implementar handlers que atualizam UI e estado do main_window
-    - Eliminar a necessidade de 93 métodos _on_* no main_window
 
-    Atributos Gerenciados (do main_window):
+    Nova Arquitetura:
+    - Cada controller gerencia seus próprios handlers via setup_ui_handlers()
+    - Veja: RecipeManagerController, TensionMeasurementController, etc.
+
+    Atributos Gerenciados (agora gerenciados diretamente pelo main_window):
     - current_recipe: Receita atualmente carregada
     - current_stencil: Stencil atualmente selecionado
     - current_sequence: Sequência atual
@@ -34,20 +51,31 @@ class SignalAggregator:
     - inspection_thresholds: Thresholds de inspeção
     - report_config: Configuração de relatório
 
-    Nota: Este handler acessa e modifica atributos do main_window diretamente
-    para manter compatibilidade com o código existente.
+    Nota: Este código é mantido APENAS para referência histórica.
+    Não instanciar esta classe em novo código.
     """
 
     def __init__(self, main_window):
         """
-        Inicializa o agregador de signals.
+        ⚠️  NÃO UTILIZAR - Construtor obsoleto!
 
         Args:
             main_window: Referência para AOIControllerApp (usada para acessar
                         controllers, widgets e estado interno)
+
+        Raises:
+            DeprecationWarning: Esta classe não deve mais ser usada
         """
+        import warnings
+        warnings.warn(
+            "SignalAggregator está obsoleto! Use setup_ui_handlers() em cada controller.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+
         self.main_window = main_window
-        self._setup_all_connections()
+        # Não chama mais _setup_all_connections() - todos os handlers foram migrados
+        logger.warning("SignalAggregator foi instanciado mas não está funcional. Use setup_ui_handlers() nos controllers.")
 
     def _setup_all_connections(self):
         """Conecta TODOS os signals de controllers/coordinators/managers."""

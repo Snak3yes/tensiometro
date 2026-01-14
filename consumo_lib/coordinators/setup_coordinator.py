@@ -533,12 +533,25 @@ class SetupCoordinator:
         logger.debug("Menu configurado")
 
     def _setup_signals(self):
-        """Cria SignalAggregator e conecta todos os signals."""
-        from consumo_lib.handlers import SignalAggregator
+        """
+        Configura signals distribuídos pelos controllers.
 
-        # Centraliza TODOS os handlers de signals
-        self.window.signal_aggregator = SignalAggregator(self.window)
-        logger.debug("SignalAggregator criado e todos os signals conectados")
+        ANTES: SignalAggregator centralizava todos os handlers (anti-pattern)
+        DEPOIS: Cada controller gerencia seus próprios handlers via setup_ui_handlers()
+
+        Refatoração Fases 1.2.1 a 1.2.6 (2026-01-14):
+        - Recipe handlers → RecipeManagerController
+        - Tension handlers → TensionMeasurementController
+        - Inspection handlers → InspectionUIController
+        - Camera/Calibration handlers → CameraController/CalibrationController/FiducialAlignmentController
+        - Map/Position handlers → MapController/PositionManagerController
+        - Stencil/Report handlers → StencilManagerWrapper/ReportDialogController
+
+        O SignalAggregator foi completamente removido (Fase 1.2.8).
+        """
+        # SignalAggregator removido - cada controller gerencia seus próprios handlers
+        logger.debug("Signal handlers configurados via setup_ui_handlers() em cada controller")
+
 
     def _setup_ui_state(self):
         """Configura estado inicial da UI."""
