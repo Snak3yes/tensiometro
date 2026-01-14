@@ -32,20 +32,22 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
 #### Tarefas
 
 ##### 1.1. Refatorar `gerber_core/gui/mainwindow.py`
-- [x] 1.1.1. Análise do arquivo atual (1,384 linhas) ✅
+- [x] 1.1.1. Análise do arquivo atual (1,384 linhas) ✅ `7d5b78e`
   - **Relatório:** `analysis_task_1.1.1.md` criado
   - **Responsabilidades identificadas:** UI (12 métodos), Lógica (7 métodos), Dados (8 métodos)
   - **Complexidade crítica:** `on_edit_many_objects()` = 46, `on_edit_object()` = 27
   - **Violações SOLID:** SRP (crítico), OCP (alto), ISP (médio)
-- [x] 1.1.2. Identificar responsabilidades (UI, lógica, dados, comandos) ✅
+- [x] 1.1.2. Identificar responsabilidades (UI, lógica, dados, comandos) ✅ `7d5b78e`
   - **GerberModel:** Armazenamento, validação, transformações geométricas
   - **GerberController:** Orquestração, coordenação Model↔View, transações
   - **GerberCommands:** EditCircle, EditRectangle, EditRegion, Delete, Move
   - **MainWindow (refatorado):** Apenas UI, delega para Controller
-- [ ] 1.1.3. Criar `gerber_core/models/gerber_model.py`
-  - [ ] Extrair classes de dados (GerberObject, GerberLayer, etc.)
-  - [ ] Mover lógica de persistência para o model
-  - [ ] Adicionar type hints e docstrings
+- [x] 1.1.3. Criar `gerber_core/models/gerber_model.py` ✅ `5e2ef56`
+  - [x] Extrair classes de dados (GerberObject, GerberLayer, etc.)
+  - [x] Mover lógica de persistência para o model
+  - [x] Adicionar type hints e docstrings
+  - **Resultado:** 214 linhas, 23 testes, 97% coverage
+  - **Classes:** ValidationError, GerberObject, GerberLayer, GerberModel
 - [ ] 1.1.4. Criar `gerber_core/controllers/gerber_controller.py`
   - [ ] Extrair lógica de negócio de mainwindow.py
   - [ ] Implementar métodos de edição (edit_object, edit_many_objects)
