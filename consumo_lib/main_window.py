@@ -144,10 +144,14 @@ class AOIControllerApp(QMainWindow):
         # ─────────────────────────────────────────────────────────────────────
         # Componente 1: Estado da aplicação (PRECISA SER PRIMEIRO)
         self._app_state = MainWindowState()
-        # NOTA: set_references é chamado depois do SetupCoordinator para ter acesso a todos os managers
 
-        # Usa SetupCoordinator para orquestrar toda inicialização
+        # Componente 2: Initializer (PRECISA SER ANTES do SetupCoordinator.setup)
+        # Criamos o initializer, mas NÃO chamamos initialize_all() ainda
+        # O SetupCoordinator vai chamar setup_ui(), setup_menu(), etc. individualmente
         setup_coordinator = SetupCoordinator(AOIControllerApp)
+        self._initializer = MainWindowInitializer(self, setup_coordinator)
+
+        # Agora sim, executa o SetupCoordinator
         setup_coordinator.setup(self)
 
         # ─────────────────────────────────────────────────────────────────────
@@ -168,14 +172,15 @@ class AOIControllerApp(QMainWindow):
         Args:
             setup_coordinator: SetupCoordinator para initializer
 
-        NOTA: _app_state já foi inicializado antes do SetupCoordinator.setup()
+        NOTA:
+        - _app_state e _initializer já foram inicializados antes do SetupCoordinator.setup()
+        - setup_ui(), setup_menu() e _attempt_auto_connect() já foram chamados pelo SetupCoordinator
         """
         # Componente 1: Estado da aplicação (já criado, agora configurar referências)
         self._app_state.set_references(self, self.auth_service)
 
-        # Componente 2: Inicialização (UI, menu, auto-connect)
-        self._initializer = MainWindowInitializer(self, setup_coordinator)
-        self._initializer.initialize_all()
+        # Componente 2: Initializer (já criado, setup já foi chamado pelo SetupCoordinator)
+        # Não chamar initialize_all() novamente pois isso duplicaria setup_ui(), setup_menu(), etc.
 
         # Componente 3: Event handlers
         self._event_handlers = MainWindowEventHandlers(self, self._app_state)
@@ -204,6 +209,37 @@ class AOIControllerApp(QMainWindow):
         if name.startswith('show_') and hasattr(self, 'dialog_router'):
             return getattr(self.dialog_router, name)
         raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+    # =========================================================================
+    # DELEGADORES PARA INITIALIZER (compatibilidade com SetupCoordinator)
+    # =========================================================================
+
+    def setup_ui(self):
+        """
+        Configura a UI principal (delega para MainWindowInitializer).
+
+        Este método é chamado pelo SetupCoordinator._setup_ui().
+        """
+        if hasattr(self, '_initializer'):
+            self._initializer.setup_ui()
+
+    def setup_menu(self):
+        """
+        Configura o menu da aplicação (delega para MainWindowInitializer).
+
+        Este método é chamado pelo SetupCoordinator._setup_menu().
+        """
+        if hasattr(self, '_initializer'):
+            self._initializer.setup_menu()
+
+    def _attempt_auto_connect(self):
+        """
+        Tenta conexão automática ao iniciar (delega para MainWindowInitializer).
+
+        Este método é chamado pelo SetupCoordinator._setup_auto_connect().
+        """
+        if hasattr(self, '_initializer'):
+            self._initializer.attempt_auto_connect()
 
     # =========================================================================
     # AUTENTICAÇÃO (NOVO - FASE 1)
