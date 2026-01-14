@@ -98,22 +98,27 @@ class SignalAggregator:
         # =========================================================================
         # STENCIL MANAGER SIGNALS
         # =========================================================================
-        if self.main_window.stencil_manager_wrapper:
-            self.main_window.stencil_manager_wrapper.stencil_selected.connect(
-                self._on_stencil_selected
-            )
-            self.main_window.stencil_manager_wrapper.stencil_cleared.connect(
-                self._on_stencil_cleared
-            )
-            self.main_window.stencil_manager_wrapper.tension_record_added.connect(
-                self._on_tension_record_added
-            )
-            self.main_window.stencil_manager_wrapper.degradation_alert.connect(
-                self._on_degradation_alert
-            )
-            self.main_window.stencil_manager_wrapper.stencil_error.connect(
-                self._on_stencil_error
-            )
+        # MOVIDO PARA StencilManagerWrapper.setup_ui_handlers()
+        # Os handlers de UI de stencil agora são gerenciados pelo próprio manager
+        #
+        # Refatoração Fase 1.2.6 - Stencil & Report Signals (2026-01-14)
+
+        # if self.main_window.stencil_manager_wrapper:
+        #     self.main_window.stencil_manager_wrapper.stencil_selected.connect(
+        #         self._on_stencil_selected
+        #     )
+        #     self.main_window.stencil_manager_wrapper.stencil_cleared.connect(
+        #         self._on_stencil_cleared
+        #     )
+        #     self.main_window.stencil_manager_wrapper.tension_record_added.connect(
+        #         self._on_tension_record_added
+        #     )
+        #     self.main_window.stencil_manager_wrapper.degradation_alert.connect(
+        #         self._on_degradation_alert
+        #     )
+        #     self.main_window.stencil_manager_wrapper.stencil_error.connect(
+        #         self._on_stencil_error
+        #     )
 
         # =========================================================================
         # INSPECTION MANAGER SIGNALS
@@ -244,19 +249,24 @@ class SignalAggregator:
         # =========================================================================
         # REPORT DIALOG CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.report_dialog_controller:
-            self.main_window.report_dialog_controller.tension_report_generated.connect(
-                self._on_tension_report_generated
-            )
-            self.main_window.report_dialog_controller.stencil_report_generated.connect(
-                self._on_stencil_report_generated
-            )
-            self.main_window.report_dialog_controller.period_query_executed.connect(
-                self._on_period_query_executed
-            )
-            self.main_window.report_dialog_controller.report_error.connect(
-                self._on_report_error
-            )
+        # MOVIDO PARA ReportDialogController.setup_ui_handlers()
+        # Os handlers de UI de relatório agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.6 - Stencil & Report Signals (2026-01-14)
+
+        # if self.main_window.report_dialog_controller:
+        #     self.main_window.report_dialog_controller.tension_report_generated.connect(
+        #         self._on_tension_report_generated
+        #     )
+        #     self.main_window.report_dialog_controller.stencil_report_generated.connect(
+        #         self._on_stencil_report_generated
+        #     )
+        #     self.main_window.report_dialog_controller.period_query_executed.connect(
+        #         self._on_period_query_executed
+        #     )
+        #     self.main_window.report_dialog_controller.report_error.connect(
+        #         self._on_report_error
+        #     )
 
         # =========================================================================
         # SEQUENCE CONTROLLER SIGNALS
@@ -566,73 +576,69 @@ class SignalAggregator:
     # =========================================================================
     # STENCIL MANAGER HANDLERS
     # =========================================================================
+    # MOVIDO PARA StencilManagerWrapper
+    # Os handlers de UI de stencil agora são gerenciados pelo próprio manager
+    #
+    # Refatoração Fase 1.2.6 - Stencil & Report Signals (2026-01-14)
 
-    def _on_stencil_selected(self, stencil):
-        """Handler quando um stencil é selecionado."""
-        self.main_window.current_stencil = stencil
-        self.main_window.btn_run_tension.setEnabled(True)
+    # def _on_stencil_selected(self, stencil):
+    #     """Handler quando um stencil é selecionado."""
+    #     self.main_window.current_stencil = stencil
+    #     self.main_window.btn_run_tension.setEnabled(True)
+    #     # Atualiza barra de status
+    #     self.main_window.statusBar().showMessage(
+    #         f"Stencil selecionado: {stencil.code} | "
+    #         f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
+    #         f"Inspeções: {stencil.inspection_count}"
+    #     )
+    #     # Atualiza menu
+    #     self.main_window.current_stencil_action.setText(f"Stencil: {stencil.code}")
+    #     logger.info(f"Stencil selecionado: {stencil.code}")
 
-        # Atualiza barra de status
-        self.main_window.statusBar().showMessage(
-            f"Stencil selecionado: {stencil.code} | "
-            f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
-            f"Inspeções: {stencil.inspection_count}"
-        )
+    # def _on_stencil_cleared(self):
+    #     """Handler quando a seleção de stencil é limpa."""
+    #     self.main_window.current_stencil = None
+    #     self.main_window.btn_run_tension.setEnabled(False)
+    #     self.main_window.statusBar().showMessage("Pronto")
+    #     # Atualiza menu
+    #     self.main_window.current_stencil_action.setText("(Nenhum stencil selecionado)")
+    #     logger.info("Seleção de stencil limpa")
 
-        # Atualiza menu
-        self.main_window.current_stencil_action.setText(f"Stencil: {stencil.code}")
+    # def _on_tension_record_added(self, stencil_code: str, record):
+    #     """Handler chamado quando registro de tensão é adicionado."""
+    #     logger.info(
+    #         f"Medição de tensão salva no histórico do stencil "
+    #         f"'{stencil_code}': {record.result}"
+    #     )
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     QMessageBox.information(
+    #         self.main_window, "Medição Salva",
+    #         f"Resultado da medição salvo no histórico.\n\n"
+    #         f"Stencil: {stencil_code}\n"
+    #         f"Resultado: {record.result}\n"
+    #         f"Média: {record.average_tension:.2f} N/cm²"
+    #     )
+    #     # Atualiza widget de identificação para refletir nova inspeção
+    #     stencil = self.main_window.stencil_manager_wrapper.get_stencil(stencil_code)
+    #     if stencil:
+    #         self.main_window.stencil_identification._select_stencil(stencil)
 
-        logger.info(f"Stencil selecionado: {stencil.code}")
+    # def _on_degradation_alert(self, alert: str):
+    #     """Handler chamado quando há alerta de degradação."""
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     QMessageBox.warning(
+    #         self.main_window, "⚠️ Alerta de Degradação",
+    #         f"Stencil: {self.main_window.current_stencil.code}\n\n{alert}"
+    #     )
 
-    def _on_stencil_cleared(self):
-        """Handler quando a seleção de stencil é limpa."""
-        self.main_window.current_stencil = None
-        self.main_window.btn_run_tension.setEnabled(False)
-        self.main_window.statusBar().showMessage("Pronto")
-
-        # Atualiza menu
-        self.main_window.current_stencil_action.setText("(Nenhum stencil selecionado)")
-
-        logger.info("Seleção de stencil limpa")
-
-    def _on_tension_record_added(self, stencil_code: str, record):
-        """Handler chamado quando registro de tensão é adicionado."""
-        logger.info(
-            f"Medição de tensão salva no histórico do stencil "
-            f"'{stencil_code}': {record.result}"
-        )
-
-        from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.information(
-            self.main_window, "Medição Salva",
-            f"Resultado da medição salvo no histórico.\n\n"
-            f"Stencil: {stencil_code}\n"
-            f"Resultado: {record.result}\n"
-            f"Média: {record.average_tension:.2f} N/cm²"
-        )
-
-        # Atualiza widget de identificação para refletir nova inspeção
-        stencil = self.main_window.stencil_manager_wrapper.get_stencil(stencil_code)
-        if stencil:
-            self.main_window.stencil_identification._select_stencil(stencil)
-
-    def _on_degradation_alert(self, alert: str):
-        """Handler chamado quando há alerta de degradação."""
-        from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.warning(
-            self.main_window, "⚠️ Alerta de Degradação",
-            f"Stencil: {self.main_window.current_stencil.code}\n\n{alert}"
-        )
-
-    def _on_stencil_error(self, error: str):
-        """Handler chamado quando ocorre um erro com stencils."""
-        logger.error(f"Erro de stencil: {error}")
-
-        from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.critical(
-            self.main_window, "Erro de Stencil",
-            f"Ocorreu um erro:\n{error}"
-        )
+    # def _on_stencil_error(self, error: str):
+    #     """Handler chamado quando ocorre um erro com stencils."""
+    #     logger.error(f"Erro de stencil: {error}")
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     QMessageBox.critical(
+    #         self.main_window, "Erro de Stencil",
+    #         f"Ocorreu um erro:\n{error}"
+    #     )
 
     # =========================================================================
     # INSPECTION MANAGER HANDLERS
@@ -861,24 +867,28 @@ class SignalAggregator:
     # =========================================================================
     # REPORT DIALOG CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA ReportDialogController
+    # Os handlers de UI de relatório agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.6 - Stencil & Report Signals (2026-01-14)
 
-    def _on_tension_report_generated(self, output_path: str):
-        """Handler chamado quando relatório de tensão é gerado."""
-        logger.info(f"Relatório de tensão gerado: {output_path}")
-        self.main_window.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+    # def _on_tension_report_generated(self, output_path: str):
+    #     """Handler chamado quando relatório de tensão é gerado."""
+    #     logger.info(f"Relatório de tensão gerado: {output_path}")
+    #     self.main_window.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
 
-    def _on_stencil_report_generated(self, output_path: str):
-        """Handler chamado quando relatório de stencil é gerado."""
-        logger.info(f"Relatório de stencil gerado: {output_path}")
-        self.main_window.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+    # def _on_stencil_report_generated(self, output_path: str):
+    #     """Handler chamado quando relatório de stencil é gerado."""
+    #     logger.info(f"Relatório de stencil gerado: {output_path}")
+    #     self.main_window.statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
 
-    def _on_period_query_executed(self, record_count: int):
-        """Handler chamado quando consulta por período é executada."""
-        logger.info(f"Consulta por período executada: {record_count} registros")
+    # def _on_period_query_executed(self, record_count: int):
+    #     """Handler chamado quando consulta por período é executada."""
+    #     logger.info(f"Consulta por período executada: {record_count} registros")
 
-    def _on_report_error(self, error: str):
-        """Handler chamado quando ocorre erro na geração de relatório."""
-        logger.error(f"Erro na geração de relatório: {error}")
+    # def _on_report_error(self, error: str):
+    #     """Handler chamado quando ocorre erro na geração de relatório."""
+    #     logger.error(f"Erro na geração de relatório: {error}")
 
     # =========================================================================
     # SEQUENCE CONTROLLER HANDLERS

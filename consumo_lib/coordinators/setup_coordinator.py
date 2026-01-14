@@ -184,6 +184,10 @@ class SetupCoordinator:
         self.window.stencil_tracker = self.window.stencil_manager_wrapper.stencil_tracker
         self.window.current_stencil = None
 
+        # Configura handlers de UI do StencilManagerWrapper
+        self.window.stencil_manager_wrapper.setup_ui_handlers(self.window)
+        logger.debug("StencilManagerWrapper UI handlers configurados")
+
         # Report Manager
         self.window.report_manager_wrapper = ReportManagerWrapper(
             self.window.config,
@@ -304,6 +308,8 @@ class SetupCoordinator:
                 self.window.stencil_tracker,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.report_dialog_controller.setup_ui_handlers()
             logger.debug("ReportDialogController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar ReportDialogController: {e}")

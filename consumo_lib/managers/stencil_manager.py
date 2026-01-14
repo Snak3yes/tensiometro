@@ -203,3 +203,131 @@ class StencilManagerWrapper(QObject):
             stencil_code,
             warning_low=warning_low
         )
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self, main_window):
+        """
+        Configura handlers de UI para signals de stencil.
+
+        Este método conecta os signals internos do StencilManagerWrapper
+        aos métodos que atualizam a UI do main_window.
+
+        Args:
+            main_window: Instância principal da janela
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Armazena referência ao main_window
+        self.main_window = main_window
+
+        # Conectar signals a handlers de UI
+        self.stencil_selected.connect(self._on_stencil_selected_update_ui)
+        self.stencil_cleared.connect(self._on_stencil_cleared_update_ui)
+        self.tension_record_added.connect(self._on_tension_record_added_show_message)
+        self.degradation_alert.connect(self._on_degradation_alert_show_message)
+        self.stencil_error.connect(self._on_stencil_error_show_message)
+
+        logger.debug("UI handlers conectados no StencilManagerWrapper")
+
+    def _on_stencil_selected_update_ui(self, stencil):
+        """
+        Atualiza UI quando stencil é selecionado.
+
+        Args:
+            stencil: Stencil selecionado
+        """
+        self.main_window.current_stencil = stencil
+
+        # Habilita botão de tensão
+        if hasattr(self.main_window, 'btn_run_tension'):
+            self.main_window.btn_run_tension.setEnabled(True)
+
+        # Atualiza barra de status
+        if hasattr(self.main_window, 'statusBar'):
+            self.main_window.statusBar().showMessage(
+                f"Stencil selecionado: {stencil.code} | "
+                f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
+                f"Inspeções: {stencil.inspection_count}"
+            )
+
+        # Atualiza menu
+        if hasattr(self.main_window, 'current_stencil_action'):
+            self.main_window.current_stencil_action.setText(f"Stencil: {stencil.code}")
+
+        logger.info(f"Stencil selecionado: {stencil.code}")
+
+    def _on_stencil_cleared_update_ui(self):
+        """Atualiza UI quando seleção de stencil é limpa."""
+        self.main_window.current_stencil = None
+
+        # Desabilita botão de tensão
+        if hasattr(self.main_window, 'btn_run_tension'):
+            self.main_window.btn_run_tension.setEnabled(False)
+
+        # Atualiza statusBar
+        if hasattr(self.main_window, 'statusBar'):
+            self.main_window.statusBar().showMessage("Pronto")
+
+        # Atualiza menu
+        if hasattr(self.main_window, 'current_stencil_action'):
+            self.main_window.current_stencil_action.setText("(Nenhum stencil selecionado)")
+
+        logger.info("Seleção de stencil limpa")
+
+    def _on_tension_record_added_show_message(self, stencil_code: str, record):
+        """
+        Mostra mensagem quando registro de tensão é adicionado.
+
+        Args:
+            stencil_code: Código do stencil
+            record: TensionRecord adicionado
+        """
+        logger.info(
+            f"Medição de tensão salva no histórico do stencil "
+            f"'{stencil_code}': {record.result}"
+        )
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.information(
+            self.main_window, "Medição Salva",
+            f"Resultado da medição salvo no histórico.\n\n"
+            f"Stencil: {stencil_code}\n"
+            f"Resultado: {record.result}\n"
+            f"Média: {record.average_tension:.2f} N/cm²"
+        )
+
+        # Atualiza widget de identificação para refletir nova inspeção
+        stencil = self.get_stencil(stencil_code)
+        if stencil and hasattr(self.main_window, 'stencil_identification'):
+            self.main_window.stencil_identification._select_stencil(stencil)
+
+    def _on_degradation_alert_show_message(self, alert: str):
+        """
+        Mostra alerta de degradação.
+
+        Args:
+            alert: Mensagem de alerta
+        """
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.warning(
+            self.main_window, "⚠️ Alerta de Degradação",
+            f"Stencil: {self.main_window.current_stencil.code}\n\n{alert}"
+        )
+
+    def _on_stencil_error_show_message(self, error: str):
+        """
+        Mostra mensagem de erro de stencil.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Erro de stencil: {error}")
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.critical(
+            self.main_window, "Erro de Stencil",
+            f"Ocorreu um erro:\n{error}"
+        )

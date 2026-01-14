@@ -291,3 +291,66 @@ class ReportDialogController(QObject):
         layout.addLayout(btn_layout)
 
         dialog.exec()
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de relatório.
+
+        Este método conecta os signals internos do ReportDialogController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals a handlers de UI
+        self.tension_report_generated.connect(self._on_tension_report_generated_update_status)
+        self.stencil_report_generated.connect(self._on_stencil_report_generated_update_status)
+        self.period_query_executed.connect(self._on_period_query_executed_log)
+        self.report_error.connect(self._on_report_error_log)
+
+        logger.debug("UI handlers conectados no ReportDialogController")
+
+    def _on_tension_report_generated_update_status(self, output_path: str):
+        """
+        Atualiza statusBar quando relatório de tensão é gerado.
+
+        Args:
+            output_path: Caminho do relatório gerado
+        """
+        logger.info(f"Relatório de tensão gerado: {output_path}")
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+
+    def _on_stencil_report_generated_update_status(self, output_path: str):
+        """
+        Atualiza statusBar quando relatório de stencil é gerado.
+
+        Args:
+            output_path: Caminho do relatório gerado
+        """
+        logger.info(f"Relatório de stencil gerado: {output_path}")
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Relatório salvo: {output_path}", 5000)
+
+    def _on_period_query_executed_log(self, record_count: int):
+        """
+        Log quando consulta por período é executada.
+
+        Args:
+            record_count: Número de registros encontrados
+        """
+        logger.info(f"Consulta por período executada: {record_count} registros")
+
+    def _on_report_error_log(self, error: str):
+        """
+        Log erro quando geração de relatório falha.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Erro na geração de relatório: {error}")
