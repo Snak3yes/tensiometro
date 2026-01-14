@@ -351,3 +351,9 @@ tension_routines/
 # =============================================================================
 claude-conductor/
 
+# =============================================================================
+# CLAUDE CODE TEMPORARY FILES
+# =============================================================================
+# Arquivos temporários criados pelo Claude Code durante execução
+tmpclaude-*
+
