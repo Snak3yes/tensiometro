@@ -675,10 +675,7 @@ class AOIControllerApp(QMainWindow):
             )
 
             # Cria e abre diálogo
-            dialog = EngineeringWizardDialog(
-                parent=self,
-                hardware_coordinator=hardware_coordinator
-            )
+            dialog = EngineeringWizardDialog(parent=self)
 
             # Conecta signal de programa completado
             dialog.program_completed.connect(self._on_engineering_program_completed)

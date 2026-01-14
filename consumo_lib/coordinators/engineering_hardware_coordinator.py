@@ -12,6 +12,12 @@ import logging
 from typing import Dict, Any, Optional, Tuple, List
 from enum import Enum
 
+from consumo_lib.utils.error_handler import (
+    ErrorHandler,
+    HardwareError,
+    TimeoutError as HardwareTimeout
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -133,23 +139,44 @@ class EngineeringHardwareCoordinator:
             # Mover PLC para posição
             if self.plc_controller:
                 logger.debug(f"  → Movendo PLC para X={x:.2f}, Y={y:.2f}, Z={z:.2f}")
-                self.plc_controller.move_absolute('X', x, feed_rate=1000)
-                self.plc_controller.move_absolute('Y', y, feed_rate=1000)
-                self.plc_controller.move_absolute('Z', z, feed_rate=500)
 
-                # Aguardar movimento completar
-                self.plc_controller.wait_for_idle('X')
-                self.plc_controller.wait_for_idle('Y')
-                self.plc_controller.wait_for_idle('Z')
-                logger.debug("  ✅ Movimento completado")
+                try:
+                    self.plc_controller.move_absolute('X', x, feed_rate=1000)
+                    self.plc_controller.move_absolute('Y', y, feed_rate=1000)
+                    self.plc_controller.move_absolute('Z', z, feed_rate=500)
+
+                    # Aguardar movimento completar
+                    self.plc_controller.wait_for_idle('X')
+                    self.plc_controller.wait_for_idle('Y')
+                    self.plc_controller.wait_for_idle('Z')
+                    logger.debug("  ✅ Movimento completado")
+
+                except Exception as plc_error:
+                    logger.error(f"❌ Erro no PLC: {plc_error}")
+                    raise HardwareError(
+                        f"Falha ao mover para posição ({x:.2f}, {y:.2f}, {z:.2f}): {plc_error}",
+                        hardware_type="PLC"
+                    )
 
             # Capturar imagem
             if self.camera_controller:
                 logger.debug(f"  → Capturando imagem ({window_size}x{window_size})")
-                frame = self.camera_controller.capture_frame()
 
-                if frame is None:
-                    raise RuntimeError("Falha ao capturar imagem da câmera")
+                try:
+                    frame = self.camera_controller.capture_frame()
+
+                    if frame is None:
+                        raise HardwareError(
+                            "Falha ao capturar imagem da câmera - frame is None",
+                            hardware_type="camera"
+                        )
+
+                except Exception as cam_error:
+                    logger.error(f"❌ Erro na câmera: {cam_error}")
+                    raise HardwareError(
+                        f"Falha ao capturar imagem: {cam_error}",
+                        hardware_type="camera"
+                    )
 
                 import numpy as np
                 height, width = frame.shape[:2]
@@ -175,9 +202,12 @@ class EngineeringHardwareCoordinator:
                     'captured_at': datetime.now().isoformat()
                 }
 
+        except HardwareError:
+            # Re-raise exceções já tratadas
+            raise
         except Exception as e:
             logger.error(f"❌ Erro ao capturar template fiducial: {e}")
-            raise RuntimeError(f"Erro na captura: {e}")
+            raise RuntimeError(f"Erro inesperado na captura: {e}")
 
     def capture_mosaic_grid(
         self,
@@ -258,27 +288,52 @@ class EngineeringHardwareCoordinator:
             for i, (x, y) in enumerate(grid_points):
                 logger.info(f"  📍 [{i+1}/{len(grid_points)}] ({x:.1f}, {y:.1f})")
 
-                # Mover para posição
-                if self.plc_controller:
-                    self.plc_controller.move_absolute('X', x, feed_rate=2000)
-                    self.plc_controller.move_absolute('Y', y, feed_rate=2000)
-                    self.plc_controller.move_absolute('Z', z_height, feed_rate=1000)
+                try:
+                    # Mover para posição
+                    if self.plc_controller:
+                        try:
+                            self.plc_controller.move_absolute('X', x, feed_rate=2000)
+                            self.plc_controller.move_absolute('Y', y, feed_rate=2000)
+                            self.plc_controller.move_absolute('Z', z_height, feed_rate=1000)
 
-                    self.plc_controller.wait_for_idle('X')
-                    self.plc_controller.wait_for_idle('Y')
-                    self.plc_controller.wait_for_idle('Z')
+                            self.plc_controller.wait_for_idle('X')
+                            self.plc_controller.wait_for_idle('Y')
+                            self.plc_controller.wait_for_idle('Z')
 
-                # Delay para estabilização
-                if delay_ms > 0:
-                    time.sleep(delay_ms / 1000.0)
+                        except Exception as plc_error:
+                            logger.error(f"❌ Erro no PLC no ponto {i+1}: {plc_error}")
+                            raise HardwareError(
+                                f"Falha ao mover para ponto {i+1} ({x:.1f}, {y:.1f}): {plc_error}",
+                                hardware_type="PLC"
+                            )
 
-                # Capturar imagem
-                if self.camera_controller:
-                    frame = self.camera_controller.capture_frame()
-                    if frame is not None:
-                        images.append(frame)
-                    else:
-                        logger.warning(f"  ⚠️ Falha ao capturar frame {i+1}")
+                    # Delay para estabilização
+                    if delay_ms > 0:
+                        time.sleep(delay_ms / 1000.0)
+
+                    # Capturar imagem
+                    if self.camera_controller:
+                        try:
+                            frame = self.camera_controller.capture_frame()
+                            if frame is not None:
+                                images.append(frame)
+                            else:
+                                logger.warning(f"  ⚠️ Frame {i+1} é None")
+
+                        except Exception as cam_error:
+                            logger.error(f"❌ Erro na câmera no ponto {i+1}: {cam_error}")
+                            # Continuar captura mesmo se falhar um ponto
+                            logger.warning(f"  ⚠️ Pulando ponto {i+1} devido a erro de câmera")
+                            continue
+
+                except HardwareError:
+                    # Re-raise exceções de hardware críticas (PLC)
+                    raise
+                except Exception as e:
+                    logger.error(f"❌ Erro inesperado no ponto {i+1}: {e}")
+                    # Continuar captura mesmo se falhar um ponto
+                    logger.warning(f"  ⚠️ Pulando ponto {i+1} devido a erro inesperado")
+                    continue
 
             logger.info(f"✅ Mosaico capturado: {len(images)} imagens")
 

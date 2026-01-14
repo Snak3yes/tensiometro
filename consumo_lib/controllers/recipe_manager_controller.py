@@ -265,3 +265,56 @@ class RecipeManagerController(QObject):
         )
 
         logger.info(f"Configurações de tensão aplicadas da receita '{current_recipe.name}'")
+
+    def create_recipe_from_program(self, program):
+        """
+        Cria uma Recipe a partir de um ProgramConfig do Engineering Wizard.
+
+        Este método permite que programas criados no Engineering Wizard
+        sejam convertidos em Recipes para uso no sistema de inspeção.
+
+        Args:
+            program: ProgramConfig do Engineering Wizard
+
+        Returns:
+            Recipe se criada com sucesso, None se falhou
+
+        Emits:
+            recipe_created se bem-sucedido
+            recipe_error se falhar
+        """
+        from consumo_lib.coordinators.engineering_recipe_coordinator import EngineeringRecipeCoordinator
+
+        logger.info(f"Criando Recipe a partir de ProgramConfig: {program.program_name}")
+
+        try:
+            # Cria coordenador de conversão
+            coordinator = EngineeringRecipeCoordinator()
+
+            # Valida se pode converter
+            can_convert, error_msg = coordinator.can_convert_to_recipe(program)
+            if not can_convert:
+                logger.error(f"Não foi possível converter ProgramConfig para Recipe: {error_msg}")
+                self.recipe_error.emit(f"Erro na conversão: {error_msg}")
+                return None
+
+            # Converte ProgramConfig → Recipe
+            recipe = coordinator.program_to_recipe(program)
+
+            # Salva Recipe usando RecipeManager
+            success = self.recipe_manager.save_recipe(recipe)
+
+            if success:
+                logger.info(f"✅ Recipe criada e salva: {recipe.name} ({recipe.recipe_id})")
+                self.recipe_created.emit(recipe.name)
+                return recipe
+            else:
+                logger.error("Erro ao salvar Recipe no RecipeManager")
+                self.recipe_error.emit("Erro ao salvar Recipe")
+                return None
+
+        except Exception as e:
+            error_msg = f"Erro ao criar Recipe do programa: {e}"
+            logger.exception(error_msg)
+            self.recipe_error.emit(error_msg)
+            return None

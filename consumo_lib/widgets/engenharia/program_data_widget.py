@@ -21,9 +21,8 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLineEdit, QTextEdit, QLabel, QGroupBox
 )
-from PyQt6.QtCore import pyqtSignal, Qt
+from PyQt6.QtCore import pyqtSignal, Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
-from PyQt6.QtGui import QRegularExpression
 
 logger = logging.getLogger(__name__)
 

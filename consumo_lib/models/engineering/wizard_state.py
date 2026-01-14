@@ -121,6 +121,64 @@ class EngineeringWizardState:
 
         return False
 
+    def get_validation_message(self, tab_index: int) -> str:
+        """
+        Retorna mensagem de validação específica para a aba.
+
+        Args:
+            tab_index: Índice da aba (0-6)
+
+        Returns:
+            str: Mensagem descritiva do estado de validação
+        """
+        if self.is_valid(tab_index):
+            return "✓ Completo"
+
+        if tab_index == 0:  # Aba 1
+            missing = []
+            if self.program_data is None:
+                return "⚠ Preencha todos os campos obrigatórios"
+            required_fields = ['program_name', 'stencil_code', 'version', 'created_by']
+            for field in required_fields:
+                if not self.program_data.get(field):
+                    missing.append(field)
+            if missing:
+                return f"⚠ Campos faltando: {', '.join(missing)}"
+            return "⚠ Incompleto"
+
+        elif tab_index == 1:  # Aba 2
+            if self.gerber_file is None:
+                return "⚠ Carregue um arquivo Gerber"
+            if self.gerber_data is None:
+                return "⚠ Aguardando processamento do Gerber"
+            return "⚠ Arquivo Gerber não carregado"
+
+        elif tab_index == 2:  # Aba 3
+            count = len(self.fiducial_templates)
+            if count == 0:
+                return "⚠ Capture pelo menos 2 fiduciais (0/2)"
+            elif count == 1:
+                return "⚠ Capture 1 fiducial adicional (1/2)"
+            else:
+                return f"⚠ Capture {2 - count} fiduciais adicionais ({count}/2)"
+
+        elif tab_index == 3:  # Aba 4
+            return "⚠ Capture o mosaico da área de inspeção"
+
+        elif tab_index == 4:  # Aba 5
+            return "⚠ Execute o alinhamento com o Gerber"
+
+        elif tab_index == 5:  # Aba 6
+            count = len(self.inspection_groups)
+            if count == 0:
+                return "⚠ Crie pelo menos 1 grupo de inspeção"
+            return f"⚠ Configure grupos de inspeção ({count} grupos)"
+
+        elif tab_index == 6:  # Aba 7
+            return "⚠ Complete todas as abas anteriores"
+
+        return "⚠ Estado desconhecido"
+
     def validate_dependencies(self, tab_index: int) -> Tuple[bool, str]:
         """
         Valida dependências de outras abas.

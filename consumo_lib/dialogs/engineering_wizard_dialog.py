@@ -31,6 +31,11 @@ from consumo_lib.widgets.engenharia import (
     InspectionWindowsWidget,
     ConfirmSaveWidget
 )
+from consumo_lib.utils.ux_helpers import (
+    setup_engineering_wizard_shortcuts,
+    set_tooltip,
+    ENGINEERING_WIZARD_TOOLTIPS
+)
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +69,8 @@ class EngineeringWizardDialog(QDialog):
         self._setup_ui()
         self._connect_signals()
         self._update_ui_state()
+        self._setup_keyboard_shortcuts()
+        self._setup_tooltips()
 
         logger.info("📋 EngineeringWizardDialog inicializado")
 
@@ -154,6 +161,9 @@ class EngineeringWizardDialog(QDialog):
         for i in range(1, 7):
             self.tab_widget.setTabEnabled(i, False)
 
+        # Atualizar labels com indicadores visuais
+        self._update_tab_labels()
+
         logger.debug("✓ 7 abas criadas")
 
     def _create_button_bar(self, parent_layout):
@@ -188,6 +198,43 @@ class EngineeringWizardDialog(QDialog):
         parent_layout.addLayout(button_layout)
         logger.debug("✓ Barra de botoes criada")
 
+    def _setup_keyboard_shortcuts(self):
+        """Configura atalhos de teclado do wizard."""
+        setup_engineering_wizard_shortcuts(self)
+        logger.debug("⌨️ Atalhos de teclado configurados")
+
+    def _setup_tooltips(self):
+        """Configura tooltips nos botões principais."""
+        # Botões de navegação
+        set_tooltip(self.btn_previous, 'previous_btn')
+        self.btn_previous.setToolTip(
+            "Voltar para aba anterior\n\n"
+            "Atalho: Ctrl + ←"
+        )
+
+        set_tooltip(self.btn_next, 'next_btn')
+        self.btn_next.setToolTip(
+            "Avançar para próxima aba\n\n"
+            "Requer: Aba atual completa\n"
+            "Atalho: Ctrl + →"
+        )
+
+        set_tooltip(self.btn_cancel, 'cancel_btn')
+        self.btn_cancel.setToolTip(
+            "Cancelar wizard\n\n"
+            "Alterações não salvas serão perdidas\n"
+            "Atalho: Esc"
+        )
+
+        set_tooltip(self.btn_finish, 'finish_btn')
+        self.btn_finish.setToolTip(
+            "Concluir e salvar programa\n\n"
+            "Requer: Todas as abas completas\n"
+            "Atalho: Ctrl + Enter"
+        )
+
+        logger.debug("💡 Tooltips configurados")
+
     def _connect_signals(self):
         """Conecta sinais dos widgets e botoes."""
         # Botoes de navegacao
@@ -212,13 +259,13 @@ class EngineeringWizardDialog(QDialog):
         self.tab_mosaic_capture.mosaic_captured.connect(self._on_mosaic_captured)
         self.tab_mosaic_capture.validation_changed.connect(self._on_validation_changed)
 
-        self.tab_alignment.alignment_completed.connect(self._on_alignment_completed)
-        self.tab_alignment.validation_changed.connect(self._on_validation_changed)
+        self.tab_alignment.alignmentApplied.connect(self._on_alignment_completed)
+        self.tab_alignment.validationChanged.connect(self._on_validation_changed)
 
-        self.tab_inspection_windows.groups_changed.connect(self._on_inspection_groups_changed)
+        self.tab_inspection_windows.group_count_changed.connect(self._on_inspection_groups_changed)
         self.tab_inspection_windows.validation_changed.connect(self._on_validation_changed)
 
-        self.tab_confirm_save.save_confirmed.connect(self._on_save_confirmed)
+        self.tab_confirm_save.save_requested.connect(self._on_save_confirmed)
 
         logger.debug("✓ Signals conectados")
 
@@ -233,10 +280,12 @@ class EngineeringWizardDialog(QDialog):
         if self.current_tab < 6:
             # Validar aba atual antes de avancar
             if not self.state.is_valid(self.current_tab):
+                # Obter mensagem específica de validação
+                validation_msg = self.state.get_validation_message(self.current_tab)
                 QMessageBox.warning(
                     self,
-                    "Validação",
-                    "Preencha todos os campos obrigatórios antes de avançar."
+                    "⚠️ Aba Incompleta",
+                    f"Complete a aba atual antes de avançar.\n\n{validation_msg}"
                 )
                 logger.warning(f"⚠️ Tentou avançar com aba {self.current_tab} inválida")
                 return
@@ -244,7 +293,11 @@ class EngineeringWizardDialog(QDialog):
             # Validar dependencias
             can_proceed, message = self.state.can_proceed_to_tab(self.current_tab + 1)
             if not can_proceed:
-                QMessageBox.warning(self, "Validação", message)
+                QMessageBox.warning(
+                    self,
+                    "⚠️ Dependências Não Atendidas",
+                    message
+                )
                 logger.warning(f"⚠️ Dependências não atendidas: {message}")
                 return
 
@@ -309,6 +362,24 @@ class EngineeringWizardDialog(QDialog):
 
     def _on_tab_changed(self, index: int):
         """Handler para mudanca de aba."""
+        # Bloquear navegação para abas não permitidas
+        if index > self.current_tab:
+            # Tentando avançar - validar dependências
+            can_proceed, message = self.state.can_proceed_to_tab(index)
+            if not can_proceed:
+                # Bloquear mudança de aba
+                QMessageBox.warning(
+                    self,
+                    "⚠️ Navegação Bloqueada",
+                    f"{message}\n\nComplete as etapas anteriores para continuar."
+                )
+                # Reverter para aba atual
+                self.tab_widget.blockSignals(True)
+                self.tab_widget.setCurrentIndex(self.current_tab)
+                self.tab_widget.blockSignals(False)
+                logger.warning(f"⚠️ Tentou navegar para aba {index} sem permissão")
+                return
+
         old_tab = self.current_tab
         self.current_tab = index
         self.state.current_tab = index
@@ -357,6 +428,33 @@ class EngineeringWizardDialog(QDialog):
         for i in range(1, 7):
             can_proceed, _ = self.state.can_proceed_to_tab(i)
             self.tab_widget.setTabEnabled(i, can_proceed)
+
+        # Atualizar labels com indicadores visuais
+        self._update_tab_labels()
+
+    def _update_tab_labels(self):
+        """Atualiza os nomes das abas com indicadores visuais de validação."""
+        tab_names = [
+            "1. Dados do Programa",
+            "2. Carregar Gerber",
+            "3. Definir Fiduciais",
+            "4. Capturar Mosaico",
+            "5. Alinhamento",
+            "6. Janelas de Inspeção",
+            "7. Confirmar e Salvar"
+        ]
+
+        for i in range(7):
+            base_name = tab_names[i]
+            # Adicionar indicador visual
+            if self.state.is_valid(i):
+                # Aba completa - adiciona checkmark
+                self.tab_widget.setTabText(i, f"{base_name} ✓")
+            else:
+                # Aba incompleta - sem indicador ou com aviso
+                self.tab_widget.setTabText(i, base_name)
+
+        logger.debug("🏷️ Labels das abas atualizados")
 
     # ========================
     # Handlers de signals das abas
@@ -413,16 +511,13 @@ class EngineeringWizardDialog(QDialog):
         self.tab_widget.setTabEnabled(5, True)
         logger.debug("🔧 Alinhamento concluído")
 
-    def _on_inspection_groups_changed(self, groups: list):
+    def _on_inspection_groups_changed(self, group_count: int):
         """Handler para grupos de inspeção mudaram (Aba 6)."""
-        self.state.inspection_groups = groups
-        self.state.update_timestamp()
-        self.state_changed.emit(self.state)
-
-        if len(groups) > 0:
+        # Atualiza estado apenas com o count (a lista será obtida do widget quando necessário)
+        if group_count > 0:
             # Habilitar aba 7
             self.tab_widget.setTabEnabled(6, True)
-        logger.debug(f"🔍 Grupos de inspeção atualizados ({len(groups)} grupos)")
+        logger.debug(f"🔍 Grupos de inspeção atualizados ({group_count} grupos)")
 
     def _on_validation_changed(self, is_valid: bool):
         """Handler para mudanca de validacao de qualquer aba."""
@@ -503,6 +598,9 @@ class EngineeringWizardDialog(QDialog):
 
     def _compile_program_config(self) -> Dict[str, Any]:
         """Compila configuracao final do programa."""
+        # Obter grupos de inspeção do widget
+        inspection_groups = getattr(self.tab_inspection_windows, 'get_groups', lambda: [])()
+
         return {
             'program_name': self.state.program_data.get('program_name'),
             'stencil_code': self.state.program_data.get('stencil_code'),
@@ -521,7 +619,7 @@ class EngineeringWizardDialog(QDialog):
 
             'alignment_transform': self.state.alignment_transform,
 
-            'inspection_groups': self.state.inspection_groups,
+            'inspection_groups': inspection_groups,
 
             'metadata': {
                 'wizard_version': '1.0.0',
