@@ -11,6 +11,7 @@ Este módulo exporta todos os widgets para facilitar importação:
 # Importa todos os widgets para exportação
 from .camera_preview import CameraPreviewWidget
 from .image_viewer import ImageViewerWidget
+from .zoomable_image_view import ZoomableImageView
 from .movement_control import MovementControlWidget
 from .plc_monitor import PLCMonitorWidget
 from .position_list import PositionListWidget
@@ -30,6 +31,7 @@ from .engenharia import (
 __all__ = [
     'CameraPreviewWidget',
     'ImageViewerWidget',
+    'ZoomableImageView',
     'MovementControlWidget',
     'PLCMonitorWidget',
     'PositionListWidget',

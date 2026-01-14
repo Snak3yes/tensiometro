@@ -15,85 +15,9 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap, QImage, QFont, QPainter
 
 from .final_decision_dialog import FinalDecisionDialog
+from consumo_lib.widgets.zoomable_image_view import ZoomableImageView
 
 logger = logging.getLogger(__name__)
-
-
-class ImagePreviewWidget(QLabel):
-    """
-    Widget de preview de imagem com zoom
-
-    Permite zoom in/out e reset.
-    """
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-
-        self.pixmap = None
-        self.zoom_factor = 1.0
-        self.min_zoom = 0.5
-        self.max_zoom = 3.0
-
-        self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet("""
-            QLabel {
-                background-color: #F3F4F6;
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                min-height: 300px;
-            }
-        """)
-        self.setText("Nenhuma imagem selecionada")
-
-    def set_image(self, image_path: str):
-        """
-        Define imagem a ser exibida
-
-        Args:
-            image_path: Caminho da imagem
-        """
-        try:
-            self.pixmap = QPixmap(image_path)
-
-            if not self.pixmap.isNull():
-                self._update_display()
-                logger.debug(f"Imagem carregada: {image_path}")
-            else:
-                self.setText("Erro ao carregar imagem")
-                logger.warning(f"Imagem não pode ser carregada: {image_path}")
-
-        except Exception as e:
-            self.setText("Erro ao carregar imagem")
-            logger.error(f"Erro ao carregar imagem: {e}")
-
-    def zoom_in(self):
-        """Aumenta zoom"""
-        if self.zoom_factor < self.max_zoom:
-            self.zoom_factor = min(self.zoom_factor + 0.25, self.max_zoom)
-            self._update_display()
-
-    def zoom_out(self):
-        """Diminui zoom"""
-        if self.zoom_factor > self.min_zoom:
-            self.zoom_factor = max(self.zoom_factor - 0.25, self.min_zoom)
-            self._update_display()
-
-    def reset_zoom(self):
-        """Reseta zoom para 100%"""
-        self.zoom_factor = 1.0
-        self._update_display()
-
-    def _update_display(self):
-        """Atualiza display com zoom atual"""
-        if self.pixmap and not self.pixmap.isNull():
-            # Aplica zoom
-            scaled_pixmap = self.pixmap.scaled(
-                int(self.pixmap.width() * self.zoom_factor),
-                int(self.pixmap.height() * self.zoom_factor),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            self.setPixmap(scaled_pixmap)
 
 
 class DefectJudgmentDialog(QDialog):
@@ -289,7 +213,7 @@ class DefectJudgmentDialog(QDialog):
         image_layout.addWidget(image_title)
 
         # Widget de imagem com zoom
-        self.image_preview = ImagePreviewWidget()
+        self.image_preview = ZoomableImageView()
         image_layout.addWidget(self.image_preview, 1)
 
         # Controles de zoom
