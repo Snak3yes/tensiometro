@@ -4,6 +4,34 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## [~] Track: SOLID Refactoring Phase 1 (ACTIVE) <!-- 2026-01-14 -->
+*Link: [./conductor/tracks/solid_refactoring_phase1_20260114/](./conductor/tracks/solid_refactoring_phase1_20260114/)*
+- **Track ID:** solid_refactoring_phase1_20260114
+- **Status:** 🔄 Active
+- **Priority:** 🔴 CRITICAL
+- **Type:** Refactor
+- **Created:** 2026-01-14
+- **Est. Duration:** 2 weeks
+- **Sprint:** 1
+- **Phases:** 4 (Setup, Refactor stencil_tension, Implement EventBus, Documentation)
+- **Plan:** ./tracks/solid_refactoring_phase1_20260114/plan.md
+- **Spec:** ./tracks/solid_refactoring_phase1_20260114/spec.md
+- **Metadata:** ./tracks/solid_refactoring_phase1_20260114/metadata.json
+- **Target Files:**
+  - `aoi_lib/stencil_tension.py` (1,409 linhas → 4 módulos)
+  - `consumo_lib/handlers/signal_aggregator.py` (1,192 linhas → Event Bus)
+- **Objectives:**
+  - ✅ Eliminar arquivos >1000 linhas (CRITICAL)
+  - ✅ Melhorar Score SOLID: 62/100 → 75/100
+  - ✅ Aumentar testabilidade: 0% → 80% (sem PyQt6)
+  - ✅ Implementar Event Bus pattern
+  - ✅ Reduzir complexidade em 85+ pontos
+- **References:**
+  - SOLID Analysis: `docs/reports/SOLID_ANALYSIS_REPORT.md`
+  - Refactoring Roadmap: Section "Refactoring Roadmap" in analysis report
+
+---
+
 ## 📦 Engineering Wizard - Todas as 7 Abas COMPLETAS (archived) <!-- 2026-01-13 -->
 
 ### [x] Aba 1: Dados do Programa (archived)

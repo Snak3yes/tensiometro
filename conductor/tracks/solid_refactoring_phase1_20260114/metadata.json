@@ -1,0 +1,207 @@
+{
+  "track_id": "solid_refactoring_phase1_20260114",
+  "type": "refactor",
+  "priority": "critical",
+  "status": "pending",
+  "created_at": "2026-01-14T13:45:00Z",
+  "updated_at": "2026-01-14T13:45:00Z",
+  "estimated_duration": "2 weeks",
+  "sprint": 1,
+
+  "title": "SOLID Refactoring Phase 1 - Critical Files",
+  "description": "Refactor the 2 most critical files (stencil_tension.py 1,409 lines, signal_aggregator.py 1,192 lines) to eliminate CRITICAL SRP violations and improve testability.",
+
+  "objectives": [
+    "Eliminate all CRITICAL SRP violations (files >1000 lines)",
+    "Improve SOLID score from 62/100 to 75/100",
+    "Increase testability from 0% to 80% (without PyQt6)",
+    "Implement Event Bus pattern for decoupling",
+    "Reduce complexity by 85+ points"
+  ],
+
+  "target_files": [
+    {
+      "file": "aoi_lib/stencil_tension.py",
+      "lines": 1409,
+      "violations": ["SRP", "DIP", "OCP"],
+      "complexity": 85,
+      "action": "refactor into 4 modules"
+    },
+    {
+      "file": "consumo_lib/handlers/signal_aggregator.py",
+      "lines": 1192,
+      "violations": ["SRP", "ISP", "DIP"],
+      "complexity": 120,
+      "action": "implement Event Bus pattern"
+    }
+  ],
+
+  "phases": [
+    {
+      "id": 0,
+      "name": "Preparation & Setup",
+      "duration": "1 day",
+      "tasks": [
+        "Analyze current codebase dependencies",
+        "Create compatibility shims",
+        "Setup test infrastructure",
+        "Verify checkpoint (smoke test)"
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Refactor stencil_tension.py",
+      "duration": "5 days",
+      "tasks": [
+        "Extract data models to models.py",
+        "Create measurement_service.py (business logic)",
+        "Create measurement_orchestrator.py (coordination)",
+        "Refactor measurement_thread.py (execution only)",
+        "Move dialog to consumo_lib and refactor",
+        "Write unit tests for service layer",
+        "Update imports across codebase",
+        "Verify checkpoint (all tests passing)",
+        "Create checkpoint commit"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Implement Event Bus",
+      "duration": "3 days",
+      "tasks": [
+        "Create EventBus core infrastructure",
+        "Migrate critical signals to Event Bus",
+        "Refactor SignalAggregator to use EventBus",
+        "Remove 120+ connect_*() methods",
+        "Write integration tests for EventBus",
+        "Update all signal registrations",
+        "Verify checkpoint (smoke test + integration tests)",
+        "Create checkpoint commit"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Documentation & Polish",
+      "duration": "1 day",
+      "tasks": [
+        "Update CLAUDE.md with new architecture",
+        "Create migration guide for developers",
+        "Run full test suite and fix issues",
+        "Verify final checkpoint (all quality gates)",
+        "Create final commit and documentation"
+      ]
+    }
+  ],
+
+  "metrics": {
+    "before": {
+      "files_over_1000_lines": 2,
+      "solid_score": 62,
+      "stencil_tension_complexity": 85,
+      "signal_aggregator_complexity": 120,
+      "testability_without_pyqt6": "0%",
+      "test_coverage": "25.81%"
+    },
+    "after": {
+      "files_over_1000_lines": 0,
+      "solid_score": 75,
+      "stencil_tension_complexity": 15,
+      "signal_aggregator_complexity": 15,
+      "testability_without_pyqt6": "80%",
+      "test_coverage": "30%"
+    }
+  },
+
+  "quality_gates": {
+    "zero_breaking_changes": true,
+    "all_tests_passing": true,
+    "coverage_minimum": "30%",
+    "max_complexity": 15,
+    "max_file_size": 500,
+    "smoke_test_required": true
+  },
+
+  "dependencies": [],
+  "blocks": [],
+  "risks": [
+    {
+      "risk": "Breaking changes in imports",
+      "probability": "HIGH",
+      "impact": "HIGH",
+      "mitigation": "Maintain compatibility shims with deprecation warnings"
+    },
+    {
+      "risk": "Performance degradation with EventBus",
+      "probability": "MEDIUM",
+      "impact": "MEDIUM",
+      "mitigation": "Benchmark publish/subscribe, optimize with type hints"
+    },
+    {
+      "risk": "Complexity of migrating PyQt6 signals",
+      "probability": "HIGH",
+      "impact": "HIGH",
+      "mitigation": "Gradual migration, adapter pattern during transition"
+    }
+  ],
+
+  "out_of_scope": [
+    "Refactor report_generator.py (Phase 2)",
+    "Refactor fiducial_alignment_widget.py (Phase 2)",
+    "Implement DI container global (Phase 2)",
+    "Refactor stencil_inspector.py (Phase 3)",
+    "Interface Segregation (Phase 3)",
+    "Command Pattern for PLC (Phase 3)"
+  ],
+
+  "references": [
+    "docs/reports/SOLID_ANALYSIS_REPORT.md",
+    "docs/reports/REFACTORING_COMPLETION_REPORT.md",
+    "CLAUDE.md",
+    "conductor/workflow.md"
+  ],
+
+  "checkpoints": [
+    {
+      "phase": 0,
+      "name": "Setup Complete",
+      "criteria": [
+        "Dependencies analyzed",
+        "Compatibility shims created",
+        "Test infrastructure ready",
+        "Smoke test passed"
+      ]
+    },
+    {
+      "phase": 1,
+      "name": "stencil_tension Refactored",
+      "criteria": [
+        "4 modules created",
+        "Service layer testable",
+        "Dialog <400 lines",
+        "15+ unit tests",
+        "All tests passing"
+      ]
+    },
+    {
+      "phase": 2,
+      "name": "EventBus Implemented",
+      "criteria": [
+        "EventBus created",
+        "120+ methods removed",
+        "SignalAggregator <200 lines",
+        "5+ integration tests",
+        "Features functional"
+      ]
+    },
+    {
+      "phase": 3,
+      "name": "Complete & Documented",
+      "criteria": [
+        "CLAUDE.md updated",
+        "Migration guide created",
+        "All quality gates passed",
+        "Ready for Phase 2"
+      ]
+    }
+  ]
+}
