@@ -1,20 +1,22 @@
-# SOLID Refactoring Phase 1 - Implementation Plan
+# SOLID Refactoring Phase 1 - Implementation Plan (REVISED)
 
 **Track ID:** solid_refactoring_phase1_20260114
 **Type:** Refactor
 **Priority:** 🔴 CRITICAL
-**Est. Duration:** 2 weeks (10 working days)
+**Est. Duration:** 1 week (7 working days) ⚡ REDUZIDO (de 10 dias)
 **Sprint:** 1
 **Start Date:** 2026-01-14
+**Last Updated:** 2026-01-14 (Phase 2 removed - SignalAggregator already refactored!)
 
 ---
 
 ## Overview
 
-Esta track implementa a **Fase 1 do Roadmap de Refatoração SOLID**, focando nos 2 arquivos mais críticos do projeto:
+Esta track implementa a **Fase 1 do Roadmap de Refatoração SOLID**, focando no arquivo mais crítico do projeto:
 
 1. **aoi_lib/stencil_tension.py** (1,409 linhas) → Refatorar em 4 módulos
-2. **consumo_lib/handlers/signal_aggregator.py** (1,192 linhas) → Implementar Event Bus
+
+**BÔNUS:** Remover **SignalAggregator obsoleto** (1,192 linhas) - já refatorado em track anterior!
 
 **Objetivo:** Eliminar violações CRÍTICAS de SRP, melhorar testabilidade e reduzir complexidade.
 
@@ -24,7 +26,7 @@ Esta track implementa a **Fase 1 do Roadmap de Refatoração SOLID**, focando no
 
 ```
 Phase 0: Preparation & Setup (1 day)
-├── Task 0.1: Analyze current codebase dependencies
+├── Task 0.1: Analyze current codebase dependencies ✅
 ├── Task 0.2: Create compatibility shims
 ├── Task 0.3: Setup test infrastructure
 └── Task 0.4: Verify checkpoint (smoke test)
@@ -40,22 +42,20 @@ Phase 1: Refactor stencil_tension.py (5 days)
 ├── Task 1.8: Verify checkpoint (all tests passing)
 └── Task 1.9: Create checkpoint commit
 
-Phase 2: Implement Event Bus (3 days)
-├── Task 2.1: Create EventBus core infrastructure
-├── Task 2.2: Migrate critical signals to Event Bus
-├── Task 2.3: Refactor SignalAggregator to use EventBus
-├── Task 2.4: Remove 120+ connect_*() methods
-├── Task 2.5: Write integration tests for EventBus
-├── Task 2.6: Update all signal registrations
-├── Task 2.7: Verify checkpoint (smoke test + integration tests)
-└── Task 2.8: Create checkpoint commit
+Phase 2: Documentation & Cleanup (1 day) ⚡ SIMPLIFICADA
+├── Task 2.1: Remove obsolete SignalAggregator (1,192 lines!)
+├── Task 2.2: Update CLAUDE.md with new architecture
+├── Task 2.3: Create migration guide for developers
+├── Task 2.4: Run full test suite and fix issues
+├── Task 2.5: Verify final checkpoint (all quality gates)
+└── Task 2.6: Create final commit and documentation
 
-Phase 3: Documentation & Polish (1 day)
-├── Task 3.1: Update CLAUDE.md with new architecture
-├── Task 3.2: Create migration guide for developers
-├── Task 3.3: Run full test suite and fix issues
-├── Task 3.4: Verify final checkpoint (all quality gates)
-└── Task 3.5: Create final commit and documentation
+~~Phase 3: Implement Event Bus~~ ❌ REMOVIDA
+Motivo: SignalAggregator já foi refatorado (2026-01-14)
+- Todos os handlers migrados para controllers
+- Padrão setup_ui_handlers() já implementado
+- Event Bus pattern já aplicado
+- Ver DEPENDENCY_ANALYSIS.md para detalhes
 ```
 
 ---
@@ -661,366 +661,55 @@ Co-Authored-By: RONALDBUZAGLO <senseironald@gmail.com>"
 
 ---
 
-## Phase 2: Implement Event Bus
-
-**Duration:** 3 days
-**Goal:** Substituir SignalAggregator por Event Bus pattern
-
-### Task 2.1: Create EventBus core infrastructure
-
-**Description:** Implementar EventBus centralizado (Publish/Subscribe)
-
-**File to Create:** `consumo_lib/event_bus.py`
-
-**Class Structure:**
-```python
-from dataclasses import dataclass
-from typing import Callable, Dict, List, Any
-from datetime import datetime
-import logging
-
-@dataclass
-class Event:
-    """Evento genérico do sistema"""
-    type_: str
-    data: Any
-    timestamp: datetime = field(default_factory=datetime.now)
-    source: str = None
-
-
-class EventBus:
-    """
-    Bus centralizado de eventos (Publish/Subscribe pattern).
-
-    Responsabilidades:
-    - Registrar subscribers para tipos de eventos
-    - Publicar eventos para subscribers
-    - Gerenciar lifecycle de subscriptions
-
-    Benefícios:
-    - Desacoplamento: Componentes não se conhecem
-    - Extensibilidade: Adicionar eventos sem modificar EventBus
-    - Testabilidade: Mock simples para testes
-    """
-
-    def __init__(self):
-        self._subscribers: Dict[str, List[Callable]] = {}
-        self.logger = logging.getLogger(__name__)
-
-    def subscribe(self, event_type: str, handler: Callable[[Event], None]):
-        """Inscreve handler para tipo de evento"""
-
-    def unsubscribe(self, event_type: str, handler: Callable):
-        """Remove inscrição de handler"""
-
-    def publish(self, event: Event):
-        """Publica evento para todos subscribers"""
-
-    def subscribe_async(self, event_type: str, handler: Callable):
-        """Inscreve handler com execução assíncrona (Qt signals)"
-```
-
-**Acceptance:**
-- [ ] `consumo_lib/event_bus.py` criado
-- [ ] Event e EventBus implementados
-- [ ] Type hints em todos os métodos
-- [ ] Docstrings Google style
-- [ ] Logging estruturado
-- [ ] <150 linhas de código
-
----
-
-### Task 2.2: Migrate critical signals to Event Bus
-
-**Description:** Migrar sinais críticos para usar EventBus
-
-**Signals to Migrate (Priority 1):**
-```python
-# Camera events
-"camera.frame_captured"
-"camera.connection_changed"
-
-# Tension events
-"tension.measurement_started"
-"tension.measurement_progress"
-"tension.measurement_completed"
-"tension.measurement_error"
-
-# PLC events
-"plc.movement_started"
-"plc.movement_completed"
-"plc.connection_changed"
-
-# Inspection events
-"inspection.started"
-"inspection.progress_updated"
-"inspection.completed"
-"inspection.defect_found"
-```
-
-**Migration Pattern:**
-```python
-# ANTIGO (PyQt6 signals directly)
-class CameraController:
-    frame_captured = pyqtSignal(np.ndarray)
-
-    def capture_frame(self):
-        frame = self._do_capture()
-        self.frame_captured.emit(frame)
-
-# NOVO (Event Bus + PyQt6 signals for UI)
-class CameraController:
-    def __init__(self, event_bus: EventBus):
-        self.event_bus = event_bus
-        # Keep signal for UI compatibility
-        self.frame_captured = pyqtSignal(np.ndarray)
-
-    def capture_frame(self):
-        frame = self._do_capture()
-        # Publish to event bus
-        event = Event("camera.frame_captured", data=frame)
-        self.event_bus.publish(event)
-        # Still emit signal for UI components
-        self.frame_captured.emit(frame)
-```
-
-**Acceptance:**
-- [ ] 15+ eventos críticos migrados
-- [ ] Cada componente publica seus eventos
-- [ ] PyQt6 signals mantidos para UI (compatibilidade)
-- [ ] Event types documentados
-
----
-
-### Task 2.3: Refactor SignalAggregator to use EventBus
-
-**Description:** Refatorar SignalAggregator para usar EventBus internamente
-
-**File to Refactor:** `consumo_lib/handlers/signal_aggregator.py`
-
-**New Structure:**
-```python
-class SignalAggregator:
-    """
-    Agregador de sinais (compatibilidade layer).
-
-    Responsabilidade:
-    - Adaptar PyQt6 signals ↔ Event Bus
-    - Manter compatibilidade com código existente
-
-    Event Bus é a nova verdade. SignalAggregator é um adaptador.
-    """
-
-    def __init__(self, event_bus: EventBus):
-        self.event_bus = event_bus
-
-    # Remover 120+ métodos connect_*()
-    # Substituir por auto-registration via Event Bus
-
-    def register_controller(self, controller: Any, controller_name: str):
-        """
-        Registra controller no Event Bus.
-
-        Controller deve implementar método register_events().
-        """
-        if hasattr(controller, 'register_events'):
-            controller.register_events(self.event_bus)
-```
-
-**Acceptance:**
-- [ ] SignalAggregator usa EventBus internamente
-- [ ] 120+ métodos connect_*() removidos
-- [ ] Auto-registration implementado
-- [ ] SignalAggregator reduzido para <200 linhas
-
----
-
-### Task 2.4: Remove 120+ connect_*() methods
-
-**Description:** Remover métodos repetitivos de conexão de sinais
-
-**Before (1,192 lines):**
-```python
-def connect_camera_controller(self, controller):
-    if controller:
-        controller.frame_updated.connect(self.on_camera_frame_updated)
-
-def connect_tension_controller(self, controller):
-    if controller:
-        controller.measurement_completed.connect(self.on_tension_measurement_completed)
-
-# ... 118+ methods
-```
-
-**After (<200 lines):**
-```python
-def register_controller(self, controller: Any, name: str):
-    """Generic controller registration"""
-    if hasattr(controller, 'register_events'):
-        controller.register_events(self.event_bus)
-```
-
-**Acceptance:**
-- [ ] Todos os métodos connect_*() removidos
-- [ ] Código reduzido em ~900 linhas
-- [ ] Auto-registration funcional
-- [ ] Backward compatibility mantida
-
----
-
-### Task 2.5: Write integration tests for EventBus
-
-**Description:** Escrever testes de integração para EventBus
-
-**File to Create:** `tests/integration/test_event_bus.py`
-
-**Test Cases:**
-```python
-def test_event_subscription():
-    """Testa subscrição de evento"""
-
-def test_event_publishing():
-    """Testa publicação de evento"""
-
-def test_multiple_subscribers():
-    """Testa múltiplos subscribers para mesmo evento"""
-
-def test_event_unsubscription():
-    """Testa cancelamento de subscrição"""
-
-def test_event_with_camera_controller():
-    """Testa integração com CameraController (mock)"""
-
-def test_event_with_plc_controller():
-    """Testa integração com PLCController (mock)"
-
-def test_async_event_execution():
-    """Testa execução assíncrona de eventos"
-```
-
-**Acceptance:**
-- [ ] ≥5 testes de integração
-- [ ] Coverage ≥ 80% para EventBus
-- [ ] Todos os testes passam
-- [ ] Testes rodam rapidamente (<5s)
-
----
-
-### Task 2.6: Update all signal registrations
-
-**Description:** Atualizar todos os controllers para usar auto-registration
-
-**Pattern:**
-```python
-# Adicionar método em cada controller
-class CameraController:
-    def __init__(self, event_bus: EventBus):
-        self.event_bus = event_bus
-        self.frame_captured = pyqtSignal(np.ndarray)
-
-    def register_events(self, event_bus: EventBus):
-        """Registra eventos no Event Bus"""
-        event_bus.subscribe("camera.capture_requested", self.on_capture_request)
-
-    def capture_frame(self):
-        frame = self._do_capture()
-        event = Event("camera.frame_captured", data=frame)
-        self.event_bus.publish(event)
-        self.frame_captured.emit(frame)  # For UI compatibility
-```
-
-**Controllers to Update:**
-- [ ] CameraController
-- [ ] TensionMeasurementController
-- [ ] MovementController
-- [ ] InspectionController
-- [ ] FiducialAlignmentController
-- [ ] Outros controllers com sinais
-
-**Acceptance:**
-- [ ] Todos os controllers têm register_events()
-- [ ] Todos os eventos publicados no EventBus
-- [ ] PyQt6 signals mantidos para UI
-- [ ] Nenhum comportamento quebrado
-
----
-
-### Task 2.7: Verify checkpoint (smoke test + integration tests)
-
-**Description:** Garantir que tudo funciona após migração para EventBus
-
-**Verification Commands:**
-```bash
-# Testes de integração do EventBus
-pytest tests/integration/test_event_bus.py -v
-
-# Test suite completo
-pytest --cov=consumo_lib.event_bus --cov=consumo_lib.handlers -v
-
-# Smoke test
-python main.py
-```
-
-**Manual Verification:**
-- [ ] Camera preview funciona
-- [ ] Medição de tensão funciona
-- [ ] Movimento CNC funciona
-- [ ] Inspeção visual funciona
-- [ ] Sinais UI são atualizados corretamente
-
-**Acceptance:**
-- [ ] Todos os testes de integração passam
-- [ ] Todos os testes existentes passam (462 tests)
-- [ ] Application inicia sem erros
-- [ ] Funcionalidades críticas funcionam (manual test)
-
----
-
-### Task 2.8: Create checkpoint commit
-
-**Description:** Commit do checkpoint da Phase 2
-
-**Commit Message:**
-```bash
-git add -A
-git commit -m "feat(conductor): Phase 2 checkpoint - EventBus implemented
-
-Implemented EventBus pattern to replace SignalAggregator God Object:
-
-Created:
-- consumo_lib/event_bus.py (Event, EventBus)
-- tests/integration/test_event_bus.py (integration tests)
-
-Refactored:
-- consumption_lib/handlers/signal_aggregator.py (1,192 → <200 lines)
-- Removed 120+ connect_*() methods
-- Implemented auto-registration pattern
-
-Benefits:
-- Desacoplamento: Componentes não se conhecem
-- Extensibilidade: Adicionar eventos sem modificar código
-- Testabilidade: Mock simples para testes
-- Single Point of Failure removido
-
-Metrics:
-- SignalAggregator: 1,192 → <200 lines (-83%)
-- Files >1000 lines: 1 → 0 ✅
-- Complexity: 120+ → <15
-- Test coverage: +5 integration tests
-
-Co-Authored-By: RONALDBUZAGLO <senseironald@gmail.com>"
-```
-
----
-
-## Phase 3: Documentation & Polish
+## Phase 2: Documentation & Cleanup
 
 **Duration:** 1 day
-**Goal:** Documentar mudanças e garantir qualidade
+**Goal:** Documentar mudanças, remover arquivos obsoletos e garantir qualidade
 
-### Task 3.1: Update CLAUDE.md with new architecture
+### Task 2.1: Remove obsolete SignalAggregator
 
-**Description:** Atualizar CLAUDE.md com nova arquitetura
+**Description:** Remover arquivo obsoleto signal_aggregator.py (1,192 linhas!)
+
+**Context:**
+O SignalAggregator já foi refatorado em track anterior (2026-01-14). Todos os handlers foram migrados para seus respectivos controllers usando o padrão `setup_ui_handlers()`. Este arquivo contém apenas código comentado e warnings de depreciação.
+
+**Files to Delete/Update:**
+
+1. **DELETE:** `consumo_lib/handlers/signal_aggregator.py`
+   - 1,192 linhas de código comentado
+   - Marcação como obsoleto desde 2026-01-14
+   - Zero usos ativos no codebase
+
+2. **UPDATE:** `consumo_lib/handlers/__init__.py`
+   ```python
+   # REMOVER:
+   - from .signal_aggregator import SignalAggregator
+   - __all__ = [..., 'SignalAggregator']
+   ```
+
+3. **UPDATE:** `consumo_lib/main_window.py` (se necessário)
+   ```python
+   # REMOVER (se ainda importar):
+   - from consumo_lib.handlers import ..., SignalAggregator
+   ```
+
+**Acceptance:**
+- [ ] Arquivo `signal_aggregator.py` deletado
+- [ ] Removido de `__init__.py`
+- [ ] Removido de `main_window.py` (se presente)
+- [ ] Nenhum import error no codebase
+- [ ] Todos os testes ainda passam
+
+**Impact:**
+- ✅ Reduz codebase em 1,192 linhas
+- ✅ Remove arquivo confuso (obsoleto mas presente)
+- ✅ Simplifica arquitetura (menos arquivos = mais claro)
+
+---
+
+### Task 2.2: Update CLAUDE.md with new architecture
+
+**Description:** Atualizar CLAUDE.md com nova arquitetura do módulo tensiometer
 
 **Sections to Update:**
 
@@ -1045,29 +734,16 @@ from aoi_lib.tensiometer import (
     TensionMeasurementService,
     MeasurementOrchestrator
 )
-
-### Event Bus System (NEW)
-Location: consumo_lib/event_bus.py
-
-Purpose: Desacoplamento de componentes via Publish/Subscribe pattern
-
-Usage:
-from consumo_lib.event_bus import EventBus, Event
-
-event_bus = EventBus()
-event_bus.subscribe("camera.frame_captured", handler)
-event_bus.publish(Event("camera.frame_captured", data=frame))
 ```
 
 **Acceptance:**
 - [ ] CLAUDE.md atualizado com seção "Tensiometer Module"
-- [ ] CLAUDE.md atualizado com seção "Event Bus System"
 - [ ] Exemplos de uso incluídos
-- [ ] Diagramas atualizados (se houver)
+- [ ] Diagrama de componentes (se aplicável)
 
 ---
 
-### Task 3.2: Create migration guide for developers
+### Task 2.3: Create migration guide for developers
 
 **Description:** Criar guia de migração para desenvolvedores
 
@@ -1095,47 +771,19 @@ from aoi_lib.tensiometer import TensionMeasurementService
 from consumo_lib.dialogs.tension import TensionMeasurementDialog
 ```
 
-### SignalAggregator
-**OLD:**
-```python
-signal_aggregator.connect_camera_controller(camera)
-signal_aggregator.connect_tension_controller(tension)
-```
-
-**NEW:**
-```python
-# Auto-registration via EventBus
-camera.register_events(event_bus)
-tension.register_events(event_bus)
-```
+## Removed Files
+### signal_aggregator.py
+- **Status:** Removed (was obsolete since 2026-01-14)
+- **Reason:** All handlers migrated to respective controllers
+- **Migration:** No action needed (already migrated)
 
 ## New Features
 
-### EventBus
-```python
-from consumo_lib.event_bus import EventBus, Event
-
-# Create event bus
-event_bus = EventBus()
-
-# Subscribe to events
-event_bus.subscribe("camera.frame_captured", my_handler)
-
-# Publish events
-event = Event("camera.frame_captured", data=frame)
-event_bus.publish(event)
-```
-
-## Compatibility
-- Old imports still work (with deprecation warnings)
-- PyQt6 signals still emitted (for UI compatibility)
-- No breaking changes for end users
-
-## Testing
-Service layer is now 100% testable without PyQt6:
+### Service Layer
+Business logic now separate from UI:
 
 ```python
-# Can test business logic without UI framework
+# Can test without PyQt6!
 def test_measurement_service():
     service = TensionMeasurementService(config)
     stats = service.calculate_statistics(grid)
@@ -1145,13 +793,13 @@ def test_measurement_service():
 
 **Acceptance:**
 - [ ] Guia de migração criado
-- [ ] Exemplos de código incluídos
 - [ ] Breaking changes documentados
 - [ ] Novas features explicadas
+- [ ] Exemplos de código incluídos
 
 ---
 
-### Task 3.3: Run full test suite and fix issues
+### Task 2.4: Run full test suite and fix issues
 
 **Description:** Executar test suite completo e corrigir problemas
 
@@ -1177,7 +825,7 @@ open htmlcov/index.html
 
 ---
 
-### Task 3.4: Verify final checkpoint (all quality gates)
+### Task 2.5: Verify final checkpoint (all quality gates)
 
 **Description:** Verificar todos os quality gates
 
@@ -1193,12 +841,11 @@ open htmlcov/index.html
 **Testing:**
 - [ ] 100% dos testes passando
 - [ ] Coverage ≥ 30%
-- [ ] ≥20 novos testes criados
-- [ ] Testes de integração para EventBus
+- [ ] ≥15 novos testes criados
+- [ ] Testes de service layer funcionam sem PyQt6
 
 **Performance:**
 - [ ] Application startup time sem degradação significativa
-- [ ] EventBus overhead <1ms por evento
 - [ ] Thread de medição sem degradação
 
 **Documentation:**
@@ -1218,11 +865,10 @@ open htmlcov/index.html
 - [ ] Camera preview funcional
 - [ ] Medição de tensão funcional
 - [ ] Movement CNC funcional
-- [ ] Inspeção visual funcional
 
 ---
 
-### Task 3.5: Create final commit and documentation
+### Task 2.6: Create final commit and documentation
 
 **Description:** Commit final e documentação de conclusão
 
@@ -1232,12 +878,12 @@ git add -A
 git commit -m "feat(conductor): SOLID Refactoring Phase 1 COMPLETE ✅
 
 Track: solid_refactoring_phase1_20260114
-Duration: 2 weeks (10 working days)
+Duration: 1 week (7 working days) ⚡ REDUZIDO (de 10 dias)
 Status: ✅ COMPLETE
 
 Achievements:
 ===============
-Refactored 2 CRITICAL files (2,601 lines total):
+Refactored 1 CRITICAL file + removed obsolete file:
 
 1. aoi_lib/stencil_tension.py (1,409 lines → 4 modules)
    - aoi_lib/tensiometer/models.py (data structures)
@@ -1246,37 +892,44 @@ Refactored 2 CRITICAL files (2,601 lines total):
    - aoi_lib/tensiometer/measurement_thread.py (execution)
    - consumo_lib/dialogs/tension/tension_measurement_dialog.py (UI)
 
-2. consumo_lib/handlers/signal_aggregator.py (1,192 lines → <200 lines)
-   - consumo_lib/event_bus.py (Event Bus infrastructure)
-   - Auto-registration pattern
-   - Removed 120+ connect_*() methods
+2. consumo_lib/handlers/signal_aggregator.py (1,192 lines → DELETED)
+   - Already refactored in previous track (2026-01-14)
+   - All handlers migrated to controllers
+   - Event Bus pattern already implemented
 
 Metrics:
 ========
 Before → After
 - Files >1000 lines: 2 → 0 ✅
-- Score SOLID: 62/100 → 75/100 (+13)
+- SOLID Score: 62/100 → 75/100 (+13)
 - Complexity (stencil_tension): 85+ → <15 (-70)
-- Complexity (signal_aggregator): 120+ → <15 (-105)
 - Testability (without PyQt6): 0% → 80% (+80%)
 - Test coverage: 25.81% → 30% (+4.2%)
-- New unit tests: +20
-- New integration tests: +5
+- New unit tests: +15
+- Total lines removed: 1,192 (obsolete signal_aggregator.py)
 
 Quality Gates:
 =============
 ✅ Zero breaking changes in public APIs
-✅ All tests passing (462 + 20 new = 482 tests)
+✅ All tests passing (462 + 15 new = 477 tests)
 ✅ Coverage ≥ 30%
 ✅ Zero files >1000 lines
 ✅ Complexity <15 per method
 ✅ Smoke test verified (application starts without errors)
 ✅ Manual testing passed (all features functional)
 
+Timeline Savings:
+=================
+Original estimate: 10 days (Phase 0+1+2+3)
+Actual duration: 7 days (Phase 0+1+2)
+Time saved: 3 days (30% faster!)
+Reason: Phase 2 (Event Bus) skipped - already implemented in previous track
+
 Documentation:
 =============
 ✅ CLAUDE.md updated with new architecture
 ✅ Migration guide created (docs/guides/SOLID_PHASE1_MIGRATION_GUIDE.md)
+✅ Dependency analysis documented (DEPENDENCY_ANALYSIS.md)
 ✅ Spec complete (spec.md)
 ✅ Plan complete (plan.md)
 
@@ -1289,49 +942,14 @@ See: docs/reports/SOLID_ANALYSIS_REPORT.md (Section: Refactoring Roadmap)
 Co-Authored-By: RONALDBUZAGLO <senseironald@gmail.com>"
 ```
 
-**Git Note:**
-```bash
-git notes add 9934e09 -m "SOLID Phase 1 Completion Summary
-========================================
-
-Track: solid_refactoring_phase1_20260114
-Duration: 2 weeks
-Status: ✅ COMPLETE
-
-Key Commits:
-- Phase 0: Setup & Analysis
-- Phase 1: stencil_tension.py refactored (1,409 → 4 modules)
-- Phase 2: EventBus implemented (SignalAggregator 1,192 → <200)
-- Phase 3: Documentation & Polish
-
-Highlights:
-- Eliminated all CRITICAL SRP violations
-- Improved testability from 0% to 80% (without PyQt6)
-- Reduced complexity by 85+ points (stencil_tension)
-- Implemented Event Bus pattern for decoupling
-- Added 20 new unit tests, 5 integration tests
-
-Metrics Before → After:
-- Files >1000 lines: 2 → 0 ✅
-- SOLID Score: 62/100 → 75/100
-- Test Coverage: 25.81% → 30%
-- Testability: 0% → 80%
-
-Documentation:
-- Migration guide: docs/guides/SOLID_PHASE1_MIGRATION_GUIDE.md
-- CLAUDE.md: Updated with new architecture
-- Spec: conductor/tracks/solid_refactoring_phase1_20260114/spec.md
-- Plan: conductor/tracks/solid_refactoring_phase1_20260114/plan.md"
-```
-
 ---
 
-## Success Criteria
+## Success Criteria (UPDATED)
 
 ### General Criteria
 
 - [ ] **Zero breaking changes** em APIs públicas
-- [ ] **100% de testes passando** (462 + 20 novos = 482 tests)
+- [ ] **100% de testes passando** (462 + 15 novos = 477 tests)
 - [ ] **Coverage ≥ 30%** (atual: 25.81%, meta: +4.2%)
 - [ ] **Smoke test:** Aplicação inicia sem erros
 - [ ] **Manual testing:** Features críticas funcionais
@@ -1346,11 +964,11 @@ Documentation:
 
 ### Specific Criteria - signal_aggregator.py
 
-- [ ] **EventBus implementado** (~150 linhas)
-- [ ] **120+ métodos removidos**
-- [ ] **SignalAggregator reduzido** para <200 linhas
-- [ ] **≥5 integration tests** para EventBus
-- [ ] **Auto-registration** implementado
+- [ ] **Arquivo deletado** (1,192 linhas removidas!)
+- [ ] **Removido de __init__.py**
+- [ ] **Removido de main_window.py**
+- [ ] **Zero import errors** no codebase
+- [ ] **Todos os testes ainda passam**
 
 ### Quality Criteria
 
@@ -1362,7 +980,7 @@ Documentation:
 
 ---
 
-## Definition of Done
+## Definition of Done (UPDATED)
 
 Uma fase é considerada **DONE** quando:
 
@@ -1375,7 +993,7 @@ Uma fase é considerada **DONE** quando:
 
 Uma track é considerada **DONE** quando:
 
-1. ✅ Todas as fases estão completas
+1. ✅ Todas as fases estão completas (Phase 0+1+2)
 2. ✅ Todos os critérios de sucesso atendidos
 3. ✅ Quality gates aprovados
 4. ✅ Documentação completa (spec + plan + migration guide)
@@ -1386,12 +1004,14 @@ Uma track é considerada **DONE** quando:
 ## References
 
 - [SOLID Analysis Report](../../../docs/reports/SOLID_ANALYSIS_REPORT.md)
+- [Dependency Analysis](DEPENDENCY_ANALYSIS.md)
 - [Refactoring Completion Report](../../../docs/reports/REFACTORING_COMPLETION_REPORT.md)
 - [CLAUDE.md](../../../CLAUDE.md)
 - [workflow.md](../../workflow.md)
 
 ---
 
-**Plan Version:** 1.0
+**Plan Version:** 2.0 (REVISED)
 **Last Updated:** 2026-01-14
 **Next Review:** After Phase 0 completion
+**Major Changes:** Phase 2 removed (SignalAggregator already refactored), timeline reduced from 10 to 7 days
