@@ -41,7 +41,7 @@
 - [x] **Phase 1.2.3:** Inspection Signals → InspectionUIController ✅ <!-- 7ac92b3 -->
 - [x] **Phase 1.2.4:** Camera & Calibration Signals → CameraController ✅ <!-- bac5f64 -->
 - [x] **Phase 1.2.5:** Map & Position Signals → MapController/PositionManager ✅ <!-- 3b20bee -->
-- [ ] **Phase 1.2.6:** Stencil & Report Signals → StencilManager/ReportManager
+- [x] **Phase 1.2.6:** Stencil & Report Signals → StencilManager/ReportManager ✅ <!-- bbbba16 -->
 - [ ] **Phase 1.2.7:** PLC & Misc Signals → appropriate controllers
 - [ ] **Phase 1.2.8:** Delete signal_aggregator.py and integration test
 - [ ] Update CLAUDE.md to reflect distributed signal handling
