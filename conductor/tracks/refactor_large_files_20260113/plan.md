@@ -68,17 +68,17 @@
 ## Fase 2: Modularization (Medium Priority)
 **Objetivo:** Split large files into focused, single-responsibility modules
 
-### Tarefa 2.1: Split report_generator.py into specialized modules
-- [ ] Create `aoi_lib/reports/` package directory
-- [ ] Extract ReportConfig to `reports/config.py`
-- [ ] Create `reports/builders/` subdirectory
-- [ ] Extract TensionReportBuilder to `builders/tension_builder.py`
-- [ ] Extract StencilHistoryReportBuilder to `builders/history_builder.py`
-- [ ] Extract InspectionReportBuilder to `builders/inspection_builder.py`
-- [ ] Extract chart generation to `reports/chart_generator.py`
-- [ ] Create orchestrator in `reports/report_generator.py`
-- [ ] Update imports across codebase
-- [ ] Test all report generation workflows
+### Tarefa 2.1: Split report_generator.py into specialized modules ✅ <!-- 0923346 -->
+- [x] Create `aoi_lib/reports/` package directory <!-- 0923346 -->
+- [x] Extract ReportConfig to `reports/config.py` <!-- 0923346 -->
+- [x] Create `reports/builders/` subdirectory <!-- 0923346 -->
+- [x] Extract TensionReportBuilder to `builders/tension_builder.py` <!-- 0923346 -->
+- [x] Extract StencilHistoryReportBuilder to `builders/history_builder.py` <!-- 0923346 -->
+- [x] Extract InspectionReportBuilder to `builders/inspection_builder.py` <!-- 0923346 -->
+- [x] Extract chart generation to `reports/chart_generator.py` <!-- 0923346 -->
+- [x] Create orchestrator in `reports/report_generator.py` <!-- 0923346 -->
+- [x] Update imports across codebase <!-- 0923346 -->
+- [x] Test all report generation workflows <!-- 0923346 -->
 - [ ] Update CLAUDE.md with reports structure
 
 ### Tarefa 2.2: Reduce main_window.py complexity
