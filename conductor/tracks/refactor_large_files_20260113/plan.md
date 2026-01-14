@@ -34,16 +34,17 @@
 - [x] Update CLAUDE.md with new structure <!-- 0b31b4d -->
 
 ### Tarefa 1.2: Eliminate signal_aggregator.py anti-pattern
-- [~] Analyze all 50+ signal connections in signal_aggregator.py
-- [~] Create mapping of which controller owns which signals
-- [~] Move position/movement signal handlers to MovementController
-- [~] Move camera signal handlers to CameraController
-- [~] Move tension signal handlers to TensionMeasurementController
-- [~] Move inspection signal handlers to InspectionUIController
-- [~] Update main_window.py to connect directly to controllers
-- [~] Delete signal_aggregator.py after validation
-- [~] Run integration tests to ensure no broken connections
-- [~] Update CLAUDE.md to reflect distributed signal handling
+- [x] Analyze all 50+ signal connections in signal_aggregator.py
+- [x] Create mapping of which controller owns which signals
+- [x] **Phase 1.2.1:** Recipe Manager Signals → RecipeManagerController ✅ <!-- 984f080 -->
+- [ ] **Phase 1.2.2:** Tension Measurement Signals → TensionMeasurementController
+- [ ] **Phase 1.2.3:** Inspection Signals → InspectionUIController
+- [ ] **Phase 1.2.4:** Camera & Calibration Signals → CameraController
+- [ ] **Phase 1.2.5:** Map & Position Signals → MapController/PositionManager
+- [ ] **Phase 1.2.6:** Stencil & Report Signals → StencilManager/ReportManager
+- [ ] **Phase 1.2.7:** PLC & Misc Signals → appropriate controllers
+- [ ] **Phase 1.2.8:** Delete signal_aggregator.py and integration test
+- [ ] Update CLAUDE.md to reflect distributed signal handling
 
 ### Tarefa 1.3: Move stencil_tracker_ui.py to consumo_lib
 - [~] Create `consumo_lib/widgets/stencil_identification.py`
