@@ -4,6 +4,42 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## 🔄 Track: SOLID Refactoring Phase 2 (ACTIVE) <!-- 2026-01-14 -->
+*Link: [./conductor/tracks/solid_refactoring_phase2_20260114/](./conductor/tracks/solid_refactoring_phase2_20260114/)*
+- **Track ID:** solid_refactoring_phase2_20260114
+- **Status:** 🔄 Pending
+- **Priority:** 🔴 CRITICAL
+- **Type:** Refactor
+- **Created:** 2026-01-14
+- **Est. Duration:** 4-6 weeks
+- **Phases:** 9 (Fase 1-2: Críticos, Fase 3-5: Alta Prioridade, Fase 6-8: Média Prioridade, Fase 9: Finalização)
+- **Plan:** ./tracks/solid_refactoring_phase2_20260114/plan.md
+- **Spec:** ./tracks/solid_refactoring_phase2_20260114/spec.md
+- **Metadata:** ./tracks/solid_refactoring_phase2_20260114/metadata.json
+- **Target Files (9 arquivos):**
+  - `aoi_lib/gerber_core/gui/mainwindow.py` (1,384 linhas → <500)
+  - `aoi_lib/gerber_core/parser.py` (complexidade 47 → <15)
+  - `aoi_lib/stencil_database.py` (914 linhas → 3 repositórios)
+  - `consumo_lib/widgets/engenharia/alignment_widget.py` (1,179 linhas)
+  - `consumo_lib/main_window.py` (650 linhas, 46 métodos → <20)
+  - `aoi_lib/plc_axis_controller.py` (738 linhas, 29 métodos → <15)
+  - `aoi_lib/report_generator.py` (1,366 linhas)
+  - `consumo_lib/dialogs/recipe_dialogs.py` (881 linhas → 3 arquivos)
+  - `consumo_lib/coordinators/setup_coordinator.py` (601 linhas)
+- **Objectives:**
+  - 🎯 Elevar Score SOLID global: 72/100 → 85+/100
+  - 📉 Eliminar arquivos >1000 linhas (3 → 0)
+  - 📉 Reduzir arquivos >500 linhas (32 → <15)
+  - 📉 Reduzir complexidade >20 (6 → 0)
+  - 🏗️ Implementar padrões (Strategy, Repository, Command, Factory)
+  - ✅ Manter backward compatibility 100%
+  - 🧪 Adicionar testes (462 → 500+)
+- **References:**
+  - SOLID Analysis: `docs/reports/SOLID_ANALYSIS_REPORT_2026-01-14.md`
+  - Phase 1 (completada): `conductor/archive/solid_refactoring_phase1_20260114/`
+
+---
+
 ## [x] Track: SOLID Refactoring Phase 1 (archived) <!-- 2026-01-14 -->
 *Link: [./conductor/archive/solid_refactoring_phase1_20260114/](./conductor/archive/solid_refactoring_phase1_20260114/)*
 - **Track ID:** solid_refactoring_phase1_20260114
