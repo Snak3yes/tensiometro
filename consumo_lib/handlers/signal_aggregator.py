@@ -55,39 +55,45 @@ class SignalAggregator:
         # =========================================================================
         # RECIPE MANAGER SIGNALS
         # =========================================================================
-        if self.main_window.recipe_manager_wrapper:
-            self.main_window.recipe_manager_wrapper.recipe_loaded.connect(
-                self._on_recipe_loaded
-            )
-            self.main_window.recipe_manager_wrapper.recipe_created.connect(
-                self._on_recipe_created
-            )
-            self.main_window.recipe_manager_wrapper.recipe_applied_to_capture.connect(
-                self._on_recipe_applied_to_capture
-            )
-            self.main_window.recipe_manager_wrapper.recipe_applied_to_tension.connect(
-                self._on_recipe_applied_to_tension
-            )
-            self.main_window.recipe_manager_wrapper.recipe_error.connect(
-                self._on_recipe_error
-            )
+        # MOVIDO PARA RecipeManagerController.setup_ui_handlers()
+        # Os handlers de UI de recipe agora são gerenciados pelo próprio controller
+        # Isso elimina a necessidade de conexões via SignalAggregator
+        #
+        # Refatoração Fase 1.2.1 - Recipe Manager Signals (2026-01-14)
 
-        if self.main_window.recipe_manager_controller:
-            self.main_window.recipe_manager_controller.recipe_loaded.connect(
-                self._on_recipe_loaded_from_controller
-            )
-            self.main_window.recipe_manager_controller.recipe_created.connect(
-                self._on_recipe_created_from_controller
-            )
-            self.main_window.recipe_manager_controller.recipe_applied_to_capture.connect(
-                self._on_recipe_applied_to_capture_from_controller
-            )
-            self.main_window.recipe_manager_controller.recipe_applied_to_tension.connect(
-                self._on_recipe_applied_to_tension_from_controller
-            )
-            self.main_window.recipe_manager_controller.recipe_error.connect(
-                self._on_recipe_error_from_controller
-            )
+        # if self.main_window.recipe_manager_wrapper:
+        #     self.main_window.recipe_manager_wrapper.recipe_loaded.connect(
+        #         self._on_recipe_loaded
+        #     )
+        #     self.main_window.recipe_manager_wrapper.recipe_created.connect(
+        #         self._on_recipe_created
+        #     )
+        #     self.main_window.recipe_manager_wrapper.recipe_applied_to_capture.connect(
+        #         self._on_recipe_applied_to_capture
+        #     )
+        #     self.main_window.recipe_manager_wrapper.recipe_applied_to_tension.connect(
+        #         self._on_recipe_applied_to_tension
+        #     )
+        #     self.main_window.recipe_manager_wrapper.recipe_error.connect(
+        #         self._on_recipe_error
+        #     )
+
+        # if self.main_window.recipe_manager_controller:
+        #     self.main_window.recipe_manager_controller.recipe_loaded.connect(
+        #         self._on_recipe_loaded_from_controller
+        #     )
+        #     self.main_window.recipe_manager_controller.recipe_created.connect(
+        #         self._on_recipe_created_from_controller
+        #     )
+        #     self.main_window.recipe_manager_controller.recipe_applied_to_capture.connect(
+        #         self._on_recipe_applied_to_capture_from_controller
+        #     )
+        #     self.main_window.recipe_manager_controller.recipe_applied_to_tension.connect(
+        #         self._on_recipe_applied_to_tension_from_controller
+        #     )
+        #     self.main_window.recipe_manager_controller.recipe_error.connect(
+        #         self._on_recipe_error_from_controller
+        #     )
 
         # =========================================================================
         # STENCIL MANAGER SIGNALS

@@ -172,6 +172,8 @@ class SetupCoordinator:
                 self.window.recipe_manager_wrapper,
                 self.window
             )
+            # Configura handlers de UI no próprio controller
+            self.window.recipe_manager_controller.setup_ui_handlers()
             logger.debug("RecipeManagerController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar RecipeManagerController: {e}")

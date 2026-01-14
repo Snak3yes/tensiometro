@@ -318,3 +318,90 @@ class RecipeManagerController(QObject):
             logger.exception(error_msg)
             self.recipe_error.emit(error_msg)
             return None
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de receita.
+
+        Este método conecta os signals internos do RecipeManagerController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals internos a handlers de UI
+        self.recipe_loaded.connect(self._on_recipe_loaded_update_ui)
+        self.recipe_applied_to_capture.connect(self._on_capture_applied_update_ui)
+        self.recipe_applied_to_tension.connect(self._on_tension_applied_update_ui)
+        self.recipe_error.connect(self._on_recipe_error_show_message)
+
+        logger.debug("UI handlers conectados no RecipeManagerController")
+
+    def _on_recipe_loaded_update_ui(self, recipe):
+        """
+        Atualiza UI quando uma receita é carregada.
+
+        Args:
+            recipe: Recipe carregada
+        """
+        # Atualiza current_recipe no main_window
+        self.parent_window.current_recipe = recipe
+        self.parent_window.recipe_manager.set_current_recipe(recipe)
+
+        # Atualiza o menu
+        if hasattr(self.parent_window, 'current_recipe_action'):
+            self.parent_window.current_recipe_action.setText(f"📋 {recipe.name}")
+            self.parent_window.current_recipe_action.setEnabled(True)
+
+        # Mostra na barra de status
+        self.parent_window.statusBar().showMessage(f"Receita carregada: {recipe.name}")
+        logger.info(f"Receita carregada: {recipe.name} ({recipe.recipe_id})")
+
+    def _on_capture_applied_update_ui(self, settings: dict):
+        """
+        Atualiza UI quando configurações de captura são aplicadas.
+
+        Args:
+            settings: Configurações de captura aplicadas
+        """
+        # Verifica se os atributos de mapa existem
+        if not hasattr(self.parent_window, 'map_origin'):
+            self.parent_window.map_origin = {}
+        if not hasattr(self.parent_window, 'map_end'):
+            self.parent_window.map_end = {}
+
+        # Aplica configurações de captura
+        self.parent_window.map_origin = settings['origin']
+        self.parent_window.map_end = settings['end']
+
+        # Tenta atualizar os widgets se existirem
+        if hasattr(self.parent_window, 'map_step_x_edit'):
+            self.parent_window.map_step_x_edit.setText(str(settings['step_x']))
+        if hasattr(self.parent_window, 'map_step_y_edit'):
+            self.parent_window.map_step_y_edit.setText(str(settings['step_y']))
+        if hasattr(self.parent_window, 'spin_capture_delay'):
+            self.parent_window.spin_capture_delay.setValue(settings['capture_delay_ms'])
+
+        # Atualiza painel de informações calculadas
+        if hasattr(self.parent_window, '_update_adjusted_step_info'):
+            self.parent_window._update_adjusted_step_info()
+
+        logger.info(f"Configurações de captura aplicadas: {settings}")
+
+    def _on_tension_applied_update_ui(self, settings: dict):
+        """
+        Atualiza UI quando configurações de tensão são aplicadas.
+
+        Args:
+            settings: Configurações de tensão aplicadas
+        """
+        # A mensagem informativa já é mostrada no método on_recipe_applied_to_tension
+        logger.info(f"Configurações de tensão aplicadas: {settings}")
+
+    def _on_recipe_error_show_message(self, error: str):
+        """
+        Mostra mensagem de erro de receita.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Erro de receita: {error}")
