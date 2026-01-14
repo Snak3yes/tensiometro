@@ -7,7 +7,7 @@ import logging
 from typing import Optional
 from PyQt6.QtCore import QObject, pyqtSignal
 from pathlib import Path
-from aoi_lib.report_generator import ReportGenerator, ReportConfig
+from aoi_lib.reports import ReportGenerator, ReportConfig
 
 logger = logging.getLogger(__name__)
 

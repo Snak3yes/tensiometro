@@ -26,7 +26,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap, QColor, QPalette
 
-from aoi_lib.report_generator import ReportConfig
+from aoi_lib.reports import ReportConfig
 
 log = logging.getLogger(__name__)
 
@@ -344,7 +344,7 @@ class ReportSettingsDialog(QDialog):
 
     def _preview_report(self):
         """Gera relatório de exemplo para preview."""
-        from aoi_lib.report_generator import ReportGenerator
+        from aoi_lib.reports import ReportGenerator
 
         config = self.get_config()
         generator = ReportGenerator(config)

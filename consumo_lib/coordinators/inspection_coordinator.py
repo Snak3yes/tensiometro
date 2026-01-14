@@ -350,7 +350,7 @@ class InspectionCoordinator(QObject):
 
         try:
             # Usar ReportGenerator existente
-            from aoi_lib.report_generator import ReportGenerator
+            from aoi_lib.reports import ReportGenerator
 
             generator = ReportGenerator()
 
