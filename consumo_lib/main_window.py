@@ -139,12 +139,19 @@ class AOIControllerApp(QMainWindow):
             logger.info("Login cancelado pelo usuário, fechando aplicação")
             sys.exit(0)
 
+        # ─────────────────────────────────────────────────────────────────────
+        # NOVO: Inicializa componentes modulares ANTES do SetupCoordinator
+        # ─────────────────────────────────────────────────────────────────────
+        # Componente 1: Estado da aplicação (PRECISA SER PRIMEIRO)
+        self._app_state = MainWindowState()
+        # NOTA: set_references é chamado depois do SetupCoordinator para ter acesso a todos os managers
+
         # Usa SetupCoordinator para orquestrar toda inicialização
         setup_coordinator = SetupCoordinator(AOIControllerApp)
         setup_coordinator.setup(self)
 
         # ─────────────────────────────────────────────────────────────────────
-        # NOVO: Inicializa componentes modulares
+        # Continua inicialização dos componentes modulares
         # ─────────────────────────────────────────────────────────────────────
         self._setup_modular_components(setup_coordinator)
 
@@ -160,9 +167,10 @@ class AOIControllerApp(QMainWindow):
 
         Args:
             setup_coordinator: SetupCoordinator para initializer
+
+        NOTA: _app_state já foi inicializado antes do SetupCoordinator.setup()
         """
-        # Componente 1: Estado da aplicação
-        self._app_state = MainWindowState()
+        # Componente 1: Estado da aplicação (já criado, agora configurar referências)
         self._app_state.set_references(self, self.auth_service)
 
         # Componente 2: Inicialização (UI, menu, auto-connect)
