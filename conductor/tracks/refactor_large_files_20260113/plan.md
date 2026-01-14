@@ -37,7 +37,7 @@
 - [x] Analyze all 50+ signal connections in signal_aggregator.py
 - [x] Create mapping of which controller owns which signals
 - [x] **Phase 1.2.1:** Recipe Manager Signals → RecipeManagerController ✅ <!-- 984f080 -->
-- [ ] **Phase 1.2.2:** Tension Measurement Signals → TensionMeasurementController
+- [x] **Phase 1.2.2:** Tension Measurement Signals → TensionMeasurementController ✅ <!-- 6160fa9 -->
 - [ ] **Phase 1.2.3:** Inspection Signals → InspectionUIController
 - [ ] **Phase 1.2.4:** Camera & Calibration Signals → CameraController
 - [ ] **Phase 1.2.5:** Map & Position Signals → MapController/PositionManager
