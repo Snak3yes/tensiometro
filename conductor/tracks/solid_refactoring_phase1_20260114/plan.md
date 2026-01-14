@@ -70,7 +70,7 @@ Phase 3: Documentation & Polish (1 day)
 **Description:** Mapear todas as dependências de `stencil_tension.py` e `signal_aggregator.py`
 
 **Subtasks:**
-- [ ] Find all imports of `stencil_tension` module
+- [~] Find all imports of `stencil_tension` module
 - [ ] Find all usages of `StencilTensionDialog`
 - [ ] Find all usages of `SignalAggregator`
 - [ ] Document compatibility requirements
