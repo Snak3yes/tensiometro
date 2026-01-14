@@ -482,8 +482,8 @@ class CalibrationController(QObject):
 
         # Atualiza configurações no config_manager se disponível
         if hasattr(self, 'config') and self.config:
-            self.config.set("connections", "pulses_per_rev", int(steps_x * 10))
-            self.config.set("connections", "fuso_pitch", 10.0)
+            self.config.set("connections", "pulses_per_rev", value=int(steps_x * 10))
+            self.config.set("connections", "fuso_pitch", value=10.0)
             self.config.save()
 
         if hasattr(self.parent(), 'statusBar'):

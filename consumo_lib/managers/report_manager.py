@@ -70,7 +70,7 @@ class ReportManagerWrapper(QObject):
         self.generator = ReportGenerator(config)
 
         if save:
-            self.config.set("reports", "config", config.to_dict())
+            self.config.set("reports", "config", value=config.to_dict())
             self.config.save()
 
         self.config_changed.emit(config)

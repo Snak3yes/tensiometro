@@ -222,10 +222,10 @@ class FiducialAlignmentController(QObject):
             )
 
             # Salvar transformação nas configurações
-            self.config.set("fiducial_alignment", "last_tx", transform.tx)
-            self.config.set("fiducial_alignment", "last_ty", transform.ty)
-            self.config.set("fiducial_alignment", "last_angle", transform.angle)
-            self.config.set("fiducial_alignment", "last_scale", transform.scale_x)
+            self.config.set("fiducial_alignment", "last_tx", value=transform.tx)
+            self.config.set("fiducial_alignment", "last_ty", value=transform.ty)
+            self.config.set("fiducial_alignment", "last_angle", value=transform.angle)
+            self.config.set("fiducial_alignment", "last_scale", value=transform.scale_x)
             self.config.save()
 
             # Mostrar mensagem de sucesso

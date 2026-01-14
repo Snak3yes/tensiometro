@@ -71,7 +71,7 @@ class InspectionManager(QObject):
         self.inspector = StencilInspector(thresholds)
 
         if save:
-            self.config.set("inspection", "thresholds", thresholds.to_dict())
+            self.config.set("inspection", "thresholds", value=thresholds.to_dict())
             self.config.save()
 
         self.thresholds_changed.emit(thresholds)
