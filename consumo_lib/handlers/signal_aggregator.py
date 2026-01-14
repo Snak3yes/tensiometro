@@ -118,65 +118,74 @@ class SignalAggregator:
         # =========================================================================
         # INSPECTION MANAGER SIGNALS
         # =========================================================================
-        if self.main_window.inspection_manager:
-            self.main_window.inspection_manager.inspection_completed.connect(
-                self._on_inspection_completed
-            )
-            self.main_window.inspection_manager.inspection_failed.connect(
-                self._on_inspection_failed
-            )
-            self.main_window.inspection_manager.thresholds_changed.connect(
-                self._on_thresholds_changed
-            )
+        # MOVIDO PARA InspectionUIController.setup_ui_handlers()
+        # Os handlers de UI de inspeção agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.3 - Inspection Signals (2026-01-14)
+
+        # if self.main_window.inspection_manager:
+        #     self.main_window.inspection_manager.inspection_completed.connect(
+        #         self._on_inspection_completed
+        #     )
+        #     self.main_window.inspection_manager.inspection_failed.connect(
+        #         self._on_inspection_failed
+        #     )
+        #     self.main_window.inspection_manager.thresholds_changed.connect(
+        #         self._on_thresholds_changed
+        #     )
 
         # =========================================================================
         # INSPECTION COORDINATOR SIGNALS
         # =========================================================================
-        if self.main_window.inspection_coordinator:
-            self.main_window.inspection_coordinator.step_changed.connect(
-                self._on_inspection_step_changed
-            )
-            self.main_window.inspection_coordinator.progress_updated.connect(
-                self._on_inspection_progress
-            )
-            self.main_window.inspection_coordinator.gerber_loaded.connect(
-                self._on_gerber_loaded
-            )
-            self.main_window.inspection_coordinator.fiducials_captured.connect(
-                self._on_fiducials_captured
-            )
-            self.main_window.inspection_coordinator.alignment_completed.connect(
-                self._on_alignment_completed
-            )
-            self.main_window.inspection_coordinator.image_captured.connect(
-                self._on_inspection_image_captured
-            )
-            self.main_window.inspection_coordinator.analysis_completed.connect(
-                self._on_inspection_analysis_completed
-            )
-            self.main_window.inspection_coordinator.inspection_completed.connect(
-                self._on_inspection_workflow_completed
-            )
-            self.main_window.inspection_coordinator.inspection_failed.connect(
-                self._on_inspection_workflow_failed
-            )
+        # MOVIDO PARA InspectionUIController.setup_ui_handlers()
+
+        # if self.main_window.inspection_coordinator:
+        #     self.main_window.inspection_coordinator.step_changed.connect(
+        #         self._on_inspection_step_changed
+        #     )
+        #     self.main_window.inspection_coordinator.progress_updated.connect(
+        #         self._on_inspection_progress
+        #     )
+        #     self.main_window.inspection_coordinator.gerber_loaded.connect(
+        #         self._on_gerber_loaded
+        #     )
+        #     self.main_window.inspection_coordinator.fiducials_captured.connect(
+        #         self._on_fiducials_captured
+        #     )
+        #     self.main_window.inspection_coordinator.alignment_completed.connect(
+        #         self._on_alignment_completed
+        #     )
+        #     self.main_window.inspection_coordinator.image_captured.connect(
+        #         self._on_inspection_image_captured
+        #     )
+        #     self.main_window.inspection_coordinator.analysis_completed.connect(
+        #         self._on_inspection_analysis_completed
+        #     )
+        #     self.main_window.inspection_coordinator.inspection_completed.connect(
+        #         self._on_inspection_workflow_completed
+        #     )
+        #     self.main_window.inspection_coordinator.inspection_failed.connect(
+        #         self._on_inspection_workflow_failed
+        #     )
 
         # =========================================================================
         # INSPECTION UI CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.inspection_ui_controller:
-            self.main_window.inspection_ui_controller.inspection_requested.connect(
-                self._on_inspection_requested
-            )
-            self.main_window.inspection_ui_controller.inspection_completed.connect(
-                self._on_inspection_completed_from_controller
-            )
-            self.main_window.inspection_ui_controller.inspection_failed.connect(
-                self._on_inspection_failed
-            )
-            self.main_window.inspection_ui_controller.settings_updated.connect(
-                self._on_inspection_settings_updated
-            )
+        # MOVIDO PARA InspectionUIController.setup_ui_handlers()
+
+        # if self.main_window.inspection_ui_controller:
+        #     self.main_window.inspection_ui_controller.inspection_requested.connect(
+        #         self._on_inspection_requested
+        #     )
+        #     self.main_window.inspection_ui_controller.inspection_completed.connect(
+        #         self._on_inspection_completed_from_controller
+        #     )
+        #     self.main_window.inspection_ui_controller.inspection_failed.connect(
+        #         self._on_inspection_failed
+        #     )
+        #     self.main_window.inspection_ui_controller.settings_updated.connect(
+        #         self._on_inspection_settings_updated
+        #     )
 
         # =========================================================================
         # TENSION COORDINATOR SIGNALS

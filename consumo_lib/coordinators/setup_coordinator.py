@@ -283,6 +283,8 @@ class SetupCoordinator:
                 self.window.config,
                 self.window
             )
+            # Configura handlers de UI no próprio controller
+            self.window.inspection_ui_controller.setup_ui_handlers()
             logger.debug("InspectionUIController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar InspectionUIController: {e}")

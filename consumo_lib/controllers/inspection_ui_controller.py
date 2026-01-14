@@ -457,3 +457,195 @@ desde a seleção de arquivos até a exibição de resultados.
             error_msg = f"Erro ao executar inspeção:\n{str(e)}"
             self.inspection_failed.emit(error_msg)
             QMessageBox.critical(self._dialog, "Erro", error_msg)
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de inspeção.
+
+        Este método conecta os signals internos do InspectionUIController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals internos a handlers de UI
+        self.inspection_completed.connect(self._on_inspection_completed_update_ui)
+        self.inspection_failed.connect(self._on_inspection_failed_show_message)
+        self.settings_updated.connect(self._on_thresholds_changed_update_state)
+
+        logger.debug("UI handlers conectados no InspectionUIController")
+
+    def _on_inspection_completed_update_ui(self, result, overlay):
+        """
+        Atualiza UI quando inspeção é completada.
+
+        Args:
+            result: Resultado da inspeção
+            overlay: Imagem overlay
+        """
+        import numpy as np
+
+        # Salvar referências no main_window
+        if hasattr(self.parent_window, '_last_inspection_result'):
+            self.parent_window._last_inspection_result = result
+        if hasattr(self.parent_window, '_last_inspection_overlay'):
+            self.parent_window._last_inspection_overlay = overlay
+
+        logger.info(f"Inspeção completada: {result.summary}")
+
+        # Mostrar resultado
+        if hasattr(self.parent_window, '_show_inspection_result'):
+            self.parent_window._show_inspection_result(result, overlay)
+
+    def _on_inspection_failed_show_message(self, error: str):
+        """
+        Mostra mensagem de erro quando inspeção falha.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Inspeção falhou: {error}")
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.critical(
+            self.parent_window, "Erro na Inspeção",
+            f"A inspeção falhou:\n{error}"
+        )
+
+    def _on_thresholds_changed_update_state(self, thresholds):
+        """
+        Atualiza estado quando thresholds mudam.
+
+        Args:
+            thresholds: Novos thresholds
+        """
+        logger.info("Thresholds de inspeção alterados")
+
+        # Atualiza referência local no main_window
+        if hasattr(self.parent_window, 'inspection_thresholds'):
+            self.parent_window.inspection_thresholds = thresholds
+        if hasattr(self.parent_window, 'inspection_manager'):
+            self.parent_window.stencil_inspector = self.parent_window.inspection_manager.get_inspector()
+
+    def on_inspection_step_changed_update_status(self, step, message: str):
+        """
+        Atualiza statusBar quando etapa da inspeção muda.
+
+        Args:
+            step: Etapa atual
+            message: Mensagem de status
+        """
+        logger.info(f"Inspection step: {step.value if hasattr(step, 'value') else step} - {message}")
+        self.parent_window.statusBar().showMessage(message)
+
+    def on_inspection_progress_update_status(self, percent: int, message: str):
+        """
+        Atualiza statusBar com progresso da inspeção.
+
+        Args:
+            percent: Percentual completado
+            message: Mensagem de status
+        """
+        logger.debug(f"Inspection progress: {percent}% - {message}")
+        self.parent_window.statusBar().showMessage(f"{message} ({percent}%)")
+
+    def on_gerber_loaded_update_status(self, gerber_data):
+        """
+        Atualiza statusBar quando Gerber é carregado.
+
+        Args:
+            gerber_data: Dados do Gerber carregado
+        """
+        logger.info("Gerber carregado com sucesso")
+        self.parent_window.statusBar().showMessage("Gerber carregado - Capture fiduciais", 5000)
+
+    def on_fiducials_captured_update_status(self, templates: list):
+        """
+        Atualiza statusBar quando fiduciais são capturados.
+
+        Args:
+            templates: Lista de templates capturados
+        """
+        logger.info(f"Fiduciais capturados: {len(templates)} templates")
+        self.parent_window.statusBar().showMessage(f"Fiduciais capturados: {len(templates)} - Alinhe o sistema", 5000)
+
+    def on_alignment_completed_update_status(self, transformation):
+        """
+        Atualiza statusBar quando alinhamento é completado.
+
+        Args:
+            transformation: Transformação calculada
+        """
+        logger.info("Alinhamento completado")
+        self.parent_window.statusBar().showMessage("Sistema alinhado - Capture imagem de inspeção", 5000)
+
+    def on_inspection_image_captured_update_status(self, image_path: str):
+        """
+        Atualiza statusBar quando imagem de inspeção é capturada.
+
+        Args:
+            image_path: Caminho da imagem capturada
+        """
+        logger.info(f"Imagem capturada: {image_path}")
+        self.parent_window.statusBar().showMessage("Imagem capturada - Analisando...", 3000)
+
+    def on_inspection_analysis_completed_update_status(self, result, overlay):
+        """
+        Atualiza statusBar quando análise é completada.
+
+        Args:
+            result: Resultado da análise
+            overlay: Imagem overlay
+        """
+        logger.info("Análise completada")
+        self.parent_window.statusBar().showMessage("Análise concluída", 3000)
+
+    def on_inspection_workflow_completed_update_status(self, result):
+        """
+        Atualiza statusBar quando workflow completo termina.
+
+        Args:
+            result: Resultado final do workflow
+        """
+        if result.success:
+            logger.info(f"Inspeção completada: {result.summary}")
+            self.parent_window.statusBar().showMessage(
+                f"Inspeção completada: {result.summary}",
+                10000
+            )
+        else:
+            logger.error(f"Inspeção falhou: {result.error or 'erro desconhecido'}")
+            self.parent_window.statusBar().showMessage(
+                f"Inspeção falhou: {result.error or 'erro desconhecido'}",
+                10000
+            )
+
+    def on_inspection_workflow_failed_show_message(self, error: str):
+        """
+        Mostra mensagem quando workflow falha.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Workflow de inspeção falhou: {error}")
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.critical(
+            self.parent_window, "Erro na Inspeção",
+            f"O workflow de inspeção falhou:\n{error}"
+        )
+
+    def on_inspection_settings_updated_update_state(self, thresholds):
+        """
+        Atualiza estado quando configurações de inspeção são atualizadas.
+
+        Args:
+            thresholds: Novos thresholds
+        """
+        logger.info("Configurações de inspeção atualizadas")
+
+        # Atualiza referência local
+        if hasattr(self.parent_window, 'inspection_thresholds'):
+            self.parent_window.inspection_thresholds = thresholds
