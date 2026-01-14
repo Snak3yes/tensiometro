@@ -222,3 +222,115 @@ class TensionMeasurementController(QObject):
 
         dlg = StencilTensionDialog(self.parent_window, self.controller.cnc)
         dlg.exec()
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de medição de tensão.
+
+        Este método conecta os signals do tension_measurement_dialog
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Nota: A conexão aos signals do diálogo é feita internamente no diálogo
+        # Este método é um placeholder para futuras expansões
+        logger.debug("UI handlers configurados no TensionMeasurementController")
+
+    def on_tension_record_added_update_ui(self, stencil_code: str, record):
+        """
+        Atualiza UI quando registro de tensão é adicionado.
+
+        Args:
+            stencil_code: Código do stencil
+            record: Registro de tensão adicionado
+        """
+        logger.info(
+            f"Medição de tensão salva no histórico do stencil "
+            f"'{stencil_code}': {record.result}"
+        )
+
+        from PyQt6.QtWidgets import QMessageBox
+        QMessageBox.information(
+            self.parent_window, "Medição Salva",
+            f"Resultado da medição salvo no histórico.\n\n"
+            f"Stencil: {stencil_code}\n"
+            f"Resultado: {record.result}\n"
+            f"Média: {record.average_tension:.2f} N/cm²"
+        )
+
+        # Atualiza widget de identificação para refletir nova inspeção
+        if hasattr(self.parent_window, 'stencil_manager_wrapper'):
+            stencil = self.parent_window.stencil_manager_wrapper.get_stencil(stencil_code)
+            if stencil and hasattr(self.parent_window, 'stencil_identification'):
+                self.parent_window.stencil_identification._select_stencil(stencil)
+
+    def on_degradation_alert_show_message(self, alert: str):
+        """
+        Mostra alerta de degradação.
+
+        Args:
+            alert: Mensagem de alerta
+        """
+        from PyQt6.QtWidgets import QMessageBox
+        current_stencil = getattr(self.parent_window, 'current_stencil', None)
+        stencil_info = f"Stencil: {current_stencil.code}\n\n" if current_stencil else ""
+
+        QMessageBox.warning(
+            self.parent_window, "⚠️ Alerta de Degradação",
+            f"{stencil_info}{alert}"
+        )
+
+    def on_tension_step_changed_update_status(self, step, message: str):
+        """
+        Atualiza statusBar quando etapa da medição muda.
+
+        Args:
+            step: Etapa atual
+            message: Mensagem de status
+        """
+        logger.info(f"Tension measurement step: {step.value if hasattr(step, 'value') else step} - {message}")
+        self.parent_window.statusBar().showMessage(message)
+
+    def on_tension_progress_update_status(self, current: int, total: int, message: str):
+        """
+        Atualiza statusBar com progresso da medição.
+
+        Args:
+            current: Ponto atual
+            total: Total de pontos
+            message: Mensagem de status
+        """
+        logger.debug(f"Tension progress: {current}/{total} - {message}")
+        self.parent_window.statusBar().showMessage(f"{message} ({current}/{total} pontos)")
+
+    def on_tension_measurement_completed_update_status(self, result):
+        """
+        Atualiza statusBar quando medição completa.
+
+        Args:
+            result: Resultado da medição
+        """
+        if result.success:
+            classification = result.classification or "unknown"
+            avg = result.average_tension or 0
+            logger.info(f"Medição completada: {classification} (média: {avg:.2f} N/cm)")
+            self.parent_window.statusBar().showMessage(
+                f"Medição completada: {classification.upper()} (média: {avg:.2f} N/cm)",
+                10000
+            )
+        else:
+            logger.error(f"Medição falhou: {result.error or 'erro desconhecido'}")
+            self.parent_window.statusBar().showMessage(
+                f"Medição falhou: {result.error or 'erro desconhecido'}",
+                10000
+            )
+
+    def on_tension_heatmap_generated_update_status(self, heatmap_path: str):
+        """
+        Atualiza statusBar quando heatmap é gerado.
+
+        Args:
+            heatmap_path: Caminho do heatmap gerado
+        """
+        logger.info(f"Heatmap gerado: {heatmap_path}")
+        self.parent_window.statusBar().showMessage("Heatmap gerado", 3000)

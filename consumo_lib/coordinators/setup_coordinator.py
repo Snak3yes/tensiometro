@@ -335,6 +335,8 @@ class SetupCoordinator:
                 self.window.stencil_manager_wrapper,
                 self.window
             )
+            # Configura handlers de UI no próprio controller
+            self.window.tension_measurement_controller.setup_ui_handlers()
             logger.debug("TensionMeasurementController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar TensionMeasurementController: {e}")

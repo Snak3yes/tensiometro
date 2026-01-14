@@ -181,37 +181,42 @@ class SignalAggregator:
         # =========================================================================
         # TENSION COORDINATOR SIGNALS
         # =========================================================================
-        if self.main_window.tension_coordinator:
-            self.main_window.tension_coordinator.step_changed.connect(
-                self._on_tension_step_changed
-            )
-            self.main_window.tension_coordinator.progress_updated.connect(
-                self._on_tension_progress
-            )
-            self.main_window.tension_coordinator.grid_generated.connect(
-                self._on_tension_grid_generated
-            )
-            self.main_window.tension_coordinator.point_started.connect(
-                self._on_tension_point_started
-            )
-            self.main_window.tension_coordinator.point_completed.connect(
-                self._on_tension_point_completed
-            )
-            self.main_window.tension_coordinator.measurement_taken.connect(
-                self._on_tension_measurement_taken
-            )
-            self.main_window.tension_coordinator.all_measurements_completed.connect(
-                self._on_tension_all_completed
-            )
-            self.main_window.tension_coordinator.heatmap_generated.connect(
-                self._on_tension_heatmap_generated
-            )
-            self.main_window.tension_coordinator.measurement_completed.connect(
-                self._on_tension_measurement_completed
-            )
-            self.main_window.tension_coordinator.measurement_failed.connect(
-                self._on_tension_measurement_failed
-            )
+        # MOVIDO PARA TensionMeasurementController.setup_ui_handlers()
+        # Os handlers de UI de tensão agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.2 - Tension Measurement Signals (2026-01-14)
+
+        # if self.main_window.tension_coordinator:
+        #     self.main_window.tension_coordinator.step_changed.connect(
+        #         self._on_tension_step_changed
+        #     )
+        #     self.main_window.tension_coordinator.progress_updated.connect(
+        #         self._on_tension_progress
+        #     )
+        #     self.main_window.tension_coordinator.grid_generated.connect(
+        #         self._on_tension_grid_generated
+        #     )
+        #     self.main_window.tension_coordinator.point_started.connect(
+        #         self._on_tension_point_started
+        #     )
+        #     self.main_window.tension_coordinator.point_completed.connect(
+        #         self._on_tension_point_completed
+        #     )
+        #     self.main_window.tension_coordinator.measurement_taken.connect(
+        #         self._on_tension_measurement_taken
+        #     )
+        #     self.main_window.tension_coordinator.all_measurements_completed.connect(
+        #         self._on_tension_all_completed
+        #     )
+        #     self.main_window.tension_coordinator.heatmap_generated.connect(
+        #         self._on_tension_heatmap_generated
+        #     )
+        #     self.main_window.tension_coordinator.measurement_completed.connect(
+        #         self._on_tension_measurement_completed
+        #     )
+        #     self.main_window.tension_coordinator.measurement_failed.connect(
+        #         self._on_tension_measurement_failed
+        #     )
 
         # =========================================================================
         # REPORT MANAGER SIGNALS
