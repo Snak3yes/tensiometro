@@ -42,8 +42,8 @@
     "feed_rate": 800.0
   },
   "map": {
-    "step_x": 50.0,
-    "step_y": 50.0
+    "step_x": 0.0,
+    "step_y": 0.0
   },
   "mosaic": {
     "last_folder": "/path/to/folder",
@@ -116,5 +116,52 @@
     "neg_val": -100,
     "bool_true": true,
     "bool_false": false
+  },
+  "reports": {
+    "config": {
+      "company_name": "SeuStencil",
+      "company_subtitle": "Sistema de Inspe\u00e7\u00e3o de Stencils",
+      "logo_path": "",
+      "output_dir": "reports",
+      "include_charts": true,
+      "include_details_table": true,
+      "auto_generate_after_measurement": false,
+      "page_size": "A4",
+      "language": "pt-BR",
+      "primary_color": [
+        41,
+        128,
+        185
+      ],
+      "success_color": [
+        46,
+        204,
+        113
+      ],
+      "warning_color": [
+        241,
+        196,
+        15
+      ],
+      "danger_color": [
+        231,
+        76,
+        60
+      ]
+    }
+  },
+  "inspection": {
+    "thresholds": {
+      "ok_threshold": 90.0,
+      "partial_threshold": 70.0,
+      "bin_method": "otsu",
+      "bin_fixed_threshold": 127,
+      "bin_adaptive_block": 11,
+      "bin_adaptive_c": 2,
+      "min_aperture_area_px": 50,
+      "blur_kernel_size": 3,
+      "morphology_kernel_size": 3,
+      "apply_morphology": true
+    }
   }
 }
