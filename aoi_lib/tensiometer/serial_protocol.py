@@ -124,15 +124,3 @@ class TensiometerSerialManager:
             logger.error(f"Erro na leitura: {e}")
             return "0"
     
-    def send_command(self, command: str) -> bool:
-        if not self.is_connected:
-            return False
-        try:
-            cmd_bytes = (command + '
-').encode('ascii')
-            self.serial_connection.write(cmd_bytes)
-            self.serial_connection.flush()
-            return True
-        except Exception as e:
-            self.last_error = str(e)
-            return False
