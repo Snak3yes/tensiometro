@@ -93,25 +93,31 @@ This file tracks all major tracks for the project. Each track has its own detail
 - **Spec:** ./tracks/refactor_large_files_20260113/spec.md
 - **Target:** Refactor 38 files >500 lines, eliminate anti-patterns
 
-## [ ] Track: Integrar Engineering Wizard (Integration) <!-- NOVA 2026-01-13 -->
+---
+
+## [x] Track: Integrar Engineering Wizard (archived) <!-- 2026-01-14 -->
+*Link: [./conductor/archive/integrate_engineering_wizard_20260113/](./conductor/archive/integrate_engineering_wizard_20260113/)*
 - **Track ID:** integrate_engineering_wizard_20260113
-- **Status:** Planned
+- **Status:** ✅ 98% Complete - Ready for validation
 - **Priority:** Critical
 - **Created:** 2026-01-13
+- **Completed:** 2026-01-14
 - **Est. Duration:** 3-4 weeks
-- **Phases:** 4 (Arquitetura, Hardware, Persistência, Validação)
-- **Plan:** ./tracks/integrate_engineering_wizard_20260113/plan.md
-- **Spec:** ./tracks/integrate_engineering_wizard_20260113/spec.md
-- **Metadata:** ./tracks/integrate_engineering_wizard_20260113/metadata.json
+- **Actual Duration:** 1 day
+- **Phases:** 4/4 complete
+- **Final Commit:** d687ba3
+- **Plan:** ./archive/integrate_engineering_wizard_20260113/plan.md
+- **Spec:** ./archive/integrate_engineering_wizard_20260113/spec.md
+- **Metadata:** ./archive/integrate_engineering_wizard_20260113/metadata.json
 - **Dependencies:** Tracks 1-7 do Engineering Wizard (TODAS COMPLETAS)
 - **Deliverables:**
-  - EngineeringWizardDialog (orchestrator das 7 abas)
-  - EngineeringWizardState (estado compartilhado)
-  - EngineeringHardwareCoordinator (coordenação de hardware)
-  - EngineeringProgramManager (persistência de programas)
-  - EngineeringRecipeCoordinator (integração com RecipeManager)
-  - Menu integration + toolbar button
-  - Testes completos + documentação
+  - ✅ EngineeringWizardDialog (orchestrator das 7 abas)
+  - ✅ EngineeringWizardState (estado compartilhado)
+  - ✅ EngineeringHardwareCoordinator (coordenação de hardware)
+  - ✅ EngineeringProgramManager (persistência de programas)
+  - ✅ EngineeringRecipeCoordinator (integração com RecipeManager)
+  - ✅ Menu integration + toolbar button
+  - ✅ Documentação completa (620 linhas)
 
 ---
-*Last updated: 2026-01-13*
+*Last updated: 2026-01-14*
