@@ -149,9 +149,22 @@ from aoi_lib import (
 
 # Individual modules can be imported directly
 from aoi_lib.fov_calibration import FOVCalibration, CameraFOVConverter
-from aoi_lib.tensiometer.serial_protocol import TensiometerSerialManager
-from aoi_lib.tensiometer.measurement_thread import TensionMeasurementThread
-from aoi_lib.tensiometer.tension_measurement import StencilTensionMeasurement
+
+# Tensiometer module (NEW - 2026-01-14)
+from aoi_lib.tensiometer import (
+    MeasurementOrchestrator,
+    TensiometerSerialManager,
+    TensionMeasurementThread,
+    GridCalculationService,
+    MeasurementAnalysisService,
+    GridPoint,
+    TensionMeasurement,
+    GridParameters,
+    MeasurementSession,
+    ValidationError
+)
+
+# Other modules
 from aoi_lib.recipe_manager import RecipeManager
 from aoi_lib.fiducial_alignment import FiducialAlignment
 from aoi_lib.gerber_parser import GerberParser
@@ -172,6 +185,11 @@ from consumo_lib.controllers import (
     MovementController, CameraController, TensionMeasurementController,
     FiducialAlignmentController, InspectionUIController
 )
+
+# Dialogs (NEW - 2026-01-14)
+from consumo_lib.dialogs.tension import TensionMeasurementDialog
+# Legacy import still works (with deprecation warning):
+# from aoi_lib.stencil_tension import StencilTensionDialog
 
 # Managers
 from consumo_lib.managers import (
@@ -281,6 +299,103 @@ converter.get_fov_at_z(0)  # Returns (width_mm, height_mm)
 - **PLCAxisController** ([aoi_lib/plc_axis_controller.py](aoi_lib/plc_axis_controller.py)) - Modbus TCP communication with Delta CLP for 3-axis (X,Y,Z) movement control
 - **TensiometerSerialManager** ([aoi_lib/tensiometer/serial_protocol.py](aoi_lib/tensiometer/serial_protocol.py)) - RS-232 serial protocol (2400 baud, 9-byte frame) for AS-120N tension sensor
 - **CameraController** ([aoi_lib/camera_controller.py](aoi_lib/camera_controller.py)) - OpenCV USB camera interface with real-time preview
+
+### Tensiometer Module (NEW - 2026-01-14)
+Location: `aoi_lib/tensiometer/` - Refactored from `aoi_lib/stencil_tension.py` (1,409 → 2,368 lines across 5 modules)
+
+**Purpose:** Tension measurement of stencils with SOLID principles, separation of concerns, and 100% testable business logic
+
+**Components:**
+- **models.py** (267 lines) - Data structures with dataclasses:
+  - `GridPoint` - Single measurement point (x, y, index, grid_position)
+  - `TensionMeasurement` - Measurement with value, unit, timestamp, validation
+  - `GridParameters` - Configuration (start_point, end_point, grid_size, z_height, z_move)
+  - `MeasurementSession` - Complete session with measurements, statistics, duration
+  - `TensiometerConfig` - Serial port configuration
+  - `TensionUnit` - Unit enum (N_CM2, KG_CM2, LB_CM2)
+
+- **serial_protocol.py** - AS-120N tensiometer serial communication:
+  - `TensiometerSerialManager` - RS-232 protocol handler (2400 baud, 9-byte frame)
+  - `read_tension_value()` - Read tension value with automatic decoding
+  - Context manager support (`with` statement)
+  - Error handling and last_error tracking
+
+- **measurement_thread.py** (238 lines) - Background measurement execution:
+  - `TensionMeasurementThread` - PyQt6 QThread for non-blocking measurements
+  - Signals: `progress_updated`, `measurement_completed`, `finished`, `error_occurred`
+  - Graceful stop support with `request_stop()`
+
+- **measurement_service.py** (467 lines) - Business logic (100% testable without PyQt6):
+  - `GridCalculationService` - Calculate grid points in zig-zag pattern
+    - `calculate_grid_points()` - Generate NxN grid with validation
+    - `validate_parameters()` - Check grid constraints (size, Z heights)
+    - `get_grid_statistics()` - Calculate total distance, bounds
+  - `MeasurementAnalysisService` - Statistical analysis and classification
+    - `analyze_session()` - Complete analysis (statistics, classification, outliers)
+    - `_classify_tension()` - Classify as OK/WARNING/CRITICAL based on mean and CV
+    - `generate_report()` - Human-readable text report
+  - `ValidationError` - Custom exception for validation failures
+
+- **measurement_orchestrator.py** (415 lines) - Facade for complete workflow:
+  - `MeasurementOrchestrator` - Coordinates entire measurement process
+  - `prepare_measurement()` - Validate and prepare measurement session
+  - `start_measurement()` - Start background thread with callbacks
+  - `stop_measurement()` - Request graceful stop
+  - `save_results()` - Save session to JSON file
+  - `get_report()` - Generate formatted report
+
+**Usage Example:**
+```python
+from aoi_lib.tensiometer import (
+    MeasurementOrchestrator,
+    TensiometerSerialManager,
+    GridCalculationService,
+    MeasurementAnalysisService
+)
+from consumo_lib.dialogs.tension import TensionMeasurementDialog
+
+# Setup
+tensiometer = TensiometerSerialManager()
+tensiometer.connect("COM3")
+
+# Orchestrator handles everything
+orchestrator = MeasurementOrchestrator(cnc, tensiometer)
+
+# Prepare
+result = orchestrator.prepare_measurement(
+    start_point=(0, 0),
+    end_point=(100, 100),
+    grid_size=3,
+    z_height=5.0,
+    z_move=10.0
+)
+
+# Start with callbacks
+orchestrator.start_measurement(
+    points=result['points'],
+    on_progress=lambda cur, total, msg: print(f"{cur}/{total}: {msg}"),
+    on_complete=lambda results: print(f"Done: {results['analysis']}")
+)
+```
+
+**Benefits of Refactoring:**
+- ✅ Separation of concerns (SRP compliant)
+- ✅ Service layer 100% testable without PyQt6
+- ✅ Dialog reduced from 962 to 482 lines (50% reduction)
+- ✅ 48 unit tests for business logic
+- ✅ Zero breaking changes (backward compatibility maintained)
+- ✅ Type hints and docstrings throughout
+
+**UI Dialog:**
+- **TensionMeasurementDialog** ([consumo_lib/dialogs/tension/tension_measurement_dialog.py](consumo_lib/dialogs/tension/tension_measurement_dialog.py)) - Refactored PyQt6 dialog (482 lines, UI-only responsibilities)
+- Uses `MeasurementOrchestrator` for all business logic
+- Progress display, status updates, error messages
+- Available via `from consumo_lib.dialogs.tension import TensionMeasurementDialog`
+
+**Legacy Compatibility:**
+- Old import still works with deprecation warning: `from aoi_lib.stencil_tension import StencilTensionDialog`
+- Compatibility layer re-exports from new locations
+- See `docs/guides/SOLID_PHASE1_MIGRATION_GUIDE.md` for migration guide
 
 ### Core Business Logic
 - **AOIController** ([aoi_lib/aoi_controller.py](aoi_lib/aoi_controller.py)) - High-level orchestrator integrating CNC movement + camera capture
