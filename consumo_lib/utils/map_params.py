@@ -1,7 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Dict
 from pathlib import Path
+
+@dataclass
 class MapParams:
+    """Parâmetros para geração de mapa."""
     origin: dict
     end: dict
     step_x: float
