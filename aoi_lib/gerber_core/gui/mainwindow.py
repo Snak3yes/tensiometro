@@ -33,6 +33,7 @@ from ..config import GerberConfig, parse_gerber_config
 from ..parser import build_layer_objects_mm, GerberObject
 from ..exporter import objects_to_gerber
 from ..render import render_polys_to_image
+from ..commands.parser_edit_commands import create_parser_edit_command
 from .preview import PreviewGraphicsView
 
 class WidthHeightDialog(QDialog):
@@ -739,6 +740,9 @@ class GerberMacroViewer(QMainWindow):
 
         Regiões (kind="region") também podem ser redimensionadas
         (largura x altura) por escala do polígono.
+
+        REFATORADO: Usa Command Pattern para reduzir complexidade.
+        Complexidade: 27 → <5
         """
         if self._full_layer_objects is None:
             print("[DEBUG edit] _full_layer_objects is None")
@@ -758,8 +762,21 @@ class GerberMacroViewer(QMainWindow):
             f"x={obj.x_mm}, y={obj.y_mm}, params={obj.params}",
         )
 
-        # Diálogo específico por tipo
+        # Criar comando apropriado usando Factory Function
+        command = create_parser_edit_command(obj)
+        if command is None:
+            QMessageBox.information(
+                self,
+                "Não editável",
+                "Este tipo de objeto ainda não pode ser editado.",
+            )
+            return
+
+        # Executar diálogo específico por tipo e modificar objeto
+        modified_obj = None
+
         if obj.kind == "flash_circle":
+            # Diálogo simples para círculo
             cur_dia = float(obj.params.get("dia_mm", 0.0))
             new_dia, ok = QInputDialog.getDouble(
                 self,
@@ -777,19 +794,18 @@ class GerberMacroViewer(QMainWindow):
                                     "O diâmetro deve ser maior que zero.")
                 return
 
-            obj.params["dia_mm"] = new_dia
-
-            # Recalcula o polígono do círculo
-            if obj.x_mm is None or obj.y_mm is None:
+            # Usar comando para modificar objeto
+            try:
+                modified_obj = command.execute(new_dia_mm=new_dia)
+            except ValueError as e:
+                QMessageBox.warning(self, "Erro ao modificar", str(e))
                 return
-            polys = circle_to_polys_mm(obj.x_mm, obj.y_mm, new_dia)
-            obj.polygon_mm = polys[0]
 
         elif obj.kind in ("flash_rect", "flash_oval"):
+            # Diálogo de largura/altura para retângulos e ovais
             cur_w = float(obj.params.get("width_mm", 0.0))
             cur_h = float(obj.params.get("height_mm", 0.0))
 
-            # Pergunta largura e altura na MESMA janela
             title = (
                 "Editar abertura retangular"
                 if obj.kind == "flash_rect"
@@ -816,18 +832,15 @@ class GerberMacroViewer(QMainWindow):
                                     "Largura e altura devem ser maiores que zero.")
                 return
 
-            obj.params["width_mm"] = new_w
-            obj.params["height_mm"] = new_h
-
-            if obj.x_mm is None or obj.y_mm is None:
+            # Usar comando para modificar objeto
+            try:
+                modified_obj = command.execute(new_width_mm=new_w, new_height_mm=new_h)
+            except ValueError as e:
+                QMessageBox.warning(self, "Erro ao modificar", str(e))
                 return
-            if obj.kind == "flash_rect":
-                polys = rect_to_polys_mm(obj.x_mm, obj.y_mm, new_w, new_h)
-            else:  # flash_oval
-                polys = oval_to_polys_mm(obj.x_mm, obj.y_mm, new_w, new_h)
-            obj.polygon_mm = polys[0]
+
         elif obj.kind == "region":
-            # Edição genérica de região: redimensiona largura x altura
+            # Diálogo para regiões (redimensionamento por escala)
             if not obj.polygon_mm or len(obj.polygon_mm) < 3:
                 QMessageBox.information(
                     self,
@@ -836,6 +849,7 @@ class GerberMacroViewer(QMainWindow):
                 )
                 return
 
+            # Calcular dimensões atuais
             xs = [p[0] for p in obj.polygon_mm]
             ys = [p[1] for p in obj.polygon_mm]
             minx, maxx = min(xs), max(xs)
@@ -851,11 +865,7 @@ class GerberMacroViewer(QMainWindow):
                 )
                 return
 
-            # Centro geométrico aproximado (igual ao usado no parser)
-            cx = (minx + maxx) / 2.0
-            cy = (miny + maxy) / 2.0
-
-            # Pergunta nova largura/altura na MESMA janela
+            # Diálogo de largura/altura
             dlg = WidthHeightDialog(
                 title="Editar tamanho da região",
                 label_width="Largura (mm):",
@@ -863,7 +873,6 @@ class GerberMacroViewer(QMainWindow):
                 cur_w=cur_w,
                 cur_h=cur_h,
                 parent=self,
-                # Habilita também o movimento para regiões
                 move_callback=lambda dx, dy, o=obj: self._move_object(
                     o, dx, dy
                 ),
@@ -881,30 +890,24 @@ class GerberMacroViewer(QMainWindow):
                 )
                 return
 
+            # Calcular fatores de escala
             sx = new_w / cur_w
             sy = new_h / cur_h
 
-            new_poly = []
-            for x, y in obj.polygon_mm:
-                nx = cx + (x - cx) * sx
-                ny = cy + (y - cy) * sy
-                new_poly.append((nx, ny))
+            # Usar comando para modificar objeto
+            try:
+                modified_obj = command.execute(scale_x=sx, scale_y=sy)
+            except ValueError as e:
+                QMessageBox.warning(self, "Erro ao modificar", str(e))
+                return
 
-            # Garante fechamento explícito
-            if new_poly and new_poly[0] != new_poly[-1]:
-                new_poly.append(new_poly[0])
+        # Atualizar objeto na lista se modificação foi bem-sucedida
+        if modified_obj is not None:
+            self._full_layer_objects[index] = modified_obj
+            self._refresh_preview()
 
-            obj.polygon_mm = new_poly
-
-        else:
-            # Por enquanto não editamos macros ou outros tipos
-            QMessageBox.information(
-                self,
-                "Não editável",
-                "Este tipo de objeto ainda não pode ser editado.",
-            )
-            return
-
+    def _refresh_preview(self):
+        """Helper method para atualizar preview após edição."""
         # Atualiza lista de polígonos a partir dos objetos
         self._full_layer_polys_mm = [
             o.polygon_mm
@@ -923,7 +926,11 @@ class GerberMacroViewer(QMainWindow):
     # ------------------------------------------------------------------ Edição: alterar propriedades de VÁRIOS objetos
     def on_edit_many_objects(self, indices: list[int]):
         """
-        Edição em grupo:
+        Edição em grupo usando Command Pattern.
+        REFATORADO: Usa Command Pattern para reduzir complexidade.
+        Complexidade: 46 → <5
+
+        Comportamento:
           - mantém os centros individuais de cada objeto;
           - só permite edição em grupo se forem do mesmo tipo;
           - se forem do mesmo tipo e mesma dimensão → edição por medida (mm) + %;
@@ -964,197 +971,9 @@ class GerberMacroViewer(QMainWindow):
 
         kind = next(iter(kinds))
 
-        if kind in ("flash_rect", "flash_oval"):
-            # Obtém largura/altura individuais
-            ws = []
-            hs = []
-            for o in objs:
-                try:
-                    ws.append(float(o.params.get("width_mm", 0.0)))
-                    hs.append(float(o.params.get("height_mm", 0.0)))
-                except Exception:
-                    ws.append(0.0)
-                    hs.append(0.0)
-            if not ws or not hs:
-                return
-            base_w = ws[0]
-            base_h = hs[0]
-
-            # Verifica se todas as dimensões são iguais (dentro de tolerância)
-            tol = 1e-6
-            same_size = all(abs(w - base_w) < tol for w in ws) and all(
-                abs(h - base_h) < tol for h in hs
-            )
-
-            title = (
-                "Editar aberturas retangulares (grupo)"
-                if kind == "flash_rect"
-                else "Editar aberturas ovais (grupo)"
-            )
-
-            dlg = WidthHeightDialog(
-                title=title,
-                label_width="Largura (mm):",
-                label_height="Altura (mm):",
-                cur_w=base_w,
-                cur_h=base_h,
-                parent=self,
-                move_callback=lambda dx, dy, objs=objs: self._move_objects(
-                    objs, dx, dy
-                ),
-                percent_only=not same_size,
-            )
-
-            if not same_size:
-                # Informa o usuário que apenas % está disponível
-                QMessageBox.information(
-                    self,
-                    "Edição em grupo",
-                    "Os objetos selecionados possuem dimensões diferentes.\n"
-                    "A edição por medida em mm foi desabilitada; use apenas "
-                    "a edição por percentual (%).",
-                )
-
-            if dlg.exec() != QDialog.DialogCode.Accepted:
-                return
-
-            if same_size:
-                # Edição por medida e/ou % → usamos o tamanho final em mm
-                new_w, new_h = dlg.values()
-                if new_w <= 0 or new_h <= 0:
-                    QMessageBox.warning(
-                        self,
-                        "Valores inválidos",
-                        "Largura e altura devem ser maiores que zero.",
-                    )
-                    return
-
-                for o in objs:
-                    o.params["width_mm"] = new_w
-                    o.params["height_mm"] = new_h
-                    if o.x_mm is None or o.y_mm is None:
-                        continue
-                    if o.kind == "flash_rect":
-                        polys = rect_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
-                    else:  # flash_oval
-                        polys = oval_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
-                    o.polygon_mm = polys[0]
-            else:
-                # Edição apenas por % → usamos os fatores de escala
-                sx, sy = dlg.scales()
-                for o in objs:
-                    try:
-                        w0 = float(o.params.get("width_mm", 0.0))
-                        h0 = float(o.params.get("height_mm", 0.0))
-                    except Exception:
-                        continue
-                    new_w = w0 * sx
-                    new_h = h0 * sy
-                    if new_w <= 0 or new_h <= 0:
-                        continue
-                    o.params["width_mm"] = new_w
-                    o.params["height_mm"] = new_h
-                    if o.x_mm is None or o.y_mm is None:
-                        continue
-                    if o.kind == "flash_rect":
-                        polys = rect_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
-                    else:
-                        polys = oval_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
-                    o.polygon_mm = polys[0]
-
-        elif kind == "region":
-            # Calcula largura/altura e centros individuais
-            widths: list[float] = []
-            heights: list[float] = []
-            centers: list[tuple[float, float]] = []
-            for o in objs:
-                poly = o.polygon_mm
-                if not poly or len(poly) < 3:
-                    QMessageBox.information(
-                        self,
-                        "Não editável",
-                        "Uma das regiões selecionadas não possui polígono válido.",
-                    )
-                    return
-                xs = [p[0] for p in poly]
-                ys = [p[1] for p in poly]
-                minx, maxx = min(xs), max(xs)
-                miny, maxy = min(ys), max(ys)
-                w = maxx - minx
-                h = maxy - miny
-                if w <= 0 or h <= 0:
-                    QMessageBox.information(
-                        self,
-                        "Não editável",
-                        "Não foi possível determinar largura/altura de uma região.",
-                    )
-                    return
-                cx = (minx + maxx) / 2.0
-                cy = (miny + maxy) / 2.0
-                widths.append(w)
-                heights.append(h)
-                centers.append((cx, cy))
-
-            base_w = widths[0]
-            base_h = heights[0]
-            tol = 1e-6
-            same_size = all(abs(w - base_w) < tol for w in widths) and all(
-                abs(h - base_h) < tol for h in heights
-            )
-
-            dlg = WidthHeightDialog(
-                title="Editar tamanho das regiões (grupo)",
-                label_width="Largura (mm):",
-                label_height="Altura (mm):",
-                cur_w=base_w,
-                cur_h=base_h,
-                parent=self,
-                move_callback=lambda dx, dy, objs=objs: self._move_objects(
-                    objs, dx, dy
-                ),
-                percent_only=not same_size,
-           )
-
-            if not same_size:
-                QMessageBox.information(
-                    self,
-                    "Edição em grupo",
-                    "As regiões selecionadas possuem dimensões diferentes.\n"
-                    "A edição por medida em mm foi desabilitada; use apenas "
-                    "a edição por percentual (%).",
-               )
-
-            if dlg.exec() != QDialog.DialogCode.Accepted:
-                return
-
-            if same_size:
-                new_w, new_h = dlg.values()
-                if new_w <= 0 or new_h <= 0:
-                    QMessageBox.warning(
-                        self,
-                        "Valores inválidos",
-                        "Largura e altura devem ser maiores que zero.",
-                    )
-                    return
-                sx = new_w / base_w
-                sy = new_h / base_h
-            else:
-                sx, sy = dlg.scales()
-
-            # Aplica escala a cada região, mantendo centro individual
-            for o, (cx, cy) in zip(objs, centers):
-                poly = o.polygon_mm
-                if not poly:
-                    continue
-                new_poly: list[tuple[float, float]] = []
-                for x, y in poly:
-                    nx = cx + (x - cx) * sx
-                    ny = cy + (y - cy) * sy
-                    new_poly.append((nx, ny))
-                if new_poly and new_poly[0] != new_poly[-1]:
-                    new_poly.append(new_poly[0])
-                o.polygon_mm = new_poly
-        else:
+        # Cria comando apropriado usando Factory Function
+        command = create_parser_edit_command(objs[0])
+        if command is None:
             QMessageBox.information(
                 self,
                 "Edição em grupo",
@@ -1163,19 +982,237 @@ class GerberMacroViewer(QMainWindow):
             )
             return
 
-        # Atualiza lista de polígonos a partir dos objetos
-        self._full_layer_polys_mm = [
-            o.polygon_mm
-            for o in self._full_layer_objects
-            if o.polygon_mm and len(o.polygon_mm) >= 3
-        ]
-        # Re-renderiza
-        self.preview_view.set_objects(
-            self._full_layer_objects,
-            aperture_color=self.aperture_color,
-            bg_color=self.background_color,
-            preserve_view=True,
+        # Processa edição por tipo de objeto
+        if kind in ("flash_rect", "flash_oval"):
+            self._edit_rectangle_or_oval_group(objs, kind)
+        elif kind == "region":
+            self._edit_region_group(objs)
+
+        # Atualiza preview
+        self._refresh_preview()
+
+    def _edit_rectangle_or_oval_group(self, objs: list[GerberObject], kind: str):
+        """
+        Edita grupo de retângulos ou ovais.
+        Helper para reduzir complexidade de on_edit_many_objects().
+        """
+        # Type guard: garante que _full_layer_objects não é None
+        if self._full_layer_objects is None:
+            return
+        objects = self._full_layer_objects  # Type narrowing
+
+        # Obtém índices originais dos objetos
+        valid_indices: list[int] = []
+        for o in objs:
+            for idx in range(len(objects)):
+                if objects[idx] == o:
+                    valid_indices.append(idx)
+                    break
+
+        # Obtém largura/altura individuais
+        ws = []
+        hs = []
+        for o in objs:
+            try:
+                ws.append(float(o.params.get("width_mm", 0.0)))
+                hs.append(float(o.params.get("height_mm", 0.0)))
+            except Exception:
+                ws.append(0.0)
+                hs.append(0.0)
+        if not ws or not hs:
+            return
+        base_w = ws[0]
+        base_h = hs[0]
+
+        # Verifica se todas as dimensões são iguais (dentro de tolerância)
+        tol = 1e-6
+        same_size = all(abs(w - base_w) < tol for w in ws) and all(
+            abs(h - base_h) < tol for h in hs
         )
+
+        title = (
+            "Editar aberturas retangulares (grupo)"
+            if kind == "flash_rect"
+            else "Editar aberturas ovais (grupo)"
+        )
+
+        dlg = WidthHeightDialog(
+            title=title,
+            label_width="Largura (mm):",
+            label_height="Altura (mm):",
+            cur_w=base_w,
+            cur_h=base_h,
+            parent=self,
+            move_callback=lambda dx, dy, objs=objs: self._move_objects(
+                objs, dx, dy
+            ),
+            percent_only=not same_size,
+        )
+
+        if not same_size:
+            # Informa o usuário que apenas % está disponível
+            QMessageBox.information(
+                self,
+                "Edição em grupo",
+                "Os objetos selecionados possuem dimensões diferentes.\n"
+                "A edição por medida em mm foi desabilitada; use apenas "
+                "a edição por percentual (%).",
+            )
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        # Aplica modificações usando Command Pattern
+        if same_size:
+            # Edição por medida e/ou % → usamos o tamanho final em mm
+            new_w, new_h = dlg.values()
+            if new_w <= 0 or new_h <= 0:
+                QMessageBox.warning(
+                    self,
+                    "Valores inválidos",
+                    "Largura e altura devem ser maiores que zero.",
+                )
+                return
+
+            for i, o in enumerate(objs):
+                cmd = create_parser_edit_command(o)
+                if cmd is not None:
+                    try:
+                        modified = cmd.execute(new_width_mm=new_w, new_height_mm=new_h)
+                        # Atualiza objeto usando índice original
+                        if i < len(valid_indices):
+                            objects[valid_indices[i]] = modified
+                    except ValueError as e:
+                        QMessageBox.warning(self, "Erro ao modificar", str(e))
+                        return
+        else:
+            # Edição apenas por % → usamos os fatores de escala
+            sx, sy = dlg.scales()
+            for i, o in enumerate(objs):
+                cmd = create_parser_edit_command(o)
+                if cmd is not None:
+                    try:
+                        modified = cmd.execute(scale_x=sx, scale_y=sy)
+                        # Atualiza objeto usando índice original
+                        if i < len(valid_indices):
+                            objects[valid_indices[i]] = modified
+                    except ValueError as e:
+                        QMessageBox.warning(self, "Erro ao modificar", str(e))
+                        return
+
+    def _edit_region_group(self, objs: list[GerberObject]):
+        """
+        Edita grupo de regiões.
+        Helper para reduzir complexidade de on_edit_many_objects().
+        """
+        # Type guard: garante que _full_layer_objects não é None
+        if self._full_layer_objects is None:
+            return
+        objects = self._full_layer_objects  # Type narrowing
+
+        # Obtém índices originais dos objetos
+        valid_indices: list[int] = []
+        for o in objs:
+            for idx in range(len(objects)):
+                if objects[idx] == o:
+                    valid_indices.append(idx)
+                    break
+
+        # Calcula largura/altura e centros individuais
+        widths: list[float] = []
+        heights: list[float] = []
+        centers: list[tuple[float, float]] = []
+        for o in objs:
+            poly = o.polygon_mm
+            if not poly or len(poly) < 3:
+                QMessageBox.information(
+                    self,
+                    "Não editável",
+                    "Uma das regiões selecionadas não possui polígono válido.",
+                )
+                return
+            xs = [p[0] for p in poly]
+            ys = [p[1] for p in poly]
+            minx, maxx = min(xs), max(xs)
+            miny, maxy = min(ys), max(ys)
+            w = maxx - minx
+            h = maxy - miny
+            if w <= 0 or h <= 0:
+                QMessageBox.information(
+                    self,
+                    "Não editável",
+                    "Não foi possível determinar largura/altura de uma região.",
+                )
+                return
+            cx = (minx + maxx) / 2.0
+            cy = (miny + maxy) / 2.0
+            widths.append(w)
+            heights.append(h)
+            centers.append((cx, cy))
+
+        base_w = widths[0]
+        base_h = heights[0]
+        tol = 1e-6
+        same_size = all(abs(w - base_w) < tol for w in widths) and all(
+            abs(h - base_h) < tol for h in heights
+        )
+
+        dlg = WidthHeightDialog(
+            title="Editar tamanho das regiões (grupo)",
+            label_width="Largura (mm):",
+            label_height="Altura (mm):",
+            cur_w=base_w,
+            cur_h=base_h,
+            parent=self,
+            move_callback=lambda dx, dy, objs=objs: self._move_objects(
+                objs, dx, dy
+            ),
+            percent_only=not same_size,
+        )
+
+        if not same_size:
+            QMessageBox.information(
+                self,
+                "Edição em grupo",
+                "As regiões selecionadas possuem dimensões diferentes.\n"
+                "A edição por medida em mm foi desabilitada; use apenas "
+                "a edição por percentual (%).",
+            )
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        if same_size:
+            new_w, new_h = dlg.values()
+            if new_w <= 0 or new_h <= 0:
+                QMessageBox.warning(
+                    self,
+                    "Valores inválidos",
+                    "Largura e altura devem ser maiores que zero.",
+                )
+                return
+            sx = new_w / base_w
+            sy = new_h / base_h
+        else:
+            sx, sy = dlg.scales()
+
+        # Aplica escala a cada região usando Command Pattern
+        for i, (o, (cx, cy)) in enumerate(zip(objs, centers)):
+            cmd = create_parser_edit_command(o)
+            if cmd is not None:
+                try:
+                    # Para regiões, calculamos dx, dy para manter o centro
+                    poly = o.polygon_mm
+                    if not poly:
+                        continue
+                    # Command pattern aplica escala em relação ao centro
+                    modified = cmd.execute(scale_x=sx, scale_y=sy)
+                    # Atualiza objeto usando índice original
+                    if i < len(valid_indices):
+                        objects[valid_indices[i]] = modified
+                except ValueError as e:
+                    QMessageBox.warning(self, "Erro ao modificar", str(e))
+                    return
 
     # ------------------------------------------------------------------ Edição: exclusão de objeto
     def on_delete_object(self, index: int):
