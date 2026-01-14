@@ -48,11 +48,13 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Adicionar type hints e docstrings
   - **Resultado:** 214 linhas, 23 testes, 97% coverage
   - **Classes:** ValidationError, GerberObject, GerberLayer, GerberModel
-- [ ] 1.1.4. Criar `gerber_core/controllers/gerber_controller.py`
-  - [ ] Extrair lógica de negócio de mainwindow.py
-  - [ ] Implementar métodos de edição (edit_object, edit_many_objects)
-  - [ ] Implementar métodos de validação
-  - [ ] Adicionar testes unitários
+- [x] 1.1.4. Criar `gerber_core/controllers/gerber_controller.py` ✅ `edecb3e`
+  - [x] Extrair lógica de negócio de mainwindow.py
+  - [x] Implementar métodos de edição (edit_object, edit_many_objects)
+  - [x] Implementar métodos de validação
+  - [x] Adicionar testes unitários
+  - **Resultado:** 267 linhas, 18 testes, >90% coverage
+  - **Métodos:** import_gerber, export_gerber, select_object(s), edit_selected_object(s), delete_selected_objects
 - [ ] 1.1.5. Criar `gerber_core/commands/edit_commands.py`
   - [ ] Criar abstração `EditObjectCommand` (ABC)
   - [ ] Implementar comandos concretos (EditCircle, EditRectangle, etc.)
