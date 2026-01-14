@@ -3,5 +3,8 @@
 
 from .tension_measurement_dialog import TensionMeasurementDialog
 
-__all__ = ['TensionMeasurementDialog']
+# Export with alias for backward compatibility
+StencilTensionDialog = TensionMeasurementDialog
+
+__all__ = ['TensionMeasurementDialog', 'StencilTensionDialog']
 

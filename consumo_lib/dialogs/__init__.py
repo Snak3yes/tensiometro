@@ -22,7 +22,9 @@ from consumo_lib.dialogs.stencil import (
     StencilEditDialog,
     StencilFullHistoryDialog,
 )
-from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
+# Tension measurement dialog (refactored 2026-01-14)
+# Import with alias for backward compatibility
+from consumo_lib.dialogs.tension import TensionMeasurementDialog as StencilTensionDialog
 
 __all__ = [
     # Calibration & Settings
