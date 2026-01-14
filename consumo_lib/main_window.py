@@ -75,7 +75,7 @@ from consumo_lib.controllers import (
     FileIOController, PositionManagerController, RecipeManagerController
 )
 from consumo_lib.coordinators import SetupCoordinator, EngineeringHardwareCoordinator
-from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, SignalAggregator, DialogRouter
+from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, DialogRouter
 from consumo_lib.ui_builders import MainUIBuilder
 from consumo_lib.services import SequenceExecutionService, ResourceManager
 from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
