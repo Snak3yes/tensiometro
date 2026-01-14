@@ -31,7 +31,7 @@
 - [x] Create `consumo_lib/dialogs/tension_measurement_dialog.py` with GUI code <!-- e741cb5 -->
 - [x] Update imports in all files that reference old module <!-- e741cb5 -->
 - [x] Run tests to validate refactoring <!-- e741cb5 -->
-- [~] Update CLAUDE.md with new structure
+- [x] Update CLAUDE.md with new structure <!-- 0b31b4d -->
 
 ### Tarefa 1.2: Eliminate signal_aggregator.py anti-pattern
 - [~] Analyze all 50+ signal connections in signal_aggregator.py
