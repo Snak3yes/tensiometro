@@ -108,7 +108,7 @@ class DialogManagerController(QObject):
             report_settings_updated signal se config alterada
             dialog_closed signal quando diálogo fechar
         """
-        from consumo_lib.recipe_dialog import ReportSettingsDialog
+        from consumo_lib.dialogs import ReportSettingsDialog
 
         dialog = ReportSettingsDialog(self.report_config, self.parent_window)
 
