@@ -46,7 +46,7 @@
 - [x] **Phase 1.2.8:** Delete signal_aggregator.py and integration test ✅ <!-- 88164af -->
 - [ ] Update CLAUDE.md to reflect distributed signal handling
 
-### Tarefa 1.3: Move stencil_tracker_ui.py to consumo_lib ✅ <!-- COMMIT_SHA_PLACEHOLDER -->
+### Tarefa 1.3: Move stencil_tracker_ui.py to consumo_lib ✅ <!-- 6f18408 -->
 - [x] Create `consumo_lib/widgets/stencil/identification_widget.py`
 - [x] Create `consumo_lib/dialogs/stencil/history_dialog.py`
 - [x] Create `consumo_lib/dialogs/stencil/edit_dialog.py`
