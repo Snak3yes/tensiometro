@@ -39,7 +39,7 @@
 - [x] **Phase 1.2.1:** Recipe Manager Signals → RecipeManagerController ✅ <!-- 984f080 -->
 - [x] **Phase 1.2.2:** Tension Measurement Signals → TensionMeasurementController ✅ <!-- 6160fa9 -->
 - [x] **Phase 1.2.3:** Inspection Signals → InspectionUIController ✅ <!-- 7ac92b3 -->
-- [ ] **Phase 1.2.4:** Camera & Calibration Signals → CameraController
+- [x] **Phase 1.2.4:** Camera & Calibration Signals → CameraController ✅ <!-- bac5f64 -->
 - [ ] **Phase 1.2.5:** Map & Position Signals → MapController/PositionManager
 - [ ] **Phase 1.2.6:** Stencil & Report Signals → StencilManager/ReportManager
 - [ ] **Phase 1.2.7:** PLC & Misc Signals → appropriate controllers
