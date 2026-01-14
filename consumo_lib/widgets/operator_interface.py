@@ -424,3 +424,12 @@ class InspectionResultsWidget(QWidget):
         """Limpa resultados (reseta para estado neutro)."""
         self._current_result = None
         self._set_neutral_style()
+
+    def get_last_result(self) -> Optional[Dict[str, Any]]:
+        """
+        Retorna o último resultado de inspeção exibido.
+
+        Returns:
+            Dicionário com o último resultado ou None se nenhum resultado foi definido
+        """
+        return self._current_result
