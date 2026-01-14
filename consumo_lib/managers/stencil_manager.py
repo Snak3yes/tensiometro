@@ -44,7 +44,7 @@ class StencilManagerWrapper(QObject):
         Args:
             parent_widget: Widget pai para o diálogo
         """
-        from aoi_lib.stencil_tracker_ui import StencilManagerDialog
+        from consumo_lib.dialogs.stencil import StencilManagerDialog
 
         dialog = StencilManagerDialog(self.stencil_tracker, parent_widget)
         dialog.exec()
@@ -59,7 +59,7 @@ class StencilManagerWrapper(QObject):
         Returns:
             Stencil ou None se cancelado/erro
         """
-        from aoi_lib.stencil_tracker_ui import StencilCreateDialog
+        from consumo_lib.dialogs.stencil import StencilCreateDialog
         from PyQt6.QtWidgets import QDialog, QMessageBox
 
         dialog = StencilCreateDialog(self.stencil_tracker, parent=parent_widget)

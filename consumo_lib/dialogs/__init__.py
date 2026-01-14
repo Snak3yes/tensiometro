@@ -15,7 +15,13 @@ from .recipe_dialogs import (
 )
 
 # Stencil dialogs (de outros módulos, exportados aqui para conveniência)
-from aoi_lib.stencil_tracker_ui import StencilManagerDialog, StencilCreateDialog
+from consumo_lib.dialogs.stencil import (
+    StencilManagerDialog,
+    StencilCreateDialog,
+    StencilHistoryDialog,
+    StencilEditDialog,
+    StencilFullHistoryDialog,
+)
 from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
 
 __all__ = [
@@ -32,6 +38,9 @@ __all__ = [
     # Stencil & Tension
     'StencilManagerDialog',
     'StencilCreateDialog',
+    'StencilHistoryDialog',
+    'StencilEditDialog',
+    'StencilFullHistoryDialog',
     'StencilTensionDialog',
 ]
 

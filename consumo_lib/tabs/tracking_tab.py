@@ -50,7 +50,7 @@ class TrackingTab(BaseTab):
     def build_ui(self):
         """Constrói a interface da aba."""
         # Importa widgets
-        from aoi_lib.stencil_tracker_ui import StencilIdentificationWidget
+        from consumo_lib.widgets.stencil import StencilIdentificationWidget
 
         # Widget de identificação de stencil
         self.stencil_identification = StencilIdentificationWidget(

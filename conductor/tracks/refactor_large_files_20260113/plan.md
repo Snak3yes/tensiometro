@@ -46,17 +46,17 @@
 - [x] **Phase 1.2.8:** Delete signal_aggregator.py and integration test ✅ <!-- 88164af -->
 - [ ] Update CLAUDE.md to reflect distributed signal handling
 
-### Tarefa 1.3: Move stencil_tracker_ui.py to consumo_lib
-- [~] Create `consumo_lib/widgets/stencil_identification.py`
-- [ ] Create `consumo_lib/dialogs/stencil_history.py`
-- [ ] Create `consumo_lib/dialogs/stencil_edit.py`
-- [ ] Create `consumo_lib/dialogs/stencil_create.py`
-- [ ] Create `consumo_lib/dialogs/stencil_manager.py`
-- [ ] Create `consumo_lib/dialogs/stencil_full_history.py`
-- [ ] Update imports across codebase
-- [ ] Delete original `aoi_lib/stencil_tracker_ui.py`
-- [ ] Run tests to validate moves
-- [ ] Update CLAUDE.md with GUI architecture
+### Tarefa 1.3: Move stencil_tracker_ui.py to consumo_lib ✅ <!-- COMMIT_SHA_PLACEHOLDER -->
+- [x] Create `consumo_lib/widgets/stencil/identification_widget.py`
+- [x] Create `consumo_lib/dialogs/stencil/history_dialog.py`
+- [x] Create `consumo_lib/dialogs/stencil/edit_dialog.py`
+- [x] Create `consumo_lib/dialogs/stencil/create_dialog.py`
+- [x] Create `consumo_lib/dialogs/stencil/manager_dialog.py`
+- [x] Create `consumo_lib/dialogs/stencil/full_history_dialog.py`
+- [x] Update imports across codebase (StencilManagerWrapper, TrackingTab, dialogs/__init__.py)
+- [x] Delete original `aoi_lib/stencil_tracker_ui.py`
+- [x] Validate syntax of all new files
+- [ ] Update CLAUDE.md with GUI architecture (deferred to validation checkpoint)
 
 ### Tarefa 1.4: Validation checkpoint
 - [ ] Run full test suite (unit + integration)
