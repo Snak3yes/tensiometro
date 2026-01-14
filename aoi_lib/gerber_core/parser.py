@@ -12,6 +12,7 @@ from .geometry import (
     rect_to_polys_mm,
     oval_to_polys_mm,
 )
+from .renderers import create_aperture_renderer
 
 Point = Tuple[float, float]
 
@@ -365,82 +366,26 @@ def _build_layer_core_mm(
                         region_pts.append((cur_x_mm, cur_y_mm))
             continue
 
-        # Flashes D03 (pads / furos do stencil)
+        # Flashes D03 (pads / furos do stencil) - Strategy Pattern
         if draw_mode == "D03" and current_dcode is not None:
             ap = apertures.get(current_dcode)
             if ap is None:
                 continue
 
-            if ap.kind == "circle":
-                dia_mm = float(ap.params["dia_mm"])
-                polys = circle_to_polys_mm(cur_x_mm, cur_y_mm, dia_mm)
-                for poly in polys:
-                    all_polys.append(poly)
-                    obj = GerberObject(
-                        id=len(all_objects),
-                        kind="flash_circle",
-                        dcode=current_dcode,
-                        x_mm=cur_x_mm,
-                        y_mm=cur_y_mm,
-                        params={"dia_mm": dia_mm},
-                        polygon_mm=poly,
-                    )
-                    all_objects.append(obj)
-            elif ap.kind == "rect":
-                w_mm = float(ap.params["width_mm"])
-                h_mm = float(ap.params["height_mm"])
-                polys = rect_to_polys_mm(cur_x_mm, cur_y_mm, w_mm, h_mm)
-                for poly in polys:
-                    all_polys.append(poly)
-                    obj = GerberObject(
-                        id=len(all_objects),
-                        kind="flash_rect",
-                        dcode=current_dcode,
-                        x_mm=cur_x_mm,
-                        y_mm=cur_y_mm,
-                        params={"width_mm": w_mm, "height_mm": h_mm},
-                        polygon_mm=poly,
-                    )
-                    all_objects.append(obj)
-            elif ap.kind == "oval":
-                w_mm = float(ap.params["width_mm"])
-                h_mm = float(ap.params["height_mm"])
-                polys = oval_to_polys_mm(cur_x_mm, cur_y_mm, w_mm, h_mm)
-                for poly in polys:
-                    all_polys.append(poly)
-                    obj = GerberObject(
-                        id=len(all_objects),
-                        kind="flash_oval",
-                        dcode=current_dcode,
-                        x_mm=cur_x_mm,
-                        y_mm=cur_y_mm,
-                        params={"width_mm": w_mm, "height_mm": h_mm},
-                        polygon_mm=poly,
-                    )
-                    all_objects.append(obj)
-            elif ap.kind == "macro":
-                macro_name = ap.params.get("macro_name")
-                mac = macros.get(macro_name)
-                if mac is None:
-                    continue
-                polys = mac.render(
-                    scale_x=1.0,
-                    scale_y=1.0,
-                    rot_deg=0.0,
-                    trans=(cur_x_mm, cur_y_mm),
-                )
-                for poly in polys:
-                    all_polys.append(poly)
-                    obj = GerberObject(
-                        id=len(all_objects),
-                        kind="flash_macro",
-                        dcode=current_dcode,
-                        x_mm=cur_x_mm,
-                        y_mm=cur_y_mm,
-                        params={"macro_name": macro_name or ""},
-                        polygon_mm=poly,
-                    )
-                    all_objects.append(obj)
+            # Factory Function para Strategy Pattern
+            renderer = create_aperture_renderer(ap, macros=macros)
+            if renderer is None:
+                # Tipo de aperture não suportado
+                continue
+
+            # Usar renderizador (complexidade <5 vs 47 original)
+            polys, objects = renderer.render(cur_x_mm, cur_y_mm, current_dcode, ap)
+
+            # Adicionar polígonos e objetos às listas
+            for poly, obj in zip(polys, objects):
+                all_polys.append(poly)
+                obj.id = len(all_objects)
+                all_objects.append(obj)
 
     return all_polys, all_objects
 
