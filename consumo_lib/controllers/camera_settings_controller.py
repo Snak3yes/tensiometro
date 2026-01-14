@@ -580,3 +580,100 @@ class CameraSettingsController(QObject):
             Tuple (mirror_x, mirror_y)
         """
         return self._camera_mirror_x, self._camera_mirror_y
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de câmera.
+
+        Este método conecta os signals internos do CameraSettingsController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals internos a handlers de UI
+        self.settings_applied.connect(self._on_settings_applied_update_ui)
+        self.settings_saved.connect(self._on_settings_saved_update_status)
+        self.settings_loaded.connect(self._on_settings_loaded_update_status)
+
+        logger.debug("UI handlers conectados no CameraSettingsController")
+
+    def _on_settings_applied_update_ui(self, settings):
+        """
+        Atualiza UI quando configurações de câmera são aplicadas.
+
+        Args:
+            settings: Dicionário de configurações aplicadas
+        """
+        logger.info("Configurações de câmera aplicadas")
+
+        # Atualiza variáveis internas no main_window
+        if hasattr(self.parent(), '_camera_mirror_x'):
+            self.parent()._camera_mirror_x = settings.get('mirror_x', False)
+        if hasattr(self.parent(), '_camera_mirror_y'):
+            self.parent()._camera_mirror_y = settings.get('mirror_y', False)
+
+        # Aplica ao preview se disponível
+        parent = self.parent()
+        if hasattr(parent, 'cnc_tab') and hasattr(parent.cnc_tab, 'camera_preview'):
+            mirror_x = settings.get('mirror_x', False)
+            mirror_y = settings.get('mirror_y', False)
+            parent.cnc_tab.camera_preview.set_mirror(mirror_x, mirror_y)
+
+        if hasattr(parent, 'statusBar'):
+            parent.statusBar().showMessage("Configurações de câmera aplicadas", 3000)
+
+    def _on_settings_saved_update_status(self, preset_name):
+        """
+        Atualiza statusBar quando preset de câmera é salvo.
+
+        Args:
+            preset_name: Nome do preset salvo
+        """
+        logger.info(f"Preset de câmera salvo: {preset_name}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Preset '{preset_name}' salvo", 3000)
+
+    def _on_settings_loaded_update_status(self, preset_name):
+        """
+        Atualiza statusBar quando preset de câmera é carregado.
+
+        Args:
+            preset_name: Nome do preset carregado
+        """
+        logger.info(f"Preset de câmera carregado: {preset_name}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Preset '{preset_name}' carregado", 3000)
+
+    def on_camera_connected_update_status(self, camera_id):
+        """
+        Atualiza statusBar quando câmera é conectada.
+
+        Args:
+            camera_id: ID da câmera conectada
+        """
+        logger.info(f"Câmera conectada: {camera_id}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Câmera {camera_id} conectada", 3000)
+
+    def on_camera_disconnected_update_status(self):
+        """
+        Atualiza statusBar quando câmera é desconectada.
+        """
+        logger.info("Câmera desconectada")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage("Câmera desconectada", 3000)
+
+    def on_camera_connection_error_show_message(self, error_message):
+        """
+        Mostra mensagem de erro quando conexão de câmera falha.
+
+        Args:
+            error_message: Mensagem de erro
+        """
+        logger.error(f"Erro de conexão de câmera: {error_message}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Erro de câmera: {error_message}", 5000)

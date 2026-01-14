@@ -413,3 +413,89 @@ class CalibrationController(QObject):
             error_msg = f"Erro ao zerar posição: {e}"
             logger.error(error_msg)
             QMessageBox.warning(None, "Erro", error_msg)
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de calibração.
+
+        Este método conecta os signals internos do CalibrationController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals de teste a handlers de UI
+        if hasattr(self, 'test_completed'):
+            self.test_completed.connect(self._on_test_completed_show_result)
+
+        logger.debug("UI handlers conectados no CalibrationController")
+
+    def _on_test_completed_show_result(self, axis, distance, actual_distance):
+        """
+        Mostra resultado do teste de calibração.
+
+        Args:
+            axis: Eixo testado
+            distance: Distância esperada
+            actual_distance: Distância medida
+        """
+        # Calcula erro
+        error_mm = abs(actual_distance - distance)
+        error_percent = (error_mm / distance) * 100 if distance > 0 else 0
+
+        movement_ok = error_percent < 5.0  # Tolerância de 5%
+
+        status = "OK" if movement_ok else "FALHOU"
+        message = f"Eixo {axis}: {distance:.1f}mm medido, {actual_distance:.1f}mm real (erro: {error_percent:.1f}%)"
+
+        logger.info(f"Teste de calibração: {status} - {message}")
+
+        from PyQt6.QtWidgets import QMessageBox
+        if movement_ok:
+            QMessageBox.information(
+                self.parent(),
+                "Teste de Calibração",
+                f"Teste concluído com sucesso!\n\n{message}"
+            )
+        else:
+            QMessageBox.warning(
+                self.parent(),
+                "Teste de Calibração",
+                f"Teste falhou!\n\n{message}"
+            )
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Teste de calibração: {status}", 3000)
+
+    def on_calibration_applied_update_config(self, steps_x, steps_y):
+        """
+        Atualiza configuração quando calibração é aplicada.
+
+        Args:
+            steps_x: Passos por mm no eixo X
+            steps_y: Passos por mm no eixo Y
+        """
+        logger.info(f"Calibração aplicada: X={steps_x} steps/mm, Y={steps_y} steps/mm")
+
+        # Atualiza configurações no config_manager se disponível
+        if hasattr(self, 'config') and self.config:
+            self.config.set("connections", "pulses_per_rev", int(steps_x * 10))
+            self.config.set("connections", "fuso_pitch", 10.0)
+            self.config.save()
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(
+                f"Calibração aplicada: {steps_x:.2f} x {steps_y:.2f} steps/mm",
+                3000
+            )
+
+    def on_calibration_completed_update_status(self):
+        """
+        Atualiza statusBar quando calibração é completada.
+        """
+        logger.info("Calibração completada")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage("Calibração completada com sucesso", 3000)

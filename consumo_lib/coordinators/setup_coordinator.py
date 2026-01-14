@@ -259,6 +259,8 @@ class SetupCoordinator:
                 self.window.config,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.camera_settings_controller.setup_ui_handlers()
             logger.debug("CameraSettingsController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar CameraSettingsController: {e}")
@@ -271,6 +273,8 @@ class SetupCoordinator:
                 self.window.config,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.calibration_controller.setup_ui_handlers()
             logger.debug("CalibrationController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar CalibrationController: {e}")
@@ -321,6 +325,8 @@ class SetupCoordinator:
                 self.window.controller.camera,
                 self.window
             )
+            # Configura handlers de UI
+            self.window.fiducial_alignment_controller.setup_ui_handlers()
             logger.debug("FiducialAlignmentController criado com sucesso")
         except Exception as e:
             logger.error(f"Erro ao criar FiducialAlignmentController: {e}")

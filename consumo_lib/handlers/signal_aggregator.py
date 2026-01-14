@@ -313,47 +313,62 @@ class SignalAggregator:
         # =========================================================================
         # CAMERA SETTINGS CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.camera_settings_controller:
-            self.main_window.camera_settings_controller.settings_changed.connect(
-                self._on_camera_settings_changed
-            )
-            self.main_window.camera_settings_controller.settings_applied.connect(
-                self._on_camera_settings_applied
-            )
-            self.main_window.camera_settings_controller.settings_saved.connect(
-                self._on_camera_settings_saved
-            )
-            self.main_window.camera_settings_controller.settings_loaded.connect(
-                self._on_camera_settings_loaded
-            )
+        # MOVIDO PARA CameraSettingsController.setup_ui_handlers()
+        # Os handlers de UI de câmera agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
+
+        # if self.main_window.camera_settings_controller:
+        #     self.main_window.camera_settings_controller.settings_changed.connect(
+        #         self._on_camera_settings_changed
+        #     )
+        #     self.main_window.camera_settings_controller.settings_applied.connect(
+        #         self._on_camera_settings_applied
+        #     )
+        #     self.main_window.camera_settings_controller.settings_saved.connect(
+        #         self._on_camera_settings_saved
+        #     )
+        #     self.main_window.camera_settings_controller.settings_loaded.connect(
+        #         self._on_camera_settings_loaded
+        #     )
 
         # =========================================================================
         # CALIBRATION CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.calibration_controller:
-            self.main_window.calibration_controller.calibration_applied.connect(
-                self._on_calibration_applied
-            )
-            self.main_window.calibration_controller.calibration_completed.connect(
-                self._on_calibration_completed
-            )
-            self.main_window.calibration_controller.test_completed.connect(
-                self._on_calibration_test_completed
-            )
+        # MOVIDO PARA CalibrationController.setup_ui_handlers()
+        # Os handlers de UI de calibração agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
+
+        # if self.main_window.calibration_controller:
+        #     self.main_window.calibration_controller.calibration_applied.connect(
+        #         self._on_calibration_applied
+        #     )
+        #     self.main_window.calibration_controller.calibration_completed.connect(
+        #         self._on_calibration_completed
+        #     )
+        #     self.main_window.calibration_controller.test_completed.connect(
+        #         self._on_calibration_test_completed
+        #     )
 
         # =========================================================================
         # FIDUCIAL ALIGNMENT CONTROLLER SIGNALS
         # =========================================================================
-        if self.main_window.fiducial_alignment_controller:
-            self.main_window.fiducial_alignment_controller.alignment_completed.connect(
-                self._on_fiducial_alignment_completed
-            )
-            self.main_window.fiducial_alignment_controller.alignment_cancelled.connect(
-                self._on_fiducial_alignment_cancelled
-            )
-            self.main_window.fiducial_alignment_controller.alignment_error.connect(
-                self._on_fiducial_alignment_error
-            )
+        # MOVIDO PARA FiducialAlignmentController.setup_ui_handlers()
+        # Os handlers de UI de alinhamento fiducial agora são gerenciados pelo próprio controller
+        #
+        # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
+
+        # if self.main_window.fiducial_alignment_controller:
+        #     self.main_window.fiducial_alignment_controller.alignment_completed.connect(
+        #         self._on_fiducial_alignment_completed
+        #     )
+        #     self.main_window.fiducial_alignment_controller.alignment_cancelled.connect(
+        #         self._on_fiducial_alignment_cancelled
+        #     )
+        #     self.main_window.fiducial_alignment_controller.alignment_error.connect(
+        #         self._on_fiducial_alignment_error
+        #     )
 
         # =========================================================================
         # CONNECTION MANAGER CONTROLLER SIGNALS
@@ -951,95 +966,100 @@ class SignalAggregator:
     # =========================================================================
     # CAMERA SETTINGS CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA CameraSettingsController
+    # Os handlers de UI de câmera agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
 
-    def _on_camera_settings_changed(self, settings):
-        """Handler quando configurações de câmera são alteradas."""
-        logger.debug(f"Configurações de câmera alteradas: {settings}")
+    # def _on_camera_settings_changed(self, settings):
+    #     """Handler quando configurações de câmera são alteradas."""
+    #     logger.debug(f"Configurações de câmera alteradas: {settings}")
 
-    def _on_camera_settings_applied(self, settings):
-        """Handler quando configurações de câmera são aplicadas."""
-        logger.info(f"Configurações de câmera aplicadas")
+    # def _on_camera_settings_applied(self, settings):
+    #     """Handler quando configurações de câmera são aplicadas."""
+    #     logger.info(f"Configurações de câmera aplicadas")
+    #     # Atualiza variáveis internas
+    #     self.main_window._camera_mirror_x = settings.get('mirror_x', False)
+    #     self.main_window._camera_mirror_y = settings.get('mirror_y', False)
+    #     # Aplica ao preview se disponível
+    #     if hasattr(self.main_window, 'cnc_tab') and hasattr(self.main_window.cnc_tab, 'camera_preview'):
+    #         self.main_window.cnc_tab.camera_preview.set_mirror(
+    #             self.main_window._camera_mirror_x,
+    #             self.main_window._camera_mirror_y
+    #         )
+    #     self.main_window.statusBar().showMessage("Configurações de câmera aplicadas", 3000)
 
-        # Atualiza variáveis internas
-        self.main_window._camera_mirror_x = settings.get('mirror_x', False)
-        self.main_window._camera_mirror_y = settings.get('mirror_y', False)
+    # def _on_camera_settings_saved(self, preset_name):
+    #     """Handler quando preset de câmera é salvo."""
+    #     logger.info(f"Preset de câmera salvo: {preset_name}")
+    #     self.main_window.statusBar().showMessage(f"Preset '{preset_name}' salvo", 3000)
 
-        # Aplica ao preview se disponível
-        if hasattr(self.main_window, 'cnc_tab') and hasattr(self.main_window.cnc_tab, 'camera_preview'):
-            self.main_window.cnc_tab.camera_preview.set_mirror(
-                self.main_window._camera_mirror_x,
-                self.main_window._camera_mirror_y
-            )
-
-        self.main_window.statusBar().showMessage("Configurações de câmera aplicadas", 3000)
-
-    def _on_camera_settings_saved(self, preset_name):
-        """Handler quando preset de câmera é salvo."""
-        logger.info(f"Preset de câmera salvo: {preset_name}")
-        self.main_window.statusBar().showMessage(f"Preset '{preset_name}' salvo", 3000)
-
-    def _on_camera_settings_loaded(self, preset_name):
-        """Handler quando preset de câmera é carregado."""
-        logger.info(f"Preset de câmera carregado: {preset_name}")
-        self.main_window.statusBar().showMessage(f"Preset '{preset_name}' carregado", 3000)
+    # def _on_camera_settings_loaded(self, preset_name):
+    #     """Handler quando preset de câmera é carregado."""
+    #     logger.info(f"Preset de câmera carregado: {preset_name}")
+    #     self.main_window.statusBar().showMessage(f"Preset '{preset_name}' carregado", 3000)
 
     # =========================================================================
     # CALIBRATION CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA CalibrationController
+    # Os handlers de UI de calibração agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
 
-    def _on_calibration_applied(self, steps_x, steps_y):
-        """Handler quando calibração é aplicada."""
-        logger.info(f"Calibração aplicada: X={steps_x} steps/mm, Y={steps_y} steps/mm")
+    # def _on_calibration_applied(self, steps_x, steps_y):
+    #     """Handler quando calibração é aplicada."""
+    #     logger.info(f"Calibração aplicada: X={steps_x} steps/mm, Y={steps_y} steps/mm")
+    #     # Atualiza configurações
+    #     self.main_window.config.set("connections", "pulses_per_rev", int(steps_x * 10))
+    #     self.main_window.config.set("connections", "fuso_pitch", 10.0)
+    #     self.main_window.config.save()
+    #     self.main_window.statusBar().showMessage(
+    #         f"Calibração aplicada: {steps_x:.2f} x {steps_y:.2f} steps/mm",
+    #         3000
+    #     )
 
-        # Atualiza configurações
-        self.main_window.config.set("connections", "pulses_per_rev", int(steps_x * 10))
-        self.main_window.config.set("connections", "fuso_pitch", 10.0)
-        self.main_window.config.save()
+    # def _on_calibration_completed(self):
+    #     """Handler quando calibração é completada."""
+    #     logger.info("Calibração completada")
+    #     self.main_window.statusBar().showMessage("Calibração completada com sucesso", 3000)
 
-        self.main_window.statusBar().showMessage(
-            f"Calibração aplicada: {steps_x:.2f} x {steps_y:.2f} steps/mm",
-            3000
-        )
-
-    def _on_calibration_completed(self):
-        """Handler quando calibração é completada."""
-        logger.info("Calibração completada")
-        self.main_window.statusBar().showMessage("Calibração completada com sucesso", 3000)
-
-    def _on_calibration_test_completed(self, movement_ok, message):
-        """Handler quando teste de calibração é completado."""
-        status = "OK" if movement_ok else "FALHOU"
-        logger.info(f"Teste de calibração: {status} - {message}")
-
-        from PyQt6.QtWidgets import QMessageBox
-        if movement_ok:
-            QMessageBox.information(self.main_window, "Teste de Calibração", f"Teste concluído com sucesso!\n\n{message}")
-        else:
-            QMessageBox.warning(self.main_window, "Teste de Calibração", f"Teste falhou!\n\n{message}")
-
-        self.main_window.statusBar().showMessage(f"Teste de calibração: {status}", 3000)
+    # def _on_calibration_test_completed(self, movement_ok, message):
+    #     """Handler quando teste de calibração é completado."""
+    #     status = "OK" if movement_ok else "FALHOU"
+    #     logger.info(f"Teste de calibração: {status} - {message}")
+    #     from PyQt6.QtWidgets import QMessageBox
+    #     if movement_ok:
+    #         QMessageBox.information(self.main_window, "Teste de Calibração", f"Teste concluído com sucesso!\n\n{message}")
+    #     else:
+    #         QMessageBox.warning(self.main_window, "Teste de Calibração", f"Teste falhou!\n\n{message}")
+    #     self.main_window.statusBar().showMessage(f"Teste de calibração: {status}", 3000)
 
     # =========================================================================
     # FIDUCIAL ALIGNMENT CONTROLLER HANDLERS
     # =========================================================================
+    # MOVIDO PARA FiducialAlignmentController
+    # Os handlers de UI de alinhamento fiducial agora são gerenciados pelo próprio controller
+    #
+    # Refatoração Fase 1.2.4 - Camera & Calibration Signals (2026-01-14)
 
-    def _on_fiducial_alignment_completed(self, transform):
-        """Handler chamado quando o alinhamento de fiduciais é completado."""
-        logger.info(f"Alinhamento de fiduciais completado: {transform}")
-        self.main_window.statusBar().showMessage(
-            f"Alinhamento aplicado: tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
-            f"rot={transform.angle:.2f}°",
-            5000
-        )
+    # def _on_fiducial_alignment_completed(self, transform):
+    #     """Handler chamado quando o alinhamento de fiduciais é completado."""
+    #     logger.info(f"Alinhamento de fiduciais completado: {transform}")
+    #     self.main_window.statusBar().showMessage(
+    #         f"Alinhamento aplicado: tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
+    #         f"rot={transform.angle:.2f}°",
+    #         5000
+    #     )
 
-    def _on_fiducial_alignment_cancelled(self):
-        """Handler chamado quando o alinhamento é cancelado."""
-        logger.info("Alinhamento de fiduciais cancelado")
-        self.main_window.statusBar().showMessage("Alinhamento cancelado", 3000)
+    # def _on_fiducial_alignment_cancelled(self):
+    #     """Handler chamado quando o alinhamento é cancelado."""
+    #     logger.info("Alinhamento de fiduciais cancelado")
+    #     self.main_window.statusBar().showMessage("Alinhamento cancelado", 3000)
 
-    def _on_fiducial_alignment_error(self, error):
-        """Handler chamado quando ocorre um erro no alinhamento."""
-        logger.error(f"Erro no alinhamento de fiduciais: {error}")
+    # def _on_fiducial_alignment_error(self, error):
+    #     """Handler chamado quando ocorre um erro no alinhamento."""
+    #     logger.error(f"Erro no alinhamento de fiduciais: {error}")
 
     # =========================================================================
     # CONNECTION MANAGER CONTROLLER HANDLERS

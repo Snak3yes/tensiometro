@@ -261,3 +261,57 @@ class FiducialAlignmentController(QObject):
         logger.info("Alinhamento de fiduciais cancelado")
         dialog.reject()
         self.alignment_cancelled.emit()
+
+    # =========================================================================
+    # UI HANDLERS (Migrados do SignalAggregator)
+    # =========================================================================
+
+    def setup_ui_handlers(self):
+        """
+        Configura handlers de UI para signals de alinhamento fiducial.
+
+        Este método conecta os signals internos do FiducialAlignmentController
+        aos métodos que atualizam a UI do main_window.
+
+        Deve ser chamado durante a inicialização do main_window.
+        """
+        # Conectar signals a handlers de UI
+        self.alignment_completed.connect(self._on_alignment_completed_update_ui)
+        self.alignment_cancelled.connect(self._on_alignment_cancelled_update_status)
+        self.alignment_error.connect(self._on_alignment_error_show_message)
+
+        logger.debug("UI handlers conectados no FiducialAlignmentController")
+
+    def _on_alignment_completed_update_ui(self, transform):
+        """
+        Atualiza UI quando alinhamento de fiduciais é completado.
+
+        Args:
+            transform: Transformação calculada
+        """
+        logger.info(f"Alinhamento de fiduciais completado: {transform}")
+
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(
+                f"Fiduciais alinhados - Transformação: {transform:.2f}",
+                5000
+            )
+
+    def _on_alignment_cancelled_update_status(self):
+        """
+        Atualiza statusBar quando alinhamento é cancelado.
+        """
+        logger.info("Alinhamento de fiduciais cancelado")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage("Alinhamento cancelado", 3000)
+
+    def _on_alignment_error_show_message(self, error):
+        """
+        Mostra mensagem de erro quando alinhamento falha.
+
+        Args:
+            error: Mensagem de erro
+        """
+        logger.error(f"Erro no alinhamento de fiduciais: {error}")
+        if hasattr(self.parent(), 'statusBar'):
+            self.parent().statusBar().showMessage(f"Erro de alinhamento: {error}", 5000)
