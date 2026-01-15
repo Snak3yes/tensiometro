@@ -197,13 +197,14 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Adicionar type hints e docstrings
   - [x] Zero breaking changes
   - **Resultado:** 222 linhas, 17 testes, >95% coverage
-- [~] 2.1.5.2. Implementar `SqliteTensionRepository`
-  - [ ] Implementar TensionRepository (4 métodos)
-  - [ ] Criar testes TDD (testes primeiro)
-  - [ ] Métodos: add, get_history, get_by_period, get_latest
-  - [ ] Adicionar type hints e docstrings
-  - [ ] Atualizar stencils table (last_inspection, inspection_count, status)
-- [ ] 2.1.5.3. Implementar `SqliteInspectionRepository`
+- [x] 2.1.5.2. Implementar `SqliteTensionRepository` ✅ `c427019`
+  - [x] Implementar TensionRepository (4 métodos)
+  - [x] Criar testes TDD (testes primeiro)
+  - [x] Métodos: add, get_history, get_by_period, get_latest
+  - [x] Adicionar type hints e docstrings
+  - [x] Atualizar stencils table (last_inspection, inspection_count, status)
+  - **Resultado:** 168 linhas, 13 testes, >95% coverage
+- [~] 2.1.5.3. Implementar `SqliteInspectionRepository`
   - [ ] Implementar InspectionRepository (5 métodos)
   - [ ] Criar testes TDD (testes primeiro)
   - [ ] Métodos: add, get_history, get_by_period, get_stats, get_combined_history
