@@ -175,10 +175,12 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - **Domínios:** Stencil (7 métodos), Tension (4 métodos), Inspection (5 métodos)
   - **Interfaces ABC:** Definidas para cada domínio
   - **Estrutura proposta:** 3 repositórios + 2 services + 1 migrator
-- [ ] 2.1.3. Criar `aoi_lib/database/connection.py`
-  - [ ] Extrair lógica de conexão SQLite
-  - [ ] Criar classe `DatabaseConnection`
-  - [ ] Implementar context manager (`with` statement)
+- [x] 2.1.3. Criar `aoi_lib/database/connection.py` ✅ `15016af`
+  - [x] Extrair lógica de conexão SQLite
+  - [x] Criar classe `DatabaseConnection` (ABC)
+  - [x] Implementar context manager (`with` statement)
+  - **Resultado:** 147 linhas, 22 testes, >95% coverage
+  - **Classes:** DatabaseConnection (ABC), SqliteConnection
 - [ ] 2.1.4. Criar interfaces de repositórios
   - [ ] `aoi_lib/database/repositories/stencil_repository.py` (ABC)
   - [ ] `aoi_lib/database/repositories/tension_repository.py` (ABC)
