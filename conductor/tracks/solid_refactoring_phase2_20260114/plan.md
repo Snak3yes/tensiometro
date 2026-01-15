@@ -181,12 +181,14 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Implementar context manager (`with` statement)
   - **Resultado:** 147 linhas, 22 testes, >95% coverage
   - **Classes:** DatabaseConnection (ABC), SqliteConnection
-- [ ] 2.1.4. Criar interfaces de repositórios
-  - [ ] `aoi_lib/database/repositories/stencil_repository.py` (ABC)
-  - [ ] `aoi_lib/database/repositories/tension_repository.py` (ABC)
-  - [ ] `aoi_lib/database/repositories/inspection_repository.py` (ABC)
-  - [ ] Definir contratos (métodos abstratos)
-  - [ ] Documentar responsabilidade de cada repositório
+- [x] 2.1.4. Criar interfaces de repositórios ✅ `14a99e2`
+  - [x] `aoi_lib/database/repositories/stencil_repository.py` (ABC)
+  - [x] `aoi_lib/database/repositories/tension_repository.py` (ABC)
+  - [x] `aoi_lib/database/repositories/inspection_repository.py` (ABC)
+  - [x] Definir contratos (métodos abstratos)
+  - [x] Documentar responsabilidade de cada repositório
+  - **Resultado:** 358 linhas (127+97+134), 18 testes, 100% passing
+  - **Métodos abstratos:** 17 (8+4+5)
 - [ ] 2.1.5. Implementar repositórios concretos
   - [ ] `SqliteStencilRepository` - implementar StencilRepository
   - [ ] `SqliteTensionRepository` - implementar TensionRepository
