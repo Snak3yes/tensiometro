@@ -211,11 +211,12 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Adicionar type hints e docstrings
   - [x] Atualizar stencils table (last_inspection, inspection_count, status)
   - **Resultado:** 243 linhas, 17 testes, >95% coverage
-- [ ] 2.1.6. Criar migrador separado
-  - [ ] `aoi_lib/database/migrators/json_to_sqlite_migrator.py`
-  - [ ] Extrair lógica de migração do stencil_database.py
-  - [ ] Implementar validação e rollback
-  - [ ] Adicionar testes de migração
+- [x] 2.1.6. Criar migrador separado ✅ `d47f8b8`
+  - [x] `aoi_lib/database/migrators/json_to_sqlite_migrator.py`
+  - [x] Extrair lógica de migração do stencil_database.py
+  - [x] Implementar validação e rollback (tratamento de erros)
+  - [x] Adicionar testes de migração
+  - **Resultado:** 244 linhas, 14 testes, 91% coverage
 - [ ] 2.1.7. Refatorar `stencil_database.py`
   - [ ] Transformar em fachada (facade) para backward compatibility
   - [ ] Delegar chamadas para repositórios apropriados
