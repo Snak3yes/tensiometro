@@ -361,8 +361,19 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
 #### Tarefas
 
 ##### 3.1. Refatorar `alignment_widget.py`
-- [ ] 3.1.1. Análise do arquivo atual (1,179 linhas)
-- [ ] 3.1.2. Identificar responsabilidades misturadas
+- [x] 3.1.1. Análise do arquivo atual (1,179 linhas) ✅ `ede1ee1`
+  - **Relatório:** `task_3.1.1_analysis_alignment_widget.md` criado
+  - **Responsabilidades identificadas:** 5 misturadas em AlignmentWidget
+  - **Classes:** AlignmentState (10 linhas), AlignmentImageView (276 linhas), AlignmentWidget (689 linhas)
+  - **Violações:** SRP crítico, alto acoplamento, baixa testabilidade
+  - **Métodos críticos:** _build_ui() (219 linhas), _align_with_coordinator() (104 linhas), _align_with_legacy() (82 linhas)
+  - **Plano de refatoração:** Extração de 3 services + expansão de AlignmentState
+- [x] 3.1.2. Identificar responsabilidades misturadas ✅ (CONCLUÍDO em 3.1.1)
+  - **UI/PyQt6 (49%):** 340 linhas ✅ Deve permanecer no widget
+  - **Lógica de negócio (50%):** 349 linhas ❌ Deve ir para services
+  - **Template matching OpenCV (11%):** ❌ Deve ir para TemplateMatchingService
+  - **Cálculos transformação (6%):** ❌ Deve ir para FiducialAlignmentService
+  - **Gerenciamento estado (7%):** ✅ Já correto (AlignmentState dataclass)
 - [ ] 3.1.3. Criar `consumo_lib/services/fiducial_alignment_service.py`
   - [ ] Extrair lógica de alinhamento fiducial
   - [ ] Extrair lógica de cálculo de transformação
