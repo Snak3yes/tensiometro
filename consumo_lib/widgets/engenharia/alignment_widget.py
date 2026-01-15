@@ -4,6 +4,11 @@ AlignmentWidget - Widget de Alinhamento (Track 5 do Engineering Wizard)
 Este widget é a Aba 5 do fluxo de criação de programa de inspeção.
 Responsável por alinhar o Gerber sobre o mosaico capturado.
 
+ARQUITETURA REFACTORADA (2026-01-15):
+    - Responsabilidade: APENAS UI e handlers (PyQt6)
+    - Lógica de negócio: FiducialAlignmentService (injetado)
+    - Estado: AlignmentState (modelo em consumo_lib.models)
+
 Funcionalidades:
 - Preview do mosaico + Gerber overlay com zoom/pan
 - Controles manuais de ajuste (translação X/Y, rotação, escala)
@@ -21,39 +26,27 @@ Signals:
 import cv2
 import numpy as np
 import logging
-from typing import Optional, Tuple, Dict, Any
-from dataclasses import dataclass
+from typing import Optional
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QFormLayout,
-    QGroupBox, QPushButton, QLabel, QSpinBox, QDoubleSpinBox,
-    QSlider, QMessageBox, QSizePolicy, QFrame
+    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
+    QGroupBox, QPushButton, QLabel, QDoubleSpinBox,
+    QSlider, QMessageBox, QSizePolicy
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QPointF, QTimer
+from PyQt6.QtCore import Qt, pyqtSignal, QPointF
 from PyQt6.QtGui import (
     QImage, QPixmap, QPainter, QPen, QBrush, QColor,
     QTransform, QWheelEvent
 )
 
-from aoi_lib.fiducial_alignment import (
-    FiducialAligner, FiducialTemplate, FiducialMatchResult,
-    AlignmentTransform
-)
 from aoi_lib.gerber_renderer import GerberRenderer
+from consumo_lib.models.alignment_state import AlignmentState
+from consumo_lib.services.fiducial_alignment_service import (
+    FiducialAlignmentService,
+    AlignmentResult
+)
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class AlignmentState:
-    """Estado do alinhamento."""
-    tx: float = 0.0
-    ty: float = 0.0
-    angle: float = 0.0
-    scale: float = 1.0
-    opacity: float = 0.5
-    score: float = 0.0
-    fiducials_found: bool = False
 
 
 class AlignmentImageView(QLabel):
@@ -335,7 +328,11 @@ class AlignmentImageView(QLabel):
 
 class AlignmentWidget(QWidget):
     """
-    Widget de Alinhamento (Track 5).
+    Widget de Alinhamento (Track 5) - REFACTORADO.
+
+    Responsabilidades:
+    - UI e PyQt6 (construção de layout, handlers, sinais)
+    - Delegar lógica de negócio para FiducialAlignmentService
 
     Layout:
     - Esquerda: Preview do mosaico + Gerber overlay
@@ -346,40 +343,129 @@ class AlignmentWidget(QWidget):
     validationChanged = pyqtSignal(bool)  # isValid
     alignmentApplied = pyqtSignal(dict)  # transform data
 
-    def __init__(self, parent=None, hardware_coordinator=None):
-        """Inicializa o widget.
+    def __init__(
+        self,
+        parent=None,
+        fiducial_service: Optional[FiducialAlignmentService] = None,
+        hardware_coordinator=None
+    ):
+        """
+        Inicializa o widget.
 
         Args:
             parent: Widget pai
+            fiducial_service: Serviço de alinhamento (injeção de dependência)
             hardware_coordinator: EngineeringHardwareCoordinator (opcional)
         """
         super().__init__(parent)
 
-        # Estado
+        # Estado (usando modelo do consumo_lib.models)
         self._state = AlignmentState()
+        self._initial_state: Optional[AlignmentState] = None
+
+        # Dados carregados
         self._mosaic_image: Optional[np.ndarray] = None
         self._gerber_data: Optional[dict] = None
         self._fiducial_templates: list = []
-        self._initial_state: Optional[AlignmentState] = None
+
+        # Serviços (injeção de dependência)
+        if fiducial_service is None:
+            logger.info("Nenhum serviço injetado, criando FiducialAlignmentService padrão")
+            self._fiducial_service = FiducialAlignmentService()
+        else:
+            self._fiducial_service = fiducial_service
 
         # Hardware coordinator (nova arquitetura)
         self._hardware_coordinator = hardware_coordinator
-        # Legado: aligner individual (para compatibilidade)
-        self.aligner = FiducialAligner()
 
         self._build_ui()
         self._connect_signals()
 
-        logger.debug("AlignmentWidget inicializado")
+        logger.debug("AlignmentWidget inicializado (refatorado)")
 
-    def set_hardware_coordinator(self, coordinator):
-        """Define o coordenador de hardware (injeção de dependência).
+    # ========================================================================
+    #  MÉTODOS PÚBLICOS
+    # ========================================================================
+
+    def load_data(
+        self,
+        mosaic_image: np.ndarray,
+        gerber_data: dict,
+        fiducial_templates: list
+    ):
+        """
+        Carrega dados para alinhamento.
 
         Args:
-            coordinator: EngineeringHardwareCoordinator
+            mosaic_image: Imagem do mosaico capturado
+            gerber_data: Dicionário com dados do Gerber {
+                'parsed': ParsedGerber,
+                'fiducial_positions': [(x1, y1), (x2, y2)]
+            }
+            fiducial_templates: Lista de templates capturados [
+                {'name': 'Fiducial A', 'image': np.ndarray, 'position': (x, y)},
+                ...
+            ]
         """
-        self._hardware_coordinator = coordinator
-        logger.info("🔧 Hardware coordinator definido no AlignmentWidget")
+        logger.info("Carregando dados no AlignmentWidget (refatorado)")
+
+        self._mosaic_image = mosaic_image
+        self._gerber_data = gerber_data
+        self._fiducial_templates = fiducial_templates
+
+        # Exibe mosaico
+        self.image_view.set_mosaic(mosaic_image)
+        self.image_view.fit_in_view()
+
+        # Renderiza Gerber como overlay
+        if gerber_data and 'parsed' in gerber_data:
+            self._render_gerber_overlay(gerber_data['parsed'])
+
+        # Salva estado inicial
+        self._initial_state = AlignmentState(
+            tx=0.0, ty=0.0, angle=0.0, scale=1.0,
+            opacity=0.5, zoom=1.0, score=0.0, fiducials_found=False
+        )
+
+        # Atualiza validação
+        self._update_validation()
+
+        logger.info("Dados carregados com sucesso")
+
+    def get_alignment_data(self) -> dict:
+        """
+        Retorna dados do alinhamento.
+
+        Returns:
+            dict: {
+                'transform': {
+                    'tx': float, 'ty': float,
+                    'angle': float, 'scale': float
+                },
+                'score': float,
+                'fiducials_found': bool,
+                'fiducial_matches': [...]
+            }
+        """
+        return {
+            'transform': {
+                'tx': self._state.tx,
+                'ty': self._state.ty,
+                'angle': self._state.angle,
+                'scale': self._state.scale
+            },
+            'score': self._state.score,
+            'fiducials_found': self._state.fiducials_found,
+            'fiducial_matches': [m.to_dict() for m in self._state.fiducial_matches]
+        }
+
+    def is_valid(self) -> bool:
+        """Verifica se alinhamento é válido."""
+        return self._state.is_valid
+
+    # ========================================================================
+    #  MÉTODOS PRIVADOS - UI
+    # ========================================================================
 
     def _build_ui(self):
         """Constrói UI."""
@@ -625,88 +711,7 @@ class AlignmentWidget(QWidget):
         self.spin_scale.valueChanged.connect(self._on_transform_changed)
 
     # ========================================================================
-    #  MÉTODOS PÚBLICOS
-    # ========================================================================
-
-    def load_data(
-        self,
-        mosaic_image: np.ndarray,
-        gerber_data: dict,
-        fiducial_templates: list
-    ):
-        """
-        Carrega dados para alinhamento.
-
-        Args:
-            mosaic_image: Imagem do mosaico capturado
-            gerber_data: Dicionário com dados do Gerber {
-                'parsed': ParsedGerber,
-                'fiducial_positions': [(x1, y1), (x2, y2)]
-            }
-            fiducial_templates: Lista de templates capturados [
-                {'name': 'Fiducial A', 'image': np.ndarray, 'position': (x, y)},
-                ...
-            ]
-        """
-        logger.info("Carregando dados no AlignmentWidget")
-
-        self._mosaic_image = mosaic_image
-        self._gerber_data = gerber_data
-        self._fiducial_templates = fiducial_templates
-
-        # Exibe mosaico
-        self.image_view.set_mosaic(mosaic_image)
-        self.image_view.fit_in_view()
-
-        # Renderiza Gerber como overlay
-        if gerber_data and 'parsed' in gerber_data:
-            self._render_gerber_overlay(gerber_data['parsed'])
-
-        # Configura fiduciais no aligner
-        self._setup_fiducials(fiducial_templates)
-
-        # Salva estado inicial
-        self._initial_state = AlignmentState(
-            tx=0.0, ty=0.0, angle=0.0, scale=1.0,
-            opacity=0.5, score=0.0, fiducials_found=False
-        )
-
-        # Atualiza validação
-        self._update_validation()
-
-        logger.info("Dados carregados com sucesso")
-
-    def get_alignment_data(self) -> dict:
-        """
-        Retorna dados do alinhamento.
-
-        Returns:
-            dict: {
-                'transform': {
-                    'tx': float, 'ty': float,
-                    'angle': float, 'scale': float
-                },
-                'score': float,
-                'fiducials_found': bool
-            }
-        """
-        return {
-            'transform': {
-                'tx': self._state.tx,
-                'ty': self._state.ty,
-                'angle': self._state.angle,
-                'scale': self._state.scale
-            },
-            'score': self._state.score,
-            'fiducials_found': self._state.fiducials_found
-        }
-
-    def is_valid(self) -> bool:
-        """Verifica se alinhamento é válido."""
-        return self._state.score >= 70.0 or self._state.fiducials_found
-
-    # ========================================================================
-    #  MÉTODOS PRIVADOS
+    #  HANDLERS DE UI
     # ========================================================================
 
     def _render_gerber_overlay(self, parsed_gerber):
@@ -745,29 +750,15 @@ class AlignmentWidget(QWidget):
         except Exception as e:
             logger.error(f"Erro ao renderizar Gerber: {e}")
 
-    def _setup_fiducials(self, templates: list):
-        """Configura fiduciais no aligner."""
-        self.aligner.fiducials.clear()
-
-        for i, template_data in enumerate(templates):
-            name = template_data.get('name', f'Fiducial {i+1}')
-            position = template_data.get('position', (0, 0))
-            image = template_data.get('image')
-
-            fid = self.aligner.add_fiducial(name, position[0], position[1])
-
-            if image is not None:
-                self.aligner.capture_template(fid, image)
-
-            logger.debug(f"Fiducial configurado: {name} at {position}")
-
     def _on_transform_changed(self):
         """Handler: transformação manual alterada."""
         # Atualiza estado
-        self._state.tx = self.spin_tx.value()
-        self._state.ty = self.spin_ty.value()
-        self._state.angle = self.spin_angle.value()
-        self._state.scale = self.spin_scale.value()
+        self._state.update_from_transform(
+            tx=self.spin_tx.value(),
+            ty=self.spin_ty.value(),
+            angle=self.spin_angle.value(),
+            scale=self.spin_scale.value()
+        )
 
         # Atualiza visualização
         self.image_view.set_gerber_transform(
@@ -778,8 +769,7 @@ class AlignmentWidget(QWidget):
             self._state.opacity
         )
 
-        # Atualiza score (estimado baseado em transformação)
-        self._estimate_score()
+        # Atualiza validação
         self._update_validation()
 
         logger.debug(
@@ -809,7 +799,7 @@ class AlignmentWidget(QWidget):
         self.spin_ty.setValue(self.spin_ty.value() + dy)
 
     def _on_auto_tune(self):
-        """Handler: auto-tuning (estratégia dual)."""
+        """Handler: auto-tuning (DELEGA AO SERVIÇO)."""
         if self._mosaic_image is None:
             QMessageBox.warning(
                 self,
@@ -819,31 +809,63 @@ class AlignmentWidget(QWidget):
             return
 
         # Verifica pré-condições
-        if self._hardware_coordinator:
-            if len(self._fiducial_templates) < 2:
-                QMessageBox.warning(
-                    self,
-                    "Erro",
-                    "Mínimo de 2 templates fiduciais necessários."
-                )
-                return
-        else:
-            if not self.aligner.fiducials:
-                QMessageBox.warning(
-                    self,
-                    "Erro",
-                    "Nenhum fiducial configurado."
-                )
-                return
+        if not self._fiducial_templates:
+            QMessageBox.warning(
+                self,
+                "Erro",
+                "Nenhum template fiducial configurado."
+            )
+            return
 
         try:
-            logger.info("Iniciando auto-tuning")
+            logger.info("Iniciando auto-tuning (widget delega para serviço)")
 
-            # Estratégia dual: coordinator vs legacy
-            if self._hardware_coordinator:
-                self._align_with_coordinator()
-            else:
-                self._align_with_legacy()
+            # Delega para o serviço
+            result: AlignmentResult = self._fiducial_service.align(
+                templates=self._fiducial_templates,
+                mosaic_image=self._mosaic_image
+            )
+
+            if not result.success:
+                QMessageBox.warning(
+                    self,
+                    "Auto-Tuning - Falha",
+                    f"Erro durante auto-tuning:\n\n{result.error}"
+                )
+                return
+
+            # Atualiza estado com resultado
+            self._state = result.state
+
+            # Atualiza UI com transformação
+            self._update_ui_from_state()
+
+            # Atualiza marcadores
+            markers = []
+            for match in self._state.fiducial_matches:
+                markers.append((
+                    match.x,  # image_x
+                    match.y,  # image_y
+                    match.found  # found
+                ))
+            self.image_view.set_fiducial_markers(markers)
+
+            # Mostra resultado
+            QMessageBox.information(
+                self,
+                "✅ Auto-Tuning - Sucesso",
+                f"Transformação calculada:\n\n"
+                f"📍 Translação: ({self._state.tx:.1f}, {self._state.ty:.1f}) px\n"
+                f"🔄 Rotação: {self._state.angle:.2f}°\n"
+                f"📐 Escala: {self._state.scale:.4f}\n\n"
+                f"Score médio: {self._state.score:.1f}%"
+            )
+
+            logger.info(
+                f"Auto-tuning concluído: score={self._state.score:.1f}%, "
+                f"tx={self._state.tx:.1f}, ty={self._state.ty:.1f}, "
+                f"angle={self._state.angle:.2f}°"
+            )
 
         except Exception as e:
             logger.exception("Erro no auto-tuning")
@@ -852,193 +874,6 @@ class AlignmentWidget(QWidget):
                 "Erro",
                 f"Erro durante auto-tuning:\n{str(e)}"
             )
-
-    def _align_with_coordinator(self):
-        """Executa alinhamento usando EngineeringHardwareCoordinator."""
-        from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
-
-        logger.info("Usando EngineeringHardwareCoordinator para alinhamento")
-
-        # Verifica hardware
-        ready, message = self._hardware_coordinator.is_hardware_ready([])
-        if not ready:
-            QMessageBox.warning(
-                self,
-                "Auto-Tuning - Aviso",
-                f"Hardware não está pronto:\n{message}\n\n"
-                "Continuando mesmo assim..."
-            )
-
-        # Prepara templates no formato esperado pelo coordinator
-        templates_for_coordinator = []
-        for template_data in self._fiducial_templates:
-            templates_for_coordinator.append({
-                'image': template_data.get('image'),
-                'x': template_data.get('position', (0, 0))[0],
-                'y': template_data.get('position', (0, 0))[1],
-                'z': 0.0,
-                'window_size': template_data.get('window_size', 50)
-            })
-
-        # Executa alinhamento via coordinator
-        result = self._hardware_coordinator.perform_fiducial_alignment(
-            fiducial_templates=templates_for_coordinator,
-            mosaic_image=self._mosaic_image
-        )
-
-        # Extrai transformação do resultado
-        transform_data = result.get('transform', {})
-        tx = transform_data.get('tx', 0.0)
-        ty = transform_data.get('ty', 0.0)
-        angle = transform_data.get('angle', 0.0)
-        scale = transform_data.get('scale', 1.0)
-        scores = result.get('scores', [])
-        matched_positions = result.get('matched_positions', [])
-
-        # Verifica se encontrou fiduciais suficientes
-        found_count = len([s for s in scores if s >= 70.0])
-
-        if found_count < 2:
-            QMessageBox.warning(
-                self,
-                "Auto-Tuning - Falha",
-                f"Apenas {found_count}/{len(scores)} fiduciais encontrados.\n\n"
-                "Ajuste manualmente ou recapture os templates."
-            )
-            return
-
-        # Aplica transformação
-        self.spin_tx.blockSignals(True)
-        self.spin_ty.blockSignals(True)
-        self.spin_angle.blockSignals(True)
-        self.spin_scale.blockSignals(True)
-
-        self.spin_tx.setValue(tx)
-        self.spin_ty.setValue(ty)
-        self.spin_angle.setValue(angle)
-        self.spin_scale.setValue(scale)
-
-        self.spin_tx.blockSignals(False)
-        self.spin_ty.blockSignals(False)
-        self.spin_angle.blockSignals(False)
-        self.spin_scale.blockSignals(False)
-
-        # Atualiza estado e visualização
-        self._on_transform_changed()
-        self._state.fiducials_found = True
-
-        # Atualiza marcadores
-        markers = []
-        for i, pos in enumerate(matched_positions):
-            score = scores[i] if i < len(scores) else 0.0
-            markers.append((
-                pos[0],  # image_x
-                pos[1],  # image_y
-                score >= 70.0  # found
-            ))
-        self.image_view.set_fiducial_markers(markers)
-
-        # Mostra resultado
-        avg_score = sum(scores) / len(scores) if scores else 0.0
-        self._state.score = avg_score
-        self._update_score_display()
-
-        QMessageBox.information(
-            self,
-            "✅ Auto-Tuning - Sucesso",
-            f"Transformação calculada:\n\n"
-            f"📍 Translação: ({tx:.1f}, {ty:.1f}) px\n"
-            f"🔄 Rotação: {angle:.2f}°\n"
-            f"📐 Escala: {scale:.4f}\n\n"
-            f"Score médio: {avg_score:.1f}%"
-        )
-
-        logger.info(
-            f"Auto-tuning concluído (coordinator): score={avg_score:.1f}%, "
-            f"tx={tx:.1f}, ty={ty:.1f}, angle={angle:.2f}°"
-        )
-
-    def _align_with_legacy(self):
-        """Executa alinhamento usando FiducialAligner (legado)."""
-        logger.info("Usando FiducialAligner (legado) para alinhamento")
-
-        # Busca fiduciais
-        gray = cv2.cvtColor(self._mosaic_image, cv2.COLOR_BGR2GRAY)
-        results = self.aligner.find_all_fiducials(gray)
-
-        # Verifica se encontrou
-        found_count = sum(1 for r in results if r.found)
-
-        if found_count < 2:
-            QMessageBox.warning(
-                self,
-                "Auto-Tuning - Falha",
-                f"Apenas {found_count}/2 fiduciais encontrados.\n\n"
-                "Ajuste manualmente ou recapture os templates."
-            )
-            return
-
-        # Calcula transformação
-        transform = self.aligner.calculate_transform_from_fiducials()
-
-        if transform is None:
-            QMessageBox.warning(
-                self,
-                "Auto-Tuning - Erro",
-                "Não foi possível calcular a transformação."
-            )
-            return
-
-        # Aplica transformação
-        self.spin_tx.blockSignals(True)
-        self.spin_ty.blockSignals(True)
-        self.spin_angle.blockSignals(True)
-        self.spin_scale.blockSignals(True)
-
-        self.spin_tx.setValue(transform.tx)
-        self.spin_ty.setValue(transform.ty)
-        self.spin_angle.setValue(transform.angle)
-        self.spin_scale.setValue(transform.scale_x)
-
-        self.spin_tx.blockSignals(False)
-        self.spin_ty.blockSignals(False)
-        self.spin_angle.blockSignals(False)
-        self.spin_scale.blockSignals(False)
-
-        # Atualiza estado e visualização
-        self._on_transform_changed()
-        self._state.fiducials_found = True
-
-        # Atualiza marcadores
-        markers = []
-        for result in results:
-            markers.append((
-                result.image_x,
-                result.image_y,
-                result.found
-            ))
-        self.image_view.set_fiducial_markers(markers)
-
-        # Mostra resultado
-        avg_score = sum(r.similarity for r in results) / len(results)
-        self._state.score = avg_score
-        self._update_score_display()
-
-        QMessageBox.information(
-            self,
-            "✅ Auto-Tuning - Sucesso",
-            f"Transformação calculada:\n\n"
-            f"📍 Translação: ({transform.tx:.1f}, {transform.ty:.1f}) px\n"
-            f"🔄 Rotação: {transform.angle:.2f}°\n"
-            f"📐 Escala: {transform.scale_x:.4f}\n\n"
-            f"Score médio: {avg_score:.1f}%"
-        )
-
-        logger.info(
-            f"Auto-tuning concluído (legado): score={avg_score:.1f}%, "
-            f"tx={transform.tx:.1f}, ty={transform.ty:.1f}, "
-            f"angle={transform.angle:.2f}°"
-        )
 
     def _on_reset(self):
         """Handler: resetar."""
@@ -1054,37 +889,10 @@ class AlignmentWidget(QWidget):
 
         if reply == QMessageBox.StandardButton.Yes:
             # Restaura estado inicial
-            self.spin_tx.blockSignals(True)
-            self.spin_ty.blockSignals(True)
-            self.spin_angle.blockSignals(True)
-            self.spin_scale.blockSignals(True)
-            self.slider_opacity.blockSignals(True)
+            self._state = self._initial_state.copy()
 
-            self.spin_tx.setValue(self._initial_state.tx)
-            self.spin_ty.setValue(self._initial_state.ty)
-            self.spin_angle.setValue(self._initial_state.angle)
-            self.spin_scale.setValue(self._initial_state.scale)
-            self.slider_opacity.setValue(int(self._initial_state.opacity * 100))
-
-            self.spin_tx.blockSignals(False)
-            self.spin_ty.blockSignals(False)
-            self.spin_angle.blockSignals(False)
-            self.spin_scale.blockSignals(False)
-            self.slider_opacity.blockSignals(False)
-
-            # Reseta estado
-            self._state = AlignmentState(
-                tx=self._initial_state.tx,
-                ty=self._initial_state.ty,
-                angle=self._initial_state.angle,
-                scale=self._initial_state.scale,
-                opacity=self._initial_state.opacity,
-                score=0.0,
-                fiducials_found=False
-            )
-
-            # Atualiza
-            self._on_transform_changed()
+            # Atualiza UI
+            self._update_ui_from_state()
             self.image_view.set_fiducial_markers([])
 
             logger.info("Alinhamento resetado")
@@ -1122,18 +930,50 @@ class AlignmentWidget(QWidget):
             f"scale={self._state.scale:.4f}, score={self._state.score:.1f}%"
         )
 
-    def _estimate_score(self):
-        """Estima score baseado em transformação."""
-        # Estimativa simples: quanto menor a translação/rotação, maior o score
-        translation_penalty = min(abs(self._state.tx) + abs(self._state.ty), 100) / 10
-        rotation_penalty = min(abs(self._state.angle), 45) / 45 * 20
-        scale_penalty = abs(self._state.scale - 1.0) * 30
+    # ========================================================================
+    #  MÉTODOS AUXILIARES
+    # ========================================================================
 
-        estimated_score = max(0, 100 - translation_penalty - rotation_penalty - scale_penalty)
+    def _update_ui_from_state(self):
+        """Atualiza UI baseado no estado atual."""
+        # Bloqueia sinais para evitar loop
+        self.spin_tx.blockSignals(True)
+        self.spin_ty.blockSignals(True)
+        self.spin_angle.blockSignals(True)
+        self.spin_scale.blockSignals(True)
+        self.slider_opacity.blockSignals(True)
 
-        # Arredonda
-        self._state.score = round(estimated_score, 1)
+        # Atualiza valores
+        self.spin_tx.setValue(self._state.tx)
+        self.spin_ty.setValue(self._state.ty)
+        self.spin_angle.setValue(self._state.angle)
+        self.spin_scale.setValue(self._state.scale)
+        self.slider_opacity.setValue(int(self._state.opacity * 100))
+
+        # Restaura sinais
+        self.spin_tx.blockSignals(False)
+        self.spin_ty.blockSignals(False)
+        self.spin_angle.blockSignals(False)
+        self.spin_scale.blockSignals(False)
+        self.slider_opacity.blockSignals(False)
+
+        # Atualiza labels
+        self.lbl_opacity.setText(f"{int(self._state.opacity * 100)}%")
+
+        # Atualiza score
         self._update_score_display()
+
+        # Atualiza visualização
+        self.image_view.set_gerber_transform(
+            self._state.tx,
+            self._state.ty,
+            self._state.scale,
+            self._state.angle,
+            self._state.opacity
+        )
+
+        # Atualiza validação
+        self._update_validation()
 
     def _update_score_display(self):
         """Atualiza display do score."""
