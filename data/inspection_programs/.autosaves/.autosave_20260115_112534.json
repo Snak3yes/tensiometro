@@ -1,0 +1,23 @@
+{
+  "program_data": {
+    "program_name": "sdfsdf",
+    "stencil_code": "123123",
+    "description": "",
+    "version": "v1.0sdfsdf",
+    "created_by": "engineersdfsdf",
+    "created_at": "2026-01-15T11:23:50.488274"
+  },
+  "gerber_file": null,
+  "gerber_data": null,
+  "fiducial_templates": [],
+  "mosaic_image_path": null,
+  "mosaic_config": null,
+  "alignment_transform": null,
+  "inspection_groups": [],
+  "program_config": null,
+  "current_tab": 1,
+  "is_dirty": true,
+  "auto_save_path": null,
+  "created_at": "2026-01-15T11:23:34.389545",
+  "updated_at": "2026-01-15T11:23:50.488274"
+}

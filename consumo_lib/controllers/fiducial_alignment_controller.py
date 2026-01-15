@@ -293,7 +293,7 @@ class FiducialAlignmentController(QObject):
 
         if hasattr(self.parent(), 'statusBar'):
             self.parent().statusBar().showMessage(
-                f"Fiduciais alinhados - Transformação: {transform:.2f}",
+                f"Fiduciais alinhados - Transformação: {transform}",
                 5000
             )
 

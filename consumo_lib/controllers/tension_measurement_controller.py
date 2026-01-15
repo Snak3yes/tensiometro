@@ -112,13 +112,13 @@ class TensionMeasurementController(QObject):
             return
 
         # Importar diálogo aqui para evitar import circular
-        from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
+        from consumo_lib.dialogs.tension import TensionMeasurementDialog
 
         # Abre diálogo de medição de tensão
         logger.info(f"Iniciando medição de tensão para stencil {current_stencil.code}")
         self.measurement_started.emit()
 
-        dlg = StencilTensionDialog(self.parent_window, self.controller.cnc)
+        dlg = TensionMeasurementDialog(self.parent_window, self.controller.cnc)
 
         # Se houver receita, pré-configura o diálogo
         if current_recipe and current_recipe.tension.enabled:
@@ -218,9 +218,9 @@ class TensionMeasurementController(QObject):
             return
 
         # Importar diálogo aqui para evitar import circular
-        from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
+        from consumo_lib.dialogs.tension import TensionMeasurementDialog
 
-        dlg = StencilTensionDialog(self.parent_window, self.controller.cnc)
+        dlg = TensionMeasurementDialog(self.parent_window, self.controller.cnc)
         dlg.exec()
 
     def setup_ui_handlers(self):

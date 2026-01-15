@@ -1,13 +1,9 @@
 """
-history_builder.py
-------------------
-Construtor de relatório de histórico do stencil.
+Stencil History Report Builder (Refatorado)
 
-Este módulo contém a classe StencilHistoryReportBuilder responsável por gerar
-relatórios PDF de histórico com gráfico de tendência, estatísticas e tabela de medições.
+Construtor de relatório de histórico do stencil usando serviços especializados.
+Responsável por orquestrar PDFGenerator, ChartGenerator, StatisticsCalculator e ReportLayoutManager.
 """
-
-from __future__ import annotations
 
 import io
 import logging
@@ -15,36 +11,65 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-# Reportlab para geração de PDF
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, letter
 from reportlab.lib.units import mm
-from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-    Image, HRFlowable
-)
+from reportlab.platypus import Image
 
-# Módulos locais
-from aoi_lib.reports.config import ReportConfig, get_custom_styles
-from aoi_lib.reports.chart_generator import create_trend_chart
+# Import ReportConfig from parent module
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from report_generator import ReportConfig
+
+# Import specialized services
+from aoi_lib.reports.pdf_generator import PDFGenerator
+from aoi_lib.reports.chart_generator import ChartGenerator
+from aoi_lib.reports.statistics_calculator import StatisticsCalculator
+from aoi_lib.reports.report_layout_manager import ReportLayoutManager
 
 log = logging.getLogger(__name__)
 
 
 class StencilHistoryReportBuilder:
     """
-    Construtor de relatório de histórico do stencil.
+    Refatorado: Construtor de relatório de histórico do stencil.
 
-    Gera um PDF com:
-    - Dados cadastrais do stencil
-    - Gráfico de tendência de tensão
-    - Histórico de todas as medições
-    - Análise de degradação
+    Usa 4 serviços especializados:
+    - PDFGenerator: operações PDF de baixo nível
+    - ChartGenerator: geração de gráficos
+    - StatisticsCalculator: cálculos estatísticos
+    - ReportLayoutManager: formatação e layout
+
+    Responsabilidade:
+    - Orquestrar os serviços para gerar o relatório
+    - Construir estrutura do relatório
+    - Manter compatibilidade com interface original
     """
 
-    def __init__(self, config: ReportConfig):
+    def __init__(
+        self,
+        config: ReportConfig,
+        pdf_generator: PDFGenerator = None,
+        chart_generator: ChartGenerator = None,
+        stats_calculator: StatisticsCalculator = None,
+        layout_manager: ReportLayoutManager = None
+    ):
+        """
+        Initialize history report builder with services.
+
+        Args:
+            config: Report configuration
+            pdf_generator: PDF service (optional, created if None)
+            chart_generator: Chart service (optional, created if None)
+            stats_calculator: Statistics service (optional, created if None)
+            layout_manager: Layout service (optional, created if None)
+        """
         self.config = config
-        self.styles = get_custom_styles(config)
+
+        # Initialize services (dependency injection)
+        self.pdf = pdf_generator or PDFGenerator(config)
+        self.chart = chart_generator or ChartGenerator(config)
+        self.stats = stats_calculator or StatisticsCalculator()
+        self.layout = layout_manager or ReportLayoutManager(config)
 
     def build(
         self,
@@ -73,131 +98,142 @@ class StencilHistoryReportBuilder:
             filename = f"{stencil_code}_history_{timestamp}.pdf"
             output_path = str(output_dir / filename)
 
-        # Criar documento
-        doc = SimpleDocTemplate(
-            output_path,
-            pagesize=self.config.get_page_size(),
-            rightMargin=15*mm, leftMargin=15*mm,
-            topMargin=15*mm, bottomMargin=15*mm
-        )
-
         # Construir conteúdo
-        story = []
+        elements = []
 
         # Cabeçalho
-        story.extend(self._build_header(stencil))
+        elements.extend(self._build_header(stencil))
+
+        # Linha horizontal
+        self.pdf.add_horizontal_rule(elements, thickness=1)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         # Gráfico de tendência
         if self.config.include_charts and history:
-            story.extend(self._build_trend_section(history))
+            elements.extend(self._build_trend_section(history))
 
         # Resumo estatístico
-        story.extend(self._build_stats_section(history))
+        elements.extend(self._build_stats_section(history))
 
         # Histórico de medições
-        story.extend(self._build_history_table(history))
+        elements.extend(self._build_history_table(history))
 
         # Rodapé
-        story.extend(self._build_footer())
+        elements.extend(self._build_footer())
 
         # Gerar PDF
-        doc.build(story)
-        log.info(f"Relatório de histórico gerado: {output_path}")
+        return self.pdf.build_document(elements, output_path)
 
-        return output_path
+    # ======================================================================== #
+    # SEÇÃO BUILDERS
+    # ======================================================================== #
 
     def _build_header(self, stencil: Dict) -> List:
-        """Constrói cabeçalho com dados do stencil."""
+        """Constrói cabeçalho com dados do stencil usando PDFGenerator."""
         elements = []
 
-        elements.append(Paragraph(self.config.company_name, self.styles['Title']))
-        elements.append(Paragraph("RELATÓRIO DE HISTÓRICO DO STENCIL", self.styles['Heading1']))
-        elements.append(Spacer(1, 5*mm))
+        # Título
+        self.pdf.add_header(elements, title=self.config.company_name, subtitle="", include_logo=False)
+        self.pdf.add_spacer(elements, height=3*mm)
+        self.pdf.add_title(elements, text="RELATÓRIO DE HISTÓRICO DO STENCIL", level=1)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         # Dados do stencil
         info_data = [
-            ["Código:", stencil.get('code', '-')],
-            ["Descrição:", stencil.get('description', '-')],
-            ["Receita Padrão:", stencil.get('recipe_name', '-')],
-            ["Data de Cadastro:", stencil.get('created_at', '-')],
-            ["Última Inspeção:", stencil.get('last_inspection', '-')],
-            ["Total de Inspeções:", str(stencil.get('inspection_count', 0))],
-            ["Status:", stencil.get('status', '-')],
+            ("Código:", stencil.get('code', '-')),
+            ("Descrição:", stencil.get('description', '-')),
+            ("Receita Padrão:", stencil.get('recipe_name', '-')),
+            ("Data de Cadastro:", self.layout.format_date(stencil.get('created_at'), "%d/%m/%Y")),
+            ("Última Inspeção:", self.layout.format_date(stencil.get('last_inspection'), "%d/%m/%Y")),
+            ("Total de Inspeções:", str(stencil.get('inspection_count', 0))),
+            ("Status:", stencil.get('status', '-')),
         ]
 
-        info_table = Table(info_data, colWidths=[40*mm, 120*mm])
-        info_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('TEXTCOLOR', (0, 0), (0, -1), colors.gray),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ]))
-
-        elements.append(info_table)
-        elements.append(Spacer(1, 8*mm))
-        elements.append(HRFlowable(width="100%", thickness=1, color=self.config.get_primary_color()))
-        elements.append(Spacer(1, 5*mm))
+        self.pdf.add_info_table(elements, info_data, label_width=40*mm, value_width=120*mm)
+        self.pdf.add_spacer(elements, height=8*mm)
 
         return elements
 
     def _build_trend_section(self, history: List[Dict]) -> List:
-        """Constrói seção com gráfico de tendência."""
+        """Constrói seção com gráfico de tendência usando ChartGenerator."""
         elements = []
 
-        elements.append(Paragraph("TENDÊNCIA DE TENSÃO", self.styles['Heading2']))
+        self.pdf.add_title(elements, text="TENDÊNCIA DE TENSÃO", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
-        # Usar chart_generator para criar o gráfico
-        chart_img = create_trend_chart(history, self.config)
+        try:
+            # Extrair dados para gráfico
+            averages = []
+            for record in history[-20:]:  # Últimas 20 medições
+                avg = record.get('average_tension', 0)
+                if avg:
+                    averages.append(avg)
 
-        if chart_img:
-            elements.append(chart_img)
-        else:
-            elements.append(Paragraph("Gráfico não disponível.", self.styles['Normal']))
+            if len(averages) >= 2:
+                # Criar line plot
+                fig = self.chart.create_line_plot(
+                    x_data=list(range(len(averages))),
+                    y_data=averages,
+                    title="Evolução da Tensão Média",
+                    xlabel="Medição",
+                    ylabel="Tensão Média (N/cm)",
+                    figsize=(7, 3),
+                    dpi=100,
+                    show_trendline=True,
+                    fill_area=True
+                )
 
-        elements.append(Spacer(1, 5*mm))
+                # Salvar para BytesIO
+                buf = self.chart.save_as_image(fig, format="png", dpi=100)
+                self.chart.close(fig)
+
+                # Criar Image
+                img = Image(buf, width=160*mm, height=70*mm)
+                elements.append(img)
+            else:
+                self.pdf.add_paragraph(elements, "Gráfico não disponível (insuficiente dados).")
+
+        except Exception as e:
+            log.warning(f"Erro ao criar gráfico de tendência: {e}")
+            self.pdf.add_paragraph(elements, "Gráfico não disponível.")
+
+        self.pdf.add_spacer(elements, height=5*mm)
         return elements
 
     def _build_stats_section(self, history: List[Dict]) -> List:
-        """Constrói seção de estatísticas."""
+        """Constrói seção de estatísticas usando StatisticsCalculator."""
         elements = []
 
-        elements.append(Paragraph("ESTATÍSTICAS GERAIS", self.styles['Heading2']))
+        self.pdf.add_title(elements, text="ESTATÍSTICAS GERAIS", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
         if not history:
-            elements.append(Paragraph("Nenhuma medição registrada.", self.styles['Normal']))
+            self.pdf.add_paragraph(elements, "Nenhuma medição registrada.")
             return elements
 
-        # Calcular estatísticas
+        # Calcular estatísticas usando StatisticsCalculator
         all_averages = [r.get('average_tension', 0) for r in history if r.get('average_tension')]
+        basic_stats = self.stats.calculate_basic_stats(all_averages, include_cv=False)
 
+        # Calcular totais
         total_measurements = len(history)
         total_ok = sum(r.get('ok_count', 0) for r in history)
         total_warn = sum(r.get('warning_count', 0) for r in history)
         total_nok = sum(r.get('nok_count', 0) for r in history)
         total_points = total_ok + total_warn + total_nok
 
-        avg_of_avgs = sum(all_averages) / len(all_averages) if all_averages else 0
-
+        # Tabela de estatísticas
         stats_data = [
             ["Total de Inspeções:", str(total_measurements)],
             ["Total de Pontos Medidos:", str(total_points)],
-            ["Tensão Média Geral:", f"{avg_of_avgs:.2f} N/cm"],
-            ["Pontos OK:", f"{total_ok} ({100*total_ok/total_points:.0f}%)" if total_points else "0"],
-            ["Pontos WARNING:", f"{total_warn} ({100*total_warn/total_points:.0f}%)" if total_points else "0"],
-            ["Pontos NOK:", f"{total_nok} ({100*total_nok/total_points:.0f}%)" if total_points else "0"],
+            ["Tensão Média Geral:", f"{self.layout.format_number(basic_stats['mean'])} N/cm"],
+            ["Pontos OK:", f"{total_ok} ({self.layout.format_percentage(100*total_ok/total_points if total_points else 0)})"],
+            ["Pontos WARNING:", f"{total_warn} ({self.layout.format_percentage(100*total_warn/total_points if total_points else 0)})"],
+            ["Pontos NOK:", f"{total_nok} ({self.layout.format_percentage(100*total_nok/total_points if total_points else 0)})"],
         ]
 
-        stats_table = Table(stats_data, colWidths=[60*mm, 60*mm])
-        stats_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
-
-        elements.append(stats_table)
-        elements.append(Spacer(1, 8*mm))
+        self.pdf.add_table(elements, stats_data, col_widths=[60*mm, 60*mm])
+        self.pdf.add_spacer(elements, height=8*mm)
 
         return elements
 
@@ -205,10 +241,11 @@ class StencilHistoryReportBuilder:
         """Constrói tabela com histórico de medições."""
         elements = []
 
-        elements.append(Paragraph("HISTÓRICO DE MEDIÇÕES", self.styles['Heading2']))
+        self.pdf.add_title(elements, text="HISTÓRICO DE MEDIÇÕES", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
         if not history:
-            elements.append(Paragraph("Nenhuma medição registrada.", self.styles['Normal']))
+            self.pdf.add_paragraph(elements, "Nenhuma medição registrada.")
             return elements
 
         # Cabeçalho
@@ -217,55 +254,38 @@ class StencilHistoryReportBuilder:
         # Dados (últimas 50 entradas)
         for record in history[-50:]:
             ts = record.get('timestamp', '-')
-            try:
-                dt = datetime.fromisoformat(ts)
-                ts_formatted = dt.strftime("%d/%m/%Y %H:%M")
-            except:
-                ts_formatted = ts
+            ts_formatted = self.layout.format_datetime(ts, "%d/%m/%Y %H:%M")
 
             result = record.get('result', 'OK').upper()
             result_symbol = {'OK': '✅', 'WARNING': '⚠️', 'NOK': '❌'}.get(result, '❓')
 
             table_data.append([
                 ts_formatted,
-                f"{record.get('average_tension', 0):.2f}",
-                f"{record.get('min_tension', 0):.2f}",
-                f"{record.get('max_tension', 0):.2f}",
+                self.layout.format_number(record.get('average_tension', 0)),
+                self.layout.format_number(record.get('min_tension', 0)),
+                self.layout.format_number(record.get('max_tension', 0)),
                 f"{result_symbol} {result}",
-                record.get('operator', '-')[:15]  # Truncar nome
+                self.layout.truncate_text(record.get('operator', '-'), 15)
             ])
 
         # Criar tabela
         col_widths = [35*mm, 22*mm, 22*mm, 22*mm, 30*mm, 35*mm]
-        table = Table(table_data, colWidths=col_widths)
-
-        table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 8),
-            ('BACKGROUND', (0, 0), (-1, 0), self.config.get_primary_color()),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-            ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
-            ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ]))
-
-        elements.append(table)
-        elements.append(Spacer(1, 5*mm))
+        self.pdf.add_table(elements, table_data, col_widths=col_widths)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         return elements
 
     def _build_footer(self) -> List:
-        """Constrói rodapé do relatório."""
+        """Constrói rodapé do relatório usando PDFGenerator."""
         elements = []
 
-        elements.append(Spacer(1, 10*mm))
-        elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.lightgrey))
+        self.pdf.add_spacer(elements, height=10*mm)
+        self.pdf.add_horizontal_rule(elements, thickness=0.5)
 
         footer_text = f"""
         Relatório gerado automaticamente pelo {self.config.company_name}<br/>
         Data de geração: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}
         """
-        elements.append(Paragraph(footer_text, self.styles['Footer']))
+        self.pdf.add_paragraph(elements, footer_text, style="Footer")
 
         return elements

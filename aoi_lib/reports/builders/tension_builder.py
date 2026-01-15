@@ -1,13 +1,9 @@
 """
-tension_builder.py
-------------------
-Construtor de relatório de medição de tensão.
+Tension Report Builder (Refatorado)
 
-Este módulo contém a classe TensionReportBuilder responsável por gerar
-relatórios PDF de medição de tensão com mapa visual, estatísticas e tabela detalhada.
+Construtor de relatório de medição de tensão usando serviços especializados.
+Responsável por orquestrar PDFGenerator, ChartGenerator, StatisticsCalculator e ReportLayoutManager.
 """
-
-from __future__ import annotations
 
 import os
 import io
@@ -16,36 +12,67 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
-# Reportlab para geração de PDF
 from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4, letter
 from reportlab.lib.units import mm
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
     Image, HRFlowable
 )
 
-# Módulos locais
-from aoi_lib.reports.config import ReportConfig, get_custom_styles
-from aoi_lib.reports.chart_generator import create_tension_map_chart
+# Import ReportConfig from parent module
+import sys
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+from report_generator import ReportConfig
+
+# Import specialized services
+from aoi_lib.reports.pdf_generator import PDFGenerator
+from aoi_lib.reports.chart_generator import ChartGenerator
+from aoi_lib.reports.statistics_calculator import StatisticsCalculator
+from aoi_lib.reports.report_layout_manager import ReportLayoutManager
 
 log = logging.getLogger(__name__)
 
 
 class TensionReportBuilder:
     """
-    Construtor de relatório de medição de tensão.
+    Refatorado: Construtor de relatório de medição de tensão.
 
-    Gera um PDF com:
-    - Cabeçalho com logo e informações
-    - Mapa visual dos pontos de medição
-    - Resumo estatístico
-    - Tabela detalhada de pontos
+    Usa 4 serviços especializados:
+    - PDFGenerator: operações PDF de baixo nível
+    - ChartGenerator: geração de gráficos
+    - StatisticsCalculator: cálculos estatísticos
+    - ReportLayoutManager: formatação e layout
+
+    Responsabilidade:
+    - Orquestrar os serviços para gerar o relatório
+    - Construir estrutura do relatório
+    - Manter compatibilidade com interface original
     """
 
-    def __init__(self, config: ReportConfig):
+    def __init__(
+        self,
+        config: ReportConfig,
+        pdf_generator: PDFGenerator = None,
+        chart_generator: ChartGenerator = None,
+        stats_calculator: StatisticsCalculator = None,
+        layout_manager: ReportLayoutManager = None
+    ):
+        """
+        Initialize tension report builder with services.
+
+        Args:
+            config: Report configuration
+            pdf_generator: PDF service (optional, created if None)
+            chart_generator: Chart service (optional, created if None)
+            stats_calculator: Statistics service (optional, created if None)
+            layout_manager: Layout service (optional, created if None)
+        """
         self.config = config
-        self.styles = get_custom_styles(config)
+
+        # Initialize services (dependency injection)
+        self.pdf = pdf_generator or PDFGenerator(config)
+        self.chart = chart_generator or ChartGenerator(config)
+        self.stats = stats_calculator or StatisticsCalculator()
+        self.layout = layout_manager or ReportLayoutManager(config)
 
     def build(
         self,
@@ -80,42 +107,34 @@ class TensionReportBuilder:
             filename = f"{timestamp}{stencil_part}_tension_report.pdf"
             output_path = str(output_dir / filename)
 
-        # Criar documento
-        doc = SimpleDocTemplate(
-            output_path,
-            pagesize=self.config.get_page_size(),
-            rightMargin=15*mm, leftMargin=15*mm,
-            topMargin=15*mm, bottomMargin=15*mm
-        )
-
         # Construir conteúdo
-        story = []
+        elements = []
 
         # Cabeçalho
-        story.extend(self._build_header(stencil_code, stencil_description, recipe_name, operator))
+        elements.extend(self._build_header(stencil_code, stencil_description, recipe_name, operator))
 
         # Linha horizontal
-        story.append(HRFlowable(width="100%", thickness=1, color=self.config.get_primary_color()))
-        story.append(Spacer(1, 10*mm))
+        self.pdf.add_horizontal_rule(elements, thickness=1)
 
-        # Resumo e mapa de tensão lado a lado
-        story.extend(self._build_summary_section(tension_data))
+        # Resumo e mapa de tensão
+        elements.extend(self._build_summary_section(tension_data))
 
         # Critérios de aceitação
-        story.extend(self._build_criteria_section(tension_data))
+        elements.extend(self._build_criteria_section(tension_data))
 
         # Tabela detalhada
         if self.config.include_details_table:
-            story.extend(self._build_details_table(tension_data))
+            elements.extend(self._build_details_table(tension_data))
 
         # Rodapé
-        story.extend(self._build_footer())
+        elements.extend(self._build_footer())
 
         # Gerar PDF
-        doc.build(story)
-        log.info(f"Relatório de tensão gerado: {output_path}")
+        return self.pdf.build_document(elements, output_path)
 
-        return output_path
+    # ======================================================================== #
+    # SEÇÃO BUILDERS
+    # ======================================================================== #
 
     def _build_header(
         self,
@@ -124,52 +143,41 @@ class TensionReportBuilder:
         recipe_name: Optional[str],
         operator: Optional[str]
     ) -> List:
-        """Constrói cabeçalho do relatório."""
+        """Constrói cabeçalho do relatório usando PDFGenerator."""
         elements = []
 
-        # Logo e título
-        header_data = []
-
-        # Coluna do logo
-        if self.config.logo_path and os.path.exists(self.config.logo_path):
-            try:
-                logo = Image(self.config.logo_path, width=30*mm, height=30*mm)
-                header_data.append([logo])
-            except Exception as e:
-                log.warning(f"Erro ao carregar logo: {e}")
-                header_data.append([Paragraph(self.config.company_name, self.styles['Title'])])
-        else:
-            # Placeholder de texto se não houver logo
-            header_data.append([Paragraph(self.config.company_name, self.styles['Title'])])
-
-        # Título principal
-        elements.append(Paragraph(self.config.company_name, self.styles['Title']))
-        elements.append(Paragraph(self.config.company_subtitle, self.styles['Subtitle']))
-        elements.append(Paragraph("RELATÓRIO DE MEDIÇÃO DE TENSÃO", self.styles['Heading1']))
-        elements.append(Spacer(1, 5*mm))
+        # Título e subtítulo
+        self.pdf.add_header(elements, title=self.config.company_name, subtitle=self.config.company_subtitle, include_logo=False)
+        self.pdf.add_spacer(elements, height=3*mm)
+        self.pdf.add_title(elements, text="RELATÓRIO DE MEDIÇÃO DE TENSÃO", level=1)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         # Informações da medição
         now = datetime.now()
         info_data = [
-            ["Data:", now.strftime("%d/%m/%Y"), "Hora:", now.strftime("%H:%M:%S")],
-            ["Stencil:", stencil_code or "-", "Descrição:", stencil_description or "-"],
-            ["Receita:", recipe_name or "-", "Operador:", operator or "-"],
+            ("Data:", now.strftime("%d/%m/%Y"), "Hora:", now.strftime("%H:%M:%S")),
+            ("Stencil:", stencil_code or "-", "Descrição:", stencil_description or "-"),
+            ("Receita:", recipe_name or "-", "Operador:", operator or "-"),
         ]
 
-        info_table = Table(info_data, colWidths=[25*mm, 55*mm, 25*mm, 55*mm])
-        info_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
-            ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
-            ('TEXTCOLOR', (0, 0), (0, -1), colors.gray),
-            ('TEXTCOLOR', (2, 0), (2, -1), colors.gray),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ]))
+        # Format info rows using layout manager
+        formatted_info = []
+        for label1, value1, label2, value2 in info_data:
+            formatted_info.append([label1, value1, label2, value2])
 
-        elements.append(info_table)
-        elements.append(Spacer(1, 5*mm))
+        self.pdf.add_table(
+            elements,
+            formatted_info,
+            col_widths=[25*mm, 55*mm, 25*mm, 55*mm],
+            style_options=[
+                ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),
+                ('FONTNAME', (2, 0), (2, -1), 'Helvetica-Bold'),
+                ('TEXTCOLOR', (0, 0), (0, -1), colors.gray),
+                ('TEXTCOLOR', (2, 0), (2, -1), colors.gray),
+            ]
+        )
 
+        self.pdf.add_spacer(elements, height=5*mm)
         return elements
 
     def _build_summary_section(self, tension_data: Dict) -> List:
@@ -178,79 +186,96 @@ class TensionReportBuilder:
 
         measurements = tension_data.get('measurements', [])
         if not measurements:
-            elements.append(Paragraph("Nenhuma medição disponível.", self.styles['Normal']))
+            self.pdf.add_paragraph(elements, "Nenhuma medição disponível.")
             return elements
 
-        # Calcular estatísticas
+        # Calcular estatísticas usando StatisticsCalculator
         tensions = [m.get('tension', 0) for m in measurements]
-        avg_tension = sum(tensions) / len(tensions) if tensions else 0
-        min_tension = min(tensions) if tensions else 0
-        max_tension = max(tensions) if tensions else 0
+        basic_stats = self.stats.calculate_basic_stats(tensions, include_cv=False)
 
-        # Contar por status
-        ok_count = sum(1 for m in measurements if m.get('status', '').upper() == 'OK')
-        warn_count = sum(1 for m in measurements if m.get('status', '').upper() in ('WARNING', 'WARN'))
-        nok_count = sum(1 for m in measurements if m.get('status', '').upper() == 'NOK')
-        total = len(measurements)
+        # Calcular percentuais de classificação
+        classifications = [m.get('status', 'OK') for m in measurements]
+        class_pcts = self.stats.calculate_percentages(classifications)
 
-        # Seção de títulos
-        elements.append(Paragraph("RESUMO DA MEDIÇÃO", self.styles['Heading2']))
+        # Título
+        self.pdf.add_title(elements, text="RESUMO DA MEDIÇÃO", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
         # Tabela de resumo
         summary_data = [
             ["Estatísticas", ""],
-            ["Média:", f"{avg_tension:.2f} N/cm"],
-            ["Mínimo:", f"{min_tension:.2f} N/cm"],
-            ["Máximo:", f"{max_tension:.2f} N/cm"],
-            ["Total de Pontos:", str(total)],
+            ["Média:", f"{basic_stats['mean']:.2f} N/cm"],
+            ["Mínimo:", f"{basic_stats['min']:.2f} N/cm"],
+            ["Máximo:", f"{basic_stats['max']:.2f} N/cm"],
+            ["Total de Pontos:", str(basic_stats['count'])],
             ["", ""],
             ["Classificação", ""],
-            ["✅ OK:", f"{ok_count} ({100*ok_count/total:.0f}%)" if total else "0"],
-            ["⚠️ WARNING:", f"{warn_count} ({100*warn_count/total:.0f}%)" if total else "0"],
-            ["❌ NOK:", f"{nok_count} ({100*nok_count/total:.0f}%)" if total else "0"],
+            ["✅ OK:", f"{class_pcts['ok_count']} ({self.layout.format_percentage(class_pcts['ok_pct'])})"],
+            ["⚠️ WARNING:", f"{class_pcts['warning_count']} ({self.layout.format_percentage(class_pcts['warning_pct'])})"],
+            ["❌ NOK:", f"{class_pcts['nok_count']} ({self.layout.format_percentage(class_pcts['nok_pct'])})"],
         ]
 
-        summary_table = Table(summary_data, colWidths=[50*mm, 40*mm])
-        summary_table.setStyle(TableStyle([
-            ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('FONTNAME', (0, 0), (1, 0), 'Helvetica-Bold'),
-            ('FONTNAME', (0, 6), (1, 6), 'Helvetica-Bold'),
-            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.9, 0.9, 0.9)),
-            ('BACKGROUND', (0, 6), (-1, 6), colors.Color(0.9, 0.9, 0.9)),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-        ]))
+        self.pdf.add_table(elements, summary_data, col_widths=[50*mm, 40*mm])
+        self.pdf.add_spacer(elements, height=3*mm)
 
         # Gráfico de mapa de tensão
         if self.config.include_charts:
-            chart_img = create_tension_map_chart(tension_data, self.config)
+            chart_img = self._create_tension_map_chart(tension_data)
             if chart_img:
-                # Layout lado a lado
-                layout_data = [[summary_table, chart_img]]
-                layout_table = Table(layout_data, colWidths=[95*mm, 85*mm])
-                layout_table.setStyle(TableStyle([
-                    ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ]))
-                elements.append(layout_table)
-            else:
-                elements.append(summary_table)
-        else:
-            elements.append(summary_table)
+                elements.append(chart_img)
 
-        elements.append(Spacer(1, 8*mm))
+        self.pdf.add_spacer(elements, height=8*mm)
         return elements
+
+    def _create_tension_map_chart(self, tension_data: Dict) -> Optional[Image]:
+        """Cria gráfico de mapa de tensão usando ChartGenerator."""
+        measurements = tension_data.get('measurements', [])
+        if not measurements:
+            return None
+
+        try:
+            # Extrair dados
+            x_data = [m.get('x', 0) for m in measurements]
+            y_data = [m.get('y', 0) for m in measurements]
+            tensions = [m.get('tension', 0) for m in measurements]
+            statuses = [m.get('status', 'OK') for m in measurements]
+
+            # Criar scatter plot
+            fig = self.chart.create_scatter_plot(
+                x_data=x_data,
+                y_data=y_data,
+                color_data=statuses,
+                labels=[f"{t:.1f}" for t in tensions],
+                title="Mapa de Tensão",
+                xlabel="X (mm)",
+                ylabel="Y (mm)",
+                figsize=(4, 3),
+                dpi=100,
+                show_values=True,
+                show_legend=True
+            )
+
+            # Salvar para BytesIO
+            buf = self.chart.save_as_image(fig, format="png", dpi=100)
+            self.chart.close(fig)
+
+            # Criar Image do reportlab
+            img = Image(buf, width=85*mm, height=65*mm)
+            return img
+
+        except Exception as e:
+            log.warning(f"Erro ao criar gráfico de tensão: {e}")
+            return None
 
     def _build_criteria_section(self, tension_data: Dict) -> List:
         """Constrói seção de critérios de aceitação."""
         elements = []
 
-        elements.append(Paragraph("CRITÉRIOS DE ACEITAÇÃO", self.styles['Heading2']))
+        self.pdf.add_title(elements, text="CRITÉRIOS DE ACEITAÇÃO", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
-        # Obter critérios do tension_data ou usar padrões
+        # Obter critérios
         criteria = tension_data.get('acceptance_criteria', {})
-
         ok_min = criteria.get('ok_min', 26.0)
         ok_max = criteria.get('ok_max', 32.0)
         warn_low = criteria.get('warning_low', 24.0)
@@ -262,8 +287,8 @@ class TensionReportBuilder:
         <b>❌ NOK:</b> &lt; {warn_low:.1f} N/cm ou &gt; {warn_high:.1f} N/cm
         """
 
-        elements.append(Paragraph(criteria_text, self.styles['Normal']))
-        elements.append(Spacer(1, 5*mm))
+        self.pdf.add_paragraph(elements, criteria_text)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         return elements
 
@@ -275,7 +300,8 @@ class TensionReportBuilder:
         if not measurements:
             return elements
 
-        elements.append(Paragraph("DETALHES POR PONTO", self.styles['Heading2']))
+        self.pdf.add_title(elements, text="DETALHES POR PONTO", level=2)
+        self.pdf.add_spacer(elements, height=3*mm)
 
         # Cabeçalho da tabela
         table_data = [["#", "X (mm)", "Y (mm)", "Tensão (N/cm)", "Status"]]
@@ -287,26 +313,18 @@ class TensionReportBuilder:
 
             table_data.append([
                 str(i),
-                f"{m.get('x', 0):.1f}",
-                f"{m.get('y', 0):.1f}",
-                f"{m.get('tension', 0):.2f}",
+                self.layout.format_number(m.get('x', 0), decimals=1),
+                self.layout.format_number(m.get('y', 0), decimals=1),
+                self.layout.format_number(m.get('tension', 0), decimals=2),
                 f"{status_symbol} {status}"
             ])
 
-        # Criar tabela
+        # Criar tabela com estilo base
         col_widths = [12*mm, 30*mm, 30*mm, 40*mm, 35*mm]
-        table = Table(table_data, colWidths=col_widths)
 
         # Estilo base
         style = [
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('BACKGROUND', (0, 0), (-1, 0), self.config.get_primary_color()),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-            ('TOPPADDING', (0, 0), (-1, -1), 4),
         ]
 
         # Cores por status nas linhas de dados
@@ -320,9 +338,8 @@ class TensionReportBuilder:
             elif status == 'NOK':
                 style.append(('BACKGROUND', (0, row), (-1, row), colors.Color(1.0, 0.9, 0.9)))
 
-        table.setStyle(TableStyle(style))
-        elements.append(table)
-        elements.append(Spacer(1, 5*mm))
+        self.pdf.add_table(elements, table_data, col_widths=col_widths, style_options=style)
+        self.pdf.add_spacer(elements, height=5*mm)
 
         return elements
 
@@ -330,13 +347,13 @@ class TensionReportBuilder:
         """Constrói rodapé do relatório."""
         elements = []
 
-        elements.append(Spacer(1, 10*mm))
-        elements.append(HRFlowable(width="100%", thickness=0.5, color=colors.lightgrey))
+        self.pdf.add_spacer(elements, height=10*mm)
+        self.pdf.add_horizontal_rule(elements, thickness=0.5)
 
         footer_text = f"""
         Relatório gerado automaticamente pelo {self.config.company_name}<br/>
         Data de geração: {datetime.now().strftime("%d/%m/%Y às %H:%M:%S")}
         """
-        elements.append(Paragraph(footer_text, self.styles['Footer']))
+        self.pdf.add_paragraph(elements, footer_text, style="Footer")
 
         return elements

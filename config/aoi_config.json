@@ -163,5 +163,11 @@
       "morphology_kernel_size": 3,
       "apply_morphology": true
     }
+  },
+  "fiducial_alignment": {
+    "last_tx": 0.0,
+    "last_ty": 0.0,
+    "last_angle": 0.0,
+    "last_scale": 1.0
   }
 }

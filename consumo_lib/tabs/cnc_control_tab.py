@@ -44,7 +44,8 @@ class CNCControlTab(BaseTab):
     def build_ui(self):
         """Constrói a interface da aba."""
         # Layout horizontal: preview (esquerda) + controles (direita)
-        tab_layout = QHBoxLayout(self)
+        # NOTA: Não passar 'self' como pai porque BaseTab já criou self.layout
+        tab_layout = QHBoxLayout()
         tab_layout.setContentsMargins(5, 5, 5, 5)
         tab_layout.setSpacing(5)
 

@@ -297,15 +297,19 @@ class CNCAOIController:
         """
         dx = end['x'] - origin['x']
         dy = end['y'] - origin['y']
-        
-        if dx <= 0 or dy <= 0:
-            raise ValueError("Cantos inválidos (dx/dy devem ser positivos)")
+
+        # Usa valor absoluto para permitir qualquer direção de medição
+        dx_abs = abs(dx)
+        dy_abs = abs(dy)
+
+        if dx_abs <= 0 or dy_abs <= 0:
+            raise ValueError("Cantos inválidos (dx/dy devem ser não-zero)")
         if step_x <= 0 or step_y <= 0:
             raise ValueError("Passos devem ser > 0")
-        
+
         # Calcula número de passos necessários (arredonda para cima)
-        n_steps_x = int(math.ceil(dx / step_x))
-        n_steps_y = int(math.ceil(dy / step_y))
+        n_steps_x = int(math.ceil(dx_abs / step_x))
+        n_steps_y = int(math.ceil(dy_abs / step_y))
         
         # Garante pelo menos 1 passo
         n_steps_x = max(n_steps_x, 1)
@@ -348,8 +352,13 @@ class CNCAOIController:
         """
         dx = end['x'] - origin['x']
         dy = end['y'] - origin['y']
-        if dx <= 0 or dy <= 0:
-            raise ValueError("Cantos inválidos (dx/dy devem ser positivos)")
+
+        # Usa valor absoluto para permitir qualquer direção de medição
+        dx_abs = abs(dx)
+        dy_abs = abs(dy)
+
+        if dx_abs <= 0 or dy_abs <= 0:
+            raise ValueError("Cantos inválidos (dx/dy devem ser não-zero)")
         if sx <= 0 or sy <= 0:
             raise ValueError("Passos sx/sy devem ser > 0")
 
@@ -362,8 +371,9 @@ class CNCAOIController:
             rows = adjusted['rows']
         else:
             # Comportamento antigo (mantido para compatibilidade)
-            cols = int(math.ceil(dx / sx)) + 1
-            rows = int(math.ceil(dy / sy)) + 1
+            # Usa dx_abs/dy_abs para permitir medição em qualquer direção
+            cols = int(math.ceil(dx_abs / sx)) + 1
+            rows = int(math.ceil(dy_abs / sy)) + 1
         
         # Gera posições com espaçamento uniforme
         x_pos = [origin['x'] + i * sx for i in range(cols)]

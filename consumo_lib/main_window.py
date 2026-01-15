@@ -581,8 +581,8 @@ class AOIControllerApp(QMainWindow):
             if not self.controller.cnc.is_connected:
                 QMessageBox.warning(self, "Aviso", "Conecte a CNC antes de medir a tensão do stencil.")
                 return
-            from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
-            dlg = StencilTensionDialog(self, self.controller.cnc)
+            from consumo_lib.dialogs.tension import TensionMeasurementDialog
+            dlg = TensionMeasurementDialog(self, self.controller.cnc)
             dlg.exec()
 
     def _cleanup_resources(self):

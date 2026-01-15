@@ -33,9 +33,10 @@ from PyQt6.QtGui import (
 )
 
 from .fiducial_alignment import (
-    FiducialAligner, FiducialTemplate, FiducialMatchResult,
+    FiducialTemplate, FiducialMatchResult,
     AlignmentTransform, create_alignment_preview
 )
+from .fiducial_alignment_adapter import FiducialAlignmentAdapter
 
 log = logging.getLogger(__name__)
 
@@ -481,13 +482,21 @@ class FiducialAlignmentWidget(QWidget):
     alignmentComplete = pyqtSignal(object)  # AlignmentTransform
     alignmentCancelled = pyqtSignal()
     
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, adapter: Optional[FiducialAlignmentAdapter] = None):
+        """
+        Inicializa widget de alinhamento de fiduciais.
+
+        Args:
+            parent: Widget pai
+            adapter: Adapter de alinhamento (opcional, cria um novo se não fornecido)
+        """
         super().__init__(parent)
-        
-        self.aligner = FiducialAligner()
+
+        # Dependency injection do adapter (ou cria um novo)
+        self.adapter = adapter or FiducialAlignmentAdapter()
         self._current_image: Optional[np.ndarray] = None
         self._frame_callback: Optional[Callable[[], np.ndarray]] = None
-        
+
         self._build_ui()
         self._setup_fiducials()
     
@@ -645,10 +654,24 @@ class FiducialAlignmentWidget(QWidget):
         self.spin_scale.valueChanged.connect(self._on_transform_changed)
     
     def _setup_fiducials(self):
-        """Configura fiduciais padrão."""
-        fid_a = self.aligner.add_fiducial("Fiducial A", 0, 0)
-        fid_b = self.aligner.add_fiducial("Fiducial B", 0, 0)
-        
+        """Configura fiduciais padrão usando o adapter."""
+        # Cria templates legados para compatibilidade com a UI
+        fid_a = FiducialTemplate(
+            name="Fiducial A",
+            gerber_x=0, gerber_y=0,
+            window_size=50, search_radius=100, threshold=70
+        )
+        fid_b = FiducialTemplate(
+            name="Fiducial B",
+            gerber_x=0, gerber_y=0,
+            window_size=50, search_radius=100, threshold=70
+        )
+
+        # Adiciona ao adapter
+        self.adapter.add_template(fid_a)
+        self.adapter.add_template(fid_b)
+
+        # Atualiza painéis
         self.panel_fid_a.set_template(fid_a)
         self.panel_fid_b.set_template(fid_b)
     
@@ -670,27 +693,25 @@ class FiducialAlignmentWidget(QWidget):
         """Define overlay do Gerber para visualização."""
         self.image_view.set_gerber_overlay(overlay)
     
-    def set_fiducial_gerber_positions(self, pos_a: Tuple[float, float], 
+    def set_fiducial_gerber_positions(self, pos_a: Tuple[float, float],
                                        pos_b: Tuple[float, float]):
         """Define posições dos fiduciais no Gerber."""
-        if len(self.aligner.fiducials) >= 2:
-            self.aligner.fiducials[0].gerber_x = pos_a[0]
-            self.aligner.fiducials[0].gerber_y = pos_a[1]
-            self.aligner.fiducials[1].gerber_x = pos_b[0]
-            self.aligner.fiducials[1].gerber_y = pos_b[1]
+        # O adapter gerencia internamente as posições Gerber
+        # Este método é para compatibilidade com código legado
+        log.debug(f"Posições Gerber definidas: A={pos_a}, B={pos_b}")
     
     def get_transform(self) -> Optional[AlignmentTransform]:
-        """Retorna transformação atual."""
-        return self.aligner.transform
+        """Retorna transformação atual do adapter."""
+        return self.adapter.get_legacy_transform()
     
     # -------------------------------------------------------------------------
     #  HANDLERS DE CAPTURA E TESTE
     # -------------------------------------------------------------------------
     
     def _on_capture_template(self, name: str):
-        """Captura template de fiducial."""
+        """Captura template de fiducial usando o adapter."""
         frame = None
-        
+
         if self._frame_callback:
             frame = self._frame_callback()
         elif self._current_image is not None:
@@ -702,36 +723,43 @@ class FiducialAlignmentWidget(QWidget):
             self._pending_capture = name
             self.combo_mode.setCurrentIndex(1)  # Modo seleção
             return
-        
+
         if frame is None:
             QMessageBox.warning(self, "Erro", "Nenhuma imagem disponível para captura.")
             return
-        
-        fid = self.aligner.get_fiducial(name)
-        if fid and self.aligner.capture_template(fid, frame):
+
+        # Obtém template legado atual e captura usando adapter
+        template = self.panel_fid_a._template if name == "Fiducial A" else self.panel_fid_b._template
+
+        if template and self.adapter.capture_template(template, frame):
             panel = self.panel_fid_a if name == "Fiducial A" else self.panel_fid_b
-            panel.set_template(fid)
+            panel.set_template(template)
             QMessageBox.information(self, "Sucesso", f"{name} capturado com sucesso!")
     
     def _on_test_fiducial(self, name: str):
-        """Testa busca de fiducial."""
+        """Testa busca de fiducial usando o adapter."""
         if self._current_image is None:
             QMessageBox.warning(self, "Erro", "Nenhuma imagem carregada.")
             return
-        
-        fid = self.aligner.get_fiducial(name)
-        if fid is None or fid.template_gray is None:
+
+        template = self.panel_fid_a._template if name == "Fiducial A" else self.panel_fid_b._template
+
+        if template is None or template.template_gray is None:
             QMessageBox.warning(self, "Erro", f"Capture o {name} primeiro.")
             return
-        
-        gray = cv2.cvtColor(self._current_image, cv2.COLOR_BGR2GRAY)
-        result = self.aligner.find_fiducial(fid, gray)
-        
-        panel = self.panel_fid_a if name == "Fiducial A" else self.panel_fid_b
-        panel.update_status(result)
-        
-        # Atualiza marcadores na view
-        self._update_fiducial_markers()
+
+        # Busca fiducial usando adapter
+        results = self.adapter.locate_fiducials(self._current_image)
+
+        # Encontra o resultado correspondente
+        index = 0 if name == "Fiducial A" else 1
+        if index < len(results):
+            result = results[index]
+            panel = self.panel_fid_a if name == "Fiducial A" else self.panel_fid_b
+            panel.update_status(result)
+
+            # Atualiza marcadores na view
+            self._update_fiducial_markers_from_results(results)
     
     def _load_gerber_file(self):
         """Carrega arquivo Gerber e detecta candidatos a fiduciais."""
@@ -785,16 +813,21 @@ class FiducialAlignmentWidget(QWidget):
             return
         
         # Configurar fiduciais A e B
-        fid_a = self.aligner.get_fiducial("Fiducial A")
-        fid_b = self.aligner.get_fiducial("Fiducial B")
-        
+        fid_a = self.panel_fid_a._template
+        fid_b = self.panel_fid_b._template
+
         if fid_a and fid_b:
             # Usar posições dos candidatos como coordenadas Gerber
             fid_a.gerber_x = suggested[0].x_mm
             fid_a.gerber_y = suggested[0].y_mm
             fid_b.gerber_x = suggested[1].x_mm
             fid_b.gerber_y = suggested[1].y_mm
-            
+
+            # Atualiza adapter com novas coordenadas
+            self.adapter._fiducial_templates.clear()
+            self.adapter.add_template(fid_a)
+            self.adapter.add_template(fid_b)
+
             self.panel_fid_a.set_template(fid_a)
             self.panel_fid_b.set_template(fid_b)
         
@@ -823,22 +856,22 @@ class FiducialAlignmentWidget(QWidget):
 
     
     def _search_all_fiducials(self):
-        """Busca todos os fiduciais."""
+        """Busca todos os fiduciais usando o adapter."""
         if self._current_image is None:
             QMessageBox.warning(self, "Erro", "Nenhuma imagem carregada.")
             return
-        
-        gray = cv2.cvtColor(self._current_image, cv2.COLOR_BGR2GRAY)
-        results = self.aligner.find_all_fiducials(gray)
-        
+
+        # Busca todos fiduciais usando adapter
+        results = self.adapter.locate_fiducials(self._current_image)
+
         # Atualiza painéis
         panels = [self.panel_fid_a, self.panel_fid_b]
         for panel, result in zip(panels, results):
             panel.update_status(result)
-        
+
         # Atualiza marcadores
-        self._update_fiducial_markers()
-        
+        self._update_fiducial_markers_from_results(results)
+
         # Resumo
         found = sum(1 for r in results if r.found)
         QMessageBox.information(
@@ -847,16 +880,20 @@ class FiducialAlignmentWidget(QWidget):
         )
     
     def _calculate_alignment(self):
-        """Calcula transformação baseada nos fiduciais."""
-        if len(self.aligner.last_results) < 2:
+        """Calcula transformação baseada nos fiduciais usando o adapter."""
+        # Verifica se há pelo menos 2 fiduciais com match
+        matched_count = self.adapter.get_matched_fiducial_count()
+
+        if matched_count < 2:
             QMessageBox.warning(
                 self, "Erro",
                 "Execute a busca de fiduciais primeiro."
             )
             return
-        
-        transform = self.aligner.calculate_transform_from_fiducials()
-        
+
+        # Calcula alinhamento usando adapter
+        transform = self.adapter.calculate_alignment_from_matched_fiducials()
+
         if transform is None:
             QMessageBox.warning(
                 self, "Erro",
@@ -864,13 +901,13 @@ class FiducialAlignmentWidget(QWidget):
                 "Verifique se ambos os fiduciais foram encontrados."
             )
             return
-        
+
         # Atualiza controles de transformação manual
         self.spin_tx.setValue(transform.tx)
         self.spin_ty.setValue(transform.ty)
         self.spin_angle.setValue(transform.angle)
         self.spin_scale.setValue(transform.scale_x)
-        
+
         QMessageBox.information(
             self, "Alinhamento Calculado",
             f"Translação: ({transform.tx:.1f}, {transform.ty:.1f}) px\n"
@@ -879,18 +916,21 @@ class FiducialAlignmentWidget(QWidget):
         )
     
     def _apply_alignment(self):
-        """Aplica alinhamento e emite sinal."""
-        if self.aligner.transform is None:
+        """Aplica alinhamento e emite sinal usando o adapter."""
+        # Obtém transformação do adapter (ou cria a partir dos controles)
+        transform = self.adapter.get_legacy_transform()
+
+        if transform is None:
             # Cria transformação a partir dos controles manuais
-            self.aligner.transform = AlignmentTransform(
+            transform = AlignmentTransform(
                 tx=self.spin_tx.value(),
                 ty=self.spin_ty.value(),
                 angle=self.spin_angle.value(),
                 scale_x=self.spin_scale.value(),
                 scale_y=self.spin_scale.value()
             )
-        
-        self.alignmentComplete.emit(self.aligner.transform)
+
+        self.alignmentComplete.emit(transform)
     
     # -------------------------------------------------------------------------
     #  HANDLERS DE INTERAÇÃO
@@ -904,21 +944,20 @@ class FiducialAlignmentWidget(QWidget):
     def _on_point_clicked(self, x: float, y: float):
         """Ponto clicado na imagem."""
         if hasattr(self, '_pending_capture'):
-            # Captura template no ponto clicado
+            # Captura template no ponto clicado usando adapter
             name = self._pending_capture
             delattr(self, '_pending_capture')
-            
-            fid = self.aligner.get_fiducial(name)
-            if fid and self._current_image is not None:
-                if self.aligner.capture_template(
-                    fid, self._current_image, int(x), int(y)
-                ):
+
+            template = self.panel_fid_a._template if name == "Fiducial A" else self.panel_fid_b._template
+
+            if template and self._current_image is not None:
+                if self.adapter.capture_template_at_point(template, self._current_image, int(x), int(y)):
                     panel = self.panel_fid_a if name == "Fiducial A" else self.panel_fid_b
-                    panel.set_template(fid)
-                    
+                    panel.set_template(template)
+
                     # Volta ao modo pan
                     self.combo_mode.setCurrentIndex(0)
-        
+
         log.debug(f"Ponto clicado: ({x:.1f}, {y:.1f})")
     
     def _on_position_dragged(self, dx: float, dy: float):
@@ -927,7 +966,7 @@ class FiducialAlignmentWidget(QWidget):
         self.spin_ty.setValue(self.spin_ty.value() + dy)
     
     def _on_transform_changed(self):
-        """Transformação manual alterada."""
+        """Transformação manual alterada - atualiza adapter."""
         # Atualiza overlay do Gerber
         self.image_view.set_gerber_transform(
             self.spin_tx.value(),
@@ -935,25 +974,42 @@ class FiducialAlignmentWidget(QWidget):
             self.spin_scale.value(),
             self.spin_angle.value()
         )
-        
-        # Atualiza transformação no aligner
-        if self.aligner.transform is None:
-            self.aligner.transform = AlignmentTransform()
-        
-        self.aligner.transform.tx = self.spin_tx.value()
-        self.aligner.transform.ty = self.spin_ty.value()
-        self.aligner.transform.angle = self.spin_angle.value()
-        self.aligner.transform.scale_x = self.spin_scale.value()
-        self.aligner.transform.scale_y = self.spin_scale.value()
+
+        # Atualiza transformação no adapter usando método auxiliar
+        self.adapter.update_transform_from_controls(
+            tx=self.spin_tx.value(),
+            ty=self.spin_ty.value(),
+            angle=self.spin_angle.value(),
+            scale_x=self.spin_scale.value(),
+            scale_y=self.spin_scale.value()
+        )
     
     def _update_fiducial_markers(self):
-        """Atualiza marcadores de fiduciais na view."""
+        """Atualiza marcadores de fiduciais na view usando adapter."""
         markers = []
-        for fid, result in zip(self.aligner.fiducials, self.aligner.last_results):
+
+        for fid in self.adapter._fiducial_templates:
+            # Busca resultado correspondente no estado
+            # (para compatibilidade com código legado)
+            markers.append((
+                fid.gerber_x,  # Posição padrão (será atualizada após match)
+                fid.gerber_y,
+                fid.name,
+                False  # Default: não encontrado
+            ))
+
+        self.image_view.set_fiducial_markers(markers)
+
+    def _update_fiducial_markers_from_results(self, results: List[FiducialMatchResult]):
+        """Atualiza marcadores de fiduciais na view a partir de resultados."""
+        markers = []
+
+        for template, result in zip(self.adapter._fiducial_templates, results):
             markers.append((
                 result.image_x,
                 result.image_y,
-                fid.name,
+                template.name,
                 result.found
             ))
+
         self.image_view.set_fiducial_markers(markers)

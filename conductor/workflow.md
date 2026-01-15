@@ -1,486 +1,501 @@
-# Project Workflow
+# Development Workflow (Tensiometro)
 
-## Guiding Principles
+**Project:** Tensiometro - Sistema AOI para Controle de Qualidade de Stencils
+**Last Updated:** 2026-01-15
+**Version:** 1.0
 
-1. **The Plan is the Source of Truth:** All work must be tracked in `plan.md`
-2. **The Tech Stack is Deliberate:** Changes to the tech stack must be documented in `tech-stack.md` *before* implementation
-3. **Test-Driven Development:** Write unit tests before implementing functionality
-4. **Functional Testing:** Aim for >85% functional coverage - test behaviors and features, not just lines of code. Focus on what the code DOES, not how it's implemented.
-5. **User Experience First:** Every decision should prioritize user experience
-6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
-7. **Smoke Test Verification:** After every modification and before verifying tests, run the application to ensure it starts without errors.
+---
 
-## Project Configuration
+## Overview
 
-### Commit Authorship
+Este documento define o protocolo de desenvolvimento para o projeto Tensiometro, seguindo princípios SOLID, TDD (Test-Driven Development), e desenvolvimento incremental com checkpoints.
 
-All commits should use the configured author information from `conductor/setup_state.json`.
+## Philosophy
 
-**Configuration location:** `conductor/setup_state.json`
+- **Documentation as Source of Truth**: Todo contexto em arquivos markdown
+- **Test-Driven Development**: Escrever testes antes da implementação
+- **SOLID Principles**: Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- **Incremental Progress**: Uma tarefa por vez, verificar frequentemente
+- **Human-in-the-Loop**: Claude propõe, humano aprova
+- **Checkpoint-Based**: Commits marcam fronteiras de fase
 
-**Fields:**
-- `commit_author_name`: Name to use for commits (e.g., "RONALDBUZAGLO")
-- `commit_author_email`: Email for commits (should match GitHub email)
+---
 
-**IMPORTANT:**
-For commits to appear correctly on GitHub with your profile picture and link:
-- Name MUST match your GitHub profile name
-- Email MUST match a verified email on your GitHub account (Settings > Emails)
+## Task Workflow (11 Passos)
 
-**Usage in commits:**
-```bash
-git commit -m "feat(module): Description
-
-Co-Authored-By: RONALDBUZAGLO <senseironald@gmail.com>"
+### 1. Task Selection
+```
+1. Ler plan.md do track atual
+2. Identificar próxima tarefa pendente
+3. Verificar dependências (tasks anteriores devem estar completas)
+4. Confirmar entendimento dos objetivos
 ```
 
-**Usage in git notes:**
-```bash
-git notes add -m "Task Summary
-================
-Author: RONALDBUZAGLO
-
-Changes Made:
-- Change 1
-- Change 2" <commit_sha>
+### 2. Test Analysis
+```
+1. Identificar testes existentes relacionados à tarefa
+2. Ler testes para entender comportamento esperado
+3. Verificar se há gaps de cobertura
+4. Documentar testes que precisam ser criados/atualizados
 ```
 
-### Automatic Configuration from Git Local
-
-During initial Conductor setup, automatically detect and configure author information:
-
-**Step 1: Check git local configuration**
-
-```bash
-git config user.name
-git config user.email
+### 3. Implementation Planning
+```
+1. Listar arquivos que serão modificados/criados
+2. Definir estrutura de classes/funções
+3. Aplicar princípios SOLID (SRP, OCP, DIP, ISP, LSP)
+4. Verificar compatibilidade com código existente (backward compatibility)
 ```
 
-**Step 2: If both name and email are configured, ask user:**
-
+### 4. Test-First (TDD Red)
 ```
-Detectado configuração git local:
-  Nome: RONALDBUZAGLO
-  Email: senseironald@gmail.com
-
-Deseja usar estas configurações como padrão para commits do Conductor?
-- Sim (recomendado) - Usa nome e email do git local
-- Não - Vou fornecer outro nome/email
+1. Escrever testes ANTES da implementação
+2. Testes devem falhar inicialmente (RED)
+3. Usar padrões: pytest, fixtures, mocks
+4. Testar casos normais, edge cases e erros
 ```
 
-**Step 3: If user chooses "Não" or git config is incomplete:**
-
-Ask for the information:
-
+### 5. Implementation (TDD Green)
 ```
-Configure as informações de autor para commits:
-
-Nome do autor (obrigatório):
-  Este nome deve ser o mesmo do seu perfil GitHub
-  para que commits apareçam com sua foto e link.
-
-Email do autor (obrigatório):
-  Deve ser um email verificado no seu GitHub
-  (Settings > Emails)
-  Deixe em branco para não incluir email.
+1. Implementar código MÍNIMO para passar nos testes
+2. Rodar testes frequentemente
+3. Não adicionar funcionalidades extras (YAGNI)
+4. Aplicar code styleguides (Python: Google Python Style Guide)
 ```
 
-**Fallback:**
-If the user leaves the name blank during setup, use "Claude Sonnet 4.5" as the author name.
+### 6. Refactoring (TDD Refactor)
+```
+1. Melhorar código mantendo testes verdes
+2. Extrair métodos, renomear variáveis, aplicar padrões
+3. Verificar SOLID principles
+4. Remover código duplicado
+5. Manter backward compatibility
+```
 
-## Task Workflow
+### 7. Documentation
+```
+1. Adicionar docstrings (Google style)
+2. Atualizar CLAUDE.md se necessário
+3. Atualizar README.md se adicionou novo módulo
+4. Documentar breaking changes (se inevitáveis)
+```
 
-All tasks follow a strict lifecycle:
+### 8. Verification
+```
+1. Rodar suite completa de testes (pytest)
+2. Verificar覆盖率 (coverage.py >80%)
+3. Rodar linter (pylint, flake8)
+4. Testar manualmente se aplicável
+```
 
-### Standard Task Workflow
+### 9. Mark Task Complete
+```
+1. Atualizar plan.md marcando tarefa como [x]
+2. Registrar observações/decisões tomadas
+3. Atualizar metadata.json (timestamp)
+4. Commit com mensagem descritiva
+```
 
-1. **Select Task:** Choose the next available task from `plan.md` in sequential order
+### 10. Review
+```
+1. Revisar mudanças com foco em:
+   - SOLID principles
+   - Backward compatibility
+   - Test coverage
+   - Code style
+2. Verificar se objetivos da tarefa foram atingidos
+3. Confirmar que não há regressões
+```
 
-2. **Mark In Progress:** Before beginning work, edit `plan.md` and change the task from `[ ]` to `[~]`
+### 11. Next Task
+```
+1. Retornar ao passo 1 para próxima tarefa
+2. OU marcar fase completa se todas tasks completas
+```
 
-3. **Write Failing Tests (Red Phase):**
-   - Create a new test file for the feature or bug fix.
-   - Write one or more unit tests that clearly define the expected behavior and acceptance criteria for the task.
-   - **CRITICAL:** Run the tests and confirm that they fail as expected. This is the "Red" phase of TDD. Do not proceed until you have failing tests.
+---
 
-4. **Implement to Pass Tests (Green Phase):**
-   - Write the minimum amount of application code necessary to make the failing tests pass.
-   - **Smoke Test:** Run the application (e.g., `python main.py`) to verify it starts and runs without immediate crashes. If it fails, fix the error and repeat.
-   - Run the test suite again and confirm that all tests now pass. This is the "Green" phase.
-
-5. **Refactor (Optional but Recommended):**
-   - With the safety of passing tests, refactor the implementation code and the test code to improve clarity, remove duplication, and enhance performance without changing the external behavior.
-   - **Smoke Test:** Run the application again to ensure refactoring didn't break startup.
-   - Rerun tests to ensure they still pass after refactoring.
-
-6. **Verify Coverage:** Run coverage reports using the project's chosen tools. For example, in a Python project, this might look like:
-   ```bash
-   pytest --cov=app --cov-report=html
-   ```
-   Target: >85% functional coverage for new code. Focus on testing behaviors and use cases, not individual lines of code. Integration tests that verify real functionality are preferred over line-coverage metrics.
-
-   **Important:** Functional coverage measures whether features and behaviors work correctly, not just how many lines were executed. Prefer:
-   - Integration tests that test complete workflows
-   - Tests that verify real file I/O, database operations, or API calls
-   - Tests that validate user-facing behaviors
-   - Tests that verify error handling and edge cases actually occur
-
-7. **Document Deviations:** If implementation differs from tech stack:
-   - **STOP** implementation
-   - Update `tech-stack.md` with new design
-   - Add dated note explaining the change
-   - Resume implementation
-
-8. **Commit Code Changes:**
-   - Stage all code changes related to the task.
-   - Propose a clear, concise commit message e.g, `feat(ui): Create basic HTML structure for calculator`.
-   - Perform the commit.
-
-9. **Attach Task Summary with Git Notes:**
-   - **Step 9.1: Get Commit Hash:** Obtain the hash of the *just-completed commit* (`git log -1 --format="%H"`).
-   - **Step 9.2: Draft Note Content:** Create a detailed summary for the completed task. This should include the task name, a summary of changes, a list of all created/modified files, and the core "why" for the change.
-   - **Step 9.3: Attach Note:** Use the `git notes` command to attach the summary to the commit.
-     ```bash
-     # The note content from the previous step is passed via the -m flag.
-     git notes add -m "<note content>" <commit_hash>
-     ```
-
-10. **Get and Record Task Commit SHA:**
-    - **Step 10.1: Update Plan:** Read `plan.md`, find the line for the completed task, update its status from `[~]` to `[x]`, and append the first 7 characters of the *just-completed commit's* commit hash.
-    - **Step 10.2: Write Plan:** Write the updated content back to `plan.md`.
-
-11. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message (e.g., `conductor(plan): Mark task 'Create user model' as complete`).
-
-### Phase Completion Verification and Checkpointing Protocol
-
-**Trigger:** This protocol is executed immediately after a task is completed that also concludes a phase in `plan.md`.
-
-1.  **Announce Protocol Start:** Inform the user that the phase is complete and the verification and checkpointing protocol has begun.
-
-2.  **Ensure Test Coverage for Phase Changes:**
-    -   **Step 2.1: Determine Phase Scope:** To identify the files changed in this phase, you must first find the starting point. Read `plan.md` to find the Git commit SHA of the *previous* phase's checkpoint. If no previous checkpoint exists, the scope is all changes since the first commit.
-    -   **Step 2.2: List Changed Files:** Execute `git diff --name-only <previous_checkpoint_sha> HEAD` to get a precise list of all files modified during this phase.
-    -   **Step 2.3: Verify and Create Tests:** For each file in the list:
-        -   **CRITICAL:** First, check its extension. Exclude non-code files (e.g., `.json`, `.md`, `.yaml`).
-        -   For each remaining code file, verify a corresponding test file exists.
-        -   If a test file is missing, you **must** create one. Before writing the test, **first, analyze other test files in the repository to determine the correct naming convention and testing style.** The new tests **must** validate the functionality described in this phase's tasks (`plan.md`).
-
-3.  **Execute Automated Tests with Proactive Debugging:**
-    -   Before execution, you **must** announce the exact shell command you will use to run the tests.
-    -   **Example Announcement:** "I will now run the automated test suite to verify the phase. **Command:** `CI=true npm test`"
-    -   Execute the announced command.
-    -   If tests fail, you **must** inform the user and begin debugging. You may attempt to propose a fix a **maximum of two times**. If the tests still fail after your second proposed fix, you **must stop**, report the persistent failure, and ask the user for guidance.
-
-4.  **Propose a Detailed, Actionable Manual Verification Plan:**
-    -   **CRITICAL:** To generate the plan, first analyze `product.md`, `product-guidelines.md`, and `plan.md` to determine the user-facing goals of the completed phase.
-    -   You **must** generate a step-by-step plan that walks the user through the verification process, including any necessary commands and specific, expected outcomes.
-    -   The plan you present to the user **must** follow this format:
-
-        **For a Frontend Change:**
-        ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Start the development server with the command:** `npm run dev`
-        2.  **Open your browser to:** `http://localhost:3000`
-        3.  **Confirm that you see:** The new user profile page, with the user's name and email displayed correctly.
-        ```
-
-        **For a Backend Change:**
-        ```
-        The automated tests have passed. For manual verification, please follow these steps:
-
-        **Manual Verification Steps:**
-        1.  **Ensure the server is running.**
-        2.  **Execute the following command in your terminal:** `curl -X POST http://localhost:8080/api/v1/users -d '{"name": "test"}'`
-        3.  **Confirm that you receive:** A JSON response with a status of `201 Created`.
-        ```
-
-5.  **Await Explicit User Feedback:**
-    -   After presenting the detailed plan, ask the user for confirmation: "**Does this meet your expectations? Please confirm with yes or provide feedback on what needs to be changed.**"
-    -   **PAUSE** and await the user's response. Do not proceed without an explicit yes or confirmation.
-
-6.  **Create Checkpoint Commit:**
-    -   Stage all changes. If no changes occurred in this step, proceed with an empty commit.
-    -   Perform the commit with a clear and concise message (e.g., `conductor(checkpoint): Checkpoint end of Phase X`).
-
-7.  **Attach Auditable Verification Report using Git Notes:**
-    -   **Step 8.1: Draft Note Content:** Create a detailed verification report including the automated test command, the manual verification steps, and the user's confirmation.
-    -   **Step 8.2: Attach Note:** Use the `git notes` command and the full commit hash from the previous step to attach the full report to the checkpoint commit.
-
-8.  **Get and Record Phase Checkpoint SHA:**
-    -   **Step 7.1: Get Commit Hash:** Obtain the hash of the *just-created checkpoint commit* (`git log -1 --format="%H"`).
-    -   **Step 7.2: Update Plan:** Read `plan.md`, find the heading for the completed phase, and append the first 7 characters of the commit hash in the format `[checkpoint: <sha>]`.
-    -   **Step 7.3: Write Plan:** Write the updated content back to `plan.md`.
-
-9. **Commit Plan Update:**
-    - **Action:** Stage the modified `plan.md` file.
-    - **Action:** Commit this change with a descriptive message following the format `conductor(plan): Mark phase '<PHASE NAME>' as complete`.
-
-10.  **Announce Completion:** Inform the user that the phase is complete and the checkpoint has been created, with the detailed verification report attached as a git note.
-
-### Track Completion Protocol
-
-**Trigger:** This protocol is executed when ALL phases in a track are completed.
-
-1.  **Announce Track Completion:** Inform the user that all phases are complete and ask what they want to do with the completed track.
-
-2.  **Ask User for Disposition:** Use the `AskUserQuestion` tool to present the following options:
-    ```python
-    AskUserQuestion(
-        questions=[{
-            "question": "A track foi concluída com sucesso! O que você deseja fazer com a documentação da track?",
-            "header": "Disposição",
-            "multiSelect": False,
-            "options": [
-                {
-                    "label": "Mover para archive (Recomendado)",
-                    "description": "Move a track para conductor/archive/ onde fica armazenada como histórico. A track ainda pode ser consultada mas não aparece como ativa."
-                },
-                {
-                    "label": "Manter onde está",
-                    "description": "Mantém a track em conductor/tracks/. Útil se você planeja fazer modificações adicionais em breve."
-                },
-                {
-                    "label": "Excluir permanentemente",
-                    "description": "Remove permanentemente todos os arquivos da track. ⚠️ Esta operação NÃO pode ser desfeita."
-                }
-            ]
-        }]
-    )
-    ```
-
-3.  **Execute User's Choice:**
-    - **If "Mover para archive":**
-        1. Move the track directory: `mv conductor/tracks/<track_id> conductor/archive/`
-        2. Update `conductor/tracks.md` to mark the track as archived: `[x] <track_name> (archived)`
-        3. Commit with message: `conductor: Archive track '<track_id>'`
-        4. Inform user of successful archival
-
-    - **If "Manter onde está":**
-        1. Update `conductor/tracks.md` to mark the track as completed but not archived: `[x] <track_name> (completed)`
-        2. Commit with message: `conductor: Mark track '<track_id>' as completed`
-        3. Inform user that the track remains in `conductor/tracks/`
-
-    - **If "Excluir permanentemente":**
-        1. Ask for confirmation: "Tem certeza? Esta operação NÃO pode ser desfeita."
-        2. If confirmed:
-           - Delete the track directory: `rm -rf conductor/tracks/<track_id>`
-           - Update `conductor/tracks.md` to remove the track entry
-           - Commit with message: `conductor: Delete track '<track_id>'`
-           - Inform user of successful deletion
-        3. If not confirmed:
-           - Return to step 2
-
-4.  **Update tracks.md Status:** Regardless of the choice, update the track's status in `conductor/tracks.md`:
-    - For archived tracks: `[x] <track_name> (archived) <!-- <YYYY-MM-DD> -->`
-    - For completed tracks: `[x] <track_name> (completed) <!-- <YYYY-MM-DD> -->`
-
-5.  **Create Final Summary:** Present a summary to the user including:
-    - Track name and ID
-    - Number of phases completed
-    - Number of tasks completed
-    - Final disposition (archived/completed/deleted)
-    - Links to key commits (checkpoints)
+## Phase Completion Protocol
 
 ### Quality Gates
 
-Before marking any task complete, verify:
+Uma fase só é considerada completa quando:
 
-- [ ] All tests pass
-- [ ] Functional coverage meets requirements (>85% functional coverage)
-- [ ] Application starts and runs without errors (Smoke Test)
-- [ ] Code follows project's code style guidelines (as defined in `code_styleguides/`)
-- [ ] All public functions/methods are documented (e.g., docstrings, JSDoc, GoDoc)
-- [ ] Type safety is enforced (e.g., type hints, TypeScript types, Go types)
-- [ ] No linting or static analysis errors (using the project's configured tools)
-- [ ] Works correctly on mobile (if applicable)
-- [ ] Documentation updated if needed
-- [ ] No security vulnerabilities introduced
+1. **✅ Todas as Tasks Completas**
+   - Todas as tasks da fase marcadas como [x] no plan.md
+   - Nenhuma task pendente ou bloqueada
 
-## Development Commands
+2. **✅ Testes Passando (100%)**
+   ```bash
+   pytest tests/ -v
+   # Expected: 100% pass rate
+   ```
 
-**AI AGENT INSTRUCTION: This section should be adapted to the project's specific language, framework, and build tools.**
+3. **✅ Cobertura Adequada (>80%)**
+   ```bash
+   coverage run -m pytest tests/
+   coverage report
+   # Expected: >80% coverage
+   ```
 
-### Setup
-```bash
-# Example: Commands to set up the development environment (e.g., install dependencies, configure database)
-# e.g., for a Node.js project: npm install
-# e.g., for a Go project: go mod tidy
+4. **✅ Linter Clean**
+   ```bash
+   pylint consumo_lib/ aoi_lib/
+   # Expected: No errors, warnings minimizadas
+   ```
+
+5. **✅ Documentação Atualizada**
+   - CLAUDE.md atualizado se mudou arquitetura
+   - Docstrings em todos os métodos públicos
+   - README.md atualizado se adicionou novos módulos
+
+6. **✅ Backward Compatibility**
+   - Zero breaking changes sem migração documentada
+   - Interface pública mantida
+   - Testes existentes ainda passando
+
+### Phase Checkpoint Tasks
+
+Ao completar uma fase:
+
+1. **Atualizar plan.md**
+   ```markdown
+   ## Phase X: [Nome da Fase]
+   Status: ✅ COMPLETE (2026-01-15)
+   - [x] Task X.1: ...
+   - [x] Task X.2: ...
+   ```
+
+2. **Criar Checkpoint Commit**
+   ```bash
+   git add .
+   git commit -m "feat(phaseX): Complete [Fase Name]
+
+   - Achievement 1
+   - Achievement 2
+   - SOLID principles applied
+   - Test coverage: N%
+   - Zero breaking changes"
+   ```
+
+3. **Criar Git Tag (opcional)**
+   ```bash
+   git tag -a phaseX_complete -m "Phase X: [Description]"
+   ```
+
+4. **Atualizar tracks.md**
+   - Marcar fase como complete
+   - Registrar achievements e métricas
+
+5. **Resumo Executivo (opcional)**
+   - Criar resumo da fase no diretório do track
+   - Documentar lições aprendidas
+   - Métricas de sucesso
+
+---
+
+## Track Completion Protocol
+
+### Completion Criteria
+
+Um track só é considerado completo quando:
+
+1. **✅ Todas as Fases Completas**
+   - Todas as fases marcadas como ✅ COMPLETE
+   - Todos os quality gates atendidos
+
+2. **✅ Acceptance Criteria Atendidos**
+   - Todos os critérios do spec.md atendidos
+   - Funcionalidade testada e validada
+
+3. **✅ Documentação Completa**
+   - spec.md preenchido
+   - plan.md com todas as tasks marcadas [x]
+   - metadata.json atualizado
+   - Resumo executivo criado
+
+4. **✅ Artefatos Criados**
+   - Código implementado
+   - Testes criados (100% pass rate)
+   - Documentação atualizada
+   - Commits e tags criados
+
+### Track Archive
+
+Ao completar um track:
+
+1. **Mover para archive/**
+   ```bash
+   mv conductor/tracks/{track_id} conductor/archive/{track_id}
+   ```
+
+2. **Atualizar tracks.md**
+   - Mover track de "Active Tracks" para "Completed Tracks"
+   - Registrar data de conclusão
+
+3. **Criar Release Notes (opcional)**
+   - Documentar funcionalidades implementadas
+   - Breaking changes (se houver)
+   - Migrações necessárias
+
+---
+
+## Quality Gates
+
+### Test Coverage
+- **Mínimo:** 80% de cobertura
+- **Ideal:** >90% para business logic
+- **Exceção:** Código de UI (PyQt6) pode ter menor cobertura
+
+### Linting
+- **pylint:** Score >8.0
+- **flake8:** Zero erros, warnings minimizadas
+- **mypy:** Type hints for public APIs
+
+### Documentation
+- Todo módulo público tem docstring
+- Classes e funções públicas têm Args/Returns/Raises
+- CLAUDE.md atualizado com arquitetura
+
+### Code Review
+- SOLID principles aplicados
+- Backward compatibility mantida
+- Test coverage adequado
+- Code style consistente
+
+---
+
+## Test Requirements
+
+### Unit Tests
+- Testar lógica de negócio sem dependências externas
+- Usar mocks para hardware, database, network
+- Testar casos normais, edge cases, erros
+
+### Integration Tests
+- Testar integração entre componentes
+- Usar fixtures para configurar ambiente
+- Testar fluxos completos
+
+### UI Tests (PyQt6)
+- Testar lógica de UI sem renderizar widgets
+- Usar QTest para simular interação do usuário
+- Testar signals/slots
+
+### Test Organization
+```
+tests/
+├── unit/                   # Fast tests, no external deps
+│   ├── test_services/      # Business logic tests
+│   ├── test_models/        # Model tests
+│   └── test_widgets/       # Widget logic tests
+├── integration/            # Integration tests
+│   ├── test_hardware/      # Hardware integration
+│   └── test_workflows/     # Workflow tests
+└── fixtures/               # Test data and mocks
 ```
 
-### Daily Development
-```bash
-# Example: Commands for common daily tasks (e.g., start dev server, run tests, lint, format)
-# e.g., for a Node.js project: npm run dev, npm test, npm run lint
-# e.g., for a Go project: go run main.go, go test ./..., go fmt ./...
-```
-
-### Before Committing
-```bash
-# Example: Commands to run all pre-commit checks (e.g., format, lint, type check, run tests)
-# e.g., for a Node.js project: npm run check
-# e.g., for a Go project: make check (if a Makefile exists)
-```
-
-## Testing Requirements
-
-### Unit Testing
-- Every module must have corresponding tests.
-- Use appropriate test setup/teardown mechanisms (e.g., fixtures, beforeEach/afterEach).
-- Mock external dependencies.
-- Test both success and failure cases.
-
-### Integration Testing
-- Test complete user flows
-- Verify database transactions
-- Test authentication and authorization
-- Check form submissions
-
-### Mobile Testing
-- Test on actual iPhone when possible
-- Use Safari developer tools
-- Test touch interactions
-- Verify responsive layouts
-- Check performance on 3G/4G
+---
 
 ## Code Review Process
 
-### Self-Review Checklist
-Before requesting review:
+### Review Checklist
 
-1. **Functionality**
-   - Feature works as specified
-   - Edge cases handled
-   - Error messages are user-friendly
+- [ ] **SOLID Principles**
+  - [ ] Single Responsibility (SRP)
+  - [ ] Open/Closed (OCP)
+  - [ ] Liskov Substitution (LSP)
+  - [ ] Interface Segregation (ISP)
+  - [ ] Dependency Inversion (DIP)
 
-2. **Code Quality**
-   - Follows style guide
-   - DRY principle applied
-   - Clear variable/function names
-   - Appropriate comments
+- [ ] **Code Quality**
+  - [ ] Test coverage >80%
+  - [ ] No linter errors
+  - [ ] Docstrings completas
+  - [ ] Type hints em APIs públicas
 
-3. **Testing**
-   - Unit tests comprehensive
-   - Integration tests pass
-   - Coverage adequate (>80%)
+- [ ] **Compatibility**
+  - [ ] Zero breaking changes sem migração
+  - [ ] Interface pública mantida
+  - [ ] Testes existentes passando
 
-4. **Security**
-   - No hardcoded secrets
-   - Input validation present
-   - SQL injection prevented
-   - XSS protection in place
+- [ ] **Documentation**
+  - [ ] CLAUDE.md atualizado
+  - [ ] README.md atualizado se necessário
+  - [ ] Migrations documentadas se houver breaking changes
 
-5. **Performance**
-   - Database queries optimized
-   - Images optimized
-   - Caching implemented where needed
+### Review Approval
 
-6. **Mobile Experience**
-   - Touch targets adequate (44x44px)
-   - Text readable without zooming
-   - Performance acceptable on mobile
-   - Interactions feel native
+- **Auto-Approve:** Mudanças triviais (docs, testes, refactors seguros)
+- **Manual Review:** Mudanças na arquitetura, APIs públicas, ou com breaking changes
+- **Reject:** Linter errors, testes falhando, violação de SOLID principles
+
+---
 
 ## Commit Guidelines
 
-### Message Format
+### Commit Message Format
+
 ```
-<type>(<scope>): <description>
+<type>(<scope>): <subject>
 
-[optional body]
+<body>
 
-[optional footer]
+<footer>
 ```
 
 ### Types
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation only
-- `style`: Formatting, missing semicolons, etc.
-- `refactor`: Code change that neither fixes a bug nor adds a feature
-- `test`: Adding missing tests
-- `chore`: Maintenance tasks
+- **feat:** Nova funcionalidade
+- **fix:** Bug fix
+- **refactor:** Refatoração (sem mudança de comportamento)
+- **test:** Adicionar/atualizar testes
+- **docs:** Documentação
+- **style:** Formatação, missing semicolons, etc (sem mudança de código)
+- **chore:** Atualizar tasks, config, etc
 
-### Examples
+### Example
+
 ```bash
-git commit -m "feat(auth): Add remember me functionality"
-git commit -m "fix(posts): Correct excerpt generation for short posts"
-git commit -m "test(comments): Add tests for emoji reaction limits"
-git commit -m "style(mobile): Improve button touch targets"
+git commit -m "feat(alignment): Add fiducial alignment service
+
+- Created FiducialAlignmentService for business logic
+- Created TemplateMatchingService for OpenCV operations
+- Created AlignmentState model for state management
+- Refactored AlignmentWidget to use services (SRP)
+- Added 64 unit tests (100% coverage for services)
+
+SOLID principles applied:
+- SRP: Widget now only handles UI
+- DIP: Service injection via constructor
+- OCP: Extensible via strategy pattern
+
+Breaking changes: None
+Backward compatibility: Maintained"
+
+Refs: #123
+Co-Authored-By: Claude Sonnet <noreply@anthropic.com>
 ```
+
+---
 
 ## Definition of Done
 
-A task is complete when:
+Uma task/fase/track é considerada **DONE** quando:
 
-1. All code implemented to specification
-2. Unit tests written and passing
-3. Application executes without errors (Smoke Test pass)
-4. Code coverage meets project requirements
-5. Documentation complete (if applicable)
-6. Code passes all configured linting and static analysis checks
-7. Works beautifully on mobile (if applicable)
-8. Implementation notes added to `plan.md`
-9. Changes committed with proper message
-10. Git note with task summary attached to the commit
+1. ✅ Código implementado
+2. ✅ Testes criados e passando (100%)
+3. ✅ Cobertura >80%
+4. ✅ Linter clean
+5. ✅ Docstrings completas
+6. ✅ CLAUDE.md atualizado
+7. ✅ Backward compatibility mantida
+8. ✅ Code review aprovado
+9. ✅ Commit criado com mensagem descritiva
+10. ✅ plan.md atualizado
+
+---
+
+## Best Practices
+
+### DO ✅
+- Escrever testes antes da implementação (TDD)
+- Aplicar SOLID principles consistentemente
+- Manter backward compatibility
+- Commit frequentemente com mensagens descritivas
+- Documentar decisões arquiteturais
+- Usar type hints em APIs públicas
+
+### DON'T ❌
+- Não adicionar funcionalidades extras (YAGNI)
+- Não criar breaking changes sem migração documentada
+- Não commit código com testes falhando
+- Não ignorar linter warnings
+- Não duplicar código (DRY)
+- Não commit com mensagem genérica ("update files")
+
+---
+
+## Tools and Commands
+
+### Development
+```bash
+# Run tests
+pytest tests/ -v
+
+# Coverage
+coverage run -m pytest tests/
+coverage report
+coverage html  # Generate HTML report
+
+# Linting
+pylint consumo_lib/ aoi_lib/
+flake8 consumo_lib/ aoi_lib/
+mypy consumo_lib/ aoi_lib/
+
+# Format code (black)
+black consumption_lib/ aoi_lib/
+
+# Type check
+mypy --strict consumo_lib/ aoi_lib/
+```
+
+### Git
+```bash
+# Status
+git status
+git log --oneline -10
+
+# Branches
+git branch -a
+git checkout -b feature/xyz
+
+# Commits
+git add .
+git commit -m "type(scope): subject"
+git push origin main
+
+# Tags
+git tag -a tag_name -m "Description"
+git push origin tag_name
+```
+
+---
 
 ## Emergency Procedures
 
-### Critical Bug in Production
-1. Create hotfix branch from main
-2. Write failing test for bug
-3. Implement minimal fix
-4. Test thoroughly including mobile
-5. Deploy immediately
-6. Document in plan.md
+### Revert Task
+```bash
+git revert HEAD
+git push origin main
+```
 
-### Data Loss
-1. Stop all write operations
-2. Restore from latest backup
-3. Verify data integrity
-4. Document incident
-5. Update backup procedures
+### Rollback Phase
+```bash
+git reset --hard <phase_checkpoint_tag>
+git push --force origin main
+```
 
-### Security Breach
-1. Rotate all secrets immediately
-2. Review access logs
-3. Patch vulnerability
-4. Notify affected users (if any)
-5. Document and update security procedures
+### Fix Broken Build
+1. Identificar causa (testes, linter, build)
+2. Criar branch hotfix
+3. Implementar fix
+4. Testar completamente
+5. Merge e commit
+6. Atualizar plan.md
 
-## Deployment Workflow
+---
 
-### Pre-Deployment Checklist
-- [ ] All tests passing
-- [ ] Coverage >80%
-- [ ] No linting errors
-- [ ] Mobile testing complete
-- [ ] Environment variables configured
-- [ ] Database migrations ready
-- [ ] Backup created
+## References
 
-### Deployment Steps
-1. Merge feature branch to main
-2. Tag release with version
-3. Push to deployment service
-4. Run database migrations
-5. Verify deployment
-6. Test critical paths
-7. Monitor for errors
+- **SOLID Principles:** `docs/reports/SOLID_ANALYSIS_REPORT_2026-01-14.md`
+- **Code Style:** `conductor/code_styleguides/python.md`
+- **Product Guidelines:** `conductor/product-guidelines.md`
+- **Tech Stack:** `conductor/tech-stack.md`
+- **Project Documentation:** `CLAUDE.md`
+- **README:** `README.md`
 
-### Post-Deployment
-1. Monitor analytics
-2. Check error logs
-3. Gather user feedback
-4. Plan next iteration
+---
 
-## Continuous Improvement
-
-- Review workflow weekly
-- Update based on pain points
-- Document lessons learned
-- Optimize for user happiness
-- Keep things simple and maintainable
+*Last Updated: 2026-01-15*
+*Version: 1.0*
+*Maintained by: Development Team*

@@ -163,9 +163,9 @@ class DialogManagerController(QObject):
             return
 
         # Importar diálogo aqui para evitar import circular
-        from consumo_lib.dialogs.tension_measurement_dialog import StencilTensionDialog
+        from consumo_lib.dialogs.tension import TensionMeasurementDialog
 
-        dlg = StencilTensionDialog(self.parent_window, self.controller.cnc)
+        dlg = TensionMeasurementDialog(self.parent_window, self.controller.cnc)
         dlg.exec()
         logger.debug("Diálogo simples de tensão aberto")
         self.dialog_closed.emit("tension_dialog")
