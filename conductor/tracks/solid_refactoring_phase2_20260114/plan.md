@@ -170,7 +170,11 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - **Responsabilidades identificadas:** 7 (Conexão, CRUD Stencil, Tensão, Inspeção, Análise, Consultas, Migração)
   - **Violações SOLID:** SRP (crítico), ISP (médio), DIP (alto)
   - **Média complexidade:** 3-4 por método
-- [~] 2.1.2. Identificar domínios (Stencil, Tension, Inspection)
+- [x] 2.1.2. Identificar domínios (Stencil, Tension, Inspection) ✅ `882aad9`
+  - **Documentação:** `domains_task_2.1.2.md` criado
+  - **Domínios:** Stencil (7 métodos), Tension (4 métodos), Inspection (5 métodos)
+  - **Interfaces ABC:** Definidas para cada domínio
+  - **Estrutura proposta:** 3 repositórios + 2 services + 1 migrator
 - [ ] 2.1.3. Criar `aoi_lib/database/connection.py`
   - [ ] Extrair lógica de conexão SQLite
   - [ ] Criar classe `DatabaseConnection`
