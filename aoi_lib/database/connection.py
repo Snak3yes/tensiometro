@@ -188,3 +188,83 @@ class SqliteConnection(DatabaseConnection):
             conn.executescript(schema_sql)
 
         log.info(f"Database schema initialized at: {self.db_path}")
+
+
+# ============================================================================
+#  SQL SCHEMA
+# ============================================================================
+
+CREATE_TABLES = """
+-- Tabela principal de stencils
+CREATE TABLE IF NOT EXISTS stencils (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT UNIQUE NOT NULL,
+    description TEXT DEFAULT '',
+    recipe_name TEXT,
+    created_at TEXT NOT NULL,
+    last_inspection TEXT,
+    inspection_count INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'active',
+    notes TEXT DEFAULT '',
+    updated_at TEXT NOT NULL
+);
+
+-- Índices para stencils
+CREATE INDEX IF NOT EXISTS idx_stencils_code ON stencils(code);
+CREATE INDEX IF NOT EXISTS idx_stencils_status ON stencils(status);
+CREATE INDEX IF NOT EXISTS idx_stencils_last_inspection ON stencils(last_inspection);
+
+-- Tabela de medições de tensão
+CREATE TABLE IF NOT EXISTS tension_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stencil_id INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    average_tension REAL DEFAULT 0,
+    min_tension REAL DEFAULT 0,
+    max_tension REAL DEFAULT 0,
+    result TEXT DEFAULT 'OK',
+    ok_count INTEGER DEFAULT 0,
+    warning_count INTEGER DEFAULT 0,
+    nok_count INTEGER DEFAULT 0,
+    operator TEXT,
+    recipe_name TEXT,
+    measurements_json TEXT,
+    FOREIGN KEY (stencil_id) REFERENCES stencils(id) ON DELETE CASCADE
+);
+
+-- Índices para tension_records
+CREATE INDEX IF NOT EXISTS idx_tension_stencil ON tension_records(stencil_id);
+CREATE INDEX IF NOT EXISTS idx_tension_timestamp ON tension_records(timestamp);
+CREATE INDEX IF NOT EXISTS idx_tension_result ON tension_records(result);
+
+-- Tabela de inspeções visuais
+CREATE TABLE IF NOT EXISTS inspection_records (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    stencil_id INTEGER NOT NULL,
+    timestamp TEXT NOT NULL,
+    total_apertures INTEGER DEFAULT 0,
+    ok_count INTEGER DEFAULT 0,
+    partial_count INTEGER DEFAULT 0,
+    blocked_count INTEGER DEFAULT 0,
+    result TEXT DEFAULT 'PASS',
+    pass_rate REAL DEFAULT 100.0,
+    gerber_file TEXT,
+    operator TEXT,
+    recipe_name TEXT,
+    report_path TEXT,
+    defects_json TEXT,
+    notes TEXT DEFAULT '',
+    FOREIGN KEY (stencil_id) REFERENCES stencils(id) ON DELETE CASCADE
+);
+
+-- Índices para inspection_records
+CREATE INDEX IF NOT EXISTS idx_inspection_stencil ON inspection_records(stencil_id);
+CREATE INDEX IF NOT EXISTS idx_inspection_timestamp ON inspection_records(timestamp);
+CREATE INDEX IF NOT EXISTS idx_inspection_result ON inspection_records(result);
+
+-- Tabela de metadados do banco
+CREATE TABLE IF NOT EXISTS db_metadata (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+"""
