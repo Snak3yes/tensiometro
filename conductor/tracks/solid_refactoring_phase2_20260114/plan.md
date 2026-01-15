@@ -253,10 +253,37 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
       - DatabaseConnection/SqliteConnection: 22 testes (Task 2.1.5)
     - Cobertura de testes: Todas as operações CRUD cobertas ✅
     - Testes de borda: Erros, validação, limites ✅
-- [ ] 2.1.9. Criar testes de integração
-  - [ ] Testar fluxo completo de CRUD
-  - [ ] Testar transações e rollback
-  - [ ] Testar concorrência (se aplicável)
+- [x] 2.1.9. Criar testes de integração ✅ `fdd78f1`
+  - [x] Testar fluxo completo de CRUD ✅ (4 testes)
+  - [x] Testar transações e rollback ✅ (3 testes)
+  - [x] Testar concorrência (se aplicável) ✅ (3 testes)
+  - **Resultado:**
+    - **Total: 19 testes de integração passando** ✅
+    - CRUD Workflows (4 testes):
+      - Ciclo de vida completo (create → read → update → delete)
+      - Workflow completo com histórico de tensão
+      - Workflow completo com histórico de inspeção
+      - Filtro por status após workflow
+    - Transações (3 testes):
+      - Rollback em erro
+      - Cascade deletes (FK)
+      - Operações atômicas
+    - Concorrência (3 testes):
+      - Leituras simultâneas (5 threads)
+      - Escritas em stencils diferentes (3 threads)
+      - Escritas sequenciais no mesmo stencil
+    - Casos de borda (7 testes):
+      - Consulta por período sem resultados
+      - Busca com query vazia
+      - get_latest_tension quando vazio
+      - Atualização de stencil inexistente
+      - Migração de diretório vazio
+      - Backup cria cópia independente
+      - Estatísticas agregadas
+    - Performance (2 testes):
+      - Bulk insert: 100 registros <5s ✅
+      - Large query: 50 stencils <1s ✅
+    - Commit: `fdd78f1` - test(phase2): Add integration tests for database layer
 - [ ] 2.1.10. Atualizar documentação
   - [ ] Atualizar CLAUDE.md com nova estrutura
   - [ ] Documentar padrão Repository usado
