@@ -165,8 +165,12 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
 #### Tarefas
 
 ##### 2.1. Refatorar `stencil_database.py` - Repository Pattern
-- [ ] 2.1.1. Análise do arquivo atual (914 linhas, 21 métodos)
-- [ ] 2.1.2. Identificar domínios (Stencil, Tension, Inspection)
+- [x] 2.1.1. Análise do arquivo atual (914 linhas, 21 métodos) ✅ `05bf19b`
+  - **Relatório:** `analysis_task_2.1.1.md` criado
+  - **Responsabilidades identificadas:** 7 (Conexão, CRUD Stencil, Tensão, Inspeção, Análise, Consultas, Migração)
+  - **Violações SOLID:** SRP (crítico), ISP (médio), DIP (alto)
+  - **Média complexidade:** 3-4 por método
+- [~] 2.1.2. Identificar domínios (Stencil, Tension, Inspection)
 - [ ] 2.1.3. Criar `aoi_lib/database/connection.py`
   - [ ] Extrair lógica de conexão SQLite
   - [ ] Criar classe `DatabaseConnection`
