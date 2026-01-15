@@ -189,7 +189,7 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Documentar responsabilidade de cada repositório
   - **Resultado:** 358 linhas (127+97+134), 18 testes, 100% passing
   - **Métodos abstratos:** 17 (8+4+5)
-- [ ] 2.1.5. Implementar repositórios concretos
+- [x] 2.1.5. Implementar repositórios concretos ✅ `029269a`
 - [x] 2.1.5.1. Implementar `SqliteStencilRepository` ✅ `92922da`
   - [x] Implementar StencilRepository (8 métodos)
   - [x] Criar testes TDD (testes primeiro)
@@ -204,12 +204,13 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - [x] Adicionar type hints e docstrings
   - [x] Atualizar stencils table (last_inspection, inspection_count, status)
   - **Resultado:** 168 linhas, 13 testes, >95% coverage
-- [~] 2.1.5.3. Implementar `SqliteInspectionRepository`
-  - [ ] Implementar InspectionRepository (5 métodos)
-  - [ ] Criar testes TDD (testes primeiro)
-  - [ ] Métodos: add, get_history, get_by_period, get_stats, get_combined_history
-  - [ ] Adicionar type hints e docstrings
-  - [ ] Atualizar stencils table (last_inspection, inspection_count, status)
+- [x] 2.1.5.3. Implementar `SqliteInspectionRepository` ✅ `029269a`
+  - [x] Implementar InspectionRepository (5 métodos)
+  - [x] Criar testes TDD (testes primeiro)
+  - [x] Métodos: add, get_history, get_by_period, get_stats, get_combined_history
+  - [x] Adicionar type hints e docstrings
+  - [x] Atualizar stencils table (last_inspection, inspection_count, status)
+  - **Resultado:** 243 linhas, 17 testes, >95% coverage
 - [ ] 2.1.6. Criar migrador separado
   - [ ] `aoi_lib/database/migrators/json_to_sqlite_migrator.py`
   - [ ] Extrair lógica de migração do stencil_database.py
