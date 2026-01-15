@@ -231,10 +231,28 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
     - 3 métodos de serviço mantidos na fachada (trend analysis)
     - 24/24 baseline tests passing (zero breaking changes)
     - Commit: `aa4fc35` - feat(phase2): Add SQL schema to connection.py and complete facade refactor
-- [ ] 2.1.8. Criar testes unitários
-  - [ ] Testar cada repositório independentemente
-  - [ ] Testar migração JSON → SQLite
-  - [ ] Testar fachada (backward compatibility)
+- [x] 2.1.8. Criar testes unitários ✅ COMPLETE (criados nas Tasks 2.1.2-2.1.7)
+  - [x] Testar cada repositório independentemente ✅
+  - [x] Testar migração JSON → SQLite ✅
+  - [x] Testar fachada (backward compatibility) ✅
+  - **Resultado:**
+    - **Total: 125 testes passando** ✅
+    - Interfaces ABC (18 testes):
+      - StencilRepository: 6 testes (Task 2.1.2)
+      - TensionRepository: 6 testes (Task 2.1.3)
+      - InspectionRepository: 6 testes (Task 2.1.4)
+    - Repositórios SQLite (47 testes):
+      - SqliteStencilRepository: 17 testes (Task 2.1.2)
+      - SqliteTensionRepository: 13 testes (Task 2.1.3)
+      - SqliteInspectionRepository: 17 testes (Task 2.1.4)
+    - Migrador (14 testes):
+      - JsonToSqliteMigrator: 14 testes (Task 2.1.6)
+    - Fachada (24 testes):
+      - StencilDatabase: 24 testes (Task 2.1.7)
+    - Conexão (22 testes):
+      - DatabaseConnection/SqliteConnection: 22 testes (Task 2.1.5)
+    - Cobertura de testes: Todas as operações CRUD cobertas ✅
+    - Testes de borda: Erros, validação, limites ✅
 - [ ] 2.1.9. Criar testes de integração
   - [ ] Testar fluxo completo de CRUD
   - [ ] Testar transações e rollback
