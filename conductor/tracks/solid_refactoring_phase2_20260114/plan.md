@@ -190,13 +190,14 @@ Refatoração dos arquivos mais críticos do projeto Tensiometro para eliminar v
   - **Resultado:** 358 linhas (127+97+134), 18 testes, 100% passing
   - **Métodos abstratos:** 17 (8+4+5)
 - [ ] 2.1.5. Implementar repositórios concretos
-- [ ] 2.1.5.1. Implementar `SqliteStencilRepository`
-  - [ ] Implementar StencilRepository (8 métodos)
-  - [ ] Criar testes TDD (testes primeiro)
-  - [ ] Métodos: exists, get, create, update, delete, list, search, get_by_recipe
-  - [ ] Adicionar type hints e docstrings
-  - [ ] Zero breaking changes
-- [ ] 2.1.5.2. Implementar `SqliteTensionRepository`
+- [x] 2.1.5.1. Implementar `SqliteStencilRepository` ✅ `92922da`
+  - [x] Implementar StencilRepository (8 métodos)
+  - [x] Criar testes TDD (testes primeiro)
+  - [x] Métodos: exists, get, create, update, delete, list, search, get_by_recipe
+  - [x] Adicionar type hints e docstrings
+  - [x] Zero breaking changes
+  - **Resultado:** 222 linhas, 17 testes, >95% coverage
+- [~] 2.1.5.2. Implementar `SqliteTensionRepository`
   - [ ] Implementar TensionRepository (4 métodos)
   - [ ] Criar testes TDD (testes primeiro)
   - [ ] Métodos: add, get_history, get_by_period, get_latest
