@@ -1,0 +1,79 @@
+{
+  "track_id": "recipe_dialogs_refactoring_20260116",
+  "name": "Recipe Dialogs Refactoring - Single Responsibility Principle",
+  "type": "refactor",
+  "priority": "MEDIUM",
+  "status": "in_progress",
+  "created_at": "2026-01-16T12:00:00Z",
+  "updated_at": "2026-01-16T12:00:00Z",
+  "current_phase": "1",
+  "total_phases": 5,
+  "description": "Refatorar consumo_lib/dialogs/recipe_dialogs.py (881 linhas) aplicando Single Responsibility Principle (SRP) para separar em 3 arquivos focados.",
+  "objectives": [
+    "Separar RecipeListWidget em arquivo próprio",
+    "Separar RecipeEditorDialog em arquivo próprio",
+    "Separar RecipeManagerDialog em arquivo próprio",
+    "Criar testes unitários",
+    "Manter 100% backward compatibility"
+  ],
+  "phases": {
+    "1": {
+      "name": "Análise do arquivo atual",
+      "status": "in_progress",
+      "tasks_completed": 0,
+      "total_tasks": 2,
+      "checkpoint_sha": null
+    },
+    "2": {
+      "name": "Separar RecipeListWidget",
+      "status": "pending",
+      "tasks_completed": 0,
+      "total_tasks": 2
+    },
+    "3": {
+      "name": "Separar RecipeEditorDialog",
+      "status": "pending",
+      "tasks_completed": 0,
+      "total_tasks": 2
+    },
+    "4": {
+      "name": "Separar RecipeManagerDialog",
+      "status": "pending",
+      "tasks_completed": 0,
+      "total_tasks": 2
+    },
+    "5": {
+      "name": "Testes e Documentação",
+      "status": "pending",
+      "tasks_completed": 0,
+      "total_tasks": 4
+    }
+  },
+  "metrics": {
+    "before": {
+      "file": "consumo_lib/dialogs/recipe_dialogs.py",
+      "lines": 881,
+      "classes": 3
+    },
+    "after": {
+      "target": "3 arquivos separados",
+      "estimated_lines": "~300 por arquivo"
+    },
+    "improvement": {
+      "separation": "1 arquivo → 3 arquivos (SRP)",
+      "maintainability": "Alta",
+      "testability": "100%"
+    }
+  },
+  "risks": [
+    {
+      "level": "LOW",
+      "description": "Backward compatibility pode ser quebrada",
+      "mitigation": "Usar __init__.py para exportar todas as classes do local original"
+    }
+  ],
+  "dependencies": [
+    "conductor/tracks/solid_refactoring_phase2_20260114",
+    "aoi_lib/recipe_manager.py"
+  ]
+}
