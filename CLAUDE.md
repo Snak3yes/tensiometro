@@ -136,6 +136,24 @@ tensiometro/
   - Methods: `move_absolute()`, `move_relative()`, `jog_start()`, `wait_for_idle()`, `read_position()`
   - X/Y interpolation: Both axes share coil M1050 (NOT separate coils)
   - Addresses: X (M1000, D3000), Y (M500, D3200), Z (M1500, D3400)
+  - **NOTA (Fase 4):** Este arquivo será refatorado na Fase 5 com Interface Segregation
+
+**Interfaces e Factories (NOVO - Fase 4):**
+- `interfaces/` - Interfaces ABC para baixo acoplamento (4 interfaces)
+  - `interfaces/tab_manager.py` - Contrato para gerenciamento de abas
+  - `interfaces/menu_manager.py` - Contrato para gerenciamento de menus
+  - `interfaces/hardware_manager.py` - Contrato para gerenciamento de hardware
+  - `interfaces/dialog_manager.py` - Contrato para gerenciamento de diálogos
+- `factories/` - Factories para criação de componentes desacoplados (3 factories)
+  - `factories/tab_factory.py` - Factory para criar abas da aplicação
+  - `factories/controller_factory.py` - Factory para criar controllers
+  - `factories/hardware_factory.py` - Factory para criar componentes de hardware
+- `facades/` - Interfaces simplificadas para subsistemas complexos (3 facades)
+  - `facades/hardware_connection_facade.py` - Interface simplificada para conexões de hardware
+  - `facades/position_manager_facade.py` - Interface simplificada para gerenciamento de posições
+  - `facades/authentication_manager.py` - Interface simplificada para autenticação e permissões
+- **Padrões Aplicados:** Factory Pattern, Facade Pattern, Interface Segregation, Dependency Injection
+- **Commit:** `bc44e16` - conductor(phase4): Refatorar main_window com Factory Pattern + Interface Segregation
 - `camera_controller.py` - OpenCV USB camera interface with real-time preview
 - `tensiometer/` - AS-120N tension sensor serial communication (refactored 2026-01-14)
   - `models.py` - Data structures (GridPoint, TensionMeasurement, GridParameters, MeasurementSession)
