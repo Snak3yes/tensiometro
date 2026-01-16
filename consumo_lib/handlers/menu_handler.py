@@ -342,6 +342,18 @@ class MenuHandler(QObject):
 
         menu.addSeparator()
 
+        # Configurações de Autenticação (NOVO - 2026-01-15)
+        auth_settings_action = QAction('🔐 Configurações de Autenticação...', self.main_window)
+        auth_settings_action.setToolTip(
+            'Configura exigência de login ao iniciar e papel padrão para auto-login.\n'
+            'Requer privilégios de Engenharia ou superior.'
+        )
+        auth_settings_action.triggered.connect(self.main_window.show_auth_settings)
+        menu.addAction(auth_settings_action)
+        self._register_action('engineering.auth_settings', auth_settings_action)
+
+        menu.addSeparator()
+
         # Programas Salvos
         saved_programs_action = QAction('📁 Programas Salvos...', self.main_window)
         saved_programs_action.setToolTip('Gerencia programas de inspeção salvos')

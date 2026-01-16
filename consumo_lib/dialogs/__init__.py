@@ -55,6 +55,10 @@ __all__ = [
 from .login_dialog import LoginDialog
 __all__.append('LoginDialog')
 
+# Authentication settings dialog (NOVO - 2026-01-15)
+from .auth_settings_dialog import AuthenticationSettingsDialog
+__all__.append('AuthenticationSettingsDialog')
+
 # Positioning dialogs (NOVO - FASE 3)
 from .confirm_positioning_dialog import ConfirmPositioningDialog
 __all__.append('ConfirmPositioningDialog')

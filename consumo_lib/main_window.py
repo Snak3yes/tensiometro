@@ -133,11 +133,24 @@ class AOIControllerApp(QMainWindow):
         # Inicialização básica da janela
         super().__init__()
 
-        # NOVO - FASE 1: Autenticação de usuário
+        # NOVO - Carrega configuração primeiro (para auto-login)
+        self.config_manager = AOIConfigManager()
+
+        # NOVO - FASE 1: Autenticação de usuário (com auto-login)
         self.auth_service = AuthService()
-        if not self.show_login_dialog():
-            logger.info("Login cancelado pelo usuário, fechando aplicação")
-            sys.exit(0)
+
+        # Verifica se deve fazer auto-login
+        require_login = self.config_manager.get_require_login_on_startup()
+
+        if require_login:
+            # Login obrigatório - mostra dialog
+            if not self.show_login_dialog():
+                logger.info("Login cancelado pelo usuário, fechando aplicação")
+                sys.exit(0)
+        else:
+            # Auto-login habilitado
+            default_role = self.config_manager.get_default_role()
+            self._perform_auto_login(default_role)
 
         # ─────────────────────────────────────────────────────────────────────
         # NOVO: Inicializa componentes modulares ANTES do SetupCoordinator
@@ -263,6 +276,70 @@ class AOIControllerApp(QMainWindow):
         else:
             return False
 
+    def _perform_auto_login(self, default_role: str):
+        """
+        Realiza auto-login com o papel padrão configurado.
+
+        Args:
+            default_role: Papel (role) padrão para auto-login
+        """
+        try:
+            # Valida role
+            from aoi_lib.auth.user import UserRole
+            try:
+                role_enum = UserRole(default_role)
+            except ValueError:
+                logger.warning(f"Role inválido para auto-login: {default_role}, usando 'operator'")
+                role_enum = UserRole.OPERATOR
+                default_role = "operator"
+
+            # Busca usuário padrão para o role
+            # Mapeamento: operator → operator, engineering → eng, quality → quality, admin → admin
+            role_to_user = {
+                "operator": "operator",
+                "engineering": "eng",
+                "quality": "quality",
+                "admin": "admin"
+            }
+
+            username = role_to_user.get(default_role, "operator")
+
+            # Autentica com o usuário padrão
+            # Senha padrão: operator123, eng123, quality123, admin123
+            password_map = {
+                "operator": "operator123",
+                "eng": "eng123",
+                "quality": "quality123",
+                "admin": "admin123"
+            }
+
+            password = password_map.get(username, "operator123")
+
+            success = self.auth_service.authenticate(username, password)
+
+            if success:
+                user = self.auth_service.get_current_user()
+                logger.info(f"✅ Auto-login realizado com sucesso: {user} (role: {default_role})")
+
+                # Aplica permissões do role
+                QTimer.singleShot(100, self._apply_role_permissions)
+            else:
+                logger.error(f"❌ Falha no auto-login para usuário {username}, mostrando dialog de login")
+
+                # Se auto-login falhar, mostra dialog de login
+                if not self.show_login_dialog():
+                    logger.info("Login cancelado pelo usuário, fechando aplicação")
+                    sys.exit(0)
+
+        except Exception as e:
+            logger.error(f"Erro ao realizar auto-login: {e}")
+            logger.info("Mostrando dialog de login como fallback")
+
+            # Se ocorrer erro, mostra dialog de login
+            if not self.show_login_dialog():
+                logger.info("Login cancelado pelo usuário, fechando aplicação")
+                sys.exit(0)
+
     def _apply_role_permissions(self):
         """
         Aplica permissões de acesso baseadas no role do usuário.
@@ -316,6 +393,67 @@ class AOIControllerApp(QMainWindow):
     def open_engineering_wizard(self):
         """Delegate para MainWindowEngineeringWorkflow."""
         self._engineering_workflow.open_wizard()
+
+    def show_auth_settings(self):
+        """
+        Exibe diálogo de configurações de autenticação.
+
+        Permite usuários engineering+ configurar:
+        - Exigência de login ao iniciar
+        - Papel padrão para auto-login
+        """
+        from consumo_lib.dialogs.auth_settings_dialog import AuthenticationSettingsDialog
+
+        # Verifica se usuário está autenticado
+        if not self.auth_service.is_authenticated():
+            QMessageBox.warning(
+                self,
+                "Usuário Não Autenticado",
+                "Você precisa estar autenticado para acessar configurações de autenticação.",
+                QMessageBox.StandardButton.Ok
+            )
+            return
+
+        # Verifica permissões
+        current_role = self.role_manager.get_current_role()
+        if not current_role:
+            QMessageBox.warning(
+                self,
+                "Permissão Negada",
+                "Não foi possível identificar seu papel (role) no sistema.",
+                QMessageBox.StandardButton.Ok
+            )
+            return
+
+        # Cria gerenciador de configuração de autenticação
+        from consumo_lib.managers.auth_config_manager import AuthConfigManager
+        auth_config_mgr = AuthConfigManager(
+            config_manager=self.config_manager,
+            role_manager=self.role_manager,
+            auth_service=self.auth_service
+        )
+
+        # Cria e executa diálogo
+        dialog = AuthenticationSettingsDialog(
+            auth_config_manager=auth_config_mgr,
+            current_role=current_role,
+            parent=self
+        )
+
+        # Conecta sinal de mudança para atualizar menu se necessário
+        dialog.config_changed.connect(self._on_auth_config_changed)
+
+        dialog.exec()
+
+    def _on_auth_config_changed(self):
+        """
+        Handler chamado quando configuração de autenticação muda.
+
+        Atualiza estado da aplicação se necessário.
+        """
+        logger.info("Configuração de autenticação foi alterada")
+        # TODO: Implementar lógica de atualização se necessário
+        # Por exemplo, atualizar label de usuário atual, etc.
 
     def _on_engineering_program_completed(self, program_data: dict):
         """Delegate para MainWindowEngineeringWorkflow."""

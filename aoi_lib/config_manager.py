@@ -85,6 +85,11 @@ class AOIConfigManager:
         "map": {
             "step_x": 50.0,               # Passo X (mm)
             "step_y": 50.0                # Passo Y (mm)
+        },
+        # ---------- CONFIGURAÇÕES DE AUTENTICAÇÃO -----------
+        "authentication": {
+            "require_login_on_startup": True,  # Exigir login ao iniciar aplicação
+            "default_role": "operator"          # Papel padrão para auto-login (operator|engineering|quality|admin)
         }
     }
 
@@ -166,7 +171,7 @@ class AOIConfigManager:
         self.set("mosaic", "delta_y", value=delta_y)
         self.set("mosaic", "invert_rows", value=invert_rows)
 
-    def remember_map_params(self, step_x: float, step_y: float, 
+    def remember_map_params(self, step_x: float, step_y: float,
                             folder: str = "", program_name: str = ""):
         """Grava configurações de mapa."""
         self.set("map", "step_x", value=step_x)
@@ -175,6 +180,45 @@ class AOIConfigManager:
             self.set("mosaic", "last_folder", value=folder)
         if program_name:
             self.set("mosaic", "last_program_name", value=program_name)
+
+    # -------- atalhos para configurações de autenticação ---------------
+    def get_require_login_on_startup(self) -> bool:
+        """
+        Retorna se login é obrigatório ao iniciar aplicação.
+
+        Returns:
+            bool: True se login é obrigatório, False caso contrário.
+                  Padrão: True
+        """
+        return self.get("authentication", "require_login_on_startup", default=True)
+
+    def get_default_role(self) -> str:
+        """
+        Retorna o papel (role) padrão para auto-login.
+
+        Returns:
+            str: Papel padrão (operator|engineering|quality|admin).
+                 Padrão: "operator"
+        """
+        return self.get("authentication", "default_role", default="operator")
+
+    def set_require_login_on_startup(self, value: bool):
+        """
+        Define se login é obrigatório ao iniciar aplicação.
+
+        Args:
+            value: True para exigir login, False para permitir auto-login.
+        """
+        self.set("authentication", "require_login_on_startup", value=value)
+
+    def set_default_role(self, role: str):
+        """
+        Define o papel (role) padrão para auto-login.
+
+        Args:
+            role: Papel padrão (operator|engineering|quality|admin).
+        """
+        self.set("authentication", "default_role", value=role)
 
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")

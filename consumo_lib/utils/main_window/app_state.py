@@ -89,6 +89,12 @@ class MainWindowState:
 
         from aoi_lib.auth import UserRole
 
+        # 🔥 CRÍTICO: Atualiza RoleManager com o role do usuário autenticado
+        # Isso garante que can_modify_config() e outros métodos funcionem corretamente
+        if hasattr(self._main_window, 'role_manager') and self._main_window.role_manager:
+            self._main_window.role_manager.set_role(user.role.value)
+            logger.info(f"RoleManager atualizado com role: {user.role.value}")
+
         if user.role == UserRole.OPERATOR:
             # Operador: Apenas aba "Programas" (TreeViewTab)
             logger.info(f"Aplicando permissões OPERATOR para {user.username}")

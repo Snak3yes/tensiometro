@@ -8,6 +8,7 @@ from .inspection_manager import InspectionManager
 from .report_manager import ReportManagerWrapper
 from .role_manager import RoleManager, UserRole, PermissionDeniedError
 from .session_logger import SessionLogger
+from .auth_config_manager import AuthConfigManager
 
 __all__ = [
     'ConnectionManager',
@@ -18,5 +19,6 @@ __all__ = [
     'RoleManager',
     'UserRole',
     'PermissionDeniedError',
-    'SessionLogger'
+    'SessionLogger',
+    'AuthConfigManager'
 ]

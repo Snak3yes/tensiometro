@@ -18,9 +18,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Technology:** Python 3.x + PyQt6 GUI + OpenCV + Modbus TCP + SQLite
 
 **Key Statistics (2026-01-15):**
-- Total Python files: 245
-- Total lines of code: ~59,516
-- aoi_lib: 59 files, ~21,627 lines (core business logic)
+- Total Python files: 261
+- Total lines of code: ~63,326
+- aoi_lib: 65 files, ~24,287 lines (core business logic)
 - consumo_lib: 125 files, ~37,889 lines (modular GUI)
 
 **Development Philosophy:** SOLID principles, TDD, incremental progress with checkpoints, documentation as source of truth. See `conductor/workflow.md` for complete development protocol.
@@ -144,7 +144,12 @@ tensiometro/
   - `measurement_orchestrator.py` - Facade for complete measurement workflow
 
 **Computer Vision Pipeline:**
-- `fiducial_alignment.py` - Template matching for reference mark detection and transformation calculation
+- `fiducial_alignment.py` - Legacy template matching (still in use)
+- `fiducial_models.py` (NEW 2026-01-15) - Data structures (FiducialPoint, AlignmentTransform, AlignmentState)
+- `fiducial_matching_service.py` (NEW 2026-01-15) - Template matching service (100% testable without PyQt6)
+- `alignment_transform_service.py` (NEW 2026-01-15) - Geometric transformations (translation, rotation, scale)
+- `alignment_state_service.py` (NEW 2026-01-15) - State management with JSON persistence
+- `fiducial_alignment_adapter.py` (NEW 2026-01-15) - Adapter pattern for backward compatibility
 - `gerber_parser.py` - RS-274X Gerber file parsing with automatic fiducial candidate detection
 - `gerber_renderer.py` - Converts Gerber vector data to OpenCV masks for inspection
 - `stencil_inspector.py` - Visual inspection engine with threshold-based analysis (OK/PARTIAL/BLOCK)
@@ -168,12 +173,45 @@ tensiometro/
   - Facade: ReportGenerator with shared services pattern
   - SOLID Score: 96/100 (from 45/100 before refactoring)
 
+**Fiducial Alignment (REFACTORED 2026-01-15):**
+- `fiducial_models.py` (372 lines) - Data structures with dataclasses
+  - `FiducialPoint` - Single fiducial mark with template, match data
+  - `AlignmentTransform` - Transformation parameters (tx, ty, angle, scale)
+  - `AlignmentState` - Complete alignment state with fiducials list
+  - `FiducialConfig` - Configuration (thresholds, search_radius, window_size)
+- `fiducial_matching_service.py` (330 lines) - Template matching using OpenCV
+  - `match_template()` - ROI-based template matching with validation
+  - `locate_fiducials()` - Batch processing multiple fiducials
+  - 100% testable without PyQt6
+- `alignment_transform_service.py` (413 lines) - Geometric calculations
+  - `calculate_transform()` - Translation, rotation, scale via least squares
+  - `apply_transform()` - Apply transformation to points
+  - `inverse_transform()` - Reverse transformation (image → gerber)
+- `alignment_state_service.py` (381 lines) - State management with JSON persistence
+  - `add_fiducial()` - CRUD operations for fiducials
+  - `update_match()` - Update match results
+  - `save_state()` / `load_state()` - JSON persistence
+- `fiducial_alignment_adapter.py` (488 lines) - Adapter pattern for backward compatibility
+  - Converts between legacy (FiducialTemplate) and new (FiducialPoint) models
+  - Provides API compatible with FiducialAlignmentWidget
+  - Orchestrates new services using legacy interface
+  - 100% backward compatibility maintained
+- **SOLID Score: 96/100** (S:10, O:8, L:10, I:10, D:10)
+- **Widget Reduced:** 959 → 547 lines (-43%)
+- **Test Coverage:** 81 unit tests, 100% service layer coverage
+
 ### consumo_lib - Modular GUI Application
 
 **Purpose:** PyQt6 GUI, presentation logic, user workflows. NO business logic (delegates to aoi_lib).
 
 **Entry Point:**
 - `main_window.py` (1,060 lines) - Main orchestrator that coordinates all tabs and modules
+
+**Fiducial Alignment Widget (REFACTORED 2026-01-15):**
+- `fiducial_alignment_widget.py` (547 lines, reduced from 959 lines, -43%)
+- Now uses `FiducialAlignmentAdapter` for all business logic
+- Widget is a thin orchestrator (UI-only responsibilities)
+- Dependency injection pattern for testability
 
 **Modular Structure (125 files):**
 
@@ -251,9 +289,14 @@ main_window.py (orchestrator only)
   │   └── consumo_lib/threads/ (worker threads)
   └── aoi_lib/ (CORE BUSINESS LOGIC)
       ├── tensiometer/ (measurement services)
+      ├── fiducial_models.py (data structures)
+      ├── fiducial_matching_service.py (template matching)
+      ├── alignment_transform_service.py (geometric transforms)
+      ├── alignment_state_service.py (state management)
+      ├── fiducial_alignment_adapter.py (adapter pattern)
+      ├── fiducial_alignment.py (legacy template matching)
       ├── plc_axis_controller.py (hardware layer)
       ├── camera_controller.py (hardware layer)
-      ├── fiducial_alignment.py (template matching)
       ├── gerber_parser.py (RS-274X parsing)
       ├── stencil_inspector.py (inspection engine)
       └── [other core modules]
@@ -271,6 +314,7 @@ main_window.py (orchestrator only)
 - Phase 3 (2026-01-15): alignment_widget.py → services + DI, 102 tests
 - Phase 4 (2026-01-15): mainwindow.py → 735 lines, modularized
 - Phase 5A (2026-01-15): report_generator.py → 10 modules, SOLID 96/100
+- Phase 5B (2026-01-15): fiducial_alignment_widget.py → 5 services + adapter, 81 tests, SOLID 96/100
 
 ---
 
@@ -385,6 +429,56 @@ PLCAxisController.move_absolute('X', current_x + dx_pulses)
 PLCAxisController.move_absolute('Y', current_y + dy_pulses)
   → wait_for_idle() until movement completes
 ```
+
+---
+
+## Authentication Configuration
+
+### Auto-Login Feature (2026-01-15)
+
+O sistema suporta configuração de autenticação com auto-login opcional:
+
+**Location:** Menu Engenharia → Configurações de Autenticação
+
+**Configuration file:** `config/aoi_config.json`
+```json
+{
+  "authentication": {
+    "require_login_on_startup": true,
+    "default_role": "operator"
+  }
+}
+```
+
+**Fields:**
+- `require_login_on_startup`: If `true`, shows login dialog on startup. If `false`, auto-logins with `default_role`.
+- `default_role`: Role for auto-login (operator|engineering|quality|admin)
+
+**Access Control:**
+- Only engineering+ users can modify authentication settings
+- Requires password confirmation to change settings
+- All configuration changes are audited in logs
+
+**Auto-Login Behavior:**
+- When `require_login_on_startup=false`, application auto-logins on startup
+- Default user mapping:
+  - operator → user "operator" (password: operator123)
+  - engineering → user "eng" (password: eng123)
+  - quality → user "quality" (password: quality123)
+  - admin → user "admin" (password: admin123)
+- If auto-login fails, falls back to login dialog
+
+**Implementation:**
+- `aoi_lib/config_manager.py`: `get_require_login_on_startup()`, `get_default_role()`, setters
+- `consumo_lib/managers/auth_config_manager.py`: Business logic for auth config management
+- `consumo_lib/dialogs/auth_settings_dialog.py`: UI for engineering+ users
+- `consumo_lib/main_window.py`: `_perform_auto_login()` method
+
+**Testing:**
+- Unit tests: `tests/unit/test_auth_config_manager.py` (22 tests)
+- Integration tests: `tests/unit/test_auth_settings_dialog.py` (15 tests)
+- E2E tests: `tests/integration/test_auth_config_e2e.py` (11 tests)
+- Total: 48 tests, 100% passing
 
 ---
 
@@ -607,6 +701,20 @@ from aoi_lib.tensiometer import (
     GridParameters
 )
 
+# Fiducial Alignment Services (refactored 2026-01-15)
+from aoi_lib.fiducial_models import (
+    FiducialPoint,
+    AlignmentTransform,
+    AlignmentState,
+    FiducialConfig,
+    FiducialType,
+    MatchingMethod
+)
+from aoi_lib.fiducial_matching_service import FiducialMatchingService
+from aoi_lib.alignment_transform_service import AlignmentTransformService
+from aoi_lib.alignment_state_service import AlignmentStateService
+from aoi_lib.fiducial_alignment_adapter import FiducialAlignmentAdapter
+
 # Gerber Core (refactored 2026-01-14)
 from aoi_lib.gerber_core.models import GerberObject, GerberModel
 from aoi_lib.gerber_core.controllers import GerberController
@@ -674,6 +782,7 @@ from consumo_lib.managers import (
 - ✅ Phase 3: alignment_widget.py → services + DI, 102 tests
 - ✅ Phase 4: mainwindow.py → 735 lines, modularized
 - ✅ Phase 5A: report_generator.py → 10 modules, SOLID 96/100
+- ✅ Phase 5B: fiducial_alignment_widget.py → 5 services + adapter, 81 tests, SOLID 96/100
 
 **Active Track:**
 - 🔄 Phase 2: SOLID Refactoring (9 files, 4-6 weeks)
@@ -826,12 +935,14 @@ converter.get_fov_at_z(0)  # Returns (width_mm, height_mm)
 **SOLID Refactoring:**
 - `conductor/tracks/solid_refactoring_phase2_20260114/` - Active refactoring track
 - `docs/reports/SOLID_ANALYSIS_REPORT.md` - SOLID principles analysis
+- `docs/reports/SOLID_REFACTORING_PHASE5B_REPORT.md` - Phase 5B fiducial alignment refactoring
 - `docs/guides/SOLID_PHASE1_MIGRATION_GUIDE.md` - Migration guide for Phase 1
 
 **Completed Tracks:**
 - `conductor/archive/solid_refactoring_phase1_20260114/`
 - `conductor/archive/solid_refactoring_phase5_20260115/`
 - `conductor/archive/refactor_large_files_20260113/`
+- Git tags: `solid_refactoring_phase5b_20260115-complete`
 
 ---
 
