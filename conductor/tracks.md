@@ -110,18 +110,20 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## 🆕 Track: Authentication Configuration Feature (NEW) <!-- 2026-01-15 -->
-*Link: [./conductor/tracks/auth_config_feature_20260115/](./conductor/tracks/auth_config_feature_20260115/)*
+## [x] Track: Authentication Configuration Feature (archived) <!-- 2026-01-16 -->
+*Link: [./conductor/archive/auth_config_feature_20260115/](./conductor/archive/auth_config_feature_20260115/)*
 - **Track ID:** auth_config_feature_20260115
-- **Status:** 📋 New (Ready to start)
+- **Status:** ✅ Complete (archived)
 - **Priority:** 🟡 MEDIUM
 - **Type:** Feature
 - **Created:** 2026-01-15
+- **Completed:** 2026-01-16
 - **Est. Duration:** 2-3 days
-- **Phases:** 9 (Setup → Tests → Dialog → Integration → Auto-Login → E2E → Docs → Release)
-- **Plan:** ./tracks/auth_config_feature_20260115/plan.md
-- **Spec:** ./tracks/auth_config_feature_20260115/spec.md
-- **Metadata:** ./tracks/auth_config_feature_20260115/metadata.json
+- **Actual Duration:** ~1 day
+- **Phases:** 9/9 complete
+- **Plan:** ./archive/auth_config_feature_20260115/plan.md
+- **Spec:** ./archive/auth_config_feature_20260115/spec.md
+- **Metadata:** ./archive/auth_config_feature_20260115/metadata.json
 - **Description:**
   - Adicionar configuração de autenticação no menu Engenharia
   - Permitir desabilitar solicitação de login ao iniciar
@@ -130,12 +132,25 @@ This file tracks all major tracks for the project. Each track has its own detail
   - Confirmação por senha para mudanças de configuração
   - Auditoria de mudanças no log do sistema
 - **New Components:**
-  - `AuthConfigManager` - Gerenciador de configuração
-  - `AuthenticationSettingsDialog` - UI de configuração
+  - `consumo_lib/managers/auth_config_manager.py` (242 lines)
+  - `consumo_lib/dialogs/auth_settings_dialog.py` (391 lines)
+  - `tests/unit/test_auth_config_manager.py` (479 lines, 22 tests)
+  - `tests/unit/test_auth_settings_dialog.py` (460 lines, 15 tests)
+  - `tests/integration/test_auth_config_e2e.py` (487 lines, 11 tests)
 - **Modified Components:**
-  - `AOIConfigManager` - Adicionar seção authentication
-  - `MenuHandler` - Adicionar menu Engenharia
-  - `SetupCoordinator` - Implementar auto-login
+  - `aoi_lib/config_manager.py` - Added auth section getters/setters
+  - `consumo_lib/main_window.py` - Added show_auth_settings() and _perform_auto_login()
+  - `consumo_lib/handlers/menu_handler.py` - Added Engineering menu action
+  - `consumo_lib/dialogs/__init__.py` - Export AuthenticationSettingsDialog
+  - `consumo_lib/managers/__init__.py` - Export AuthConfigManager
+- **Testing:**
+  - ✅ 48 tests total (100% pass rate)
+  - ✅ 22 unit tests for AuthConfigManager
+  - ✅ 15 integration tests for AuthenticationSettingsDialog
+  - ✅ 11 E2E tests for complete workflows
+  - ✅ 100% test coverage for new code
+- **Tag:** auth_config_feature_20260115
+- **Commit:** 6a2d67d
 
 ---
 
@@ -304,4 +319,4 @@ This file tracks all major tracks for the project. Each track has its own detail
   - ✅ Documentação completa (620 linhas)
 
 ---
-*Last updated: 2026-01-15 (Phase 5A archived as complete)*
+*Last updated: 2026-01-16 (Auth Config Feature archived as complete)*
