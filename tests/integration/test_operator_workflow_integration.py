@@ -275,12 +275,21 @@ class TestInspectionErrorHandling:
 # =============================================================================
 
 @pytest.mark.skipif(not QT_AVAILABLE, reason="QApplication not available")
+@pytest.mark.slow
 class TestOperatorWorkflowDialogIntegration:
-    """Testa integração do dialog de workflow."""
+    """
+    Testa integração do dialog de workflow.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     @pytest.fixture
     def qapp(self):
-        """QApplication instance (cria apenas uma vez)."""
+        """
+        QApplication instance (cria apenas uma vez).
+
+        MARKED AS SLOW: Criar QApplication é uma operação cara em termos de performance.
+        """
         app = QApplication.instance()
         if app is None:
             app = QApplication([])

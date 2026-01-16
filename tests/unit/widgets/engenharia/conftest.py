@@ -14,7 +14,14 @@ if str(project_root) not in sys.path:
 
 @pytest.fixture(scope="session")
 def qapp():
-    """Fixture para QApplication (session scope)."""
+    """
+    Fixture para QApplication (session scope).
+
+    MARKED AS SLOW: Este fixture cria um QApplication PyQt6, que é uma operação
+    cara em termos de performance. Todos os testes que usam este fixture serão
+    marcados como lentos e devem ser executados com o marcador -m "not slow"
+    para execução rápida de testes unitários.
+    """
     from PyQt6.QtWidgets import QApplication
     app = QApplication.instance()
     if app is None:

@@ -32,7 +32,11 @@ from consumo_lib.widgets.engenharia.alignment_widget import (
 # Fixture para QApplication (necessário para widgets PyQt6)
 @pytest.fixture(scope="session")
 def qapp():
-    """Cria QApplication uma vez por sessão de testes."""
+    """
+    Cria QApplication uma vez por sessão de testes.
+
+    MARKED AS SLOW: Criar QApplication é uma operação cara em termos de performance.
+    """
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -99,8 +103,13 @@ def sample_fiducial_templates():
 #  TESTES DE INICIALIZAÇÃO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetInitialization:
-    """Testes de inicialização do AlignmentWidget."""
+    """
+    Testes de inicialização do AlignmentWidget.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_initialization(self, widget):
         """Testa se widget é inicializado corretamente."""
@@ -169,6 +178,7 @@ class TestAlignmentWidgetInitialization:
 #  TESTES DE CARREGAMENTO DE DADOS
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetDataLoading:
     """Testes de carregamento de dados no widget."""
 
@@ -231,6 +241,7 @@ class TestAlignmentWidgetDataLoading:
 #  TESTES DE CONTROLES DE TRANSFORMAÇÃO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetTransformControls:
     """Testes dos controles de transformação."""
 
@@ -309,6 +320,7 @@ class TestAlignmentWidgetTransformControls:
 #  TESTES DE CONTROLES FINOS
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetFineControls:
     """Testes dos controles finos."""
 
@@ -346,6 +358,7 @@ class TestAlignmentWidgetFineControls:
 #  TESTES DE AUTO-TUNING
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetAutoTuning:
     """Testes de auto-tuning."""
 
@@ -441,6 +454,7 @@ class TestAlignmentWidgetAutoTuning:
 #  TESTES DE RESET
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetReset:
     """Testes de reset."""
 
@@ -491,6 +505,7 @@ class TestAlignmentWidgetReset:
 #  TESTES DE VALIDAÇÃO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetValidation:
     """Testes de validação."""
 
@@ -613,6 +628,7 @@ class TestAlignmentWidgetValidation:
 #  TESTES DE APLICAÇÃO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentWidgetApplication:
     """Testes de aplicação do alinhamento."""
 
@@ -687,6 +703,7 @@ class TestAlignmentWidgetApplication:
 #  TESTES DE VISUALIZAÇÃO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentImageView:
     """Testes do widget de visualização."""
 
@@ -752,6 +769,7 @@ class TestAlignmentImageView:
 #  TESTES DE ESTADO
 # ===========================================================================
 
+@pytest.mark.slow
 class TestAlignmentState:
     """Testes do dataclass AlignmentState."""
 

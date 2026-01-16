@@ -38,7 +38,11 @@ from consumo_lib.dialogs.auth_settings_dialog import AuthenticationSettingsDialo
 
 @pytest.fixture
 def qapp():
-    """Cria instância de QApplication para testes PyQt6."""
+    """
+    Cria instância de QApplication para testes PyQt6.
+
+    MARKED AS SLOW: Criar QApplication é uma operação cara em termos de performance.
+    """
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -120,8 +124,13 @@ def auth_dialog(qapp, auth_config_manager):
 # Testes: Inicialização
 # ==============================================================================
 
+@pytest.mark.slow
 class TestDialogInitialization:
-    """Testa inicialização do diálogo."""
+    """
+    Testa inicialização do diálogo.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_dialog_initializes_successfully(self, auth_dialog):
         """
@@ -165,8 +174,13 @@ class TestDialogInitialization:
 # Testes: Permissões
 # ==============================================================================
 
+@pytest.mark.slow
 class TestPermissionChecking:
-    """Testa verificação de permissões."""
+    """
+    Testa verificação de permissões.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_engineering_user_can_access_dialog(self, auth_dialog, mock_role_manager):
         """
@@ -222,8 +236,13 @@ class TestPermissionChecking:
 # Testes: Funcionalidade Apply
 # ==============================================================================
 
+@pytest.mark.slow
 class TestApplyFunctionality:
-    """Testa funcionalidade do botão Aplicar."""
+    """
+    Testa funcionalidade do botão Aplicar.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_apply_enabled_when_config_changes(self, auth_dialog):
         """
@@ -345,8 +364,13 @@ class TestApplyFunctionality:
 # Testes: Interação UI
 # ==============================================================================
 
+@pytest.mark.slow
 class TestUIInteraction:
-    """Testa interação com elementos da UI."""
+    """
+    Testa interação com elementos da UI.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_combo_disabled_when_require_login_checked(self, auth_dialog):
         """
@@ -396,8 +420,13 @@ class TestUIInteraction:
 # Testes: Edge Cases
 # ==============================================================================
 
+@pytest.mark.slow
 class TestEdgeCases:
-    """Testa casos de borda."""
+    """
+    Testa casos de borda.
+
+    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
+    """
 
     def test_handles_missing_authentication_section(
         self,

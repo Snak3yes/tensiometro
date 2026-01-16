@@ -33,7 +33,11 @@ from consumo_lib.widgets.engenharia.confirm_save_widget import (
 
 @pytest.fixture(scope="session")
 def qapp():
-    """Fixture para QApplication (session scope)."""
+    """
+    Fixture para QApplication (session scope).
+
+    MARKED AS SLOW: Criar QApplication é uma operação cara em termos de performance.
+    """
     app = QApplication.instance()
     if app is None:
         app = QApplication([])
@@ -356,6 +360,7 @@ class TestInspectionGroupConfig:
 # TESTES: SummaryCard
 # =============================================================================
 
+@pytest.mark.slow
 class TestSummaryCard:
     """Testes para SummaryCard."""
 
@@ -385,6 +390,7 @@ class TestSummaryCard:
 # TESTES: WarningPanel
 # =============================================================================
 
+@pytest.mark.slow
 class TestWarningPanel:
     """Testes para WarningPanel."""
 
