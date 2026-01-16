@@ -4,6 +4,38 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## 🔄 Track: UI Refactor - Move Controls to Backup Tab (IN PROGRESS) <!-- 2026-01-16 -->
+*Link: [./conductor/tracks/ui_refactor_controls_to_tab_20260116/](./conductor/tracks/ui_refactor_controls_to_tab_20260116/)*
+- **Track ID:** ui_refactor_controls_to_tab_20260116
+- **Status:** 📋 New (Ready to start)
+- **Priority:** 🟡 MEDIUM
+- **Type:** Refactor
+- **Created:** 2026-01-16
+- **Est. Duration:** 2-3 days
+- **Phases:** 7 (Analysis → Create Tab → Update Layout → Preserve Connections → Testing → Documentation → Release)
+- **Plan:** ./tracks/ui_refactor_controls_to_tab_20260116/plan.md
+- **Spec:** ./tracks/ui_refactor_controls_to_tab_20260116/spec.md
+- **Metadata:** ./tracks/ui_refactor_controls_to_tab_20260116/metadata.json
+- **Description:**
+  - Remover painel esquerdo da janela principal
+  - Mover controles do painel esquerdo para nova aba "Backup de Controles"
+  - Manter MovementControlsWidget no painel direito
+  - Simplificar layout para: Menu + Abas ocupando todo o espaço
+- **Controles a serem movidos:**
+  - PositionRegistryWidget (Posições de Inspeção)
+  - SequenceControlWidget (Controle de Sequência + Salvar/Carregar)
+  - Tabela de histórico de execuções
+- **Controles que PERMANECEM:**
+  - MovementControlsWidget (painel direito - NÃO movido)
+  - Todas as abas existentes (Câmera Movimento, Programas, etc.)
+- **Benefícios:**
+  - Interface mais limpa e organizada
+  - Maior espaço para conteúdo das abas
+  - Controles legacy acessíveis via aba dedicada
+  - Zero breaking changes (funcionalidade preservada)
+
+---
+
 ## 🔄 Track: SOLID Refactoring Phase 2 (ACTIVE) <!-- 2026-01-14 -->
 *Link: [./conductor/tracks/solid_refactoring_phase2_20260114/](./conductor/tracks/solid_refactoring_phase2_20260114/)*
 - **Track ID:** solid_refactoring_phase2_20260114

@@ -57,10 +57,16 @@ class MainUIBuilder:
         Este método:
         1. Cria widget central e layout principal
         2. Cria grupo de conexão
-        3. Cria painel esquerdo (posição, lista, sequência, resultados)
-        4. Cria painel direito com abas
-        5. Configura splitter
+        3. Cria painel direito com abas (agora ocupando todo o espaço central)
+        4. Cria painel de movimento (direita)
+        5. Configura layout horizontal simplificado
         6. Inicializa controllers que dependem de UI widgets
+
+        NOVO LAYOUT (Refatoração 2026-01-16):
+        - Removeu painel esquerdo (agora na aba "Backup de Controles")
+        - Layout simplificado: QHBoxLayout [QTabWidget | MovementControlWidget]
+        - QTabWidget ocupa todo o espaço disponível
+        - MovementControlWidget permanece visível (fixo à direita)
         """
         # Widget central
         central_widget = QWidget()
@@ -73,17 +79,19 @@ class MainUIBuilder:
         self._build_connection_group(main_layout)
         self._build_calibration_group(main_layout)
 
-        # Cria splitter e painéis
-        splitter = QSplitter(Qt.Orientation.Horizontal)
-        left_panel = self._build_left_panel()
-        right_panel = self._build_right_panel(splitter)
+        # NOVO: Layout horizontal simplificado (sem splitter, sem left panel)
+        content_layout = QHBoxLayout()
 
-        # Configura splitter
-        splitter.addWidget(left_panel)
-        splitter.addWidget(self.window.right_panel)
-        splitter.setSizes([400, 800])
+        # Painel esquerdo: QTabWidget (expanding, ocupa todo o espaço)
+        right_panel = self._build_right_panel(None)  # None = não usa mais splitter
+        content_layout.addWidget(right_panel, 1)  # stretch=1 para expandir
 
-        main_layout.addWidget(splitter)
+        # Painel direito: MovementControlWidget (fixed width, dentro de CNCControlTab)
+        # NOTA: MovementControlWidget está dentro de CNCControlTab (self.window.movement_widget)
+        # Ele já é visível na aba "Câmera & Movimento", então não precisamos adicioná-lo separadamente
+        # O layout agora é apenas o QTabWidget expandido
+
+        main_layout.addLayout(content_layout)
 
         # Barra de status
         self.window.statusBar().showMessage("Pronto para conectar")
@@ -249,8 +257,44 @@ class MainUIBuilder:
         )
         parent_layout.addWidget(self.window.results_table)
 
+    def _build_backup_controls_tab(self, parent):
+        """
+        Cria aba "Backup de Controles" (NOVO - 2026-01-16).
+
+        Esta aba contém todos os widgets que estavam anteriormente
+        no painel esquerdo da aplicação:
+        - PositionListWidget (lista de posições)
+        - SequenceControlWidget (controle de sequência)
+        - ResultsTable (tabela de resultados)
+
+        Args:
+            parent: QTabWidget onde a aba será adicionada
+        """
+        from PyQt6.QtWidgets import QWidget
+
+        # Cria widget container para a aba
+        tab_widget = QWidget()
+        tab_layout = QVBoxLayout(tab_widget)
+
+        # Adiciona os widgets que estavam no left panel
+        # (chamando os mesmos métodos de criação)
+        self._build_position_list(tab_layout)
+        self._build_sequence_control(tab_layout)
+        self._build_results_table(tab_layout)
+
+        # Adiciona a aba ao QTabWidget
+        parent.addTab(tab_widget, "📦 Backup de Controles")
+
+        # Expose referências para compatibilidade
+        self.window.backup_controls_tab = tab_widget
+
     def _build_right_panel(self, splitter):
-        """Cria painel direito com abas e controllers que dependem de UI."""
+        """
+        Cria painel direito com abas e controllers que dependem de UI.
+
+        NOVO (2026-01-16): Parâmetro splitter ignorado (left panel foi removido)
+        """
+        # Cria QTabWidget para abas
         right_panel = QTabWidget()
         self.window.right_panel = right_panel
 
@@ -260,7 +304,7 @@ class MainUIBuilder:
         # Criar ConnectionManagerController (agora que camera_preview está disponível)
         self._create_connection_manager_controller()
 
-        # Abas restantes
+        # Abas restantes (incluindo nova aba "Backup de Controles")
         self._build_remaining_tabs(right_panel)
 
         # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
@@ -361,3 +405,7 @@ class MainUIBuilder:
             self.window.show_mosaic_builder
         )
         parent.addTab(self.window.map_tab, "🗺️ Mapa")
+
+        # NOVO (2026-01-16): Aba "Backup de Controles"
+        # Contém os widgets que estavam no painel esquerdo removido
+        self._build_backup_controls_tab(parent)

@@ -1,0 +1,12 @@
+{
+  "track_id": "ui_refactor_controls_to_tab_20260116",
+  "type": "refactor",
+  "status": "new",
+  "priority": "medium",
+  "created_at": "2026-01-16T11:44:00Z",
+  "updated_at": "2026-01-16T11:44:00Z",
+  "description": "Remove left panel controls from main window and move them to a new 'Backup de Controles' tab. Keep MovementControlsWidget in right panel. Simplify layout to menu + tabs occupying full space.",
+  "estimated_duration": "2-3 days",
+  "phases": 7,
+  "total_tasks": 45
+}
