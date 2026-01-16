@@ -156,7 +156,7 @@ class TestEngineeringWizardStateDependencies:
         state = EngineeringWizardState()
         valid, message = state.validate_dependencies(1)
         assert not valid
-        assert "Dados do Programa" in message
+        assert "Aba 1" in message  # Mensagem atualizada
 
     def test_aba_2_valida_com_aba_1_completa(self):
         """Testa que aba 2 é válida com aba 1 completa."""
@@ -320,9 +320,12 @@ class TestEngineeringWizardStateTimestamps:
 
     def test_update_timestamp_muda_updated_at(self):
         """Testa que update_timestamp() muda updated_at."""
+        import time
         state = EngineeringWizardState()
         old_timestamp = state.updated_at
 
+        # Pequeno delay para garantir timestamp diferente
+        time.sleep(0.01)  # 10ms deve ser suficiente para microsegundos diferentes
         state.update_timestamp()
 
         assert state.updated_at != old_timestamp

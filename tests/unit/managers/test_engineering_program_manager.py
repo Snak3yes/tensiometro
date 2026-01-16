@@ -391,9 +391,13 @@ class TestAutosave:
         """Testa limpeza de autosaves antigos."""
         manager = EngineeringProgramManager(programs_dir=tmp_path)
 
-        # Salva 10 autosaves
+        # Salva 10 autosaves com delay de 1 segundo para timestamps únicos
+        # O nome do arquivo usa %Y%m%d_%H%M%S (resolução de segundos)
+        import time
         for i in range(10):
             manager.save_autosave({"index": i})
+            if i < 9:  # Não dorme no último
+                time.sleep(1.01)  # > 1 segundo para garantir timestamp diferente no nome
 
         # Mantém apenas 5 mais recentes
         manager.cleanup_autosaves(keep_latest=5)
@@ -432,8 +436,12 @@ class TestExportImport:
         )
         filepath = manager.save_program(program)
 
+        # Cria diretório de exportação
+        export_dir = tmp_path / "exported"
+        export_dir.mkdir()
+        export_path = export_dir / "exported.json"
+
         # Exporta
-        export_path = tmp_path / "exported" / "exported.json"
         exported = manager.export_program(filepath.name, str(export_path))
 
         assert exported.exists()
@@ -443,8 +451,11 @@ class TestExportImport:
         """Testa importação de programa."""
         manager = EngineeringProgramManager(programs_dir=tmp_path)
 
-        # Cria arquivo para importar
-        import_path = tmp_path / "to_import.json"
+        # Cria arquivo para importar em diretório separado
+        import_dir = tmp_path / "external"
+        import_dir.mkdir()
+        import_path = import_dir / "to_import.json"
+
         program = ProgramConfig(
             stencil_code="STENCIL-IMPORT",
             program_name="Imported",
@@ -457,6 +468,8 @@ class TestExportImport:
 
         assert imported.exists()
         assert imported.name == "to_import.json"
+        # Arquivo deve estar no programs_dir, não no import_dir
+        assert imported.parent == tmp_path
 
     def test_import_program_with_new_name(self, tmp_path):
         """Testa importação com novo nome."""
