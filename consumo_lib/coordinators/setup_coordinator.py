@@ -59,13 +59,13 @@ class SetupCoordinator:
         self.window = window
 
         # Usar factory para criar todos os componentes de uma vez
+        # A factory já copia todos os componentes para a window automaticamente
         # Ordem de criação é gerenciada internamente pela factory
         all_components = self.factory.create_all_components(window)
 
-        # Armazenar referências aos componentes na window para compatibilidade
-        # com código existente que acessa window.{componente}
-        for key, value in all_components.items():
-            setattr(self.window, key, value)
+        # NOTA: A factory já copia os componentes para a window via _copy_to_window()
+        # Não precisamos fazer setattr() aqui pois a factory já fez isso
+        # all_components é retornado para possível uso futuro, mas os componentes já estão na window
 
         # Ordem de setup é crítica! Executar métodos na ordem correta
         self._setup_basic_config_dependencies()     # 1. Config dependências

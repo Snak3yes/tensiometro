@@ -75,12 +75,13 @@ class ApplicationComponentsFactory:
 
         components = {}
 
-        # 1. Core (config, controller)
+        # 1. Core (config, controller) - CRÍTICO: Copiar para window IMEDIATAMENTE
         logger.info("1️⃣ Criando componentes core...")
         core_components = self.core_factory.create_all()
         components['core'] = core_components
-        components.update(core_components)  # config, controller
-        logger.info("✅ Core criado: config, controller")
+        # COPIAR PARA WINDOW IMEDIATAMENTE para que handlers possam acessar controller
+        self._copy_to_window(window, core_components)
+        logger.info("✅ Core criado e copiado para window: config, controller")
 
         # 2. Managers (dependem de core)
         logger.info("2️⃣ Criando managers...")
@@ -90,8 +91,9 @@ class ApplicationComponentsFactory:
             core_components['controller']
         )
         components['managers'] = managers
-        components.update(managers)
-        logger.info(f"✅ Managers criados: {len(managers)} componentes")
+        # COPIAR PARA WINDOW IMEDIATAMENTE
+        self._copy_to_window(window, managers)
+        logger.info(f"✅ Managers criados e copiados para window: {len(managers)} componentes")
 
         # 3. Coordinators (dependem de managers)
         logger.info("3️⃣ Criando coordinators...")
@@ -102,15 +104,17 @@ class ApplicationComponentsFactory:
             managers
         )
         components['coordinators'] = coordinators
-        components.update(coordinators)
-        logger.info(f"✅ Coordinators criados: {len(coordinators)} componentes")
+        # COPIAR PARA WINDOW IMEDIATAMENTE
+        self._copy_to_window(window, coordinators)
+        logger.info(f"✅ Coordinators criados e copiados para window: {len(coordinators)} componentes")
 
-        # 4. Handlers (dependem de window)
+        # 4. Handlers (dependem de window) - agora pode acessar window.controller
         logger.info("4️⃣ Criando handlers...")
         handlers = self.handlers_factory.create_all_handlers(window)
         components['handlers'] = handlers
-        components.update(handlers)
-        logger.info(f"✅ Handlers criados: {len(handlers)} componentes")
+        # COPIAR PARA WINDOW IMEDIATAMENTE
+        self._copy_to_window(window, handlers)
+        logger.info(f"✅ Handlers criados e copiados para window: {len(handlers)} componentes")
 
         # 5. Controllers (dependem de core, managers, window)
         logger.info("5️⃣ Criando controllers independentes de UI...")
@@ -121,8 +125,9 @@ class ApplicationComponentsFactory:
             managers
         )
         components['controllers'] = controllers
-        components.update(controllers)
-        logger.info(f"✅ Controllers criados: {len(controllers)} componentes")
+        # COPIAR PARA WINDOW IMEDIATAMENTE
+        self._copy_to_window(window, controllers)
+        logger.info(f"✅ Controllers criados e copiados para window: {len(controllers)} componentes")
 
         # 6. Services (dependem de core, window)
         logger.info("6️⃣ Criando services...")
@@ -131,12 +136,24 @@ class ApplicationComponentsFactory:
             core_components['controller']
         )
         components['services'] = services
-        components.update(services)
-        logger.info(f"✅ Services criados: {len(services)} componentes")
+        # COPIAR PARA WINDOW IMEDIATAMENTE
+        self._copy_to_window(window, services)
+        logger.info(f"✅ Services criados e copiados para window: {len(services)} componentes")
 
-        logger.info("🎉 ApplicationComponentsFactory: Todos os componentes criados com sucesso!")
+        logger.info("🎉 ApplicationComponentsFactory: Todos os componentes criados e copiados para window!")
 
         return components
+
+    def _copy_to_window(self, window: 'QWidget', components: Dict[str, Any]):
+        """
+        Copia componentes para a window usando setattr().
+
+        Args:
+            window: Instância da janela principal
+            components: Dict com componentes a serem copiados
+        """
+        for key, value in components.items():
+            setattr(window, key, value)
 
     def create_dependent_controllers(
         self,
