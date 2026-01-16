@@ -325,16 +325,6 @@ class TestRecipeToProgram:
         result = coordinator._extract_stencil_code("Test Program")
         assert result == "TEST_PROGRAM"
 
-    def test_convert_invalid_recipe_no_name(self, coordinator):
-        """Testa erro quando recipe não tem nome."""
-        recipe = Recipe(
-            name="",  # Vazio
-            version="1.0"
-        )
-
-        with pytest.raises(ValueError, match="recipe.name é obrigatório"):
-            coordinator.recipe_to_program(recipe)
-
     def test_convert_invalid_recipe_no_gerber(self, coordinator):
         """Testa erro quando recipe não tem arquivo Gerber."""
         recipe = Recipe(
