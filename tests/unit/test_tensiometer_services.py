@@ -12,6 +12,7 @@ import pytest
 import numpy as np
 from datetime import datetime
 from pathlib import Path
+from dataclasses import asdict
 
 from aoi_lib.tensiometer.models import (
     GridPoint,
@@ -53,12 +54,12 @@ class TestGridPoint:
         """Test serialization to dictionary."""
         point = GridPoint(x=10.0, y=20.0, index=5, grid_position=(1, 2))
 
-        result = point.to_dict()
+        result = asdict(point)
 
         assert result['x'] == 10.0
         assert result['y'] == 20.0
         assert result['index'] == 5
-        assert result['grid_position'] == [1, 2]
+        assert result['grid_position'] == (1, 2)  # grid_position é tuple, não list
 
     def test_grid_point_equality(self):
         """Test GridPoint equality."""
@@ -368,18 +369,17 @@ class TestGridCalculationService:
 
     def test_validate_parameters_grid_too_small(self):
         """Test validation fails for grid size < 2."""
-        params = GridParameters(
-            start_point=(0.0, 0.0),
-            end_point=(100.0, 100.0),
-            grid_size=1,  # Invalid
-            z_height=5.0,
-            z_move=10.0
-        )
+        # GridParameters __post_init__ raises ValueError for grid_size < 2
+        with pytest.raises(ValueError) as exc_info:
+            params = GridParameters(
+                start_point=(0.0, 0.0),
+                end_point=(100.0, 100.0),
+                grid_size=1,  # Invalid
+                z_height=5.0,
+                z_move=10.0
+            )
 
-        with pytest.raises(ValidationError) as exc_info:
-            GridCalculationService.validate_parameters(params)
-
-        assert "Grid size deve ser >= 2" in str(exc_info.value)
+        assert "Grid size must be >= 2" in str(exc_info.value)
 
     def test_validate_parameters_grid_too_large(self):
         """Test validation fails for grid size > 20."""
@@ -409,7 +409,8 @@ class TestGridCalculationService:
         with pytest.raises(ValidationError) as exc_info:
             GridCalculationService.validate_parameters(params)
 
-        assert "Altura Z de movimento deve ser maior" in str(exc_info.value)
+        assert "Altura Z de movimento" in str(exc_info.value)
+        assert "deve ser maior que altura de medição" in str(exc_info.value)
 
     def test_get_grid_statistics(self):
         """Test grid statistics calculation."""
@@ -427,10 +428,11 @@ class TestGridCalculationService:
         assert stats['grid_size'] == 5
         assert stats['total_points'] == 25  # 5x5
         assert stats['total_distance_mm'] > 0
-        assert 'min_x' in stats
-        assert 'max_x' in stats
-        assert 'min_y' in stats
-        assert 'max_y' in stats
+        assert 'bounds' in stats
+        assert stats['bounds']['x_min'] == 0.0
+        assert stats['bounds']['x_max'] == 100.0
+        assert stats['bounds']['y_min'] == 0.0
+        assert stats['bounds']['y_max'] == 100.0
 
 
 # ==================== MEASUREMENT ANALYSIS SERVICE TESTS ====================
