@@ -165,7 +165,8 @@ class TestMeasurementSession:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(
             parameters=params,
@@ -185,7 +186,8 @@ class TestMeasurementSession:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(parameters=params, measurements=[])
 
@@ -207,7 +209,8 @@ class TestMeasurementSession:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(parameters=params, measurements=[])
 
@@ -233,7 +236,8 @@ class TestMeasurementSession:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(parameters=params, measurements=[])
 
@@ -253,7 +257,8 @@ class TestMeasurementSession:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(parameters=params, measurements=[])
 
@@ -278,7 +283,8 @@ class TestGridCalculationService:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=2,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
 
         points = GridCalculationService.calculate_grid_points(params)
@@ -290,9 +296,12 @@ class TestGridCalculationService:
         assert points[0].y == 0.0
         assert points[0].index == 0
 
-        # Check last point (top-right)
-        assert points[-1].x == 100.0
-        assert points[-1].y == 100.0
+        # Check that all corners exist (zig-zag pattern changes order)
+        coords = [(p.x, p.y) for p in points]
+        assert (0.0, 0.0) in coords  # Bottom-left
+        assert (100.0, 0.0) in coords  # Bottom-right
+        assert (0.0, 100.0) in coords  # Top-left
+        assert (100.0, 100.0) in coords  # Top-right
 
     def test_calculate_grid_points_3x3(self):
         """Test grid calculation for 3x3 grid."""
@@ -300,7 +309,8 @@ class TestGridCalculationService:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
 
         points = GridCalculationService.calculate_grid_points(params)
@@ -322,7 +332,8 @@ class TestGridCalculationService:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
 
         points = GridCalculationService.calculate_grid_points(params)
@@ -406,7 +417,8 @@ class TestGridCalculationService:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=5,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
 
         points = GridCalculationService.calculate_grid_points(params)
@@ -433,7 +445,8 @@ class TestMeasurementAnalysisService:
             start_point=(0.0, 0.0),
             end_point=(100.0, 100.0),
             grid_size=3,
-            z_height=5.0
+            z_height=5.0,
+            z_move=10.0
         )
         session = MeasurementSession(
             parameters=params,
@@ -449,7 +462,7 @@ class TestMeasurementAnalysisService:
             session.add_measurement(TensionMeasurement(
                 point=point,
                 z_height=5.0,
-                tension_value=f"{value}.00"
+                tension_value=f"{value:.2f}"
             ))
 
         session.complete_session()

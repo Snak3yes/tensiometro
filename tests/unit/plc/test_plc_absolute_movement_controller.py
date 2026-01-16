@@ -210,7 +210,7 @@ class TestPLCAbsoluteMovementController:
         """Testa leitura de DWORD com valor negativo (signed)"""
         mock_response = Mock()
         mock_response.isError.return_value = False
-        mock_response.registers = [0x0000, 0xFFFF]  # -1 em complemento de 2
+        mock_response.registers = [0xFFFF, 0xFFFF]  # -1 em complemento de 2 (32 bits)
 
         controller.connection_manager.client.read_holding_registers = Mock(
             return_value=mock_response

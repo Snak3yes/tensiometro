@@ -6,8 +6,10 @@ Implementa IPLCConnection e encapsula lógica de conexão Modbus TCP.
 
 import logging
 from typing import Dict, Optional
-from pymodbus.client import ModbusTcpClient, ModbusException, ModbusIOException
+from pymodbus.client import ModbusTcpClient
+from pymodbus.exceptions import ModbusException, ModbusIOException
 
+from aoi_lib.plc.interfaces.plc_connection_interface import IPLCConnection
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +126,5 @@ class PLCConnectionManager(IPLCConnection):
         }
 
 
-# Import correto para a interface
-from aoi_lib.plc.interfaces.plc_connection_interface import IPLCConnection
+# Registrar implementação
 IPLCConnection.register(PLCConnectionManager)

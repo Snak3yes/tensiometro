@@ -188,7 +188,8 @@ class PLCRegistersController:
             True se escrita bem-sucedida, False caso contrário
         """
         if not self.connection_manager.is_connected():
-            raise IOError("PLC não conectado")
+            logger.warning("Tentativa de escrever dword com PLC desconectado")
+            return False
 
         try:
             self._write_dword(register, value)
