@@ -95,9 +95,9 @@ Refatorar `aoi_lib/plc_axis_controller.py` (738 linhas, 37 métodos) aplicando *
 - [x] Todas as tarefas da Fase 1 concluídas ✅
 - [x] 7 interfaces ABC criadas ✅
 - [x] Contratos bem definidos ✅
-- [x] Checkpoint commit criado: `git commit -m "conductor(phase5): Criar interfaces ABC para PLC"`
+- [x] Checkpoint commit criado: `f09deee` ✅
 - [x] Git note anexada: resumo detalhado
-- [x] plan.md atualizado com checkpoint SHA
+- [x] plan.md atualizado com checkpoint SHA ✅
 - **Status:** ✅ COMPLETE
 
 ---
@@ -203,10 +203,10 @@ Refatorar `aoi_lib/plc_axis_controller.py` (738 linhas, 37 métodos) aplicando *
 - [x] Todas as tarefas da Fase 2 concluídas ✅
 - [x] 7 controllers criados e testados ✅
 - [x] Testes manuais passando ✅
-- [ ] Checkpoint commit criado: `git commit -m "conductor(phase5): Criar controllers especializados PLC"`
-- [ ] Git note anexada
-- [ ] plan.md atualizado com checkpoint SHA
-- **Status:** ✅ COMPLETE (aguardando commit)
+- [x] Checkpoint commit criado: `34fd038` ✅
+- [x] Git note anexada: 1.404 linhas de código ✅
+- [x] plan.md atualizado com checkpoint SHA ✅
+- **Status:** ✅ COMPLETE
 
 ---
 
@@ -288,10 +288,10 @@ Refatorar `aoi_lib/plc_axis_controller.py` (738 linhas, 37 métodos) aplicando *
 - [x] 54 testes criados (7 controllers × 7-8 testes cada) ✅
 - [x] Testes unitários criados ✅
 - [x] >80% coverage dos novos controllers (estimado) ✅
-- [ ] Checkpoint commit criado: `git commit -m "conductor(phase5): Criar testes para PLC controllers"`
-- [ ] Git note anexada: relatório de testes
-- [ ] plan.md atualizado com checkpoint SHA
-- **Status:** ✅ COMPLETE (aguardando commit)
+- [x] Checkpoint commit criado: `f49bcfa` ✅
+- [x] Git note anexada: 92 testes unitários ✅
+- [x] plan.md atualizado com checkpoint SHA ✅
+- **Status:** ✅ COMPLETE
 
 ---
 
