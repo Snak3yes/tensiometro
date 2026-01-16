@@ -4,6 +4,32 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## 🆕 Track: Engineering Wizard Free Navigation Mode (NEW) <!-- 2026-01-16 -->
+*Link: [./conductor/tracks/engineering_free_navigation_20260116/](./conductor/tracks/engineering_free_navigation_20260116/)*
+- **Track ID:** engineering_free_navigation_20260116
+- **Status:** 🆕 Pending
+- **Priority:** 🟡 MEDIUM
+- **Type:** Feature
+- **Created:** 2026-01-16
+- **Est. Duration:** 1-2 days
+- **Phases:** 5
+- **Plan:** ./tracks/engineering_free_navigation_20260116/plan.md
+- **Spec:** ./tracks/engineering_free_navigation_20260116/spec.md
+- **Metadata:** ./tracks/engineering_free_navigation_20260116/metadata.json
+- **Description:**
+  - Adicionar configuração para desabilitar travas de navegação no Engineering Wizard
+  - Permitir navegação livre entre as 7 abas para testes e debug
+  - Controle na mesma tela de configurações de autenticação
+  - Requer permissão Engineering+ para modificar
+  - Persiste configuração em `aoi_config.json`
+- **Benefits:**
+  - Facilita testes e debug do fluxo de engenharia
+  - Permite demonstrar abas específicas sem completar workflow completo
+  - Acelera desenvolvimento iterativo
+  - Mantém validações no botão "Concluir" (segurança preservada)
+
+---
+
 ## [x] Track: UI Refactor - Move Controls to Backup Tab (archived) <!-- 2026-01-16 -->
 *Link: [./conductor/archive/ui_refactor_controls_to_tab_20260116/](./conductor/archive/ui_refactor_controls_to_tab_20260116/)*
 - **Track ID:** ui_refactor_controls_to_tab_20260116
@@ -41,22 +67,24 @@ This file tracks all major tracks for the project. Each track has its own detail
 ## 🔄 Track: SOLID Refactoring Phase 2 (ACTIVE) <!-- 2026-01-14 -->
 *Link: [./conductor/tracks/solid_refactoring_phase2_20260114/](./conductor/tracks/solid_refactoring_phase2_20260114/)*
 - **Track ID:** solid_refactoring_phase2_20260114
-- **Status:** 🔄 In Progress (Phases 1-2 ✅ Complete, Phase 3: Pending)
+- **Status:** 🔄 In Progress (Phases 1-3 ✅ Complete, Phase 4: Ready to start)
 - **Priority:** 🔴 CRITICAL
 - **Type:** Refactor
 - **Created:** 2026-01-14
-- **Completed:** 2026-01-16 (Fases 1-2 ready for documentation update)
+- **Updated:** 2026-01-16 (Fase 3 documentada, pronto para Fase 4)
 - **Est. Duration:** 4-6 weeks
-- **Phases:** 9 (Fase 1: ✅ Complete, Fase 2: ✅ Complete, Fases 3-7: Pending, Fase 8-9: Documentation)
+- **Actual Duration:** ~1.5 weeks (Phases 1-3 complete)
+- **Phases:** 9 (Fase 1-3: ✅ Complete, Fases 4-9: Pending)
 - **Plan:** ./tracks/solid_refactoring_phase2_20260114/plan.md
 - **Spec:** ./tracks/solid_refactoring_phase2_20260114/spec.md
 - **Metadata:** ./tracks/solid_refactoring_phase2_20260114/metadata.json
+- **Progress:** 72/115 tasks complete (62.6%)
 - **Target Files (9 arquivos):**
   - `aoi_lib/gerber_core/gui/mainwindow.py` (1,384 → <500) ✅ Phase 1 Complete
   - `aoi_lib/gerber_core/parser.py` (complexidade 47 → <5) ✅ Phase 1 Complete
   - `aoi_lib/stencil_database.py` (914 → 3 repositórios) ✅ Phase 2 Complete
-  - `consumo_lib/widgets/engenharia/alignment_widget.py` (1,179 → 1,019) ✅ Phase 3 Complete
-  - `consumo_lib/main_window.py` (650 → <20 métodos) ⏳ Phase 4
+  - `consumo_lib/widgets/engenharia/alignment_widget.py` (959 → 547 linhas) ✅ Phase 3 Complete
+  - `consumo_lib/main_window.py` (650 → <20 métodos) ⏳ Phase 4 - NEXT
   - `aoi_lib/plc_axis_controller.py` (738 linhas, 29 métodos → <15) ⏳ Phase 5
   - `aoi_lib/report_generator.py` (1,366 linhas) ⏳ Phase 6
   - `consumo_lib/dialogs/recipe_dialogs.py` (881 → 3 arquivos) ⏳ Phase 7
@@ -68,50 +96,29 @@ This file tracks all major tracks for the project. Each track has its own detail
   - 📉 Reduzir complexidade >20 (6 → 0)
   - 🏗️ Implementar padrões (Strategy, Repository, Command, Factory)
   - ✅ Manter backward compatibility 100%
-  - 🧪 Adicionar testes (462 → 574+)
-- **Achievements Phase 1 (Gerber Core):**
+  - 🧪 Adicionar testes (462 → 650+)
+- **Achievements Phase 1 (Gerber Core - Strategy Pattern):**
   - ✅ Criados 5 módulos focados (2.368 linhas)
   - ✅ 68 testes criados (192 passing)
   - ✅ Complexidade reduzida de 46 → <5 (89% redução)
   - ✅ Commit: 8af2e2d
-- **Achievements Phase 2 (Database):**
+- **Achievements Phase 2 (Database - Repository Pattern):**
   - ✅ Criados 6 módulos focados (1.521 linhas)
   - ✅ 76 testes criados (144 passing)
   - ✅ Coverage: 93.3%
   - ✅ Commit: 544b2bb
-- **Next Phases (3-9):**
-  - ⏳ Phase 3: Alignment Widget → precisa apenas atualização de documentação
-  - ⏳ Fases 4-9: A ser implementadas
-- **Progress:** 56/115 tasks complete (48.7%)
-- **Target Files (9 arquivos):**
-  - `aoi_lib/gerber_core/gui/mainwindow.py` (1,384 linhas → <500)
-  - `aoi_lib/gerber_core/parser.py` (complexidade 47 → <15)
-  - `aoi_lib/stencil_database.py` (914 linhas → 3 repositórios) ✅ Phase 2 Complete
-  - `consumo_lib/widgets/engenharia/alignment_widget.py` (1,179 → 1,019 linhas) ✅ Phase 3 Complete
-  - `consumo_lib/main_window.py` (650 linhas, 46 métodos → <20)
-  - `aoi_lib/plc_axis_controller.py` (738 linhas, 29 métodos → <15)
-  - `aoi_lib/report_generator.py` (1,366 linhas)
-  - `consumo_lib/dialogs/recipe_dialogs.py` (881 linhas → 3 arquivos)
-  - `consumo_lib/coordinators/setup_coordinator.py` (601 linhas)
-- **Objectives:**
-  - 🎯 Elevar Score SOLID global: 72/100 → 85+/100
-  - 📉 Eliminar arquivos >1000 linhas (3 → 0)
-  - 📉 Reduzir arquivos >500 linhas (32 → <15)
-  - 📉 Reduzir complexidade >20 (6 → 0)
-  - 🏗️ Implementar padrões (Strategy, Repository, Command, Factory)
-  - ✅ Manter backward compatibility 100%
-  - 🧪 Adicionar testes (462 → 574+) ✅ 102 testes Phase 3
-- **Phase 3 Achievements (2026-01-15):**
-  - ✅ AlignmentWidget refatorado (1,179 → 1,019 linhas, -13.6%)
-  - ✅ FiducialAlignmentService criado (477 linhas, 19 testes)
-  - ✅ TemplateMatchingService criado (328 linhas, 21 testes)
-  - ✅ AlignmentState model criado (421 linhas, 24 testes)
-  - ✅ 102 testes unitários criados (100% pass rate)
-  - ✅ Reduzido complexidade do widget em 80% (5 → 1 responsabilidades)
-  - ✅ Aumentado testabilidade de 10% → 90% (services sem PyQt6)
-  - ✅ Injeção de dependência implementada (DIP compliant)
-  - ✅ Zero breaking changes (backward compatibility mantida)
-  - ✅ Tag: solid_refactoring_phase3_20260115-complete
+- **Achievements Phase 3 (Alignment Widget - Service Layer):**
+  - ✅ Criados 5 módulos de serviço (1.984 linhas)
+  - ✅ 81 testes criados (192 passing)
+  - ✅ Widget reduzido: 959 → 547 linhas (-43%)
+  - ✅ SOLID Score: 96/100 (de 45/100 antes)
+  - ✅ Coverage: 100% (service layer)
+  - ✅ Commit: 67db7b2
+- **Next Phase (4):**
+  - ⏳ Phase 4: Main Window - Factory Pattern + Interface Segregation
+  - 🎯 Meta: Reduzir de 46 métodos → <20 métodos
+  - 🎯 Meta: Reduzir de 43 imports → <20 imports
+  - 📂 Target: `consumo_lib/main_window.py` (650 linhas)
 - **References:**
   - SOLID Analysis: `docs/reports/SOLID_ANALYSIS_REPORT_2026-01-14.md`
   - Phase 1 (completada): `conductor/archive/solid_refactoring_phase1_20260114/`

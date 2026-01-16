@@ -100,6 +100,19 @@ from consumo_lib.utils.main_window import (
     MainWindowInspectionWorkflow
 )
 
+# NOVO (Fase 4): Factories para injeção de dependência
+from consumo_lib.factories import TabFactory, ControllerFactory, HardwareFactory
+
+# NOVO (Fase 4): Facades para interfaces simplificadas
+from consumo_lib.facades import (
+    HardwareConnectionFacade,
+    PositionManagerFacade,
+    AuthenticationManager
+)
+
+# NOVO (Fase 4): SequenceManager
+from consumo_lib.managers.sequence_manager import SequenceManager
+
 
 class AOIControllerApp(QMainWindow):
     """
@@ -188,7 +201,12 @@ class AOIControllerApp(QMainWindow):
         NOTA:
         - _app_state e _initializer já foram inicializados antes do SetupCoordinator.setup()
         - setup_ui(), setup_menu() e _attempt_auto_connect() já foram chamados pelo SetupCoordinator
+
+        NOVO (Fase 4): Injeta factories e cria facades para baixo acoplamento.
         """
+        # ─────────────────────────────────────────────────────────────────────
+        # Componentes modulares básicos
+        # ─────────────────────────────────────────────────────────────────────
         # Componente 1: Estado da aplicação (já criado, agora configurar referências)
         self._app_state.set_references(self, self.auth_service)
 
@@ -204,7 +222,74 @@ class AOIControllerApp(QMainWindow):
         # Componente 5: Workflow de inspeção
         self._inspection_workflow = MainWindowInspectionWorkflow(self, self._app_state)
 
-        logger.info("Componentes modulares da MainWindow inicializados")
+        # ─────────────────────────────────────────────────────────────────────
+        # NOVO (Fase 4): Factories para criar componentes
+        # ─────────────────────────────────────────────────────────────────────
+        # Obtém controller e config do SetupCoordinator
+        # NOTA: SetupCoordinator define self.controller e self.config na window
+        controller = self.controller
+        config = self.config
+
+        # Factory 1: TabFactory - cria abas da aplicação
+        self._tab_factory = TabFactory(
+            controller,
+            config,
+            self.stencil_tracker,
+            self
+        )
+
+        # Factory 2: ControllerFactory - cria controllers
+        self._controller_factory = ControllerFactory(
+            controller,
+            config,
+            self
+        )
+
+        # Factory 3: HardwareFactory - cria componentes de hardware
+        self._hardware_factory = HardwareFactory(
+            controller,
+            config,
+            self
+        )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # NOVO (Fase 4): Facades para interfaces simplificadas
+        # ─────────────────────────────────────────────────────────────────────
+        # Facade 1: HardwareConnectionFacade - gerencia conexões de hardware
+        connection_manager = self._hardware_factory.create_connection_manager()
+        self.hardware_facade = HardwareConnectionFacade(
+            connection_manager,
+            self
+        )
+
+        # Facade 2: PositionManagerFacade - gerencia posições de inspeção
+        position_controller = self._controller_factory.create_position_manager_controller()
+        self.position_facade = PositionManagerFacade(
+            position_controller,
+            self
+        )
+
+        # Facade 3: AuthenticationManager - gerencia autenticação e permissões
+        from consumo_lib.managers.auth_config_manager import AuthConfigManager
+        auth_config_manager = AuthConfigManager(
+            config_manager=config,
+            role_manager=self.role_manager if hasattr(self, 'role_manager') else None,
+            auth_service=self.auth_service
+        )
+        self.auth_manager = AuthenticationManager(
+            self.auth_service,
+            auth_config_manager,
+            self
+        )
+
+        # Manager: SequenceManager - gerencia sequências de inspeção
+        sequence_controller = self._controller_factory.create_sequence_controller()
+        self.sequence_manager = SequenceManager(
+            sequence_controller,
+            self
+        )
+
+        logger.info("Componentes modulares da MainWindow inicializados (com factories e facades)")
 
     def __getattr__(self, name):
         """
@@ -262,91 +347,90 @@ class AOIControllerApp(QMainWindow):
         """
         Exibe dialog de login e aguarda autenticação.
 
+        NOVO (Fase 4): Delega para AuthenticationManager.
+
         Returns:
             True se login foi bem-sucedido, False se cancelado
         """
-        login_dialog = LoginDialog(self.auth_service, self)
-        result = login_dialog.exec()
-
-        if result == QDialog.DialogCode.Accepted:
-            user = self.auth_service.get_current_user()
-            logger.info(f"Usuário logado: {user}")
-            QTimer.singleShot(100, self._apply_role_permissions)
-            return True
+        if hasattr(self, 'auth_manager'):
+            return self.auth_manager.show_login_dialog()
         else:
-            return False
+            # Fallback para implementação legada (enquanto auth_manager não está disponível)
+            login_dialog = LoginDialog(self.auth_service, self)
+            result = login_dialog.exec()
+
+            if result == QDialog.DialogCode.Accepted:
+                user = self.auth_service.get_current_user()
+                logger.info(f"Usuário logado: {user}")
+                QTimer.singleShot(100, self._apply_role_permissions)
+                return True
+            else:
+                return False
 
     def _perform_auto_login(self, default_role: str):
         """
         Realiza auto-login com o papel padrão configurado.
 
+        NOVO (Fase 4): Delega para AuthenticationManager.
+
         Args:
             default_role: Papel (role) padrão para auto-login
         """
-        try:
-            # Valida role
-            from aoi_lib.auth.user import UserRole
+        if hasattr(self, 'auth_manager'):
+            self.auth_manager.perform_auto_login(default_role)
+        else:
+            # Fallback para implementação legada
             try:
-                role_enum = UserRole(default_role)
-            except ValueError:
-                logger.warning(f"Role inválido para auto-login: {default_role}, usando 'operator'")
-                role_enum = UserRole.OPERATOR
-                default_role = "operator"
+                # Valida role
+                from aoi_lib.auth.user import UserRole
+                try:
+                    role_enum = UserRole(default_role)
+                except ValueError:
+                    logger.warning(f"Role inválido para auto-login: {default_role}, usando 'operator'")
+                    role_enum = UserRole.OPERATOR
+                    default_role = "operator"
 
-            # Busca usuário padrão para o role
-            # Mapeamento: operator → operator, engineering → eng, quality → quality, admin → admin
-            role_to_user = {
-                "operator": "operator",
-                "engineering": "eng",
-                "quality": "quality",
-                "admin": "admin"
-            }
+                # Busca usuário padrão para o role
+                role_to_user = {
+                    "operator": "operator",
+                    "engineering": "eng",
+                    "quality": "quality",
+                    "admin": "admin"
+                }
 
-            username = role_to_user.get(default_role, "operator")
+                username = role_to_user.get(default_role, "operator")
 
-            # Autentica com o usuário padrão
-            # Senha padrão: operator123, eng123, quality123, admin123
-            password_map = {
-                "operator": "operator123",
-                "eng": "eng123",
-                "quality": "quality123",
-                "admin": "admin123"
-            }
+                # Autentica com o usuário padrão
+                password_map = {
+                    "operator": "operator123",
+                    "eng": "eng123",
+                    "quality": "quality123",
+                    "admin": "admin123"
+                }
 
-            password = password_map.get(username, "operator123")
+                password = password_map.get(username, "operator123")
 
-            success = self.auth_service.authenticate(username, password)
-
-            if success:
-                user = self.auth_service.get_current_user()
-                logger.info(f"✅ Auto-login realizado com sucesso: {user} (role: {default_role})")
-
-                # Aplica permissões do role
-                QTimer.singleShot(100, self._apply_role_permissions)
-            else:
-                logger.error(f"❌ Falha no auto-login para usuário {username}, mostrando dialog de login")
-
-                # Se auto-login falhar, mostra dialog de login
-                if not self.show_login_dialog():
-                    logger.info("Login cancelado pelo usuário, fechando aplicação")
-                    sys.exit(0)
-
-        except Exception as e:
-            logger.error(f"Erro ao realizar auto-login: {e}")
-            logger.info("Mostrando dialog de login como fallback")
-
-            # Se ocorrer erro, mostra dialog de login
-            if not self.show_login_dialog():
-                logger.info("Login cancelado pelo usuário, fechando aplicação")
-                sys.exit(0)
+                if self.auth_service.authenticate(username, password):
+                    logger.info(f"Auto-login bem-sucedido: {username} ({default_role})")
+                    QTimer.singleShot(100, self._apply_role_permissions)
+                else:
+                    logger.warning(f"Falha no auto-login para {username}, mostrando diálogo")
+                    self.show_login_dialog()
+            except Exception as e:
+                logger.error(f"Erro ao realizar auto-login: {e}")
+                self.show_login_dialog()
 
     def _apply_role_permissions(self):
         """
-        Aplica permissões de acesso baseadas no role do usuário.
+        Aplica permissões baseadas no role do usuário.
 
-        Delega para MainWindowState.
+        NOVO (Fase 4): Delega para AuthenticationManager.
         """
-        self._app_state.apply_role_permissions()
+        if hasattr(self, 'auth_manager'):
+            self.auth_manager.apply_role_permissions()
+        else:
+            # Fallback para implementação legada
+            self._app_state.apply_role_permissions()
 
     # =========================================================================
     # WORKFLOWS (Delegação para componentes modulares)
