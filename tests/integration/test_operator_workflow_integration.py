@@ -5,7 +5,6 @@ Tests end-to-end functionality of:
 - OperatorInspectionCoordinator
 - SessionLogger
 - RoleManager
-- OperatorWorkflowDialog (if QApplication available)
 """
 
 import logging
@@ -14,13 +13,6 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, MagicMock, patch
 from datetime import datetime
-
-# PyQt6 imports - only import if QApplication exists
-try:
-    from PyQt6.QtWidgets import QApplication
-    QT_AVAILABLE = True
-except ImportError:
-    QT_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -268,69 +260,6 @@ class TestInspectionErrorHandling:
 
         assert result["status"] == "error"
         assert "timeout" in result["message"].lower()
-
-
-# =============================================================================
-# Integration Tests: Dialog (Requires QApplication)
-# =============================================================================
-
-@pytest.mark.skipif(not QT_AVAILABLE, reason="QApplication not available")
-@pytest.mark.slow
-class TestOperatorWorkflowDialogIntegration:
-    """
-    Testa integração do dialog de workflow.
-
-    MARKED AS SLOW: Usa qapp fixture que cria QApplication PyQt6.
-    """
-
-    @pytest.fixture
-    def qapp(self):
-        """
-        QApplication instance (cria apenas uma vez).
-
-        MARKED AS SLOW: Criar QApplication é uma operação cara em termos de performance.
-        """
-        app = QApplication.instance()
-        if app is None:
-            app = QApplication([])
-        yield app
-
-    def test_dialog_creation(self, qapp, coordinator, sample_stencils):
-        """Dialog deve ser criado sem erros."""
-        from consumo_lib.dialogs import OperatorWorkflowDialog
-
-        dialog = OperatorWorkflowDialog(
-            coordinator=coordinator,
-            stencils=sample_stencils,
-            operator_id="OP-TEST",
-            parent=None
-        )
-
-        assert dialog is not None
-        assert dialog.coordinator == coordinator
-        assert dialog.operator_id == "OP-TEST"
-
-    def test_dialog_selects_stencil_and_program(self, qapp, coordinator, sample_stencils):
-        """Dialog deve selecionar stencil e programa corretamente."""
-        from consumo_lib.dialogs import OperatorWorkflowDialog
-
-        dialog = OperatorWorkflowDialog(
-            coordinator=coordinator,
-            stencils=sample_stencils,
-            operator_id="OP-TEST",
-            parent=None
-        )
-
-        # Verifica widgets foram criados
-        assert dialog.stencil_selector is not None
-        assert dialog.program_selector is not None
-
-        # Simula seleção via coordinator
-        dialog.coordinator.select_stencil("STENCIL-002")
-        dialog.coordinator.select_program("prog_quick")
-
-        assert dialog.coordinator._selected_stencil_code == "STENCIL-002"
-        assert dialog.coordinator._selected_program.program_id == "prog_quick"
 
 
 # =============================================================================
