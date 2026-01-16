@@ -3,11 +3,12 @@
   "name": "Recipe Dialogs Refactoring - Single Responsibility Principle",
   "type": "refactor",
   "priority": "MEDIUM",
-  "status": "in_progress",
+  "status": "complete",
   "created_at": "2026-01-16T12:00:00Z",
-  "updated_at": "2026-01-16T12:00:00Z",
-  "current_phase": "1",
+  "updated_at": "2026-01-16T13:00:00Z",
+  "current_phase": "5",
   "total_phases": 5,
+  "completed_at": "2026-01-16T13:00:00Z",
   "description": "Refatorar consumo_lib/dialogs/recipe_dialogs.py (881 linhas) aplicando Single Responsibility Principle (SRP) para separar em 3 arquivos focados.",
   "objectives": [
     "Separar RecipeListWidget em arquivo próprio",
@@ -19,34 +20,38 @@
   "phases": {
     "1": {
       "name": "Análise do arquivo atual",
-      "status": "in_progress",
-      "tasks_completed": 0,
+      "status": "complete",
+      "tasks_completed": 2,
       "total_tasks": 2,
       "checkpoint_sha": null
     },
     "2": {
       "name": "Separar RecipeListWidget",
-      "status": "pending",
-      "tasks_completed": 0,
-      "total_tasks": 2
+      "status": "complete",
+      "tasks_completed": 2,
+      "total_tasks": 2,
+      "checkpoint_sha": null
     },
     "3": {
       "name": "Separar RecipeEditorDialog",
-      "status": "pending",
-      "tasks_completed": 0,
-      "total_tasks": 2
+      "status": "complete",
+      "tasks_completed": 2,
+      "total_tasks": 2,
+      "checkpoint_sha": null
     },
     "4": {
       "name": "Separar RecipeManagerDialog",
-      "status": "pending",
-      "tasks_completed": 0,
-      "total_tasks": 2
+      "status": "complete",
+      "tasks_completed": 2,
+      "total_tasks": 2,
+      "checkpoint_sha": null
     },
     "5": {
       "name": "Testes e Documentação",
-      "status": "pending",
-      "tasks_completed": 0,
-      "total_tasks": 4
+      "status": "complete",
+      "tasks_completed": 4,
+      "total_tasks": 4,
+      "checkpoint_sha": "bf78ac3"
     }
   },
   "metrics": {
