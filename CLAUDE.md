@@ -154,6 +154,31 @@ tensiometro/
   - `facades/authentication_manager.py` - Interface simplificada para autenticação e permissões
 - **Padrões Aplicados:** Factory Pattern, Facade Pattern, Interface Segregation, Dependency Injection
 - **Commit:** `bc44e16` - conductor(phase4): Refatorar main_window com Factory Pattern + Interface Segregation
+
+**PLC Controllers Refactoring (NOVO - Fase 5):**
+- `plc/interfaces/` - Interfaces ABC para controle PLC (7 interfaces)
+  - `plc/interfaces/plc_connection_interface.py` - Contrato para gerenciamento de conexão Modbus TCP
+  - `plc/interfaces/plc_absolute_movement_interface.py` - Contrato para movimento absoluto
+  - `plc/interfaces/plc_relative_movement_interface.py` - Contrato para movimento relativo
+  - `plc/interfaces/plc_jog_movement_interface.py` - Contrato para movimento Jog contínuo
+  - `plc/interfaces/plc_homing_interface.py` - Contrato para operações de homing
+  - `plc/interfaces/plc_position_reader_interface.py` - Contrato para leitura de posição
+  - `plc/interfaces/plc_register_interface.py` - Contrato para operações de registradores Modbus
+- `plc/controllers/` - Controllers especializados implementando interfaces (7 controllers)
+  - `plc/controllers/plc_connection_manager.py` - Gerencia conexão Modbus TCP (130 linhas)
+  - `plc/controllers/plc_absolute_movement_controller.py` - Movimento absoluto (295 linhas)
+  - `plc/controllers/plc_relative_movement_controller.py` - Movimento relativo (159 linhas)
+  - `plc/controllers/plc_jog_movement_controller.py` - Movimento Jog contínuo (166 linhas)
+  - `plc/controllers/plc_homing_controller.py` - Operações de homing (144 linhas)
+  - `plc/controllers/plc_position_reader_controller.py` - Leitura de posição (158 linhas)
+  - `plc/controllers/plc_registers_controller.py` - Operações de registradores + backlight (352 linhas)
+- **Padrões Aplicados:** Interface Segregation Principle (ISP), Single Responsibility Principle (SRP), Dependency Injection
+- **Metas:** Reduzir de 37 métodos → 3-8 métodos por interface, manter 100% backward compatibility via Adapter Pattern
+- **Testes:** 92 testes unitários criados (100% mockado, sem dependência de hardware)
+- **Commits:**
+  - `f09deee` - Fase 1: Interfaces ABC
+  - `34fd038` - Fase 2: Controllers especializados (1.404 linhas)
+  - `f49bcfa` - Fase 3: Testes unitários (92 testes)
 - `camera_controller.py` - OpenCV USB camera interface with real-time preview
 - `tensiometer/` - AS-120N tension sensor serial communication (refactored 2026-01-14)
   - `models.py` - Data structures (GridPoint, TensionMeasurement, GridParameters, MeasurementSession)
