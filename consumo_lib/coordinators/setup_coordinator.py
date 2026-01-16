@@ -28,392 +28,85 @@ class SetupCoordinator:
         - Configurar timers e auto-connect
     """
 
-    def __init__(self, main_window_class):
+    def __init__(self, main_window_class, factories=None):
         """
         Inicializa o coordenador de setup.
 
         Args:
             main_window_class: Classe AOIControllerApp (não instância ainda)
+            factories: Dict com factories opcionais (Dependency Injection)
+                    Se None, cria factories internamente (backward compatibility)
         """
         self.main_window_class = main_window_class
         self.window = None  # Será definido em setup()
 
+        # Dependency Injection: usa factories fornecidas ou cria defaults
+        if factories is None:
+            from consumo_lib.factories import ApplicationComponentsFactory
+            self.factory = ApplicationComponentsFactory()
+        else:
+            self.factory = factories
+
+        logger.debug("SetupCoordinator inicializado com ApplicationComponentsFactory")
+
     def setup(self, window):
         """
-        Executa todo o setup da aplicação.
+        Executa todo o setup da aplicação usando factories.
 
         Args:
             window: Instância de AOIControllerApp já criada com super().__init__()
         """
         self.window = window
 
-        # Ordem de setup é crítica!
-        self._setup_basic_config()              # 1. Config básica
-        self._setup_core_controller()            # 2. Controller CNC principal
-        self._setup_managers()                  # 3. Managers (recipe, stencil, report, inspection)
-        self._setup_coordinators()              # 4. Coordinators (dependem de managers)
-        self._setup_handlers()                  # 5. Handlers de UI
-        self._setup_controllers()               # 6. Controllers
-        self._setup_services()                  # 7. Services
-        self._setup_camera_config()             # 8. Config de câmera
-        self._setup_ui()                        # 9. Interface gráfica
-        self._setup_dependent_controllers()     # 10. Controllers que dependem de UI
-        self._setup_keyboard_handler()          # 11. Handler de teclado
-        self._setup_menu()                      # 12. Menu
-        self._setup_signals()                   # 13. Conectar todos os signals
-        self._setup_ui_state()                  # 14. Estado inicial da UI
-        self._setup_auto_connect()              # 15. Auto-connect
-        self._setup_timers()                    # 16. Timers
+        # Usar factory para criar todos os componentes de uma vez
+        # Ordem de criação é gerenciada internamente pela factory
+        all_components = self.factory.create_all_components(window)
 
-        logger.info("Setup da aplicação concluído com sucesso")
+        # Armazenar referências aos componentes na window para compatibilidade
+        # com código existente que acessa window.{componente}
+        for key, value in all_components.items():
+            setattr(self.window, key, value)
 
-    def _setup_basic_config(self):
-        """Configuração básica da janela."""
+        # Ordem de setup é crítica! Executar métodos na ordem correta
+        self._setup_basic_config_dependencies()     # 1. Config dependências
+        self._setup_camera_config_dependencies()      # 2. Camera config dependências
+        self._setup_ui()                            # 3. Interface gráfica
+        self._setup_dependent_controllers()         # 4. Controllers dependentes de UI
+        self._setup_keyboard_handler_dependencies()   # 5. Keyboard handler dependências
+        self._setup_menu()                          # 6. Menu
+        self._setup_signals_dependencies()          # 7. Signals dependencies
+        self._setup_ui_state()                       # 8. Estado inicial da UI
+        self._setup_auto_connect()                   # 9. Auto-connect
+        self._setup_timers()                         # 10. Timers
+
+        logger.info("Setup da aplicação concluído com sucesso via factories")
+
+    def _setup_basic_config_dependencies(self):
+        """
+        Configuração básica da janela (usa config criado pela factory).
+
+        Nota: config já foi criado pela factory, apenas configura a janela.
+        """
         self.window.setWindowTitle("Controle de Inspeção Óptica Automatizada")
         self.window.setGeometry(100, 100, 1200, 800)
 
-        # Carrega configurações do usuário
-        from aoi_lib.config_manager import AOIConfigManager
-        self.window.config = AOIConfigManager()
+        logger.debug("Configuração básica concluída (config via factory)")
 
-        logger.debug("Configuração básica concluída")
+    # NOTA: Os métodos _setup_core_controller, _setup_managers, _setup_coordinators,
+    # _setup_handlers, _setup_controllers, _setup_services foram removidos na Fase 8
+    # porque a ApplicationComponentsFactory agora cria todos esses componentes.
+    # A ordem de criação é gerenciada internamente pela factory.
 
-    def _setup_core_controller(self):
-        """Inicializa o controller principal (CNCAOIController)."""
-        from aoi_lib import CNCAOIController
+    # NOTA: Os métodos _setup_coordinators, _setup_managers, _setup_handlers,
+    # _setup_controllers, _setup_services foram removidos na Fase 8
+    # porque a ApplicationComponentsFactory agora cria todos esses componentes.
 
-        plc_host = self.window.config.get("connections", "plc_host", default="192.168.1.5")
-        plc_port = self.window.config.get("connections", "plc_port", default=502)
+    def _setup_camera_config_dependencies(self):
+        """
+        Carrega configurações de câmera (usa config criado pela factory).
 
-        logger.debug("Inicializando CNCAOIController com PLCAxisController (sem conexão automática)")
-        self.window.controller = CNCAOIController(
-            plc_host=plc_host,
-            plc_port=plc_port,
-            auto_connect=False
-        )
-
-        logger.debug(
-            "CNCAOIController inicializado; backend = %s",
-            type(self.window.controller.cnc).__name__
-        )
-
-    def _setup_coordinators(self):
-        """Cria todos os coordinators."""
-        from consumo_lib.coordinators import ConnectionCoordinator, InspectionCoordinator, TensionCoordinator, OperatorInspectionCoordinator
-        from consumo_lib.managers import ConnectionManager
-
-        # Connection Manager (gerencia PLC, GRBL, serial ports)
-        self.window.connection_mgr = ConnectionManager(
-            self.window.controller,
-            self.window.config
-        )
-
-        # Connection Coordinator (gerencia estados de conexão)
-        self.window.connection_coordinator = ConnectionCoordinator(
-            self.window.controller,
-            self.window.config
-        )
-
-        # Inspection Coordinator
-        self.window.inspection_coordinator = InspectionCoordinator(
-            self.window.controller,
-            self.window.config,
-            self.window.inspection_manager  # Criado em _setup_managers
-        )
-
-        # Tension Coordinator
-        self.window.tension_coordinator = TensionCoordinator(
-            self.window.controller,
-            self.window.config
-        )
-
-        # Operator Inspection Coordinator (NOVO - Operator Workflow Fase 2)
-        # Nota: role_manager e session_logger são criados em _setup_managers
-        self.window.operator_inspection_coordinator = OperatorInspectionCoordinator(
-            inspection_coordinator=self.window.inspection_coordinator,
-            role_manager=self.window.role_manager,
-            session_logger=self.window.session_logger
-        )
-        logger.debug("OperatorInspectionCoordinator criado")
-
-        logger.debug("Coordinators criados: connection, inspection, tension, operator_inspection")
-
-    def _setup_managers(self):
-        """Cria todos os managers (recipe, stencil, report, inspection, role, session)."""
-        from consumo_lib.managers import (
-            RecipeManagerWrapper, StencilManagerWrapper, ReportManagerWrapper, InspectionManager,
-            RoleManager, SessionLogger
-        )
-        from consumo_lib.controllers import RecipeManagerController
-
-        # Estado interno
-        self.window.current_sequence = None
-        self.window.is_running_sequence = False
-
-        # Role Manager (NOVO - Operator Workflow Fase 2)
-        self.window.role_manager = RoleManager()
-        logger.debug("RoleManager criado")
-
-        # Session Logger (NOVO - Operator Workflow Fase 2)
-        from pathlib import Path
-        log_dir = Path(self.window.config.cfg_path).parent / "data" / "sessions"
-        self.window.session_logger = SessionLogger(log_dir=str(log_dir))
-        logger.debug(f"SessionLogger criado com log_dir={log_dir}")
-
-        # Recipe Manager
-        self.window.recipe_manager_wrapper = RecipeManagerWrapper(parent=self.window)
-        self.window.recipe_manager = self.window.recipe_manager_wrapper.recipe_manager
-        self.window.current_recipe = None
-
-        # RecipeManagerController (depende de recipe_manager)
-        try:
-            self.window.recipe_manager_controller = RecipeManagerController(
-                self.window.recipe_manager,
-                self.window.recipe_manager_wrapper,
-                self.window
-            )
-            # Configura handlers de UI no próprio controller
-            self.window.recipe_manager_controller.setup_ui_handlers()
-            logger.debug("RecipeManagerController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar RecipeManagerController: {e}")
-            self.window.recipe_manager_controller = None
-
-        # Stencil Manager
-        self.window.stencil_manager_wrapper = StencilManagerWrapper(parent=self.window)
-        self.window.stencil_tracker = self.window.stencil_manager_wrapper.stencil_tracker
-        self.window.current_stencil = None
-
-        # Configura handlers de UI do StencilManagerWrapper
-        self.window.stencil_manager_wrapper.setup_ui_handlers(self.window)
-        logger.debug("StencilManagerWrapper UI handlers configurados")
-
-        # Report Manager
-        self.window.report_manager_wrapper = ReportManagerWrapper(
-            self.window.config,
-            parent=self.window
-        )
-        self.window.report_config = self.window.report_manager_wrapper.get_config()
-        self.window.report_generator = self.window.report_manager_wrapper.get_generator()
-
-        # Inspection Manager
-        self.window.inspection_manager = InspectionManager(
-            self.window.config,
-            parent=self.window
-        )
-        self.window.inspection_thresholds = self.window.inspection_manager.get_thresholds()
-        self.window.stencil_inspector = self.window.inspection_manager.get_inspector()
-        self.window._last_inspection_result = None
-        self.window._last_inspection_overlay = None
-
-        logger.debug("Managers criados: recipe, stencil, report, inspection")
-
-    def _setup_handlers(self):
-        """Cria todos os handlers."""
-        from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, DialogRouter
-
-        logger.info("🔧 _setup_handlers() INICIADO")
-
-        # KeyboardEventHandler (será configurado após setup_ui)
-        logger.info("🎹 Criando KeyboardEventHandler...")
-        self.window.keyboard_handler = KeyboardEventHandler()
-        logger.info(f"✅ KeyboardEventHandler criado: {self.window.keyboard_handler}")
-
-        # MenuHandler (será configurado em setup_menu)
-        self.window.menu_handler = MenuHandler(main_window=self.window)
-
-        # GRBLCallbackHandler
-        self.window.grbl_callback_handler = GRBLCallbackHandler(self.window)
-
-        # DialogRouter
-        self.window.dialog_router = DialogRouter(self.window)
-
-        logger.info("✅ Handlers criados: keyboard, menu, grbl_callback, dialog_router")
-
-    def _setup_controllers(self):
-        """Cria todos os controllers que não dependem de UI."""
-        from consumo_lib.controllers import (
-            MapController,
-            CameraSettingsController,
-            CalibrationController,
-            InspectionUIController,
-            ReportDialogController,
-            SequenceController,
-            FiducialAlignmentController,
-            TensionMeasurementController,
-            DialogManagerController
-        )
-
-        # Map Controller
-        try:
-            self.window.map_controller = MapController(
-                self.window.controller,
-                self.window.config,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.map_controller.setup_ui_handlers()
-            logger.debug("MapController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar MapController: {e}")
-            self.window.map_controller = None
-
-        # Camera Settings Controller
-        try:
-            self.window.camera_settings_controller = CameraSettingsController(
-                self.window.controller,
-                self.window.config,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.camera_settings_controller.setup_ui_handlers()
-            logger.debug("CameraSettingsController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar CameraSettingsController: {e}")
-            self.window.camera_settings_controller = None
-
-        # Calibration Controller
-        try:
-            self.window.calibration_controller = CalibrationController(
-                self.window.controller,
-                self.window.config,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.calibration_controller.setup_ui_handlers()
-            logger.debug("CalibrationController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar CalibrationController: {e}")
-            self.window.calibration_controller = None
-
-        # Inspection UI Controller
-        try:
-            self.window.inspection_ui_controller = InspectionUIController(
-                self.window.inspection_manager,
-                self.window.config,
-                self.window
-            )
-            # Configura handlers de UI no próprio controller
-            self.window.inspection_ui_controller.setup_ui_handlers()
-            logger.debug("InspectionUIController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar InspectionUIController: {e}")
-            self.window.inspection_ui_controller = None
-
-        # Report Dialog Controller
-        try:
-            self.window.report_dialog_controller = ReportDialogController(
-                self.window.report_manager_wrapper,
-                self.window.stencil_manager_wrapper,
-                self.window.stencil_tracker,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.report_dialog_controller.setup_ui_handlers()
-            logger.debug("ReportDialogController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar ReportDialogController: {e}")
-            self.window.report_dialog_controller = None
-
-        # Sequence Controller
-        try:
-            self.window.sequence_controller = SequenceController(
-                self.window.controller,
-                self.window
-            )
-            logger.debug("SequenceController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar SequenceController: {e}")
-            self.window.sequence_controller = None
-
-        # Fiducial Alignment Controller
-        try:
-            self.window.fiducial_alignment_controller = FiducialAlignmentController(
-                self.window.config,
-                self.window.controller.camera,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.fiducial_alignment_controller.setup_ui_handlers()
-            logger.debug("FiducialAlignmentController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar FiducialAlignmentController: {e}")
-            self.window.fiducial_alignment_controller = None
-
-        # ConnectionManagerController será criado após setupUI()
-        self.window.connection_manager_controller = None
-
-        # Tension Measurement Controller
-        try:
-            self.window.tension_measurement_controller = TensionMeasurementController(
-                self.window.controller,
-                self.window.config,
-                self.window.stencil_manager_wrapper,
-                self.window
-            )
-            # Configura handlers de UI no próprio controller
-            self.window.tension_measurement_controller.setup_ui_handlers()
-            logger.debug("TensionMeasurementController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar TensionMeasurementController: {e}")
-            self.window.tension_measurement_controller = None
-
-        # Dialog Manager Controller
-        try:
-            self.window.dialog_manager_controller = DialogManagerController(
-                self.window.stencil_manager_wrapper,
-                self.window.report_manager_wrapper,
-                self.window.report_config,
-                self.window.controller,
-                self.window
-            )
-            logger.debug("DialogManagerController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar DialogManagerController: {e}")
-            self.window.dialog_manager_controller = None
-
-        logger.debug("Controllers independentes de UI criados")
-
-    def _setup_services(self):
-        """Cria todos os services."""
-        from consumo_lib.services import SequenceExecutionService, ResourceManager
-
-        # Sequence Execution Service
-        try:
-            self.window.sequence_execution_service = SequenceExecutionService(
-                self.window.controller,
-                self.window
-            )
-            logger.debug("SequenceExecutionService criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar SequenceExecutionService: {e}")
-            self.window.sequence_execution_service = None
-
-        # Connect signals from SequenceExecutionService
-        if self.window.sequence_execution_service is not None:
-            self.window.sequence_execution_service.image_captured.connect(
-                self.window.on_sequence_image_captured
-            )
-            self.window.sequence_execution_service.sequence_completed.connect(
-                self.window.on_sequence_completed
-            )
-            self.window.sequence_execution_service.sequence_error.connect(
-                self.window.on_sequence_error
-            )
-            logger.debug("Signals de SequenceExecutionService conectados")
-
-        # Resource Manager
-        try:
-            self.window.resource_manager = ResourceManager(self.window.controller)
-            logger.debug("ResourceManager criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar ResourceManager: {e}")
-            self.window.resource_manager = None
-
-        logger.debug("Services criados: sequence_execution, resource")
-
-    def _setup_camera_config(self):
-        """Carrega configurações de câmera salvas."""
+        Nota: config já foi criado pela factory, apenas lê as configurações.
+        """
         self.window._camera_mirror_x = self.window.config.get(
             "camera",
             "mirror_x",
@@ -425,76 +118,46 @@ class SetupCoordinator:
             default=False
         )
         logger.debug(
-            f"Configurações de câmera carregadas: "
+            f"Configurações de câmera carregadas (via factory): "
             f"mirror_x={self.window._camera_mirror_x}, "
             f"mirror_y={self.window._camera_mirror_y}"
         )
-
     def _setup_ui(self):
         """Configura a interface gráfica."""
         self.window.setup_ui()
         logger.debug("UI criada via setup_ui()")
 
     def _setup_dependent_controllers(self):
-        """Cria controllers que dependem de widgets da UI."""
-        from consumo_lib.controllers import FileIOController, PositionManagerController
-
-        # Configura widgets da UI no ConnectionManager para leitura de valores PLC
-        # Isso permite que o ConnectionManager leia diretamente os valores digitados
-        # pelo usuário antes de conectar (corrige bug de configurações não aplicadas)
-        if hasattr(self.window, 'connection_mgr') and hasattr(self.window, 'plc_host_input') and hasattr(self.window, 'plc_port_input'):
-            self.window.connection_mgr.set_ui_widgets(
-                plc_host_input=self.window.plc_host_input,
-                plc_port_input=self.window.plc_port_input
-            )
-            logger.debug("Widgets PLC configurados no ConnectionManager")
-
-        # File IO Controller
-        try:
-            self.window.file_io_controller = FileIOController(
-                self.window.controller,
-                self.window.position_list_widget,
-                self.window.sequence_widget,
-                self.window
-            )
-            logger.debug("FileIOController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar FileIOController: {e}")
-            self.window.file_io_controller = None
-
-        # Position Manager Controller
-        try:
-            self.window.position_manager_controller = PositionManagerController(
-                self.window.controller,
-                self.window.position_list_widget,
-                self.window
-            )
-            # Configura handlers de UI
-            self.window.position_manager_controller.setup_ui_handlers()
-            logger.debug("PositionManagerController criado com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar PositionManagerController: {e}")
-            self.window.position_manager_controller = None
-
-        logger.debug("Controllers dependentes de UI criados")
-
-    def _setup_keyboard_handler(self):
         """
-        Configura KeyboardEventHandler após setup_ui.
+        Cria controllers que dependem de widgets da UI (via factory).
 
-        Instala o eventFilter global para capturar eventos de teclado
-        e redirecionar para o MovementControlWidget quando o checkbox
-        "Enable Keyboard Control" estiver marcado.
+        Nota: Usa factory.create_dependent_controllers() que chama ControllersFactory.
         """
-        logger.info("🎹 _setup_keyboard_handler() INICIADO")
+        # Chamar factory para criar controllers dependentes de UI
+        dependent_controllers = self.factory.create_dependent_controllers(self.window)
 
-        # Verificar se keyboard_handler existe
+        # Armazenar na window para compatibilidade
+        for key, value in dependent_controllers.items():
+            setattr(self.window, key, value)
+
+        logger.debug(f"Controllers dependentes de UI criados via factory: {len(dependent_controllers)} componentes")
+
+
+    def _setup_keyboard_handler_dependencies(self):
+        """
+        Configura KeyboardEventHandler após setup_ui (usa handler criado pela factory).
+
+        Instala o eventFilter global para capturar eventos de teclado.
+        """
+        logger.info("🎹 _setup_keyboard_handler_dependencies() INICIADO")
+
+        # Verificar se keyboard_handler existe (criado pela factory)
         if not hasattr(self.window, 'keyboard_handler'):
-            logger.error("❌ window.keyboard_handler NÃO EXISTE!")
+            logger.error("❌ window.keyboard_handler NÃO EXISTE (não foi criado pela factory)!")
             return
-        logger.info(f"✅ keyboard_handler existe: {self.window.keyboard_handler}")
+        logger.info(f"✅ keyboard_handler existe via factory: {self.window.keyboard_handler}")
 
-        # O movement_widget está exposto diretamente na window (veja ui_builders.py:304)
+        # O movement_widget está exposto diretamente na window
         # self.window.movement_widget = self.window.cnc_control_tab.movement_widget
         if hasattr(self.window, 'movement_widget') and self.window.movement_widget is not None:
             logger.info(f"✅ movement_widget existe na window: {self.window.movement_widget}")
@@ -532,9 +195,9 @@ class SetupCoordinator:
         self.window.setup_menu()
         logger.debug("Menu configurado")
 
-    def _setup_signals(self):
+    def _setup_signals_dependencies(self):
         """
-        Configura signals distribuídos pelos controllers.
+        Configura signals distribuídos pelos controllers (criados pela factory).
 
         ANTES: SignalAggregator centralizava todos os handlers (anti-pattern)
         DEPOIS: Cada controller gerencia seus próprios handlers via setup_ui_handlers()
@@ -551,7 +214,6 @@ class SetupCoordinator:
         """
         # SignalAggregator removido - cada controller gerencia seus próprios handlers
         logger.debug("Signal handlers configurados via setup_ui_handlers() em cada controller")
-
 
     def _setup_ui_state(self):
         """Configura estado inicial da UI."""
