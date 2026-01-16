@@ -4,18 +4,20 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-## 🔄 Track: UI Refactor - Move Controls to Backup Tab (IN PROGRESS) <!-- 2026-01-16 -->
-*Link: [./conductor/tracks/ui_refactor_controls_to_tab_20260116/](./conductor/tracks/ui_refactor_controls_to_tab_20260116/)*
+## [x] Track: UI Refactor - Move Controls to Backup Tab (archived) <!-- 2026-01-16 -->
+*Link: [./conductor/archive/ui_refactor_controls_to_tab_20260116/](./conductor/archive/ui_refactor_controls_to_tab_20260116/)*
 - **Track ID:** ui_refactor_controls_to_tab_20260116
-- **Status:** 📋 New (Ready to start)
+- **Status:** ✅ Complete (archived)
 - **Priority:** 🟡 MEDIUM
 - **Type:** Refactor
 - **Created:** 2026-01-16
-- **Est. Duration:** 2-3 days
-- **Phases:** 7 (Analysis → Create Tab → Update Layout → Preserve Connections → Testing → Documentation → Release)
-- **Plan:** ./tracks/ui_refactor_controls_to_tab_20260116/plan.md
-- **Spec:** ./tracks/ui_refactor_controls_to_tab_20260116/spec.md
-- **Metadata:** ./tracks/ui_refactor_controls_to_tab_20260116/metadata.json
+- **Completed:** 2026-01-16
+- **Est. Duration:** ~2 hours
+- **Actual Duration:** ~2 hours (muito mais rápido que estimado!)
+- **Phases:** 7/7 complete
+- **Plan:** ./archive/ui_refactor_controls_to_tab_20260116/plan.md
+- **Spec:** ./archive/ui_refactor_controls_to_tab_20260116/spec.md
+- **Metadata:** ./archive/ui_refactor_controls_to_tab_20260116/metadata.json
 - **Description:**
   - Remover painel esquerdo da janela principal
   - Mover controles do painel esquerdo para nova aba "Backup de Controles"
