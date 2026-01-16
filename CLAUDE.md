@@ -207,6 +207,34 @@ tensiometro/
 **Entry Point:**
 - `main_window.py` (1,060 lines) - Main orchestrator that coordinates all tabs and modules
 
+**UI Layout Structure (Refactored 2026-01-16):**
+- **Main Layout:** QHBoxLayout com QTabWidget ocupando todo o espaço central
+- **NO left panel** - Painel esquerdo removido, controles movidos para aba dedicada
+- **Abas Principais:**
+  - 📷 Câmera & Movimento (CNCControlTab + MovementControlWidget integrado)
+  - 📋 Programas (TreeViewTab)
+  - 🖥️ Monitor CLP (PLCMonitorWidget)
+  - 📊 Visualização de Tensão (TensionTab)
+  - 🏷️ Rastreabilidade (TrackingTab)
+  - 🔍 Inspeção (InspectionTab)
+  - 🗺️ Mapa (MapTab)
+  - 📦 **Backup de Controles** ⭐ **NOVA** (2026-01-16)
+    - Contém: PositionListWidget, SequenceControlWidget, ResultsTable
+    - Acessa: Menu → Clicar na aba "Backup de Controles"
+    - Propósito: Agrupar controles legacy que estavam no painel esquerdo
+
+**UI Builder:**
+- `consumo_lib/ui_builders/ui_builders.py` - MainUIBuilder
+- `build_ui()` - Simplificado (removeu splitter, usa QHBoxLayout)
+- `_build_backup_controls_tab()` - NOVO método (cria aba com controles legacy)
+
+**Migration Notes (2026-01-16):**
+- **Breaking Changes:** None
+- **User Action:** None - controles automaticamente movidos para nova aba
+- **Access:** Clicar na aba "📦 Backup de Controles" para acessar controles legacy
+- **Preservado:** Todas as conexões signal/slot, toda funcionalidade mantida
+- **Benefícios:** Interface mais limpa, maior espaço para conteúdo das abas
+
 **Fiducial Alignment Widget (REFACTORED 2026-01-15):**
 - `fiducial_alignment_widget.py` (547 lines, reduced from 959 lines, -43%)
 - Now uses `FiducialAlignmentAdapter` for all business logic
