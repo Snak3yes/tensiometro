@@ -60,7 +60,7 @@ class ControllerFactory:
 
         seq_controller = SequenceController(
             self.controller,
-            self.config
+            parent=self.main_window  # parent é o main_window, não config
         )
 
         logger.debug("SequenceController criado")
