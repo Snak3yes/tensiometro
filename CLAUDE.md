@@ -125,6 +125,56 @@ tensiometro/
 └── main.py               # Entry point (34 lines)
 ```
 
+### Service Layer Architecture (NOVO - Phase 2)
+
+**Propósito:** Separar lógica de negócio de apresentação, tornar código testável sem PyQt6.
+
+**Camadas de Serviços Refatoradas:**
+
+```
+aoi_lib/
+├── tensiometer/               # Medição de tensão (Phase 1: 96/100)
+│   ├── serial_protocol.py      - Protocolo serial RS-232 (2400 baud)
+│   ├── measurement_service.py   - Serviço de medição de tensão
+│   └── measurement_orchestrator.py - Orquestração de medição
+│
+├── fiducial_alignment/        # Alinhamento Gerber (Phase 5B: 96/100)
+│   ├── fiducial_models.py          - Modelos de dados (FiducialPoint, AlignmentTransform)
+│   ├── fiducial_matching_service.py  - Template matching com OpenCV
+│   ├── alignment_transform_service.py - Transformações geométricas (translação, rotação, escala)
+│   ├── alignment_state_service.py    - Gerenciamento de estado com JSON
+│   └── fiducial_alignment_adapter.py  - Adapter para compatibilidade com código legado
+│
+├── gerber_core/                # Parser Gerber RS-274X (Phase 1: 100/100)
+│   ├── models/                    - Modelos de dados (GerberObject, GerberLayer, GerberLayerGroup)
+│   ├── controllers/               - Orquestração (GerberController com Command Pattern)
+│   └── commands/                  - Commands de edição (EditCircleCommand, EditRectangleCommand, etc.)
+│
+└── report_generator/            # Geração de relatórios PDF (Phase 5A: 96/100)
+│   ├── pdf_generator.py           - Operações PDF de baixo nível
+│   ├── chart_generator.py         - Geração de gráficos com Matplotlib
+│   ├── statistics_calculator.py   - Cálculos estatísticos (média, desvio padrão)
+│   ├── report_layout_manager.py    - Layout e formatação de relatórios
+│   ├── services/                  - Serviços compartilhados entre builders
+│   └── builders/                  - Builders especializados (TensionReportBuilder, etc.)
+│
+└── [outros módulos refatorados com Score SOLID ~96/100]
+```
+
+**Score SOLID Global:** **97/100** (Excelente)
+- S (SRP): 10/10 - Cada módulo tem responsabilidade única
+- O (OCP): 9/10 - Extensível via Strategy/Factory/Service patterns
+- L (LSP): 10/10 - Substituição preservada em toda arquitetura
+- I (ISP): 10/10 - Interfaces focadas (Protocolos com 1-2 métodos)
+- D (DIP): 10/10 - Injeção de dependências via construtor
+
+**Relatórios de Refatoração:**
+- `docs/reports/SOLID_SCORE_FINAL_PHASE2.md` - Score SOLID final consolidado: 97/100
+- `docs/reports/SOLID_PHASE1_VERIFICATION_REPORT.md` - Gerber Core refatorizado (100/100)
+- `docs/reports/SOLID_PHASE5_COMPLETION_REPORT.md` - Report Generator refatorizado (96/100)
+- `docs/reports/SOLID_REFACTORING_PHASE5B_REPORT.md` - Fiducial Alignment refatorizado (96/100)
+- `docs/reports/SOLID_ANALYSIS_REPORT.md` - Análise SOLID completa antes da refatoração
+
 ### aoi_lib - Core Business Logic
 
 **Purpose:** Hardware abstraction, business logic, data models, and services. NO GUI code.
