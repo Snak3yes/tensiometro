@@ -603,6 +603,94 @@ O sistema suporta configuração de autenticação com auto-login opcional:
 
 ---
 
+### Engineering Wizard Free Navigation Mode (2026-01-17)
+
+O Engineering Wizard suporta modo de navegação livre para testes e debug:
+
+**Location:** Menu Engenharia → Configurações de Autenticação → Configurações do Engineering Wizard
+
+**Configuration file:** `config/aoi_config.json`
+```json
+{
+  "engineering_wizard": {
+    "free_navigation_enabled": false,
+    "last_used_mode": "normal"
+  }
+}
+```
+
+**Fields:**
+- `free_navigation_enabled`: If `true`, habilita navegação livre entre todas as abas. Default: `false`
+- `last_used_mode`: Rastreia último modo usado (normal|free)
+
+**Feature Description:**
+Quando habilitado, o modo de navegação livre remove as travas sequenciais do Engineering Wizard, permitindo:
+- Acessar qualquer aba diretamente (1-7)
+- Navegar para frente e trás sem validações
+- Testar abas específicas sem completar workflow completo
+- Demonstrar funcionalidades para stakeholders
+
+**Behavior Comparison:**
+
+| Aspect | Normal Mode | Free Navigation Mode |
+|--------|--------------|----------------------|
+| **Abas habilitadas** | Apenas aba atual | Todas as 7 abas |
+| **Botão Próximo** | Valida aba atual | Pula validações |
+| **Clique em aba** | Valida dependências | Permite navegação livre |
+| **Título do dialog** | "Engineering Wizard - ..." | "🔓 Engineering Wizard - ... [Navegação Livre]" |
+| **Botão Concluir** | Valida todas as abas | Valida todas as abas (igual) |
+
+**Security:**
+- ✅ Botão Concluir SEMPRE valida todas as 7 abas (ambos os modos)
+- ✅ Não é possível salvar programas incompletos em nenhum modo
+- ✅ Indicador visual (🔓) mostra quando modo livre está ativo
+- ✅ Aviso visual no dialog: "⚠️ Modo de desenvolvimento - permite ignorar validações"
+
+**Access Control:**
+- Only engineering+ users can modify free navigation setting
+- Requires password confirmation to change setting
+- All setting changes are audited in logs
+
+**Enabling Free Navigation:**
+1. Login as engineering+ user
+2. Menu: Engenharia → Configurações de Autenticação
+3. Section: "Configurações do Engineering Wizard"
+4. Checkbox: "Habilitar Navegação Livre (Testing/Debug)"
+5. Click "Aplicar" and confirm password
+6. Reopen Engineering Wizard to see effect
+
+**Use Cases:**
+- **Testing:** Testar aba específica sem completar workflow completo
+- **Debug:** Investigar problema na aba 5 sem completar abas 1-4
+- **Demo:** Mostrar funcionalidade de alinhamento para stakeholders
+- **Development:** Acelerar desenvolvimento iterativo de features
+
+**Implementation:**
+- `aoi_lib/config_manager.py`: `get_free_navigation_enabled()`, `set_free_navigation_enabled()`
+- `consumo_lib/managers/auth_config_manager.py`: Wrapper methods with password confirmation
+- `consumo_lib/dialogs/auth_settings_dialog.py`: UI checkbox and controls
+- `consumo_lib/dialogs/engineering_wizard_dialog.py`: Navigation logic respects mode
+  - `_create_tabs()`: Skips setTabEnabled() when free navigation enabled
+  - `_on_next()`: Skips validation in free navigation mode
+  - `_on_tab_changed()`: Allows any navigation in free navigation mode
+  - `_on_finish()`: Validates all tabs in BOTH modes (security preserved)
+
+**Testing:**
+- Unit tests: `tests/unit/test_free_navigation_config.py` (5 tests)
+- Unit tests: `tests/unit/test_free_navigation_auth_config.py` (5 tests)
+- Unit tests: `tests/unit/test_free_navigation_dialog.py` (5 tests)
+- Unit tests: `tests/unit/test_free_navigation_wizard.py` (6 tests)
+- Unit tests: `tests/unit/test_free_navigation_finish.py` (4 tests)
+- Total: 25 tests, 100% passing
+
+**Important Notes:**
+- ⚠️ Free navigation mode is for DEVELOPMENT/TESTING only
+- ⚠️ Production use should ALWAYS use normal mode
+- ⚠️ Finish button validation CANNOT be bypassed in any mode
+- ⚠️ Configuration persists across application restarts
+
+---
+
 ## Domain-Specific Technical Details
 
 ### Coordinate Systems
