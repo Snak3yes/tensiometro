@@ -348,7 +348,13 @@ class GerberPreviewWidget(QGraphicsView):
         command = self._undo_stack.pop()
         command.undo()
         self._redo_stack.append(command)
-        logger.info(f"Undo executado: índice {command.index}")
+
+        # Log apropriado para cada tipo de comando
+        if isinstance(command, CompositeCommand):
+            logger.info(f"Undo executado: {command.name}")
+        else:
+            logger.info(f"Undo executado: índice {command.index}")
+
         self._notify_undo_redo_state()
 
     def redo(self) -> None:
@@ -360,7 +366,13 @@ class GerberPreviewWidget(QGraphicsView):
         command = self._redo_stack.pop()
         command.execute()
         self._undo_stack.append(command)
-        logger.info(f"Redo executado: índice {command.index}")
+
+        # Log apropriado para cada tipo de comando
+        if isinstance(command, CompositeCommand):
+            logger.info(f"Redo executado: {command.name}")
+        else:
+            logger.info(f"Redo executado: índice {command.index}")
+
         self._notify_undo_redo_state()
 
     def _notify_undo_redo_state(self) -> None:
