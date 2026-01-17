@@ -337,6 +337,13 @@ class EngineeringWizardDialog(QDialog):
 
     def _on_cancel(self):
         """Handler para botao Cancelar."""
+        # PRIMEIRO: Restaurar MovementControlWidget ao pai original
+        try:
+            self.tab_fiducial_capture.cleanup_movement_widget()
+        except Exception as e:
+            logger.error(f"❌ Erro ao fazer cleanup de movement widget no cancel: {e}")
+
+        # Depois, processa o cancelamento normalmente
         if self.state.is_dirty:
             reply = QMessageBox.question(
                 self,
@@ -385,6 +392,12 @@ class EngineeringWizardDialog(QDialog):
 
             # Limpar auto-saves
             self._cleanup_auto_saves()
+
+            # PRIMEIRO: Restaurar MovementControlWidget ao pai original
+            try:
+                self.tab_fiducial_capture.cleanup_movement_widget()
+            except Exception as e:
+                logger.error(f"❌ Erro ao fazer cleanup de movement widget no finish: {e}")
 
             self.accept()
             logger.info("✅ Engineering Wizard concluído com sucesso")
@@ -692,6 +705,14 @@ class EngineeringWizardDialog(QDialog):
 
     def closeEvent(self, event):
         """Handler para fechamento do dialogo."""
+        # PRIMEIRO: Restaurar MovementControlWidget ao seu pai original
+        # para evitar que seja destruído junto com o dialog
+        try:
+            self.tab_fiducial_capture.cleanup_movement_widget()
+        except Exception as e:
+            logger.error(f"❌ Erro ao fazer cleanup de movement widget: {e}")
+
+        # Depois, processa o fechamento normal
         if self.state.is_dirty:
             reply = QMessageBox.question(
                 self,

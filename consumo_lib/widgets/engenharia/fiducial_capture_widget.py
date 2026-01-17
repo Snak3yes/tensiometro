@@ -296,11 +296,15 @@ class FiducialCaptureWidget(QWidget):
         # Controles de movimento (se disponível)
         if self._movement_widget is not None:
             # Usa a MESMA instância do MovementControlWidget da tela principal
+            # IMPORTANTE: Salvar o pai original para restaurar depois
+            self._movement_widget_original_parent = self._movement_widget.parent()
+            self._movement_widget_original_visible = self._movement_widget.isVisible()
+
             movement_group = QGroupBox("Controle de Movimento")
             movement_layout = QVBoxLayout(movement_group)
             movement_layout.addWidget(self._movement_widget)
             main_layout.addWidget(movement_group, 1)
-            logger.info("✅ MovementControlWidget compartilhado adicionado à aba 3")
+            logger.info("✅ MovementControlWidget compartilhado adicionado à aba 3 (pai original salvo)")
         else:
             logger.info("ℹ️ MovementControlWidget não disponível para aba 3")
 
@@ -710,3 +714,25 @@ class FiducialCaptureWidget(QWidget):
 
         self._fiducials.clear()
         self._update_status()
+
+    def cleanup_movement_widget(self):
+        """
+        Restaura o MovementControlWidget ao seu pai original antes de destruir o widget.
+
+        IMPORTANTE: Deve ser chamado antes do dialog ser fechado para evitar
+        que o MovementControlWidget seja destruído junto com o dialog.
+        """
+        if self._movement_widget is not None and hasattr(self, '_movement_widget_original_parent'):
+            try:
+                # Remover do layout atual (aba 3)
+                if self._movement_widget.parent() is not None:
+                    self._movement_widget.setParent(self._movement_widget_original_parent)
+
+                # Restaurar visibilidade original
+                self._movement_widget.setVisible(self._movement_widget_original_visible)
+
+                logger.info("✅ MovementControlWidget restaurado ao pai original")
+            except Exception as e:
+                logger.error(f"❌ Erro ao restaurar MovementControlWidget: {e}")
+        else:
+            logger.debug("ℹ️ Nenhum MovementControlWidget para restaurar")
