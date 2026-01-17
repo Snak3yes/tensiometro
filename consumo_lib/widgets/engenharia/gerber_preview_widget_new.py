@@ -63,7 +63,8 @@ class GerberPreviewWidget(QGraphicsView):
 
     # Signals para compatibilidade com código existente
     aperture_selected = pyqtSignal(dict)  # Emitido ao clicar em uma aperture
-    objectDeleteRequested = pyqtSignal(int)  # Índice do objeto para excluir
+    objectDeleteRequested = pyqtSignal(int)  # Índice do objeto para excluir (único)
+    objectDeleteManyRequested = pyqtSignal(list)  # Lista de índices para excluir (múltiplos)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -72,6 +73,9 @@ class GerberPreviewWidget(QGraphicsView):
         # Cena gráfica
         self._scene = QGraphicsScene(self)
         self.setScene(self._scene)
+
+        # Para receber eventos de teclado (Delete etc.)
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
 
         # Estado
         self._zoom = 1.0
@@ -199,6 +203,60 @@ class GerberPreviewWidget(QGraphicsView):
         transform = self.transform()
         self._zoom = transform.m11()  # fator de escala X (= Y)
 
+    def remove_object_at_index(self, index: int) -> bool:
+        """
+        Remove um objeto da cena pelo índice.
+
+        Args:
+            index: Índice do objeto a ser removido
+
+        Returns:
+            True se removido com sucesso, False caso contrário
+        """
+        # Validar índice
+        if not (0 <= index < len(self._items)):
+            logger.warning(f"Índice inválido para remoção: {index}")
+            return False
+
+        try:
+            # Remover item gráfico da cena
+            item = self._items[index]
+            self._scene.removeItem(item)
+
+            # Remover das listas internas
+            # NOTA: Não podemos remover da lista diretamente porque isso
+            # desalinharia todos os índices subsequentes. Por ora, apenas
+            # removemos da cena visual e marcamos como None.
+
+            # Na implementação atual, removemos apenas da cena visual
+            # e mantemos a lista intacta (índices não mudam)
+            # TODO: Implementar sistema de undo/redo com reconstrução de índices
+
+            logger.info(f"Objeto no índice {index} removido da cena")
+            return True
+
+        except Exception as e:
+            logger.error(f"Erro ao remover objeto no índice {index}: {e}")
+            return False
+
+    def remove_objects_at_indices(self, indices: list[int]) -> int:
+        """
+        Remove múltiplos objetos da cena pelos índices.
+
+        Args:
+            indices: Lista de índices para remover
+
+        Returns:
+            Número de objetos removidos com sucesso
+        """
+        removed_count = 0
+        for idx in sorted(indices, reverse=True):  # Reverse order para preservar índices
+            if self.remove_object_at_index(idx):
+                removed_count += 1
+
+        logger.info(f"{removed_count} objetos removidos (solicitados: {len(indices)})")
+        return removed_count
+
     def wheelEvent(self, event):
         """Zoom com scroll do mouse."""
         if not self._scene.items():
@@ -217,6 +275,9 @@ class GerberPreviewWidget(QGraphicsView):
 
     def mousePressEvent(self, event):
         """Lida com cliques do mouse."""
+        # Garante que a view receba eventos de teclado após clique
+        self.setFocus()
+
         if event.button() == Qt.MouseButton.MiddleButton:
             # Inicia pan
             self._panning = True
@@ -252,6 +313,44 @@ class GerberPreviewWidget(QGraphicsView):
             event.accept()
         else:
             super().mouseMoveEvent(event)
+
+    def keyPressEvent(self, event):
+        """
+        Permite excluir objetos selecionados com a tecla Delete/Backspace.
+        A confirmação é tratada pelo GerberUploadWidget.
+        """
+        key = event.key()
+        if key in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace):
+            items = self._scene.selectedItems()
+            if not items:
+                event.accept()
+                return
+
+            # Coletar índices dos itens selecionados
+            indices: set[int] = set()
+            for it in items:
+                try:
+                    idx = int(it.data(0))
+                    indices.add(idx)
+                except Exception:
+                    logger.exception("Erro ao obter índice do item")
+
+            indices_sorted = sorted(indices)
+            try:
+                if len(indices_sorted) == 1:
+                    # Exclusão simples
+                    self.objectDeleteRequested.emit(indices_sorted[0])
+                else:
+                    # Exclusão em grupo
+                    self.objectDeleteManyRequested.emit(indices_sorted)
+            except Exception:
+                logger.exception("Erro ao emitir signal de exclusão")
+
+            event.accept()
+            return
+
+        # Teclas não tratadas: comportamento padrão
+        super().keyPressEvent(event)
 
     def mouseReleaseEvent(self, event):
         """Finaliza pan."""

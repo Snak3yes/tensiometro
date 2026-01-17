@@ -220,6 +220,8 @@ class GerberUploadWidget(QWidget):
         """Conecta signals."""
         self.btn_upload.clicked.connect(self._on_upload_clicked)
         self.preview_widget.aperture_selected.connect(self._on_aperture_selected)
+        self.preview_widget.objectDeleteRequested.connect(self._on_object_delete_requested)
+        self.preview_widget.objectDeleteManyRequested.connect(self._on_objects_delete_many_requested)
         self.btn_remove.clicked.connect(self._on_remove_clicked)
         self.btn_undo.clicked.connect(self._on_undo_clicked)
 
@@ -393,11 +395,95 @@ class GerberUploadWidget(QWidget):
     def _on_remove_clicked(self):
         """Handler do botão remover."""
         # TODO: Implementar remoção da última aperture selecionada
-        self.preview_widget.undo_remove()  # Simplificado por enquanto
+        # Por ora, usa o método de compatibilidade
+        self.preview_widget.undo_remove()
 
     def _on_undo_clicked(self):
         """Handler do botão desfazer."""
         self.preview_widget.undo_remove()
+
+    def _on_object_delete_requested(self, index: int):
+        """
+        Handler quando usuário solicita exclusão de um objeto (Delete/Backspace).
+
+        Args:
+            index: Índice do objeto a ser excluído
+        """
+        try:
+            # Confirmar exclusão
+            reply = QMessageBox.question(
+                self,
+                "Confirmar Exclusão",
+                f"Deseja realmente excluir o objeto no índice {index}?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Remover objeto da cena
+                success = self.preview_widget.remove_object_at_index(index)
+
+                if success:
+                    logger.info(f"Objeto {index} excluído com sucesso")
+                    # TODO: Atualizar metadados e contadores
+                else:
+                    QMessageBox.warning(
+                        self,
+                        "Erro na Exclusão",
+                        f"Não foi possível excluir o objeto {index}"
+                    )
+
+        except Exception as e:
+            logger.error(f"Erro ao excluir objeto {index}: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro na Exclusão",
+                f"Erro ao excluir objeto:\n{e}"
+            )
+
+    def _on_objects_delete_many_requested(self, indices: list[int]):
+        """
+        Handler quando usuário solicita exclusão de múltiplos objetos.
+
+        Args:
+            indices: Lista de índices dos objetos a serem excluídos
+        """
+        try:
+            # Confirmar exclusão
+            reply = QMessageBox.question(
+                self,
+                "Confirmar Exclusão em Lote",
+                f"Deseja realmente excluir {len(indices)} objeto(s)?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Remover objetos da cena
+                removed_count = self.preview_widget.remove_objects_at_indices(indices)
+
+                if removed_count > 0:
+                    logger.info(f"{removed_count} objetos excluídos com sucesso")
+                    QMessageBox.information(
+                        self,
+                        "Exclusão Concluída",
+                        f"{removed_count} de {len(indices)} objetos excluídos com sucesso"
+                    )
+                    # TODO: Atualizar metadados e contadores
+                else:
+                    QMessageBox.warning(
+                        self,
+                        "Erro na Exclusão",
+                        "Nenhum objeto foi excluído"
+                    )
+
+        except Exception as e:
+            logger.error(f"Erro ao excluir objetos: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro na Exclusão",
+                f"Erro ao excluir objetos:\n{e}"
+            )
 
     def get_gerber_data(self) -> Dict:
         """
