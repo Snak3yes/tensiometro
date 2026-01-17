@@ -149,6 +149,11 @@ class AOIControllerApp(QMainWindow):
         # NOVO - Carrega configuração primeiro (para auto-login)
         self.config_manager = AOIConfigManager()
 
+        # NOVO - FASE 4: Criar RoleManager para verificação de permissões
+        from consumo_lib.managers.role_manager import RoleManager
+        self.role_manager = RoleManager()
+        logger.info(f"RoleManager criado: role={self.role_manager.get_current_role()}")
+
         # NOVO - FASE 1: Autenticação de usuário (com auto-login)
         self.auth_service = AuthService()
 
