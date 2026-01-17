@@ -55,7 +55,6 @@ class MainWindowEngineeringWorkflow:
         Cria EngineeringHardwareCoordinator com os controllers de hardware disponíveis
         e abre o diálogo com 7 abas para criar programa de inspeção completo.
         """
-        print("🚀 [DEBUG] ENTRANDO EM open_wizard() - engineering_workflow.py")
         logger.info("Abrindo Engineering Wizard")
 
         try:
@@ -88,14 +87,8 @@ class MainWindowEngineeringWorkflow:
             )
 
             # Busca CNCControlTab diretamente na MainWindow (criada pelo MainUIBuilder)
-            print("🔍 [DEBUG] Buscando CNCControlTab...")
             cnc_control_tab = getattr(self.main_window, 'cnc_control_tab', None)
-            print(f"🔍 [DEBUG] hasattr cnc_control_tab: {cnc_control_tab is not None}")
-
-            if cnc_control_tab is not None:
-                print(f"✅ CNCControlTab encontrada: {type(cnc_control_tab).__name__}")
-            else:
-                print("⚠️ CNCControlTab não encontrada na MainWindow")
+            logger.debug(f"CNCControlTab encontrada: {cnc_control_tab is not None}")
 
             # Cria e abre diálogo passando CNCControlTab
             dialog = EngineeringWizardDialog(

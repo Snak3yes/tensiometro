@@ -12,6 +12,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Import para registro de atualização de posição
+try:
+    from consumo_lib.utils.main_window.app_state import register_movement_widget, unregister_movement_widget
+    _REGISTRY_AVAILABLE = True
+except ImportError:
+    # Fallback para compatibilidade
+    _REGISTRY_AVAILABLE = False
+    logger.warning("Registro de MovementControlWidgets não disponível")
+
 class MovementControlWidget(QWidget):
     """
     Widget for controlling CNC movement (jog).
@@ -33,13 +42,18 @@ class MovementControlWidget(QWidget):
         self.controller = controller
         self.cfg = cfg
         self.orchestrator = orchestrator
-        
+
         # Fallback para compatibilidade se orchestrator não for passado
         if self.orchestrator is None:
             # Tenta usar o antigo movement_service se passado como kwarg ou cria um novo orchestrator
             # Aqui vamos assumir que se não passou, criamos um novo baseado no controller
             logger.warning("MovementOrchestrator não fornecido, criando instância local.")
             self.orchestrator = MovementOrchestrator(controller, cfg)
+
+        # Registrar este widget para receber atualizações de posição
+        if _REGISTRY_AVAILABLE:
+            register_movement_widget(self)
+            logger.debug("MovementControlWidget registrado para atualizações de posição")
 
         self.setup_ui()
         
@@ -449,3 +463,17 @@ class MovementControlWidget(QWidget):
             else:
                 QMessageBox.critical(self, "Erro", f"Falha no desbloqueio: {result.error_message}")
                 self.emergency_stop_button.setChecked(True)
+
+    def closeEvent(self, event):
+        """
+        Limpeza quando widget é fechado.
+
+        Remove do registro de MovementControlWidgets para evitar memory leaks.
+        """
+        # Remover do registro de atualizações de posição
+        if _REGISTRY_AVAILABLE:
+            unregister_movement_widget(self)
+            logger.debug("MovementControlWidget removido do registro")
+
+        # Chamar implementação base
+        super().closeEvent(event)

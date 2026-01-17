@@ -8,14 +8,63 @@ Responsabilidades:
 - Gerenciar permissões baseadas em roles
 - Atualizar displays de posição
 - Fornecer acesso ao usuário atual
+- Registrar MovementControlWidgets para atualização sincronizada
 
 Author: Refactoring (2026-01-14)
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List, WeakMethod
+from weakref import WeakSet
+import weakref
 
 logger = logging.getLogger(__name__)
+
+
+# Registro global de MovementControlWidgets para atualização de posição
+_MOVEMENT_WIDGETS_REGISTRY = WeakSet()  # WeakSet para evitar memory leaks
+
+
+def register_movement_widget(widget):
+    """
+    Registra um MovementControlWidget para receber atualizações de posição.
+
+    Args:
+        widget: MovementControlWidget a ser registrado
+    """
+    _MOVEMENT_WIDGETS_REGISTRY.add(widget)
+    logger.debug(f"MovementControlWidget registrado: {widget}, total: {len(_MOVEMENT_WIDGETS_REGISTRY)}")
+
+
+def unregister_movement_widget(widget):
+    """
+    Remove um MovementControlWidget do registro.
+
+    Args:
+        widget: MovementControlWidget a ser removido
+    """
+    _MOVEMENT_WIDGETS_REGISTRY.discard(widget)
+    logger.debug(f"MovementControlWidget removido: {widget}, total: {len(_MOVEMENT_WIDGETS_REGISTRY)}")
+
+
+def update_all_movement_widgets(x: float, y: float, z: float, status: str = None):
+    """
+    Atualiza TODOS os MovementControlWidgets registrados.
+
+    Args:
+        x: Posição X em mm
+        y: Posição Y em mm
+        z: Posição Z em mm
+        status: Status da máquina (opcional)
+    """
+    logger.debug(f"Atualizando {len(_MOVEMENT_WIDGETS_REGISTRY)} MovementControlWidgets")
+
+    for widget in list(_MOVEMENT_WIDGETS_REGISTRY):  # list() para evitar RuntimeError durante iteração
+        try:
+            if widget is not None and hasattr(widget, 'update_position'):
+                widget.update_position(x, y, z, status)
+        except Exception as e:
+            logger.warning(f"Erro ao atualizar MovementControlWidget: {e}")
 
 
 class MainWindowState:
@@ -170,24 +219,16 @@ class MainWindowState:
 
     def _update_movement_widget_position(self):
         """
-        Atualiza display de posição no MovementControlWidget.
+        Atualiza display de posição em TODOS os MovementControlWidgets registrados.
 
-        Obtém posição atual e status do CNC e atualiza os labels dentro
-        da groupbox Movement Controls.
+        Obtém posição atual do CNC e atualiza TODOS os widgets registrados
+        (tanto da aba CNC principal quanto do Engineering Wizard).
         """
         if not self._main_window:
             return
 
-        if not hasattr(self._main_window, 'right_panel') or not self._main_window.right_panel:
-            return
-
-        # Acessar primeira aba (CNC Control)
-        cnc_tab = self._main_window.right_panel.widget(0)
-        if not cnc_tab:
-            return
-
-        # Verificar se o movimento widget existe
-        if not hasattr(cnc_tab, 'movement_widget'):
+        # Verificar se CNC está disponível
+        if not hasattr(self._main_window, 'controller') or not hasattr(self._main_window.controller, 'cnc'):
             return
 
         try:
@@ -197,15 +238,15 @@ class MainWindowState:
             # Obter status da máquina
             status = getattr(self._main_window.controller.cnc, 'machine_status', 'Desconectado')
 
-            # Atualizar widget com posição e status
-            cnc_tab.movement_widget.update_position(
+            # Atualizar TODOS os MovementControlWidgets registrados
+            update_all_movement_widgets(
                 x=pos['x'],
                 y=pos['y'],
                 z=pos.get('z', 0.0),
                 status=status
             )
         except Exception as e:
-            logger.debug(f"Erro ao atualizar posição no MovementControlWidget: {e}")
+            logger.debug(f"Erro ao atualizar posição nos MovementControlWidgets: {e}")
             # Silencioso - pode não estar conectado ainda
 
     # ─────────────────────────────────────────────────────────────────────────
