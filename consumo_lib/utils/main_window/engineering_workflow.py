@@ -86,27 +86,8 @@ class MainWindowEngineeringWorkflow:
                 f"camera={camera_ctrl is not None}, plc={plc_ctrl is not None}"
             )
 
-            # Obtém MovementControlWidget compartilhado da CNCControlTab
-            movement_widget = None
-            if hasattr(self.main_window, 'cnc_control_tab') and self.main_window.cnc_control_tab is not None:
-                cnc_tab = self.main_window.cnc_control_tab
-                if hasattr(cnc_tab, 'movement_widget') and cnc_tab.movement_widget is not None:
-                    movement_widget = cnc_tab.movement_widget
-                    logger.info("✅ MovementControlWidget compartilhado obtido da CNCControlTab")
-                else:
-                    logger.warning("⚠️ CNCControlTab não possui movement_widget")
-            else:
-                logger.warning("⚠️ CNCControlTab não disponível")
-
-            logger.debug(
-                f"MovementControlWidget: {'✅ disponível' if movement_widget is not None else '❌ não disponível'}"
-            )
-
-            # Cria e abre diálogo com MovementControlWidget compartilhado
-            dialog = EngineeringWizardDialog(
-                parent=self.main_window,
-                movement_widget=movement_widget
-            )
+            # Cria e abre diálogo (sem passar movement_widget - será obtido internamente)
+            dialog = EngineeringWizardDialog(parent=self.main_window)
 
             # Conecta signal de programa completado
             dialog.program_completed.connect(self.on_program_completed)

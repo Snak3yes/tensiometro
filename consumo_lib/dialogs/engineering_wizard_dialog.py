@@ -58,38 +58,86 @@ class EngineeringWizardDialog(QDialog):
     state_changed = pyqtSignal(object)  # EngineeringWizardState
     program_completed = pyqtSignal(dict)  # ProgramConfig
 
-    def __init__(self, parent=None, movement_widget=None):
+    def __init__(self, parent=None):
         """Inicializa o Engineering Wizard Dialog.
 
         Args:
             parent: Widget pai
-            movement_widget: MovementControlWidget compartilhado (opcional)
         """
         super().__init__(parent)
 
         self.state = EngineeringWizardState()
         self.current_tab = 0
-        self.auto_save_timer = QTimer()
+        self.auto_save_timer = QTimer()  # Removido - não necessário
 
-        # Componente de movimento compartilhado (MESMA instância da tela principal)
-        self._movement_widget = movement_widget
         self.auto_save_timer.timeout.connect(self._on_auto_save)
 
         # Carregar configuração de navegação livre
         self.config_manager = AOIConfigManager()
         self.free_navigation_mode = self.config_manager.get_free_navigation_enabled()
 
+        # NOTA: MovementControlWidget não precisa mais ser passado
+        # O FiducialCaptureWidget encontrará a CNCControlTab automaticamente
+
         self._setup_ui()
         self._connect_signals()
         self._update_ui_state()
         self._setup_keyboard_shortcuts()
         self._setup_tooltips()
+        self._update_title_for_free_navigation()
 
-        # Atualizar título com indicador de modo livre
-        if self.free_navigation_mode:
-            self._update_title_for_free_navigation()
+        # NOTA: Chamar set_wizard_mode(True) após criar abas
+        QTimer.singleShot(100, self._on_wizard_opened)
 
         logger.info(f"📋 EngineeringWizardDialog inicializado (free_navigation={self.free_navigation_mode})")
+
+    def _on_wizard_opened(self):
+        """
+        Chamado quando wizard é aberto (100ms após __init__).
+
+        Notifica a CNCControlTab para ocultar o movement_widget
+        e mostra placeholder no lugar.
+        """
+        # Buscar CNCControlTab e alternar visibilidade
+        if hasattr(self, 'tab_fiducial_capture') and self.tab_fiducial_capture is not None:
+            parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
+
+            if parent_tab is not None:
+                parent_tab.set_wizard_mode(True)
+                logger.info("📖 MovementControlWidget oculto na aba principal (wizard aberto)")
+            else:
+                logger.warning("⚠️ CNCControlTab não encontrado para notificar abertura")
+        else:
+            logger.warning("ⓖ FiducialCaptureWidget não disponível para notificar abertura")
+
+    def _find_parent_cnc_control_tab(self, widget=None):
+        """
+        Busca recursivamente pela CNCControlTab na hierarquia de widgets.
+
+        Args:
+            widget: Widget para começar a busca (padrão: self)
+
+        Returns:
+            CNCControlTab se encontrada, None caso contrário
+        """
+        if widget is None:
+            widget = self
+
+        # Se este widget é CNCControlTab, retorna
+        if widget.__class__.__name__ == 'CNCControlTab':
+            return widget
+
+        # Busca recursivamente nos filhos
+        for child in widget.findChildren(QWidget):
+            result = self._find_parent_cnc_control_tab(child)
+            if result is not None:
+                return result
+
+        # Busca no pai se existir
+        if widget.parent() is not None:
+            return self._find_parent_cnc_control_tab(widget.parent())
+
+        return None
 
     def _setup_ui(self):
         """Configura a interface do usuario."""
@@ -337,11 +385,15 @@ class EngineeringWizardDialog(QDialog):
 
     def _on_cancel(self):
         """Handler para botao Cancelar."""
-        # PRIMEIRO: Restaurar MovementControlWidget ao pai original
+        # PRIMEIRO: Notificar CNCControlTab para restaurar o movement_widget
         try:
-            self.tab_fiducial_capture.cleanup_movement_widget()
+            parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
+
+            if parent_tab is not None:
+                parent_tab.set_wizard_mode(False)
+                logger.info("✅ MovementControlWidget restaurado à aba principal (cancelamento)")
         except Exception as e:
-            logger.error(f"❌ Erro ao fazer cleanup de movement widget no cancel: {e}")
+            logger.error(f"❌ Erro ao restaurar MovementControlWidget no cancel: {e}")
 
         # Depois, processa o cancelamento normalmente
         if self.state.is_dirty:
@@ -393,11 +445,15 @@ class EngineeringWizardDialog(QDialog):
             # Limpar auto-saves
             self._cleanup_auto_saves()
 
-            # PRIMEIRO: Restaurar MovementControlWidget ao pai original
+            # PRIMEIRO: Notificar CNCControlTab para restaurar o movement_widget
             try:
-                self.tab_fiducial_capture.cleanup_movement_widget()
+                parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
+
+                if parent_tab is not None:
+                    parent_tab.set_wizard_mode(False)
+                    logger.info("✅ MovementControlWidget restaurado à aba principal (conclusão)")
             except Exception as e:
-                logger.error(f"❌ Erro ao fazer cleanup de movement widget no finish: {e}")
+                logger.error(f"❌ Erro ao restaurar MovementControlWidget na conclusão: {e}")
 
             self.accept()
             logger.info("✅ Engineering Wizard concluído com sucesso")
@@ -705,12 +761,15 @@ class EngineeringWizardDialog(QDialog):
 
     def closeEvent(self, event):
         """Handler para fechamento do dialogo."""
-        # PRIMEIRO: Restaurar MovementControlWidget ao seu pai original
-        # para evitar que seja destruído junto com o dialog
+        # PRIMEIRO: Notificar CNCControlTab para restaurar o movement_widget
         try:
-            self.tab_fiducial_capture.cleanup_movement_widget()
+            parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
+
+            if parent_tab is not None:
+                parent_tab.set_wizard_mode(False)
+                logger.info("✅ MovementControlWidget restaurado à aba principal (wizard fechado)")
         except Exception as e:
-            logger.error(f"❌ Erro ao fazer cleanup de movement widget: {e}")
+            logger.error(f"❌ Erro ao restaurar MovementControlWidget: {e}")
 
         # Depois, processa o fechamento normal
         if self.state.is_dirty:

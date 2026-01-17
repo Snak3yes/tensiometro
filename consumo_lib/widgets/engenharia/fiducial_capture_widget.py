@@ -29,6 +29,8 @@ from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap, QImage
 import numpy as np
 
+from PyQt6.QtWidgets import QStackedWidget  # Import adicionado
+
 logger = logging.getLogger(__name__)
 
 
@@ -171,14 +173,12 @@ class FiducialCaptureWidget(QWidget):
     fiducial_captured = pyqtSignal(dict)
     validation_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None, hardware_coordinator=None,
-                 movement_widget=None):
+    def __init__(self, parent=None, hardware_coordinator=None):
         """Inicializa o widget.
 
         Args:
             parent: Widget pai
             hardware_coordinator: EngineeringHardwareCoordinator (opcional)
-            movement_widget: MovementControlWidget compartilhado (opcional)
         """
         super().__init__(parent)
         logger.info("🎨 Inicializando FiducialCaptureWidget")
@@ -194,8 +194,9 @@ class FiducialCaptureWidget(QWidget):
         # Legado: camera_controller (para compatibilidade)
         self._camera_controller = None
 
-        # Controle de movimento compartilhado (MESMA instância da tela principal)
-        self._movement_widget = movement_widget
+        # NOTA: MovementControlWidget será encontrado automaticamente na CNCControlTab
+        # via busca recursiva (_find_parent_cnc_control_tab)
+        self._movement_widget = None
 
         # Setup UI
         self._setup_ui()
@@ -293,18 +294,43 @@ class FiducialCaptureWidget(QWidget):
 
         main_layout.addWidget(preview_group, 2)
 
-        # Controles de movimento (se disponível)
-        if self._movement_widget is not None:
-            # Usa a MESMA instância do MovementControlWidget da tela principal
-            # IMPORTANTE: Salvar o pai original para restaurar depois
-            self._movement_widget_original_parent = self._movement_widget.parent()
-            self._movement_widget_original_visible = self._movement_widget.isVisible()
+        # Controles de movimento (busca automática se não fornecido)
+        if self._movement_widget is None:
+            # Buscar MovementControlWidget na CNCControlTab
+            self._movement_widget = self._find_movement_widget_in_tab()
 
-            movement_group = QGroupBox("Controle de Movimento")
-            movement_layout = QVBoxLayout(movement_group)
-            movement_layout.addWidget(self._movement_widget)
-            main_layout.addWidget(movement_group, 1)
-            logger.info("✅ MovementControlWidget compartilhado adicionado à aba 3 (pai original salvo)")
+        if self._movement_widget is not None:
+            # NOTA: Não movemos o widget, apenas notificamos a CNCControlTab
+            # para alternar a visibilidade usando QStackedWidget
+
+            # Buscar na hierarquia do widget pela CNCControlTab
+            parent_tab = self._find_parent_cnc_control_tab(self)
+
+            if parent_tab is not None:
+                # Chamar método para ocultar movement_widget na aba principal
+                parent_tab.set_wizard_mode(True)
+                logger.info("📖 MovementControlWidget oculto na aba principal (wizard aberto)")
+
+                # Criar label informativo na aba 3
+                movement_group = QGroupBox("Controle de Movimento")
+                movement_layout = QVBoxLayout(movement_group)
+
+                info_label = QLabel("🎛️ Use os controles na aba 'Câmera & Movimento'")
+                info_label.setWordWrap(True)
+                info_label.setStyleSheet("""
+                    QLabel {
+                        background-color: #E3F2FD;
+                        border: 1px solid #2196F3;
+                        border-radius: 4px;
+                        padding: 10px;
+                        color: #1565C0;
+                        font-weight: bold;
+                    }
+                """)
+                movement_layout.addWidget(info_label)
+                main_layout.addWidget(movement_group, 1)
+            else:
+                logger.warning("⚠️ CNCControlTab não encontrado - não foi possível alternar visibilidade")
         else:
             logger.info("ℹ️ MovementControlWidget não disponível para aba 3")
 
@@ -715,24 +741,49 @@ class FiducialCaptureWidget(QWidget):
         self._fiducials.clear()
         self._update_status()
 
-    def cleanup_movement_widget(self):
+    def _find_parent_cnc_control_tab(self, widget=None):
         """
-        Restaura o MovementControlWidget ao seu pai original antes de destruir o widget.
+        Busca recursivamente pela CNCControlTab na hierarquia de widgets.
 
-        IMPORTANTE: Deve ser chamado antes do dialog ser fechado para evitar
-        que o MovementControlWidget seja destruído junto com o dialog.
+        Args:
+            widget: Widget para começar a busca (padrão: self)
+
+        Returns:
+            CNCControlTab se encontrada, None caso contrário
         """
-        if self._movement_widget is not None and hasattr(self, '_movement_widget_original_parent'):
-            try:
-                # Remover do layout atual (aba 3)
-                if self._movement_widget.parent() is not None:
-                    self._movement_widget.setParent(self._movement_widget_original_parent)
+        if widget is None:
+            widget = self
 
-                # Restaurar visibilidade original
-                self._movement_widget.setVisible(self._movement_widget_original_visible)
+        # Se este widget é CNCControlTab, retorna
+        if widget.__class__.__name__ == 'CNCControlTab':
+            return widget
 
-                logger.info("✅ MovementControlWidget restaurado ao pai original")
-            except Exception as e:
-                logger.error(f"❌ Erro ao restaurar MovementControlWidget: {e}")
-        else:
-            logger.debug("ℹ️ Nenhum MovementControlWidget para restaurar")
+        # Busca recursivamente nos filhos
+        for child in widget.findChildren(QWidget):
+            result = self._find_parent_cnc_control_tab(child)
+            if result is not None:
+                return result
+
+        # Busca no pai se existir
+        if widget.parent() is not None:
+            return self._find_parent_cnc_control_tab(widget.parent())
+
+        return None
+
+    def _find_movement_widget_in_tab(self):
+        """
+        Busca o MovementControlWidget dentro da CNCControlTab.
+
+        Returns:
+            MovementControlWidget se encontrada, None caso contrário
+        """
+        # Primeiro, encontrar a CNCControlTab
+        cnc_tab = self._find_parent_cnc_control_tab()
+
+        if cnc_tab is not None:
+            # Buscar por movement_widget dentro da aba
+            if hasattr(cnc_tab, 'movement_widget') and cnc_tab.movement_widget is not None:
+                return cnc_tab.movement_widget
+
+        logger.debug("ℹ️ MovementControlWidget não encontrado na CNCControlTab")
+        return None

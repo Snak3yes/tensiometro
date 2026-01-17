@@ -7,8 +7,8 @@ Aba de controle CNC e visualização de câmera.
 from __future__ import annotations
 
 import logging
-from PyQt6.QtWidgets import QWidget, QHBoxLayout
-from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout, QLabel, QStackedWidget
+from PyQt6.QtCore import pyqtSignal, Qt
 
 from .base_tab import BaseTab
 
@@ -106,19 +106,55 @@ class CNCControlTab(BaseTab):
         self.camera_preview.image_captured.connect(self._on_image_captured)
         tab_layout.addWidget(self.camera_preview, 3)  # Proporção 3
 
-        # Right side: movement controls (menor espaço)
-        cm_left_panel = QWidget()
-        cm_left_layout = QHBoxLayout(cm_left_panel)
-        cm_left_layout.setContentsMargins(0, 0, 0, 0)
+        # Right side: movement controls com QStackedWidget
+        # Permite alternar visibilidade do movement_widget sem movê-lo
+        # Camada 0: Widget de movimento visível em modo normal
+        # Camada 1: Placeholder quando wizard está aberto
+        from PyQt6.QtWidgets import QStackedWidget
+
+        self.movement_stack = QStackedWidget()
+        self.movement_stack.setMinimumSize(200, 400)
+
+        # CAMADA 0: Widget de movimento visível em modo normal
+        normal_widget = QWidget()
+        normal_layout = QVBoxLayout(normal_widget)
+        normal_layout.setContentsMargins(0, 0, 0, 0)
 
         self.movement_widget = MovementControlWidget(
             self.controller,
             self.config_manager,
-            orchestrator=self.orchestrator  # Passa o novo orchestrator
+            orchestrator=self.orchestrator
         )
-        cm_left_layout.addWidget(self.movement_widget)
+        normal_layout.addWidget(self.movement_widget)
 
-        tab_layout.addWidget(cm_left_panel, 1)  # Proporção 1
+        self.movement_stack.addWidget(normal_widget)
+
+        # CAMADA 1: Placeholder quando wizard está aberto
+        wizard_placeholder_widget = QWidget()
+        wizard_layout = QVBoxLayout(wizard_placeholder_widget)
+        wizard_layout.setContentsMargins(10, 10, 10, 10)
+
+        wizard_label = QLabel("Controle de movimento disponível na aba 3\ndo Engineering Wizard")
+        wizard_label.setWordWrap(True)
+        wizard_label.setStyleSheet("""
+            QLabel {
+                background-color: #FFF3CD;
+                border: 1px solid #FFC107;
+                border-radius: 4px;
+                padding: 10px;
+                color: #856404;
+                font-weight: bold;
+            }
+        """)
+        wizard_layout.addWidget(wizard_label)
+        wizard_layout.addStretch()
+
+        self.movement_stack.addWidget(wizard_placeholder_widget)
+
+        # Mostrar camada 0 por padrão (modo normal)
+        self.movement_stack.setCurrentIndex(0)
+
+        tab_layout.addWidget(self.movement_stack, 1)  # Proporção 1
 
         # Adiciona o layout ao layout da classe base
         self.layout.addLayout(tab_layout)
@@ -138,3 +174,19 @@ class CNCControlTab(BaseTab):
         """Atualiza o preview da câmera."""
         if hasattr(self.camera_preview, 'refresh'):
             self.camera_preview.refresh()
+
+    def set_wizard_mode(self, wizard_open: bool):
+        """
+        Alterna a visibilidade do movement_widget baseado no estado do wizard.
+
+        Args:
+            wizard_open: True se wizard está aberto, False se está fechado
+        """
+        if wizard_open:
+            # Wizard aberto: Mostra placeholder (camada 1)
+            self.movement_stack.setCurrentIndex(1)
+            logger.info("📖 MovementControlWidget oculto (wizard aberto)")
+        else:
+            # Wizard fechado: Mostra movement_widget (camada 0)
+            self.movement_stack.setCurrentIndex(0)
+            logger.info("✅ MovementControlWidget visível (wizard fechado)")
