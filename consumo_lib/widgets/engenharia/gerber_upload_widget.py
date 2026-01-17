@@ -8,7 +8,6 @@ Funcionalidades:
 - Upload de arquivo .gbr/.ger/.txt
 - Preview vetorial com zoom/pan
 - Limpeza interativa de aperturas
-- Detecção automática de fiduciais
 - Extração de métricas (dimensões, contagem)
 
 Autor: Claude Code (Sonnet 4.5)
@@ -17,13 +16,13 @@ Data: 2026-01-13
 
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QPushButton, QLabel, QGroupBox, QFileDialog,
-    QListWidget, QListWidgetItem, QMessageBox, QSplitter, QDialog
+    QMessageBox, QSplitter, QDialog
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint, QRectF
 from PyQt6.QtGui import QColor
@@ -44,8 +43,6 @@ class GerberMetadata:
     file_size: int
     dimensions: Tuple[float, float]  # (width_mm, height_mm)
     aperture_count: int
-    fiducial_count: int
-    fiducial_positions: List[Dict]  # [{'x': float, 'y': float, 'd': float}, ...]
     unit: str = 'mm'
 
     def to_dict(self) -> Dict:
@@ -59,8 +56,6 @@ class GerberMetadata:
                 'height_mm': self.dimensions[1]
             },
             'aperture_count': self.aperture_count,
-            'fiducial_count': self.fiducial_count,
-            'fiducial_positions': self.fiducial_positions,
             'unit': self.unit
         }
 
@@ -84,7 +79,6 @@ class GerberUploadWidget(QWidget):
         # Estado
         self._gerber_metadata: Optional[GerberMetadata] = None
         self._apertures = []
-        self._fiducials = []
         self._is_valid = False
         self._selected_aperture_index: Optional[int] = None  # Armazena índice da última seleção
 
@@ -171,18 +165,11 @@ class GerberUploadWidget(QWidget):
         self.lbl_size = QLabel("💾 Tamanho: -")
         self.lbl_dimensions = QLabel("📐 Dimensões: -")
         self.lbl_apertures = QLabel("🔳 Aperturas: 0")
-        self.lbl_fiducials = QLabel("🎯 Fiduciais: 0")
 
         for lbl in [self.lbl_filename, self.lbl_size, self.lbl_dimensions,
-                    self.lbl_apertures, self.lbl_fiducials]:
+                    self.lbl_apertures]:
             lbl.setStyleSheet("padding: 5px;")
             info_layout.addWidget(lbl)
-
-        # Lista de fiduciais detectados
-        info_layout.addWidget(QLabel("Fiduciais Detectados:"))
-        self.list_fiducials = QListWidget()
-        self.list_fiducials.setMaximumHeight(150)
-        info_layout.addWidget(self.list_fiducials)
 
         # Controles de limpeza
         cleanup_group = QGroupBox("Limpeza")
@@ -281,11 +268,6 @@ class GerberUploadWidget(QWidget):
                 dimensions=(result.stats.bounds.width if result.stats.bounds else 0.0,
                           result.stats.bounds.height if result.stats.bounds else 0.0),
                 aperture_count=len(result.objects),
-                fiducial_count=len(result.fiducial_candidates),
-                fiducial_positions=[
-                    {'x': f.x_mm, 'y': f.y_mm, 'd': f.diameter_mm if f.diameter_mm else 1.5}
-                    for f in result.fiducial_candidates
-                ],
                 unit='mm'
             )
 
@@ -303,8 +285,7 @@ class GerberUploadWidget(QWidget):
             # Atualizar status
             self.status_label.setText(
                 f"✅ Gerber carregado: {path.name} - "
-                f"{self._gerber_metadata.aperture_count} objetos, "
-                f"{self._gerber_metadata.fiducial_count} fiduciais"
+                f"{self._gerber_metadata.aperture_count} objetos"
             )
             self.status_label.setStyleSheet("""
                 QLabel {
@@ -355,28 +336,17 @@ class GerberUploadWidget(QWidget):
                     'height': 0.5
                 })
 
-        # Detectar fiduciais mock
-        self._fiducials = [
-            {'x': 0.0, 'y': 0.0, 'd': 1.5},
-            {'x': 100.0, 'y': 0.0, 'd': 1.5},
-            {'x': 0.0, 'y': 50.0, 'd': 1.5},
-            {'x': 100.0, 'y': 50.0, 'd': 1.5}
-        ]
-
         # Criar metadados
         self._gerber_metadata = GerberMetadata(
             file_path=file_path,
             file_name=path.name,
             file_size=path.stat().st_size,
             dimensions=(100.0, 50.0),
-            aperture_count=len(self._apertures),
-            fiducial_count=len(self._fiducials),
-            fiducial_positions=self._fiducials
+            aperture_count=len(self._apertures)
         )
 
         # Atualizar preview
         self.preview_widget.set_apertures(self._apertures)
-        self.preview_widget.set_fiducials(self._fiducials)
         self.preview_widget.fit_to_view()
 
     def _update_info_display(self):
@@ -389,15 +359,6 @@ class GerberUploadWidget(QWidget):
         w, h = self._gerber_metadata.dimensions
         self.lbl_dimensions.setText(f"📐 Dimensões: {w:.1f} x {h:.1f} mm")
         self.lbl_apertures.setText(f"🔳 Aperturas: {self._gerber_metadata.aperture_count}")
-        self.lbl_fiducials.setText(f"🎯 Fiduciais: {self._gerber_metadata.fiducial_count}")
-
-        # Atualizar lista de fiduciais
-        self.list_fiducials.clear()
-        for i, fid in enumerate(self._fiducials):
-            item = QListWidgetItem(
-                f"Fiducial {i+1}: X={fid['x']:.1f}, Y={fid['y']:.1f}"
-            )
-            self.list_fiducials.addItem(item)
 
     def _on_aperture_selected(self, aperture: Dict):
         """

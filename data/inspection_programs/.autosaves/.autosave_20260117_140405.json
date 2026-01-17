@@ -1,0 +1,23 @@
+{
+  "program_data": {
+    "program_name": "lskdjflskjdf",
+    "stencil_code": "123123",
+    "description": "",
+    "version": "v1.0",
+    "created_by": "engineer",
+    "created_at": "2026-01-17T13:58:13.727795"
+  },
+  "gerber_file": null,
+  "gerber_data": null,
+  "fiducial_templates": [],
+  "mosaic_image_path": null,
+  "mosaic_config": null,
+  "alignment_transform": null,
+  "inspection_groups": [],
+  "program_config": null,
+  "current_tab": 1,
+  "is_dirty": true,
+  "auto_save_path": "data\\inspection_programs\\.autosaves\\.autosave_20260117_140205.json",
+  "created_at": "2026-01-17T13:58:05.845284",
+  "updated_at": "2026-01-17T13:58:13.727795"
+}
