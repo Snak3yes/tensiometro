@@ -129,6 +129,46 @@ class AuthenticationSettingsDialog(QDialog):
 
         layout.addWidget(login_group)
 
+        # Grupo: Configurações do Engineering Wizard
+        engineering_group = QGroupBox("Configurações do Engineering Wizard")
+        engineering_layout = QFormLayout(engineering_group)
+
+        # Checkbox: Habilitar navegação livre
+        self.chk_free_navigation = QCheckBox(
+            "Habilitar Navegação Livre (Testing/Debug)"
+        )
+        self.chk_free_navigation.setToolTip(
+            "Permite navegar livremente entre todas as abas do Engineering Wizard "
+            "sem necessidade de completar validações sequencialmente."
+        )
+        self.chk_free_navigation.stateChanged.connect(self.on_config_changed)
+        engineering_layout.addRow("", self.chk_free_navigation)
+
+        # Descrição
+        free_nav_desc = QLabel(
+            "Quando habilitado, remove as travas de navegação sequencial, "
+            "permitindo acessar qualquer aba diretamente."
+        )
+        free_nav_desc.setWordWrap(True)
+        free_nav_desc.setStyleSheet("color: #666; font-size: 11px; padding: 5px;")
+        engineering_layout.addRow("", free_nav_desc)
+
+        # Aviso
+        free_nav_warning = QLabel(
+            "⚠️ Modo de desenvolvimento - permite ignorar validações"
+        )
+        free_nav_warning.setWordWrap(True)
+        free_nav_warning.setStyleSheet(
+            "color: #856404; "
+            "background-color: #fff3cd; "
+            "padding: 8px; "
+            "border-radius: 4px; "
+            "font-weight: bold;"
+        )
+        engineering_layout.addRow("", free_nav_warning)
+
+        layout.addWidget(engineering_group)
+
         # Explicação
         info_text = QLabel(
             "<b>Nota:</b> Se 'Solicitar login ao iniciar' estiver desmarcado, "
@@ -170,7 +210,7 @@ class AuthenticationSettingsDialog(QDialog):
             config = self.auth_config_manager.get_current_config()
             self.original_config = config.copy()
 
-            # Preenche campos
+            # Preenche campos de autenticação
             self.chk_require_login.setChecked(config['require_login_on_startup'])
 
             # Encontra índice do role no combo
@@ -178,6 +218,9 @@ class AuthenticationSettingsDialog(QDialog):
                 if self.combo_default_role.itemData(i) == config['default_role']:
                     self.combo_default_role.setCurrentIndex(i)
                     break
+
+            # Preenche campo de navegação livre
+            self.chk_free_navigation.setChecked(config.get('free_navigation_enabled', False))
 
             # Atualiza estado do botão Aplicar
             self.on_config_changed()
@@ -203,11 +246,13 @@ class AuthenticationSettingsDialog(QDialog):
         require_login = self.chk_require_login.isChecked()
         role_index = self.combo_default_role.currentIndex()
         default_role = self.combo_default_role.itemData(role_index)
+        free_navigation = self.chk_free_navigation.isChecked()
 
         # Verifica se mudou em relação ao original
         changed = (
             require_login != self.original_config.get('require_login_on_startup') or
-            default_role != self.original_config.get('default_role')
+            default_role != self.original_config.get('default_role') or
+            free_navigation != self.original_config.get('free_navigation_enabled', False)
         )
 
         self.btn_apply.setEnabled(changed)
@@ -238,7 +283,7 @@ class AuthenticationSettingsDialog(QDialog):
         Fluxo:
         1. Verifica permissão (deve ser engineering+)
         2. Se desabilitando login, mostra dialog de confirmação de senha
-        3. Atualiza configuração
+        3. Atualiza configuração (autenticação + navegação livre)
         4. Emite sinal config_changed
         5. Fecha dialog
         """
@@ -257,6 +302,7 @@ class AuthenticationSettingsDialog(QDialog):
         require_login = self.chk_require_login.isChecked()
         role_index = self.combo_default_role.currentIndex()
         default_role = self.combo_default_role.itemData(role_index)
+        free_navigation = self.chk_free_navigation.isChecked()
 
         # 3. Se está desabilitando login, requer confirmação de senha
         current_user = self.auth_config_manager.auth_service.get_current_user()
@@ -273,15 +319,16 @@ class AuthenticationSettingsDialog(QDialog):
             return
 
         # 4. Mostrar dialog de confirmação com senha
-        self.show_confirmation_dialog(require_login, default_role)
+        self.show_confirmation_dialog(require_login, default_role, free_navigation)
 
-    def show_confirmation_dialog(self, require_login: bool, default_role: str):
+    def show_confirmation_dialog(self, require_login: bool, default_role: str, free_navigation: bool):
         """
         Mostra dialog de confirmação de senha.
 
         Args:
             require_login: Novo valor para require_login_on_startup
             default_role: Novo valor para default_role
+            free_navigation: Novo valor para free_navigation_enabled
         """
         # Cria dialog simples de senha
         from PyQt6.QtWidgets import QLineEdit, QDialogButtonBox
@@ -330,20 +377,29 @@ class AuthenticationSettingsDialog(QDialog):
 
             # Tenta atualizar configuração
             try:
-                success = self.auth_config_manager.update_config(
+                # Atualiza configuração de autenticação
+                success_auth = self.auth_config_manager.update_config(
                     require_login=require_login,
                     default_role=default_role,
                     confirming_user=self.confirming_user,
                     password=password
                 )
 
-                if success:
+                # Atualiza configuração de navegação livre
+                success_free_nav = self.auth_config_manager.set_free_navigation_enabled(
+                    enabled=free_navigation,
+                    confirming_user=self.confirming_user,
+                    password=password
+                )
+
+                if success_auth and success_free_nav:
                     QMessageBox.information(
                         self,
                         "Sucesso",
-                        "Configuração de autenticação atualizada com sucesso!\n\n"
+                        "Configurações atualizadas com sucesso!\n\n"
                         f"Login ao iniciar: {'Sim' if require_login else 'Não (auto-login)'}\n"
-                        f"Papel padrão: {default_role}",
+                        f"Papel padrão: {default_role}\n"
+                        f"Navegação Livre: {'Sim' if free_navigation else 'Não'}",
                         QMessageBox.StandardButton.Ok
                     )
 
