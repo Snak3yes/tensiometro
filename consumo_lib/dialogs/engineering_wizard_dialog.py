@@ -452,7 +452,7 @@ class EngineeringWizardDialog(QDialog):
 
                 if parent_tab is not None:
                     # NOTA: Compartilhamento de state via controller/orchestrator - não precisa alternar visibilidade
-                logger.debug("ℹ️ Compartilhamento de state - não precisa alternar visibilidade")
+                    logger.debug("ℹ️ Compartilhamento de state - não precisa alternar visibilidade")
                     logger.info("✅ MovementControlWidget restaurado à aba principal (conclusão)")
             except Exception as e:
                 logger.error(f"❌ Erro ao restaurar MovementControlWidget na conclusão: {e}")
