@@ -203,9 +203,7 @@ class EngineeringWizardDialog(QDialog):
         self.tab_widget.addTab(self.tab_gerber_upload, "2. Carregar Gerber")
 
         # Aba 3: Definir Fiduciais
-        self.tab_fiducial_capture = FiducialCaptureWidget(
-            movement_widget=self._movement_widget
-        )
+        self.tab_fiducial_capture = FiducialCaptureWidget()
         self.tab_widget.addTab(self.tab_fiducial_capture, "3. Definir Fiduciais")
 
         # Aba 4: Capturar Mosaico
