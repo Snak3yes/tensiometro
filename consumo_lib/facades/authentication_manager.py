@@ -153,12 +153,12 @@ class AuthenticationManager:
         try:
             # Menu Engenharia - apenas engineering+
             if hasattr(self.main_window, 'engineering_menu'):
-                can_access = self.auth_service.has_permission('engineering', 'access')
+                can_access = self.role_manager.has_permission('engineering')
                 self.main_window.engineering_menu.setEnabled(can_access)
 
             # Menu Admin - apenas admin
             if hasattr(self.main_window, 'admin_menu'):
-                can_access = self.auth_service.has_permission('admin', 'access')
+                can_access = self.role_manager.has_permission('admin')
                 self.main_window.admin_menu.setEnabled(can_access)
         except Exception as e:
             logger.error(f"Erro ao aplicar permissões de menu: {e}")
@@ -181,7 +181,7 @@ class AuthenticationManager:
             for btn_name in engineering_buttons:
                 if hasattr(self.main_window, btn_name):
                     button = getattr(self.main_window, btn_name)
-                    can_access = self.auth_service.has_permission('engineering', 'access')
+                    can_access = self.role_manager.has_permission('engineering')
                     button.setEnabled(can_access)
         except Exception as e:
             logger.error(f"Erro ao aplicar permissões de botão: {e}")
@@ -196,7 +196,7 @@ class AuthenticationManager:
         try:
             # Tab de engenharia - apenas engineering+
             if hasattr(self.main_window, 'engineering_tab'):
-                can_access = self.auth_service.has_permission('engineering', 'access')
+                can_access = self.role_manager.has_permission('engineering')
                 # Note: QTabWidget não tem setEnabled por índice diretamente
                 # Precisa usar Qt.ItemFlags ou remover/adicionar aba
                 pass
@@ -207,7 +207,7 @@ class AuthenticationManager:
         """Exibe o diálogo de configurações de autenticação."""
         try:
             # Verifica permissão (apenas engineering+)
-            can_access = self.auth_service.has_permission('engineering', 'access')
+            can_access = self.role_manager.has_permission('engineering')
 
             if not can_access:
                 logger.warning("Usuário sem permissão para acessar configurações de autenticação")
