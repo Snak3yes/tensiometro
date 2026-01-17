@@ -226,6 +226,8 @@ class GerberUploadWidget(QWidget):
         self.preview_widget.aperture_selected.connect(self._on_aperture_selected)
         self.preview_widget.objectDeleteRequested.connect(self._on_object_delete_requested)
         self.preview_widget.objectDeleteManyRequested.connect(self._on_objects_delete_many_requested)
+        self.preview_widget.objectEditRequested.connect(self._on_object_edit_requested)
+        self.preview_widget.objectEditManyRequested.connect(self._on_objects_edit_many_requested)
         self.preview_widget.undo_available.connect(self._on_undo_available)
         self.preview_widget.redo_available.connect(self._on_redo_available)
         self.btn_remove.clicked.connect(self._on_remove_clicked)
@@ -575,6 +577,65 @@ class GerberUploadWidget(QWidget):
                 self,
                 "Erro na Exclusão",
                 f"Erro ao excluir objetos:\n{e}"
+            )
+
+    def _on_object_edit_requested(self, index: int):
+        """
+        Handler quando usuário solicita edição de um objeto.
+
+        Args:
+            index: Índice do objeto a ser editado
+        """
+        try:
+            # TODO: Implementar diálogo de edição de propriedades
+            # Por ora, mostrar mensagem informativa
+            QMessageBox.information(
+                self,
+                "Editar Propriedades",
+                f"Funcionalidade de edição em desenvolvimento.\n\nObjeto selecionado: {index}\n\n"
+                "Esta funcionalidade permitirá editar:\n"
+                "- Tipo do objeto (circle, rect, region, etc.)\n"
+                "- Dimensões (diâmetro, largura, altura)\n"
+                "- Posição (X, Y)\n"
+                "- Parâmetros específicos"
+            )
+            logger.info(f"Edição solicitada para objeto {index}")
+
+        except Exception as e:
+            logger.error(f"Erro ao editar objeto {index}: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro na Edição",
+                f"Erro ao editar objeto:\n{e}"
+            )
+
+    def _on_objects_edit_many_requested(self, indices: list[int]):
+        """
+        Handler quando usuário solicita edição de múltiplos objetos.
+
+        Args:
+            indices: Lista de índices dos objetos a serem editados
+        """
+        try:
+            # TODO: Implementar diálogo de edição em lote
+            # Por ora, mostrar mensagem informativa
+            QMessageBox.information(
+                self,
+                "Editar Propriedades em Lote",
+                f"Funcionalidade de edição em lote em desenvolvimento.\n\n"
+                f"Objetos selecionados: {len(indices)}\n"
+                f"Índices: {', '.join(map(str, indices[:5]))}{'...' if len(indices) > 5 else ''}\n\n"
+                "Esta funcionalidade permitirá editar propriedades\n"
+                "de múltiplos objetos simultaneamente."
+            )
+            logger.info(f"Edição em lote solicitada para {len(indices)} objetos")
+
+        except Exception as e:
+            logger.error(f"Erro ao editar objetos: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro na Edição",
+                f"Erro ao editar objetos:\n{e}"
             )
 
     def get_gerber_data(self) -> Dict:

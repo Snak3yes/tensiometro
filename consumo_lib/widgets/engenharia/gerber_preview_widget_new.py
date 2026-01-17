@@ -9,7 +9,10 @@ from typing import List, Optional
 
 from PyQt6.QtCore import Qt, QRectF, pyqtSignal
 from PyQt6.QtGui import QBrush, QColor, QPainter, QPainterPath, QPen
-from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsItem
+from PyQt6.QtWidgets import (
+    QGraphicsView, QGraphicsScene, QGraphicsPathItem, QGraphicsItem,
+    QMenu, QMessageBox
+)
 
 logger = logging.getLogger(__name__)
 
@@ -141,6 +144,8 @@ class GerberPreviewWidget(QGraphicsView):
     aperture_selected = pyqtSignal(dict)  # Emitido ao clicar em uma aperture
     objectDeleteRequested = pyqtSignal(int)  # Índice do objeto para excluir (único)
     objectDeleteManyRequested = pyqtSignal(list)  # Lista de índices para excluir (múltiplos)
+    objectEditRequested = pyqtSignal(int)  # Índice do objeto para editar (único)
+    objectEditManyRequested = pyqtSignal(list)  # Lista de índices para editar (múltiplos)
     undo_available = pyqtSignal(bool)  # Emitido quando undo fica disponível/indisponível
     redo_available = pyqtSignal(bool)  # Emitido quando redo fica disponível/indisponível
 
@@ -443,6 +448,62 @@ class GerberPreviewWidget(QGraphicsView):
         factor = self._zoom / old_zoom
         self.scale(factor, factor)
 
+    def _show_polygon_info(self, poly_index: int):
+        """
+        Mostra informações detalhadas sobre o polígono/objeto clicado.
+
+        Args:
+            poly_index: Índice do polígono a exibir informações
+        """
+        # Validar índice
+        if not (0 <= poly_index < len(self._polys_mm)):
+            logger.warning(f"Índice inválido para mostrar informações: {poly_index}")
+            return
+
+        poly = self._polys_mm[poly_index]
+        if not poly:
+            return
+
+        # Calcular bounding box e centro
+        xs = [p[0] for p in poly]
+        ys = [p[1] for p in poly]
+        minx, maxx = min(xs), max(xs)
+        miny, maxy = min(ys), max(ys)
+        cx = (minx + maxx) / 2.0
+        cy = (miny + maxy) / 2.0
+
+        # Informações básicas do polígono
+        lines = [
+            f"Índice do objeto: {poly_index}",
+            f"Número de pontos: {len(poly)}",
+            f"Limites X: ({minx:.6f}, {maxx:.6f}) mm",
+            f"Limites Y: ({miny:.6f}, {maxy:.6f}) mm",
+            f"Centro aproximado: ({cx:.6f}, {cy:.6f}) mm",
+        ]
+
+        # Se temos um GerberObject associado, adicionar informações semânticas
+        if self._objects and poly_index < len(self._objects):
+            obj = self._objects[poly_index]
+            lines.append("")
+            lines.append(f"Tipo: {getattr(obj, 'obj_type', 'unknown')}")
+
+            # Posição do flash (se disponível)
+            x_mm = getattr(obj, 'x', None)
+            y_mm = getattr(obj, 'y', None)
+            if x_mm is not None and y_mm is not None:
+                lines.append(f"Posição do flash: ({x_mm:.6f}, {y_mm:.6f}) mm")
+
+            # Dimensões específicas
+            if hasattr(obj, 'diameter') and obj.diameter is not None:
+                lines.append(f"Diâmetro: {obj.diameter:.6f} mm")
+            if hasattr(obj, 'width') and obj.width is not None:
+                if hasattr(obj, 'height') and obj.height is not None:
+                    lines.append(f"Largura x Altura: {obj.width:.6f} x {obj.height:.6f} mm")
+
+        # Exibir informações
+        text = "\n".join(lines)
+        QMessageBox.information(self, "Informações do Objeto", text)
+
     def mousePressEvent(self, event):
         """Lida com cliques do mouse."""
         # Garante que a view receba eventos de teclado após clique
@@ -457,17 +518,71 @@ class GerberPreviewWidget(QGraphicsView):
             return
 
         if event.button() == Qt.MouseButton.RightButton:
-            # Menu de contexto (excluir)
+            # Menu de contexto completo
             scene_pos = self.mapToScene(event.pos())
             items = self._scene.items(scene_pos)
             if items:
                 item = items[0]
-                idx = int(item.data(0))
-                # TODO: Mostrar menu de contexto
-                # Por ora, apenas emitir signal
-                self.objectDeleteRequested.emit(idx)
-            event.accept()
-            return
+                try:
+                    idx = int(item.data(0))
+                except Exception:
+                    logger.exception("Erro ao obter índice do item")
+                    event.accept()
+                    return
+
+                # Conjunto atual de índices selecionados
+                selected_items = self._scene.selectedItems()
+                selected_indices: set[int] = set()
+                for sit in selected_items:
+                    try:
+                        si = int(sit.data(0))
+                        selected_indices.add(si)
+                    except Exception:
+                        logger.exception("Erro ao obter índice do item selecionado")
+
+                # Criar menu de contexto
+                menu = QMenu(self)
+                act_info = menu.addAction("Informações do objeto")
+                act_edit = menu.addAction("Editar propriedades...")
+                act_delete = menu.addAction("Excluir objeto")
+
+                # Exibir menu e capturar ação escolhida
+                global_pos = self.mapToGlobal(event.pos())
+                chosen = menu.exec(global_pos)
+
+                if chosen is act_info:
+                    # Mostrar informações do objeto
+                    try:
+                        self._show_polygon_info(idx)
+                    except Exception:
+                        logger.exception("Erro ao mostrar informações do objeto")
+                elif chosen is act_edit:
+                    # Edição em grupo se houver vários selecionados
+                    # e o item clicado fizer parte da seleção
+                    try:
+                        if len(selected_indices) > 1 and idx in selected_indices:
+                            self.objectEditManyRequested.emit(sorted(selected_indices))
+                        else:
+                            self.objectEditRequested.emit(idx)
+                    except Exception:
+                        logger.exception("Erro ao emitir signal de edição")
+                elif chosen is act_delete:
+                    # Exclusão em grupo se houver vários selecionados
+                    # e o item clicado fizer parte da seleção
+                    try:
+                        if len(selected_indices) > 1 and idx in selected_indices:
+                            self.objectDeleteManyRequested.emit(sorted(selected_indices))
+                        else:
+                            self.objectDeleteRequested.emit(idx)
+                    except Exception:
+                        logger.exception("Erro ao emitir signal de exclusão")
+
+                event.accept()
+                return
+            else:
+                # Clique direito em área vazia: nada a fazer
+                event.accept()
+                return
 
         super().mousePressEvent(event)
 
