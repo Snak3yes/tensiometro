@@ -181,14 +181,14 @@ class SetupCoordinator:
             # CRÍTICO: Instalar o eventFilter no QApplication para capturar eventos globais
             from PyQt6.QtWidgets import QApplication
             app = QApplication.instance()
-            logger.info(f"📱 QApplication.instance(): {app}")
+            logger.info(f"QApplication.instance(): {app}")
 
             app.installEventFilter(self.window.keyboard_handler)
-            logger.warning("🚨✅ eventFilter INSTALADO no QApplication - Deve capturar todos os eventos de teclado agora!")
+            logger.warning("eventFilter INSTALADO no QApplication - Deve capturar todos os eventos de teclado agora!")
         else:
-            logger.error("❌ movement_widget não existe na window!")
-            logger.error(f"❌ hasattr(window, 'movement_widget'): {hasattr(self.window, 'movement_widget')}")
-            logger.error(f"❌ window.movement_widget: {getattr(self.window, 'movement_widget', 'NOT_FOUND')}")
+            logger.error("movement_widget não existe na window!")
+            logger.error(f"hasattr(window, 'movement_widget'): {hasattr(self.window, 'movement_widget')}")
+            logger.error(f"window.movement_widget: {getattr(self.window, 'movement_widget', 'NOT_FOUND')}")
 
     def _setup_menu(self):
         """Configura o menu da aplicação."""

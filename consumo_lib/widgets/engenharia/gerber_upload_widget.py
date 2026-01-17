@@ -26,8 +26,10 @@ from PyQt6.QtWidgets import (
     QListWidget, QListWidgetItem, QMessageBox, QSplitter
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint, QRectF
-from PyQt6.QtGui import QPainter, QPen, QBrush, QColor, QPixmap, QImage
-import numpy as np
+from PyQt6.QtGui import QColor
+
+# Importar NOVO widget baseado em QGraphicsView
+from .gerber_preview_widget_new import GerberPreviewWidget
 
 logger = logging.getLogger(__name__)
 
@@ -61,222 +63,6 @@ class GerberMetadata:
         }
 
 
-class GerberPreviewWidget(QWidget):
-    """
-    Widget de preview do Gerber com zoom/pan.
-
-    Features:
-        - Renderização vetorial simplificada
-        - Zoom com scroll do mouse
-        - Pan com clique do meio ou arrasto
-        - Seleção de aperturas por clique
-    """
-
-    aperture_selected = pyqtSignal(dict)  # Emitido ao clicar em uma aperture
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setMinimumSize(600, 500)
-
-        # Estado
-        self._apertures = []
-        self._fiducials = []
-        self._removed_apertures = []
-
-        # Visualização
-        self._zoom = 1.0
-        self._offset = QPoint(0, 0)
-        self._panning = False
-        self._last_pan_pos = QPoint()
-
-        # Estilo
-        self.setStyleSheet("""
-            GerberPreviewWidget {
-                background-color: #1e1e1e;
-                border: 2px solid #444;
-                border-radius: 4px;
-            }
-        """)
-
-    def set_apertures(self, apertures: List[Dict]):
-        """Define lista de aperturas para renderizar."""
-        self._apertures = apertures
-        self._removed_apertures = []
-        self.update()
-
-    def set_fiducials(self, fiducials: List[Dict]):
-        """Define lista de fiduciais."""
-        self._fiducials = fiducials
-        self.update()
-
-    def remove_aperture(self, aperture: Dict):
-        """Remove uma aperture da renderização."""
-        if aperture in self._apertures and aperture not in self._removed_apertures:
-            self._removed_apertures.append(aperture)
-            self.update()
-
-    def undo_remove(self):
-        """Desfaz última remoção."""
-        if self._removed_apertures:
-            self._removed_apertures.pop()
-            self.update()
-
-    def fit_to_view(self):
-        """Ajusta zoom para mostrar todo o conteúdo."""
-        if not self._apertures:
-            return
-
-        # Calcular bounding box
-        min_x = min(a['x'] - a.get('width', 1)/2 for a in self._apertures)
-        max_x = max(a['x'] + a.get('width', 1)/2 for a in self._apertures)
-        min_y = min(a['y'] - a.get('height', 1)/2 for a in self._apertures)
-        max_y = max(a['y'] + a.get('height', 1)/2 for a in self._apertures)
-
-        width = max_x - min_x
-        height = max_y - min_y
-
-        # Calcular zoom
-        margin = 20
-        zoom_x = (self.width() - 2*margin) / width if width > 0 else 1.0
-        zoom_y = (self.height() - 2*margin) / height if height > 0 else 1.0
-        self._zoom = min(zoom_x, zoom_y) * 0.9  # 90% para dar margem
-
-        # Centralizar
-        center_x = (min_x + max_x) / 2
-        center_y = (min_y + max_y) / 2
-        self._offset = QPoint(
-            int(self.width()/2 - center_x * self._zoom),
-            int(self.height()/2 - center_y * self._zoom)
-        )
-
-        self.update()
-
-    def paintEvent(self, event):
-        """Renderiza aperturas e fiduciais."""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # Background
-        painter.fillRect(self.rect(), QColor("#1e1e1e"))
-
-        # Aplicar transformações
-        painter.translate(self._offset)
-        painter.scale(self._zoom, self._zoom)
-
-        # Renderizar aperturas (não removidas)
-        for aperture in self._apertures:
-            if aperture in self._removed_apertures:
-                continue
-
-            # Cores baseadas em tipo
-            if aperture.get('type') == 'circle':
-                color = QColor("#4CAF50")  # Verde
-                self._draw_circle(painter, aperture, color)
-            elif aperture.get('type') == 'rect':
-                color = QColor("#2196F3")  # Azul
-                self._draw_rect(painter, aperture, color)
-            elif aperture.get('type') == 'obround':
-                color = QColor("#FF9800")  # Laranja
-                self._draw_obround(painter, aperture, color)
-            else:
-                color = QColor("#9C27B0")  # Roxo (outros)
-                self._draw_circle(painter, aperture, color)
-
-        # Renderizar fiduciais (destacados)
-        for fid in self._fiducials:
-            color = QColor("#F44336")  # Vermelho
-            self._draw_circle(painter, fid, color, highlight=True)
-
-        painter.end()
-
-    def _draw_circle(self, painter, aperture, color, highlight=False):
-        """Desenha aperture circular."""
-        x = aperture['x']
-        y = aperture['y']
-        r = aperture.get('d', 1) / 2
-
-        if highlight:
-            # Círculo destacado com borda grossa
-            painter.setPen(QPen(color, 0.1))
-            painter.setBrush(QBrush(color.lighter(150)))
-        else:
-            painter.setPen(QPen(color, 0.01))
-            painter.setBrush(QBrush(color.lighter(180)))
-
-        painter.drawEllipse(QRectF(x - r, y - r, r*2, r*2))
-
-    def _draw_rect(self, painter, aperture, color):
-        """Desenha aperture retangular."""
-        x = aperture['x']
-        y = aperture['y']
-        w = aperture.get('width', 1)
-        h = aperture.get('height', 1)
-
-        painter.setPen(QPen(color, 0.01))
-        painter.setBrush(QBrush(color.lighter(180)))
-        painter.drawRect(QRectF(x - w/2, y - h/2, w, h))
-
-    def _draw_obround(self, painter, aperture, color):
-        """Desenha aperture obround (racetrack)."""
-        # Simplificação: desenhar como retângulo por enquanto
-        self._draw_rect(painter, aperture, color)
-
-    def wheelEvent(self, event):
-        """Zoom com scroll do mouse."""
-        angle = event.angleDelta().y()
-        if angle > 0:
-            self._zoom *= 1.1
-        else:
-            self._zoom /= 1.1
-
-        self._zoom = max(0.1, min(self._zoom, 10.0))
-        self.update()
-
-    def mousePressEvent(self, event):
-        """Inicia pan ou detecta clique."""
-        if event.button() == Qt.MouseButton.MiddleButton:
-            self._panning = True
-            self._last_pan_pos = event.pos()
-            self.setCursor(Qt.CursorShape.ClosedHandCursor)
-        elif event.button() == Qt.MouseButton.LeftButton:
-            # Detectar clique em aperture
-            self._detect_aperture_click(event.pos())
-
-    def mouseMoveEvent(self, event):
-        """Pan com arrasto."""
-        if self._panning:
-            delta = event.pos() - self._last_pan_pos
-            self._offset += delta
-            self._last_pan_pos = event.pos()
-            self.update()
-
-    def mouseReleaseEvent(self, event):
-        """Finaliza pan."""
-        if event.button() == Qt.MouseButton.MiddleButton:
-            self._panning = False
-            self.setCursor(Qt.CursorShape.ArrowCursor)
-
-    def _detect_aperture_click(self, pos: QPoint):
-        """Detecta se clique foi em uma aperture."""
-        # Converter posição de tela para coordenadas mundo
-        world_x = (pos.x() - self._offset.x()) / self._zoom
-        world_y = (pos.y() - self._offset.y()) / self._zoom
-
-        # Buscar aperture próxima (tolerância de 5 pixels)
-        tolerance = 5.0 / self._zoom
-        for aperture in self._apertures:
-            if aperture in self._removed_apertures:
-                continue
-
-            ax = aperture['x']
-            ay = aperture['y']
-            dist = ((world_x - ax)**2 + (world_y - ay)**2)**0.5
-
-            if dist <= tolerance:
-                self.aperture_selected.emit(aperture)
-                break
-
-
 class GerberUploadWidget(QWidget):
     """
     Widget para carregar e processar arquivo Gerber.
@@ -291,7 +77,7 @@ class GerberUploadWidget(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        logger.info("🎨 Inicializando GerberUploadWidget")
+        logger.info("Inicializando GerberUploadWidget")
 
         # Estado
         self._gerber_metadata: Optional[GerberMetadata] = None
@@ -305,7 +91,7 @@ class GerberUploadWidget(QWidget):
         # Conectar signals
         self._connect_signals()
 
-        logger.info("✅ GerberUploadWidget inicializado")
+        logger.info("GerberUploadWidget inicializado")
 
     def _setup_ui(self):
         """Configura interface do usuário."""
@@ -450,17 +236,45 @@ class GerberUploadWidget(QWidget):
             self._load_gerber(file_path)
 
     def _load_gerber(self, file_path: str):
-        """Carrega e processa arquivo Gerber."""
+        """Carrega e processa arquivo Gerber usando o novo widget baseado no POC."""
         try:
-            logger.info(f"📥 Carregando Gerber: {file_path}")
+            print("[INFO] Carregando Gerber...")
+            logger.info(f"Carregando Gerber: {file_path}")
 
             path = Path(file_path)
             if not path.exists():
                 raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
 
-            # TODO: Parse real do Gerber usando aoi_lib.gerber_parser
-            # Por enquanto, criar dados mock para desenvolvimento
-            self._create_mock_gerber_data(file_path)
+            # Usar parser de Gerber
+            from aoi_lib.gerber_parser import GerberParser
+
+            parser = GerberParser()
+            result = parser.parse_file(file_path)
+
+            if result.error:
+                raise ValueError(f"Erro no parsing: {result.error}")
+
+            print(f"[INFO] Parser retornou {len(result.objects)} objetos")
+
+            # USAR NOVO MÉTODO set_objects() direto do parser!
+            # Isso usa QGraphicsView e renderiza regions corretamente
+            self.preview_widget.set_objects(result.objects)
+
+            # Criar metadados simplificados
+            self._gerber_metadata = GerberMetadata(
+                file_path=file_path,
+                file_name=path.name,
+                file_size=0,  # TODO: Obter tamanho real
+                dimensions=(result.stats.bounds.width if result.stats.bounds else 0.0,
+                          result.stats.bounds.height if result.stats.bounds else 0.0),
+                aperture_count=len(result.objects),
+                fiducial_count=len(result.fiducial_candidates),
+                fiducial_positions=[
+                    {'x': f.x_mm, 'y': f.y_mm, 'd': f.diameter_mm if f.diameter_mm else 1.5}
+                    for f in result.fiducial_candidates
+                ],
+                unit='mm'
+            )
 
             # Atualizar UI
             self._update_info_display()
@@ -476,7 +290,7 @@ class GerberUploadWidget(QWidget):
             # Atualizar status
             self.status_label.setText(
                 f"✅ Gerber carregado: {path.name} - "
-                f"{self._gerber_metadata.aperture_count} aperturas, "
+                f"{self._gerber_metadata.aperture_count} objetos, "
                 f"{self._gerber_metadata.fiducial_count} fiduciais"
             )
             self.status_label.setStyleSheet("""
@@ -489,16 +303,17 @@ class GerberUploadWidget(QWidget):
                 }
             """)
 
-            logger.info("✅ Gerber carregado com sucesso")
+            logger.info("Gerber carregado com sucesso")
 
         except Exception as e:
-            logger.error(f"❌ Erro ao carregar Gerber: {e}")
+            logger.error(f"Erro ao carregar Gerber: {e}")
             QMessageBox.critical(
                 self,
                 "Erro ao Carregar Gerber",
                 f"Não foi possível carregar o arquivo Gerber:\n{e}"
             )
             self.status_label.setText(f"❌ Erro: {e}")
+
 
     def _create_mock_gerber_data(self, file_path: str):
         """Cria dados mock de Gerber para desenvolvimento."""
@@ -507,15 +322,25 @@ class GerberUploadWidget(QWidget):
         # Criar aperturas mock
         self._apertures = []
         for i in range(50):
-            self._apertures.append({
-                'id': i,
-                'type': 'circle' if i % 3 == 0 else 'rect',
-                'x': i * 2.0,
-                'y': (i % 5) * 2.0,
-                'd': 0.5 if i % 3 == 0 else None,
-                'width': 0.5 if i % 3 != 0 else None,
-                'height': 0.5 if i % 3 != 0 else None
-            })
+            if i % 3 == 0:
+                # Círculo: tem 'd' (diâmetro), não tem width/height
+                self._apertures.append({
+                    'id': i,
+                    'type': 'circle',
+                    'x': i * 2.0,
+                    'y': (i % 5) * 2.0,
+                    'd': 0.5
+                })
+            else:
+                # Retângulo: tem width/height, não tem 'd'
+                self._apertures.append({
+                    'id': i,
+                    'type': 'rect',
+                    'x': i * 2.0,
+                    'y': (i % 5) * 2.0,
+                    'width': 0.5,
+                    'height': 0.5
+                })
 
         # Detectar fiduciais mock
         self._fiducials = [
