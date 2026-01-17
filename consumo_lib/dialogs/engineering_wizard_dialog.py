@@ -98,17 +98,9 @@ class EngineeringWizardDialog(QDialog):
         Notifica a CNCControlTab para ocultar o movement_widget
         e mostra placeholder no lugar.
         """
-        # Buscar CNCControlTab e alternar visibilidade
-        if hasattr(self, 'tab_fiducial_capture') and self.tab_fiducial_capture is not None:
-            parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
-
-            if parent_tab is not None:
-                parent_tab.set_wizard_mode(True)
-                logger.info("📖 MovementControlWidget oculto na aba principal (wizard aberto)")
-            else:
-                logger.warning("⚠️ CNCControlTab não encontrado para notificar abertura")
-        else:
-            logger.warning("ⓖ FiducialCaptureWidget não disponível para notificar abertura")
+        # NOTA: Como não usamos mais QStackedWidget, não precisamos notificar CNCControlTab
+        # O widget agora está visível tanto na aba principal quanto na aba 3 simultaneamente
+        logger.info("ℹ️ _on_wizard_opened() chamado (sem notificação CNCControlTab necessário)")
 
     def _find_parent_cnc_control_tab(self, widget=None, visited=None):
         """
@@ -398,7 +390,8 @@ class EngineeringWizardDialog(QDialog):
             parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
 
             if parent_tab is not None:
-                parent_tab.set_wizard_mode(False)
+                # NOTA: Compartilhamento de state via controller/orchestrator - não precisa alternar visibilidade
+                logger.debug("ℹ️ Compartilhamento de state - não precisa alternar visibilidade")
                 logger.info("✅ MovementControlWidget restaurado à aba principal (cancelamento)")
         except Exception as e:
             logger.error(f"❌ Erro ao restaurar MovementControlWidget no cancel: {e}")
@@ -458,7 +451,8 @@ class EngineeringWizardDialog(QDialog):
                 parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
 
                 if parent_tab is not None:
-                    parent_tab.set_wizard_mode(False)
+                    # NOTA: Compartilhamento de state via controller/orchestrator - não precisa alternar visibilidade
+                logger.debug("ℹ️ Compartilhamento de state - não precisa alternar visibilidade")
                     logger.info("✅ MovementControlWidget restaurado à aba principal (conclusão)")
             except Exception as e:
                 logger.error(f"❌ Erro ao restaurar MovementControlWidget na conclusão: {e}")
@@ -774,7 +768,8 @@ class EngineeringWizardDialog(QDialog):
             parent_tab = self._find_parent_cnc_control_tab(self.tab_fiducial_capture)
 
             if parent_tab is not None:
-                parent_tab.set_wizard_mode(False)
+                # NOTA: Compartilhamento de state via controller/orchestrator - não precisa alternar visibilidade
+                logger.debug("ℹ️ Compartilhamento de state - não precisa alternar visibilidade")
                 logger.info("✅ MovementControlWidget restaurado à aba principal (wizard fechado)")
         except Exception as e:
             logger.error(f"❌ Erro ao restaurar MovementControlWidget: {e}")

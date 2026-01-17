@@ -29,6 +29,9 @@ from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap, QImage
 import numpy as np
 
+# Import para criar MovementControlWidget na aba 3
+from consumo_lib.widgets.movement_control import MovementControlWidget
+
 from PyQt6.QtWidgets import QStackedWidget  # Import adicionado
 
 logger = logging.getLogger(__name__)
@@ -294,45 +297,30 @@ class FiducialCaptureWidget(QWidget):
 
         main_layout.addWidget(preview_group, 2)
 
-        # Controles de movimento (busca automática se não fornecido)
+        # Controles de movimento (CRIAR NOVA INSTÂNCIA)
+        # A nova instância compartilha o MESMO estado via controller/orchestrator
         if self._movement_widget is None:
-            # Buscar MovementControlWidget na CNCControlTab
-            self._movement_widget = self._find_movement_widget_in_tab()
-
-        if self._movement_widget is not None:
-            # NOTA: Não movemos o widget, apenas notificamos a CNCControlTab
-            # para alternar a visibilidade usando QStackedWidget
-
-            # Buscar na hierarquia do widget pela CNCControlTab
+            # Buscar referência para obter parâmetros
             parent_tab = self._find_parent_cnc_control_tab(self)
 
-            if parent_tab is not None:
-                # Chamar método para ocultar movement_widget na aba principal
-                parent_tab.set_wizard_mode(True)
-                logger.info("📖 MovementControlWidget oculto na aba principal (wizard aberto)")
-
-                # Criar label informativo na aba 3
-                movement_group = QGroupBox("Controle de Movimento")
-                movement_layout = QVBoxLayout(movement_group)
-
-                info_label = QLabel("🎛️ Use os controles na aba 'Câmera & Movimento'")
-                info_label.setWordWrap(True)
-                info_label.setStyleSheet("""
-                    QLabel {
-                        background-color: #E3F2FD;
-                        border: 1px solid #2196F3;
-                        border-radius: 4px;
-                        padding: 10px;
-                        color: #1565C0;
-                        font-weight: bold;
-                    }
-                """)
-                movement_layout.addWidget(info_label)
-                main_layout.addWidget(movement_group, 1)
+            if parent_tab is not None and hasattr(parent_tab, 'controller') and hasattr(parent_tab, 'config_manager'):
+                # Criar nova instância do MovementControlWidget com os MESMOS parâmetros
+                self._movement_widget = MovementControlWidget(
+                    parent_tab.controller,
+                    parent_tab.config_manager,
+                    orchestrator=parent_tab.orchestrator
+                )
+                logger.info("✅ Nova instância de MovementControlWidget criada para aba 3")
             else:
-                logger.warning("⚠️ CNCControlTab não encontrado - não foi possível alternar visibilidade")
-        else:
-            logger.info("ℹ️ MovementControlWidget não disponível para aba 3")
+                logger.warning("⚠️ CNCControlTab não encontrado - não foi possível criar MovementControlWidget")
+
+        # Adicionar MovementControlWidget à aba 3
+        if self._movement_widget is not None:
+            movement_group = QGroupBox("Controle de Movimento")
+            movement_layout = QVBoxLayout(movement_group)
+            movement_layout.addWidget(self._movement_widget)
+            main_layout.addWidget(movement_group, 1)
+            logger.info("✅ MovementControlWidget adicionado à aba 3 do Engineering Wizard")
 
         # Controles
         controls_group = QGroupBox("Controles de Captura")
