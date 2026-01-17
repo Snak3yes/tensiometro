@@ -14,9 +14,8 @@ Author: Refactoring (2026-01-14)
 """
 
 import logging
-from typing import Optional, Dict, Any, List, WeakMethod
+from typing import Optional, Dict, Any
 from weakref import WeakSet
-import weakref
 
 logger = logging.getLogger(__name__)
 
