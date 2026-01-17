@@ -110,7 +110,7 @@ class EngineeringWizardDialog(QDialog):
         else:
             logger.warning("ⓖ FiducialCaptureWidget não disponível para notificar abertura")
 
-    def _find_parent_cnc_control_tab(self, widget=None):
+    def _find_parent_cnc_control_tab(self, widget=None, visited=None):
         """
         Busca recursivamente pela CNCControlTab na hierarquia de widgets.
 
