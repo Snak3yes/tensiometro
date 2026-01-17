@@ -1,7 +1,7 @@
 # Stack Tecnológica
 
 ## Core
-- **Linguagem:** Python 3.x
+- **Linguagem:** Python 3.10.11
 - **Interface Gráfica (GUI):** PyQt6 (Framework principal para desenvolvimento da interface moderna e minimalista).
 - **Arquitetura de Serviços:** Implementada camada de orquestração (MovementOrchestrator, InspectionFlowService) para desacoplar lógica de negócio da interface Qt.
 

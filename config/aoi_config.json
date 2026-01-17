@@ -173,5 +173,8 @@
   "authentication": {
     "require_login_on_startup": false,
     "default_role": "engineering"
+  },
+  "engineering_wizard": {
+    "free_navigation_enabled": true
   }
 }
