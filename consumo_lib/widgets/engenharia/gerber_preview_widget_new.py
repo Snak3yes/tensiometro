@@ -195,14 +195,19 @@ class GerberPreviewWidget(QGraphicsView):
 
         logger.info("GerberPreviewWidget (QGraphicsView) inicializado")
 
-    def set_objects(self, objects: List) -> None:
+    def set_objects(self, objects: List, preserve_view: bool = False) -> None:
         """
         Recebe lista de GerberObject do parser e renderiza.
 
         Args:
             objects: Lista de GerberObject do parser
+            preserve_view: Se True, mantém zoom/pan atuais (para edições)
         """
-        print(f"[INFO] set_objects() chamado com {len(objects)} objetos")
+        print(f"[INFO] set_objects() chamado com {len(objects)} objetos, preserve_view={preserve_view}")
+
+        # Guarda transformação atual se for para preservar zoom/pan
+        old_transform = self.transform() if preserve_view else None
+        old_zoom = self._zoom if preserve_view else None
 
         self._objects = []
         polys_mm = []
@@ -225,6 +230,11 @@ class GerberPreviewWidget(QGraphicsView):
         if not polys_mm:
             print("[WARN] Nenhum polígono para renderizar")
             return
+
+        # Se não estiver preservando visão, reseta zoom e transformação
+        if not preserve_view:
+            self._zoom = 1.0
+            self.resetTransform()
 
         # Calcular bounding box
         xs = [pt[0] for poly in polys_mm for pt in poly]
@@ -273,13 +283,20 @@ class GerberPreviewWidget(QGraphicsView):
         rect = QRectF(minx, -maxy, w, h)
         self._scene.setSceneRect(rect)
 
-        # Ajustar view
-        self.reset_view()
+        # Restaura transform se for para preservar visão
+        if preserve_view and old_transform is not None and old_zoom is not None:
+            self.setTransform(old_transform)
+            self._zoom = old_zoom
+            print(f"[INFO] Visão preservada: zoom={self._zoom:.3f}")
+        else:
+            # Ajustar view
+            self.reset_view()
 
-        # Limpar stacks de undo/redo ao carregar novo Gerber
-        self._undo_stack.clear()
-        self._redo_stack.clear()
-        self._notify_undo_redo_state()
+        # Limpar stacks de undo/redo ao carregar novo Gerber (apenas quando não preservando visão)
+        if not preserve_view:
+            self._undo_stack.clear()
+            self._redo_stack.clear()
+            self._notify_undo_redo_state()
 
     def reset_view(self):
         """Ajusta zoom para mostrar todo o conteúdo."""

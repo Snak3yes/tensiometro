@@ -638,8 +638,8 @@ class GerberUploadWidget(QWidget):
                 )
                 return
 
-            # Re-renderizar após edição
-            self.preview_widget.set_objects(self.preview_widget._objects)
+            # Re-renderizar após edição (preservando visão/zoom)
+            self.preview_widget.set_objects(self.preview_widget._objects, preserve_view=True)
 
         except Exception as e:
             logger.error(f"Erro ao editar objeto {index}: {e}")
@@ -821,8 +821,8 @@ class GerberUploadWidget(QWidget):
             polys = oval_to_polys_mm(obj.x_mm, obj.y_mm, w, h)
             obj.polygon_mm = polys[0]
 
-        # Re-renderizar
-        self.preview_widget.set_objects(self.preview_widget._objects)
+        # Re-renderizar (preservando visão/zoom)
+        self.preview_widget.set_objects(self.preview_widget._objects, preserve_view=True)
 
         logger.debug(f"Objeto movido: dx={dx:.3f}, dy={dy:.3f}")
 
@@ -837,8 +837,8 @@ class GerberUploadWidget(QWidget):
 
         obj.polygon_mm = new_poly
 
-        # Re-renderizar
-        self.preview_widget.set_objects(self.preview_widget._objects)
+        # Re-renderizar (preservando visão/zoom)
+        self.preview_widget.set_objects(self.preview_widget._objects, preserve_view=True)
 
         logger.debug(f"Região movida: dx={dx:.3f}, dy={dy:.3f}")
 
@@ -910,8 +910,8 @@ class GerberUploadWidget(QWidget):
                 )
                 return
 
-            # Re-renderizar após edição
-            self.preview_widget.set_objects(self.preview_widget._objects)
+            # Re-renderizar após edição (preservando visão/zoom)
+            self.preview_widget.set_objects(self.preview_widget._objects, preserve_view=True)
 
         except Exception as e:
             logger.error(f"Erro ao editar objetos em grupo: {e}")
@@ -1150,8 +1150,8 @@ class GerberUploadWidget(QWidget):
                     (x + dx, y + dy) for (x, y) in obj.polygon_mm
                 ]
 
-        # Re-renderizar
-        self.preview_widget.set_objects(self.preview_widget._objects)
+        # Re-renderizar (preservando visão/zoom)
+        self.preview_widget.set_objects(self.preview_widget._objects, preserve_view=True)
 
         logger.debug(f"{len(objs)} objetos movidos: dx={dx:.3f}, dy={dy:.3f}")
 
