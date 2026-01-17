@@ -190,9 +190,12 @@ class GerberUploadWidget(QWidget):
         self.btn_remove.setEnabled(False)
         self.btn_undo = QPushButton("↩️ Desfazer")
         self.btn_undo.setEnabled(False)
+        self.btn_redo = QPushButton("↪️ Refazer")
+        self.btn_redo.setEnabled(False)
 
         cleanup_layout.addWidget(self.btn_remove, 0, 0)
-        cleanup_layout.addWidget(self.btn_undo, 0, 1)
+        cleanup_layout.addWidget(self.btn_undo, 1, 0)
+        cleanup_layout.addWidget(self.btn_redo, 1, 1)
 
         info_layout.addWidget(cleanup_group)
         info_layout.addStretch()
@@ -227,6 +230,7 @@ class GerberUploadWidget(QWidget):
         self.preview_widget.redo_available.connect(self._on_redo_available)
         self.btn_remove.clicked.connect(self._on_remove_clicked)
         self.btn_undo.clicked.connect(self._on_undo_clicked)
+        self.btn_redo.clicked.connect(self._on_redo_clicked)
 
     def _on_upload_clicked(self):
         """Handler do botão de upload."""
@@ -421,7 +425,7 @@ class GerberUploadWidget(QWidget):
         Args:
             available: True se redo está disponível
         """
-        # TODO: Poderíamos adicionar botão de redo se necessário
+        self.btn_redo.setEnabled(available)
         logger.debug(f"Redo disponível: {available}")
 
     def _on_remove_clicked(self):
@@ -485,6 +489,10 @@ class GerberUploadWidget(QWidget):
     def _on_undo_clicked(self):
         """Handler do botão desfazer."""
         self.preview_widget.undo_remove()
+
+    def _on_redo_clicked(self):
+        """Handler do botão refazer."""
+        self.preview_widget.redo_remove()
 
     def _on_object_delete_requested(self, index: int):
         """
