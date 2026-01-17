@@ -87,27 +87,15 @@ class MainWindowEngineeringWorkflow:
                 f"camera={camera_ctrl is not None}, plc={plc_ctrl is not None}"
             )
 
-            # Busca CNCControlTab para passar ao wizard
+            # Busca CNCControlTab diretamente na MainWindow (criada pelo MainUIBuilder)
             print("🔍 [DEBUG] Buscando CNCControlTab...")
-            cnc_control_tab = None
+            cnc_control_tab = getattr(self.main_window, 'cnc_control_tab', None)
+            print(f"🔍 [DEBUG] hasattr cnc_control_tab: {cnc_control_tab is not None}")
 
-            print(f"🔍 [DEBUG] hasattr tab_widget: {hasattr(self.main_window, 'tab_widget')}")
-            if hasattr(self.main_window, 'tab_widget'):
-                print(f"🔍 [DEBUG] tab_widget.count(): {self.main_window.tab_widget.count()}")
-
-                from consumo_lib.tabs.cnc_control_tab import CNCControlTab
-
-                for i in range(self.main_window.tab_widget.count()):
-                    widget = self.main_window.tab_widget.widget(i)
-                    print(f"🔍 [DEBUG] Aba {i}: {type(widget).__name__}")
-                    if isinstance(widget, CNCControlTab):
-                        cnc_control_tab = widget
-                        print(f"✅ CNCControlTab encontrada na aba {i}")
-                        break
-                else:
-                    print("⚠️ Loop terminou sem encontrar CNCControlTab")
-
-            print(f"🔍 [DEBUG] cnc_control_tab encontrada: {cnc_control_tab is not None}")
+            if cnc_control_tab is not None:
+                print(f"✅ CNCControlTab encontrada: {type(cnc_control_tab).__name__}")
+            else:
+                print("⚠️ CNCControlTab não encontrada na MainWindow")
 
             # Cria e abre diálogo passando CNCControlTab
             dialog = EngineeringWizardDialog(
