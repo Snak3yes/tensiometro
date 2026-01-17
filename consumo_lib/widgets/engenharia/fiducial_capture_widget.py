@@ -172,16 +172,13 @@ class FiducialCaptureWidget(QWidget):
     validation_changed = pyqtSignal(bool)
 
     def __init__(self, parent=None, hardware_coordinator=None,
-                 movement_controller=None, config_manager=None,
-                 movement_orchestrator=None):
+                 movement_widget=None):
         """Inicializa o widget.
 
         Args:
             parent: Widget pai
             hardware_coordinator: EngineeringHardwareCoordinator (opcional)
-            movement_controller: CNCAOIController para controle de movimento (opcional)
-            config_manager: AOIConfigManager para configuração de movimento (opcional)
-            movement_orchestrator: MovementOrchestrator para controle de movimento (opcional)
+            movement_widget: MovementControlWidget compartilhado (opcional)
         """
         super().__init__(parent)
         logger.info("🎨 Inicializando FiducialCaptureWidget")
@@ -197,10 +194,8 @@ class FiducialCaptureWidget(QWidget):
         # Legado: camera_controller (para compatibilidade)
         self._camera_controller = None
 
-        # Controle de movimento (opcional)
-        self._movement_controller = movement_controller
-        self._config_manager = config_manager
-        self._movement_orchestrator = movement_orchestrator
+        # Controle de movimento compartilhado (MESMA instância da tela principal)
+        self._movement_widget = movement_widget
 
         # Setup UI
         self._setup_ui()
@@ -299,22 +294,15 @@ class FiducialCaptureWidget(QWidget):
         main_layout.addWidget(preview_group, 2)
 
         # Controles de movimento (se disponível)
-        if self._movement_controller and self._config_manager and self._movement_orchestrator:
-            from consumo_lib.widgets.movement_control import MovementControlWidget
-
+        if self._movement_widget is not None:
+            # Usa a MESMA instância do MovementControlWidget da tela principal
             movement_group = QGroupBox("Controle de Movimento")
             movement_layout = QVBoxLayout(movement_group)
-
-            self.movement_control_widget = MovementControlWidget(
-                self._movement_controller,
-                self._config_manager,
-                orchestrator=self._movement_orchestrator
-            )
-            movement_layout.addWidget(self.movement_control_widget)
+            movement_layout.addWidget(self._movement_widget)
             main_layout.addWidget(movement_group, 1)
-        elif self._movement_controller or self._config_manager or self._movement_orchestrator:
-            # Avisar que parâmetros estão faltando
-            logger.warning("⚠️ Parâmetros de movimento incompletos - MovementControlWidget não será criado")
+            logger.info("✅ MovementControlWidget compartilhado adicionado à aba 3")
+        else:
+            logger.info("ℹ️ MovementControlWidget não disponível para aba 3")
 
         # Controles
         controls_group = QGroupBox("Controles de Captura")

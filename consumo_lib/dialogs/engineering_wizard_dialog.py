@@ -58,14 +58,12 @@ class EngineeringWizardDialog(QDialog):
     state_changed = pyqtSignal(object)  # EngineeringWizardState
     program_completed = pyqtSignal(dict)  # ProgramConfig
 
-    def __init__(self, parent=None, movement_controller=None, config_manager=None, movement_orchestrator=None):
+    def __init__(self, parent=None, movement_widget=None):
         """Inicializa o Engineering Wizard Dialog.
 
         Args:
             parent: Widget pai
-            movement_controller: CNCAOIController para controle de movimento (opcional)
-            config_manager: AOIConfigManager para configuração (opcional)
-            movement_orchestrator: MovementOrchestrator para controle de movimento (opcional)
+            movement_widget: MovementControlWidget compartilhado (opcional)
         """
         super().__init__(parent)
 
@@ -73,10 +71,8 @@ class EngineeringWizardDialog(QDialog):
         self.current_tab = 0
         self.auto_save_timer = QTimer()
 
-        # Componentes de movimento (para passar para FiducialCaptureWidget)
-        self._movement_controller = movement_controller
-        self._config_manager = config_manager
-        self._movement_orchestrator = movement_orchestrator
+        # Componente de movimento compartilhado (MESMA instância da tela principal)
+        self._movement_widget = movement_widget
         self.auto_save_timer.timeout.connect(self._on_auto_save)
 
         # Carregar configuração de navegação livre
@@ -160,9 +156,7 @@ class EngineeringWizardDialog(QDialog):
 
         # Aba 3: Definir Fiduciais
         self.tab_fiducial_capture = FiducialCaptureWidget(
-            movement_controller=self._movement_controller,
-            config_manager=self._config_manager,
-            movement_orchestrator=self._movement_orchestrator
+            movement_widget=self._movement_widget
         )
         self.tab_widget.addTab(self.tab_fiducial_capture, "3. Definir Fiduciais")
 
