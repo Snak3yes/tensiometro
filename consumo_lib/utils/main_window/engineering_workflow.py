@@ -86,8 +86,39 @@ class MainWindowEngineeringWorkflow:
                 f"camera={camera_ctrl is not None}, plc={plc_ctrl is not None}"
             )
 
-            # Cria e abre diálogo
-            dialog = EngineeringWizardDialog(parent=self.main_window)
+            # Obtém componentes de movimento se disponíveis
+            movement_ctrl = None
+            config_mgr = None
+            movement_orchestrator = None
+
+            # Tenta obter CNCAOIController
+            if hasattr(self.main_window, 'controller') and self.main_window.controller is not None:
+                movement_ctrl = self.main_window.controller
+
+            # Tenta obter AOIConfigManager
+            if hasattr(self.main_window, 'config_manager') and self.main_window.config_manager is not None:
+                config_mgr = self.main_window.config_manager
+
+            # Tenta obter MovementOrchestrator (se existe na CNCControlTab)
+            if hasattr(self.main_window, 'cnc_control_tab') and self.main_window.cnc_control_tab is not None:
+                cnc_tab = self.main_window.cnc_control_tab
+                if hasattr(cnc_tab, 'orchestrator') and cnc_tab.orchestrator is not None:
+                    movement_orchestrator = cnc_tab.orchestrator
+
+            logger.debug(
+                f"Componentes de movimento: "
+                f"controller={movement_ctrl is not None}, "
+                f"config={config_mgr is not None}, "
+                f"orchestrator={movement_orchestrator is not None}"
+            )
+
+            # Cria e abre diálogo com parâmetros de movimento
+            dialog = EngineeringWizardDialog(
+                parent=self.main_window,
+                movement_controller=movement_ctrl,
+                config_manager=config_mgr,
+                movement_orchestrator=movement_orchestrator
+            )
 
             # Conecta signal de programa completado
             dialog.program_completed.connect(self.on_program_completed)
