@@ -425,34 +425,61 @@ class GerberUploadWidget(QWidget):
         logger.debug(f"Redo disponível: {available}")
 
     def _on_remove_clicked(self):
-        """Handler do botão remover."""
-        if self._selected_aperture_index is None:
-            logger.warning("Nenhuma aperture selecionada para remoção")
-            return
-
+        """Handler do botão remover - remove todos os itens selecionados."""
         try:
-            # Confirmar exclusão
+            # Obter todos os itens selecionados da cena
+            selected_items = self.preview_widget._scene.selectedItems()
+
+            if not selected_items:
+                logger.warning("Nenhuma aperture selecionada para remoção")
+                return
+
+            # Coletar índices de todos os itens selecionados
+            indices: set[int] = set()
+            for item in selected_items:
+                try:
+                    idx = int(item.data(0))
+                    indices.add(idx)
+                except Exception:
+                    logger.exception("Erro ao obter índice do item selecionado")
+
+            if not indices:
+                logger.warning("Nenhum índice válido encontrado nos itens selecionados")
+                return
+
+            indices_sorted = sorted(indices)
+
+            # Confirmar exclusão (mensagem diferente para singular/plural)
+            if len(indices_sorted) == 1:
+                message = f"Deseja realmente excluir a abertura selecionada (índice {indices_sorted[0]})?"
+            else:
+                message = f"Deseja realmente excluir {len(indices_sorted)} aberturas selecionadas?"
+
             reply = QMessageBox.question(
                 self,
                 "Confirmar Exclusão",
-                f"Deseja realmente excluir a abertura selecionada (índice {self._selected_aperture_index})?",
+                message,
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No
             )
 
             if reply == QMessageBox.StandardButton.Yes:
-                # Remover objeto usando o mesmo handler do Delete key
-                self._on_object_delete_requested(self._selected_aperture_index)
+                # Remover usando o handler apropriado
+                if len(indices_sorted) == 1:
+                    self._on_object_delete_requested(indices_sorted[0])
+                else:
+                    self._on_objects_delete_many_requested(indices_sorted)
+
                 # Limpar seleção
                 self._selected_aperture_index = None
                 self.btn_remove.setEnabled(False)
 
         except Exception as e:
-            logger.error(f"Erro ao excluir abertura selecionada: {e}")
+            logger.error(f"Erro ao excluir aberturas selecionadas: {e}")
             QMessageBox.critical(
                 self,
                 "Erro na Exclusão",
-                f"Erro ao excluir abertura:\n{e}"
+                f"Erro ao excluir aberturas:\n{e}"
             )
 
     def _on_undo_clicked(self):
