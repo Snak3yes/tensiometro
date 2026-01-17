@@ -84,6 +84,7 @@ class GerberUploadWidget(QWidget):
         self._apertures = []
         self._fiducials = []
         self._is_valid = False
+        self._selected_aperture_index: Optional[int] = None  # Armazena índice da última seleção
 
         # Setup UI
         self._setup_ui()
@@ -222,6 +223,8 @@ class GerberUploadWidget(QWidget):
         self.preview_widget.aperture_selected.connect(self._on_aperture_selected)
         self.preview_widget.objectDeleteRequested.connect(self._on_object_delete_requested)
         self.preview_widget.objectDeleteManyRequested.connect(self._on_objects_delete_many_requested)
+        self.preview_widget.undo_available.connect(self._on_undo_available)
+        self.preview_widget.redo_available.connect(self._on_redo_available)
         self.btn_remove.clicked.connect(self._on_remove_clicked)
         self.btn_undo.clicked.connect(self._on_undo_clicked)
 
@@ -395,15 +398,62 @@ class GerberUploadWidget(QWidget):
         Args:
             aperture: Dict com dados da aperture selecionada
         """
+        # Armazenar índice da última seleção
+        self._selected_aperture_index = aperture.get('id')
         # Habilitar botão remover quando há seleção
         self.btn_remove.setEnabled(True)
-        logger.debug(f"Botão remover habilitado (aperture {aperture.get('id', '?')} selecionada)")
+        logger.debug(f"Botão remover habilitado (aperture {self._selected_aperture_index} selecionada)")
+
+    def _on_undo_available(self, available: bool):
+        """
+        Handler quando disponibilidade de undo muda.
+
+        Args:
+            available: True se undo está disponível
+        """
+        self.btn_undo.setEnabled(available)
+        logger.debug(f"Undo disponível: {available}")
+
+    def _on_redo_available(self, available: bool):
+        """
+        Handler quando disponibilidade de redo muda.
+
+        Args:
+            available: True se redo está disponível
+        """
+        # TODO: Poderíamos adicionar botão de redo se necessário
+        logger.debug(f"Redo disponível: {available}")
 
     def _on_remove_clicked(self):
         """Handler do botão remover."""
-        # TODO: Implementar remoção da última aperture selecionada
-        # Por ora, usa o método de compatibilidade
-        self.preview_widget.undo_remove()
+        if self._selected_aperture_index is None:
+            logger.warning("Nenhuma aperture selecionada para remoção")
+            return
+
+        try:
+            # Confirmar exclusão
+            reply = QMessageBox.question(
+                self,
+                "Confirmar Exclusão",
+                f"Deseja realmente excluir a abertura selecionada (índice {self._selected_aperture_index})?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No
+            )
+
+            if reply == QMessageBox.StandardButton.Yes:
+                # Remover objeto usando o mesmo handler do Delete key
+                self._on_object_delete_requested(self._selected_aperture_index)
+                # Limpar seleção
+                self._selected_aperture_index = None
+                self.btn_remove.setEnabled(False)
+
+        except Exception as e:
+            logger.error(f"Erro ao excluir abertura selecionada: {e}")
+            QMessageBox.critical(
+                self,
+                "Erro na Exclusão",
+                f"Erro ao excluir abertura:\n{e}"
+            )
 
     def _on_undo_clicked(self):
         """Handler do botão desfazer."""

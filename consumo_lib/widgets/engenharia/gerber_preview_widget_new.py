@@ -14,6 +14,46 @@ from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QG
 logger = logging.getLogger(__name__)
 
 
+class RemoveObjectCommand:
+    """
+    Comando para operação de remover objeto (Command Pattern).
+
+    Permite undo/redo de remoções de objetos Gerber.
+    """
+
+    def __init__(self, index: int, item, scene: QGraphicsScene, objects_list: list, items_list: list):
+        """
+        Inicializa comando de remoção.
+
+        Args:
+            index: Índice do objeto na lista
+            item: QGraphicsItem a ser removido
+            scene: Cena gráfica
+            objects_list: Lista de objetos (_objects)
+            items_list: Lista de itens (_items)
+        """
+        self.index = index
+        self.item = item
+        self.scene = scene
+        self.objects_list = objects_list
+        self.items_list = items_list
+        self.executed = False
+
+    def execute(self) -> None:
+        """Executa a remoção do objeto."""
+        if not self.executed:
+            self.scene.removeItem(self.item)
+            self.executed = True
+            logger.debug(f"RemoveObjectCommand executado: índice {self.index}")
+
+    def undo(self) -> None:
+        """Desfaz a remoção (reinsere o objeto)."""
+        if self.executed:
+            self.scene.addItem(self.item)
+            self.executed = False
+            logger.debug(f"RemoveObjectCommand desfeito: índice {self.index}")
+
+
 class GerberGraphicsItem(QGraphicsPathItem):
     """
     Item gráfico para um polígono Gerber (baseado no POC).
@@ -65,6 +105,8 @@ class GerberPreviewWidget(QGraphicsView):
     aperture_selected = pyqtSignal(dict)  # Emitido ao clicar em uma aperture
     objectDeleteRequested = pyqtSignal(int)  # Índice do objeto para excluir (único)
     objectDeleteManyRequested = pyqtSignal(list)  # Lista de índices para excluir (múltiplos)
+    undo_available = pyqtSignal(bool)  # Emitido quando undo fica disponível/indisponível
+    redo_available = pyqtSignal(bool)  # Emitido quando redo fica disponível/indisponível
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -82,6 +124,10 @@ class GerberPreviewWidget(QGraphicsView):
         self._objects: Optional[List] = None  # Lista de GerberObject
         self._polys_mm: List[List[tuple[float, float]]] = []  # Polígonos em mm
         self._items: List[GerberGraphicsItem] = []  # Itens gráficos
+
+        # Undo/Redo stacks (Command Pattern)
+        self._undo_stack: List[RemoveObjectCommand] = []
+        self._redo_stack: List[RemoveObjectCommand] = []
 
         # Cores
         self._aperture_color = QColor("#00BCD4")  # Ciano (regions)
@@ -189,6 +235,11 @@ class GerberPreviewWidget(QGraphicsView):
         # Ajustar view
         self.reset_view()
 
+        # Limpar stacks de undo/redo ao carregar novo Gerber
+        self._undo_stack.clear()
+        self._redo_stack.clear()
+        self._notify_undo_redo_state()
+
     def reset_view(self):
         """Ajusta zoom para mostrar todo o conteúdo."""
         self.resetTransform()
@@ -205,7 +256,7 @@ class GerberPreviewWidget(QGraphicsView):
 
     def remove_object_at_index(self, index: int) -> bool:
         """
-        Remove um objeto da cena pelo índice.
+        Remove um objeto da cena pelo índice usando Command Pattern.
 
         Args:
             index: Índice do objeto a ser removido
@@ -219,18 +270,18 @@ class GerberPreviewWidget(QGraphicsView):
             return False
 
         try:
-            # Remover item gráfico da cena
+            # Criar comando de remoção
             item = self._items[index]
-            self._scene.removeItem(item)
+            command = RemoveObjectCommand(
+                index=index,
+                item=item,
+                scene=self._scene,
+                objects_list=self._objects,
+                items_list=self._items
+            )
 
-            # Remover das listas internas
-            # NOTA: Não podemos remover da lista diretamente porque isso
-            # desalinharia todos os índices subsequentes. Por ora, apenas
-            # removemos da cena visual e marcamos como None.
-
-            # Na implementação atual, removemos apenas da cena visual
-            # e mantemos a lista intacta (índices não mudam)
-            # TODO: Implementar sistema de undo/redo com reconstrução de índices
+            # Executar comando
+            self._execute_command(command)
 
             logger.info(f"Objeto no índice {index} removido da cena")
             return True
@@ -238,6 +289,48 @@ class GerberPreviewWidget(QGraphicsView):
         except Exception as e:
             logger.error(f"Erro ao remover objeto no índice {index}: {e}")
             return False
+
+    def _execute_command(self, command: RemoveObjectCommand) -> None:
+        """
+        Executa um comando e adiciona ao undo stack.
+
+        Args:
+            command: Comando a executar
+        """
+        command.execute()
+        self._undo_stack.append(command)
+        # Limpar redo stack quando novo comando é executado
+        self._redo_stack.clear()
+        self._notify_undo_redo_state()
+
+    def undo(self) -> None:
+        """Desfaz último comando (Undo)."""
+        if not self._undo_stack:
+            logger.debug("Undo stack vazio, nada para desfazer")
+            return
+
+        command = self._undo_stack.pop()
+        command.undo()
+        self._redo_stack.append(command)
+        logger.info(f"Undo executado: índice {command.index}")
+        self._notify_undo_redo_state()
+
+    def redo(self) -> None:
+        """Refaz último comando desfeito (Redo)."""
+        if not self._redo_stack:
+            logger.debug("Redo stack vazio, nada para refazer")
+            return
+
+        command = self._redo_stack.pop()
+        command.execute()
+        self._undo_stack.append(command)
+        logger.info(f"Redo executado: índice {command.index}")
+        self._notify_undo_redo_state()
+
+    def _notify_undo_redo_state(self) -> None:
+        """Emite signals para notificar mudanças no estado de undo/redo."""
+        self.undo_available.emit(len(self._undo_stack) > 0)
+        self.redo_available.emit(len(self._redo_stack) > 0)
 
     def remove_objects_at_indices(self, indices: list[int]) -> int:
         """
@@ -440,5 +533,9 @@ class GerberPreviewWidget(QGraphicsView):
         pass
 
     def undo_remove(self) -> None:
-        """Método de compatibilidade (não implementado)."""
-        pass
+        """Método de compatibilidade - chama undo()."""
+        self.undo()
+
+    def redo_remove(self) -> None:
+        """Método de compatibilidade - chama redo()."""
+        self.redo()
