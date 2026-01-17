@@ -105,6 +105,8 @@ class AuthenticationManager:
 
             if success:
                 logger.info(f"Auto-login bem-sucedido: {username} ({default_role})")
+                # IMPORTANTE: Atualizar RoleManager com o role do usuário auto-logado
+                self.role_manager.set_role(default_role)
                 self.main_window.statusBar().showMessage(
                     f"Auto-login: {username} ({default_role})", 3000
                 )
