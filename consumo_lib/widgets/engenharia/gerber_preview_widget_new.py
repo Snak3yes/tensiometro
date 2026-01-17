@@ -353,13 +353,74 @@ class GerberPreviewWidget(QGraphicsView):
         super().keyPressEvent(event)
 
     def mouseReleaseEvent(self, event):
-        """Finaliza pan."""
+        """Finaliza pan e verifica seleção."""
         if event.button() == Qt.MouseButton.MiddleButton and hasattr(self, '_panning'):
             self._panning = False
             self.setCursor(Qt.CursorShape.ArrowCursor)
             event.accept()
-        else:
-            super().mouseReleaseEvent(event)
+            return
+
+        # Chamar super() primeiro para processar seleção
+        super().mouseReleaseEvent(event)
+
+        # Após processar seleção, verificar se há itens selecionados
+        # e emitir signal para habilitar botões
+        self._emit_selection_changed()
+
+    def _emit_selection_changed(self):
+        """
+        Emite signal aperture_selected quando há itens selecionados.
+
+        Este método é chamado após mudanças de seleção para notificar
+        o GerberUploadWidget que deve habilitar/desabilitar botões.
+        """
+        selected_items = self._scene.selectedItems()
+
+        if selected_items and self._objects:
+            # Pega o primeiro item selecionado
+            item = selected_items[0]
+            try:
+                idx = int(item.data(0))
+
+                # Verifica se índice é válido
+                if 0 <= idx < len(self._objects):
+                    obj = self._objects[idx]
+
+                    # Converter GerberObject para dict (compatibilidade)
+                    aperture_dict = self._gerber_object_to_dict(obj, idx)
+                    self.aperture_selected.emit(aperture_dict)
+                    logger.debug(f"aperture_selected emitido para índice {idx}")
+            except Exception as e:
+                logger.exception(f"Erro ao emitir aperture_selected: {e}")
+
+    def _gerber_object_to_dict(self, obj, index: int) -> dict:
+        """
+        Converte GerberObject para dict (compatibilidade com código legado).
+
+        Args:
+            obj: GerberObject
+            index: Índice do objeto
+
+        Returns:
+            Dict com dados da aperture
+        """
+        # Extrair atributos do GerberObject
+        data = {
+            'id': index,
+            'type': getattr(obj, 'obj_type', 'unknown'),
+            'x': getattr(obj, 'x', 0.0),
+            'y': getattr(obj, 'y', 0.0),
+        }
+
+        # Adicionar dimensões específicas
+        if hasattr(obj, 'diameter') and obj.diameter is not None:
+            data['d'] = obj.diameter
+        if hasattr(obj, 'width') and obj.width is not None:
+            data['width'] = obj.width
+        if hasattr(obj, 'height') and obj.height is not None:
+            data['height'] = obj.height
+
+        return data
 
     # Métodos de compatibilidade com código antigo
     def set_apertures(self, apertures: List[dict]) -> None:

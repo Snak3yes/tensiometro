@@ -389,8 +389,15 @@ class GerberUploadWidget(QWidget):
             self.list_fiducials.addItem(item)
 
     def _on_aperture_selected(self, aperture: Dict):
-        """Handler quando aperture é selecionada."""
+        """
+        Handler quando aperture é selecionada.
+
+        Args:
+            aperture: Dict com dados da aperture selecionada
+        """
+        # Habilitar botão remover quando há seleção
         self.btn_remove.setEnabled(True)
+        logger.debug(f"Botão remover habilitado (aperture {aperture.get('id', '?')} selecionada)")
 
     def _on_remove_clicked(self):
         """Handler do botão remover."""
