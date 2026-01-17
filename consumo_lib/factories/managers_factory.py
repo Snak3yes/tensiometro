@@ -28,7 +28,7 @@ class ManagersFactory:
     Factory para criar todos os managers da aplicação.
 
     Responsabilidade:
-    - Criar ConnectionManager (gerencia PLC, GRBL, serial ports)
+    - Criar ConnectionManager (gerencia PLC, câmera)
     - Criar RoleManager (gerencia roles de usuários)
     - Criar SessionLogger (gerencia logs de sessão)
     - Criar RecipeManagerWrapper e RecipeManager
@@ -84,7 +84,7 @@ class ManagersFactory:
         managers['session_logger'] = SessionLogger(log_dir=str(log_dir))
         logger.debug(f"SessionLogger criado via ManagersFactory com log_dir={log_dir}")
 
-        # 4. Connection Manager (gerencia PLC, GRBL, serial ports)
+        # 4. Connection Manager (gerencia PLC, câmera)
         managers['connection_mgr'] = ConnectionManager(
             controller,
             config

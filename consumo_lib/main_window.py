@@ -42,12 +42,6 @@ from aoi_lib.inspection_result_viewer import InspectionResultWidget
 
 # External
 try:
-    from grbl_streamer import GrblStreamer
-except ImportError:
-    GrblStreamer = None
-    logger.warning("grbl_streamer.py não encontrado - funcionalidade GRBL desabilitada")
-
-try:
     from tools.mosaic_builder import compose_mosaic_from_folder
 except ImportError:
     try:
@@ -75,7 +69,7 @@ from consumo_lib.controllers import (
     FileIOController, PositionManagerController, RecipeManagerController
 )
 from consumo_lib.coordinators import SetupCoordinator, EngineeringHardwareCoordinator
-from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, GRBLCallbackHandler, DialogRouter
+from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, DialogRouter
 from consumo_lib.ui_builders import MainUIBuilder
 from consumo_lib.services import SequenceExecutionService, ResourceManager
 from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
