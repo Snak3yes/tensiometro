@@ -15,7 +15,7 @@ Seguindo princípios SOLID:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Tuple
 import logging
 
 logger = logging.getLogger(__name__)
@@ -52,6 +52,7 @@ class GerberObject:
         diameter: Diâmetro (para círculos)
         width: Largura (para retângulos e ovais)
         height: Altura (para retângulos e ovais)
+        polygon_mm: Polígono em mm (lista de pontos (x, y))
     """
     obj_type: str
     x: float
@@ -59,6 +60,7 @@ class GerberObject:
     diameter: Optional[float] = None
     width: Optional[float] = None
     height: Optional[float] = None
+    polygon_mm: List[Tuple[float, float]] = field(default_factory=list)
 
 
 @dataclass
