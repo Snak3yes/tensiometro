@@ -58,13 +58,17 @@ class EngineeringWizardDialog(QDialog):
     state_changed = pyqtSignal(object)  # EngineeringWizardState
     program_completed = pyqtSignal(dict)  # ProgramConfig
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, cnc_control_tab=None):
         """Inicializa o Engineering Wizard Dialog.
 
         Args:
             parent: Widget pai
+            cnc_control_tab: CNCControlTab para compartilhar MovementControlWidget
         """
         super().__init__(parent)
+
+        # Armazena referência da CNCControlTab
+        self.cnc_control_tab = cnc_control_tab
 
         self.state = EngineeringWizardState()
         self.current_tab = 0
@@ -75,9 +79,6 @@ class EngineeringWizardDialog(QDialog):
         # Carregar configuração de navegação livre
         self.config_manager = AOIConfigManager()
         self.free_navigation_mode = self.config_manager.get_free_navigation_enabled()
-
-        # NOTA: MovementControlWidget não precisa mais ser passado
-        # O FiducialCaptureWidget encontrará a CNCControlTab automaticamente
 
         self._setup_ui()
         self._connect_signals()
@@ -205,7 +206,7 @@ class EngineeringWizardDialog(QDialog):
         self.tab_widget.addTab(self.tab_gerber_upload, "2. Carregar Gerber")
 
         # Aba 3: Definir Fiduciais
-        self.tab_fiducial_capture = FiducialCaptureWidget()
+        self.tab_fiducial_capture = FiducialCaptureWidget(cnc_control_tab=self.cnc_control_tab)
         self.tab_widget.addTab(self.tab_fiducial_capture, "3. Definir Fiduciais")
 
         # Aba 4: Capturar Mosaico

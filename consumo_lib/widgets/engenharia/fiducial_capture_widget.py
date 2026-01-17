@@ -176,12 +176,13 @@ class FiducialCaptureWidget(QWidget):
     fiducial_captured = pyqtSignal(dict)
     validation_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None, hardware_coordinator=None):
+    def __init__(self, parent=None, hardware_coordinator=None, cnc_control_tab=None):
         """Inicializa o widget.
 
         Args:
             parent: Widget pai
             hardware_coordinator: EngineeringHardwareCoordinator (opcional)
+            cnc_control_tab: CNCControlTab para compartilhar MovementControlWidget (opcional)
         """
         super().__init__(parent)
         logger.info("🎨 Inicializando FiducialCaptureWidget")
@@ -197,8 +198,8 @@ class FiducialCaptureWidget(QWidget):
         # Legado: camera_controller (para compatibilidade)
         self._camera_controller = None
 
-        # NOTA: MovementControlWidget será encontrado automaticamente na CNCControlTab
-        # via busca recursiva (_find_parent_cnc_control_tab)
+        # CNCControlTab passada como parâmetro (prioridade sobre busca recursiva)
+        self._cnc_control_tab = cnc_control_tab
         self._movement_widget = None
 
         # Setup UI
@@ -301,31 +302,29 @@ class FiducialCaptureWidget(QWidget):
         # A nova instância compartilha o MESMO estado via controller/orchestrator
         logger.info("🔍 [DEBUG] Tentando criar MovementControlWidget para aba 3...")
         logger.info(f"🔍 [DEBUG] self._movement_widget is None: {self._movement_widget is None}")
-        logger.info(f"🔍 [DEBUG] parent(): {self.parent()}")
+        logger.info(f"🔍 [DEBUG] self._cnc_control_tab: {self._cnc_control_tab is not None}")
 
-        if self._movement_widget is None:
-            # Buscar referência para obter parâmetros
-            logger.info("🔍 [DEBUG] Chamando _find_parent_cnc_control_tab()...")
-            parent_tab = self._find_parent_cnc_control_tab(self)
-            logger.info(f"🔍 [DEBUG] parent_tab encontrado: {parent_tab is not None}")
+        if self._movement_widget is None and self._cnc_control_tab is not None:
+            # Usa CNCControlTab passada como parâmetro
+            logger.info("🔍 [DEBUG] Usando CNCControlTab passada como parâmetro...")
+            logger.info(f"🔍 [DEBUG] cnc_control_tab type: {type(self._cnc_control_tab)}")
+            logger.info(f"🔍 [DEBUG] hasattr controller: {hasattr(self._cnc_control_tab, 'controller')}")
+            logger.info(f"🔍 [DEBUG] hasattr config_manager: {hasattr(self._cnc_control_tab, 'config_manager')}")
+            logger.info(f"🔍 [DEBUG] hasattr orchestrator: {hasattr(self._cnc_control_tab, 'orchestrator')}")
 
-            if parent_tab is not None:
-                logger.info(f"🔍 [DEBUG] parent_tab type: {type(parent_tab)}")
-                logger.info(f"🔍 [DEBUG] hasattr controller: {hasattr(parent_tab, 'controller')}")
-                logger.info(f"🔍 [DEBUG] hasattr config_manager: {hasattr(parent_tab, 'config_manager')}")
-                logger.info(f"🔍 [DEBUG] hasattr orchestrator: {hasattr(parent_tab, 'orchestrator')}")
-
-            if parent_tab is not None and hasattr(parent_tab, 'controller') and hasattr(parent_tab, 'config_manager'):
+            if hasattr(self._cnc_control_tab, 'controller') and hasattr(self._cnc_control_tab, 'config_manager'):
                 # Criar nova instância do MovementControlWidget com os MESMOS parâmetros
                 logger.info("🔍 [DEBUG] Criando MovementControlWidget...")
                 self._movement_widget = MovementControlWidget(
-                    parent_tab.controller,
-                    parent_tab.config_manager,
-                    orchestrator=parent_tab.orchestrator
+                    self._cnc_control_tab.controller,
+                    self._cnc_control_tab.config_manager,
+                    orchestrator=self._cnc_control_tab.orchestrator
                 )
                 logger.info("✅ Nova instância de MovementControlWidget criada para aba 3")
             else:
-                logger.warning("⚠️ CNCControlTab não encontrado - não foi possível criar MovementControlWidget")
+                logger.warning("⚠️ CNCControlTab não possui controller/config_manager necessários")
+        elif self._movement_widget is None:
+            logger.warning("⚠️ CNCControlTab não foi passada como parâmetro - não foi possível criar MovementControlWidget")
 
         # Adicionar MovementControlWidget à aba 3
         logger.info(f"🔍 [DEBUG] self._movement_widget is not None: {self._movement_widget is not None}")

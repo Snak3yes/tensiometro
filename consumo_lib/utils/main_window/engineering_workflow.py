@@ -86,8 +86,22 @@ class MainWindowEngineeringWorkflow:
                 f"camera={camera_ctrl is not None}, plc={plc_ctrl is not None}"
             )
 
-            # Cria e abre diálogo (sem passar movement_widget - será obtido internamente)
-            dialog = EngineeringWizardDialog(parent=self.main_window)
+            # Busca CNCControlTab para passar ao wizard
+            cnc_control_tab = None
+            if hasattr(self.main_window, 'tab_widget'):
+                from consumo_lib.tabs.cnc_control_tab import CNCControlTab
+                for i in range(self.main_window.tab_widget.count()):
+                    widget = self.main_window.tab_widget.widget(i)
+                    if isinstance(widget, CNCControlTab):
+                        cnc_control_tab = widget
+                        logger.info(f"✅ CNCControlTab encontrada na aba {i}")
+                        break
+
+            # Cria e abre diálogo passando CNCControlTab
+            dialog = EngineeringWizardDialog(
+                parent=self.main_window,
+                cnc_control_tab=cnc_control_tab
+            )
 
             # Conecta signal de programa completado
             dialog.program_completed.connect(self.on_program_completed)
