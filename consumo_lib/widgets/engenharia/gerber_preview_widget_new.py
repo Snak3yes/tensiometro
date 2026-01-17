@@ -14,6 +14,42 @@ from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsPathItem, QG
 logger = logging.getLogger(__name__)
 
 
+class CompositeCommand:
+    """
+    Comando composto que agrupa múltiplos comandos (Composite Pattern).
+
+    Permite undo/redo de múltiplas operações como uma única ação.
+    """
+
+    def __init__(self, commands: list, name: str = "Comando Composto"):
+        """
+        Inicializa comando composto.
+
+        Args:
+            commands: Lista de comandos a serem agrupados
+            name: Nome descritivo do comando composto
+        """
+        self.commands = commands
+        self.name = name
+        self.executed = False
+
+    def execute(self) -> None:
+        """Executa todos os comandos em ordem."""
+        if not self.executed:
+            for cmd in self.commands:
+                cmd.execute()
+            self.executed = True
+            logger.debug(f"{self.name} executado: {len(self.commands)} operações")
+
+    def undo(self) -> None:
+        """Desfaz todos os comandos em ordem reversa."""
+        if self.executed:
+            for cmd in reversed(self.commands):
+                cmd.undo()
+            self.executed = False
+            logger.debug(f"{self.name} desfeito: {len(self.commands)} operações")
+
+
 class RemoveObjectCommand:
     """
     Comando para operação de remover objeto (Command Pattern).
@@ -290,12 +326,12 @@ class GerberPreviewWidget(QGraphicsView):
             logger.error(f"Erro ao remover objeto no índice {index}: {e}")
             return False
 
-    def _execute_command(self, command: RemoveObjectCommand) -> None:
+    def _execute_command(self, command) -> None:
         """
         Executa um comando e adiciona ao undo stack.
 
         Args:
-            command: Comando a executar
+            command: Comando a executar (RemoveObjectCommand ou CompositeCommand)
         """
         command.execute()
         self._undo_stack.append(command)
@@ -334,7 +370,7 @@ class GerberPreviewWidget(QGraphicsView):
 
     def remove_objects_at_indices(self, indices: list[int]) -> int:
         """
-        Remove múltiplos objetos da cena pelos índices.
+        Remove múltiplos objetos da cena pelos índices usando CompositeCommand.
 
         Args:
             indices: Lista de índices para remover
@@ -342,13 +378,42 @@ class GerberPreviewWidget(QGraphicsView):
         Returns:
             Número de objetos removidos com sucesso
         """
-        removed_count = 0
-        for idx in sorted(indices, reverse=True):  # Reverse order para preservar índices
-            if self.remove_object_at_index(idx):
-                removed_count += 1
+        # Validar índices
+        valid_indices = [idx for idx in indices if 0 <= idx < len(self._items)]
 
-        logger.info(f"{removed_count} objetos removidos (solicitados: {len(indices)})")
-        return removed_count
+        if not valid_indices:
+            logger.warning("Nenhum índice válido para remover")
+            return 0
+
+        try:
+            # Criar comandos individuais para cada índice
+            commands = []
+            for idx in sorted(valid_indices, reverse=True):  # Reverse order para preservar índices
+                item = self._items[idx]
+                cmd = RemoveObjectCommand(
+                    index=idx,
+                    item=item,
+                    scene=self._scene,
+                    objects_list=self._objects,
+                    items_list=self._items
+                )
+                commands.append(cmd)
+
+            # Criar comando composto
+            composite_cmd = CompositeCommand(
+                commands=commands,
+                name=f"Remover {len(commands)} objetos"
+            )
+
+            # Executar comando composto como uma única ação
+            self._execute_command(composite_cmd)
+
+            logger.info(f"{len(commands)} objetos removidos como grupo")
+            return len(commands)
+
+        except Exception as e:
+            logger.error(f"Erro ao remover objetos: {e}")
+            return 0
 
     def wheelEvent(self, event):
         """Zoom com scroll do mouse."""
