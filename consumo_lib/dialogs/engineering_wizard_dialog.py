@@ -36,6 +36,7 @@ from consumo_lib.utils.ux_helpers import (
     set_tooltip,
     ENGINEERING_WIZARD_TOOLTIPS
 )
+from aoi_lib.config_manager import AOIConfigManager
 
 logger = logging.getLogger(__name__)
 
@@ -66,13 +67,21 @@ class EngineeringWizardDialog(QDialog):
         self.auto_save_timer = QTimer()
         self.auto_save_timer.timeout.connect(self._on_auto_save)
 
+        # Carregar configuração de navegação livre
+        self.config_manager = AOIConfigManager()
+        self.free_navigation_mode = self.config_manager.get_free_navigation_enabled()
+
         self._setup_ui()
         self._connect_signals()
         self._update_ui_state()
         self._setup_keyboard_shortcuts()
         self._setup_tooltips()
 
-        logger.info("📋 EngineeringWizardDialog inicializado")
+        # Atualizar título com indicador de modo livre
+        if self.free_navigation_mode:
+            self._update_title_for_free_navigation()
+
+        logger.info(f"📋 EngineeringWizardDialog inicializado (free_navigation={self.free_navigation_mode})")
 
     def _setup_ui(self):
         """Configura a interface do usuario."""
@@ -157,9 +166,15 @@ class EngineeringWizardDialog(QDialog):
         self.tab_confirm_save = ConfirmSaveWidget()
         self.tab_widget.addTab(self.tab_confirm_save, "7. Confirmar e Salvar")
 
-        # Desabilitar abas subsequentes inicialmente
-        for i in range(1, 7):
-            self.tab_widget.setTabEnabled(i, False)
+        # Desabilitar abas subsequentes inicialmente (apenas em modo normal)
+        if not self.free_navigation_mode:
+            # MODO NORMAL: Desabilitar abas 1-6 inicialmente (navegação sequencial)
+            for i in range(1, 7):
+                self.tab_widget.setTabEnabled(i, False)
+            logger.debug("✓ Abas desabilitadas (modo normal)")
+        else:
+            # MODO LIVRE: Todas as abas habilitadas (navegação livre)
+            logger.debug("✓ Abas habilitadas (modo navegação livre)")
 
         # Atualizar labels com indicadores visuais
         self._update_tab_labels()
@@ -278,7 +293,13 @@ class EngineeringWizardDialog(QDialog):
     def _on_next(self):
         """Handler para botao Proximo."""
         if self.current_tab < 6:
-            # Validar aba atual antes de avancar
+            # MODO LIVRE: Pular validações e avançar diretamente
+            if self.free_navigation_mode:
+                self.tab_widget.setCurrentIndex(self.current_tab + 1)
+                logger.info(f"➡️ MODO LIVRE: Avançou para aba {self.current_tab + 1} (sem validação)")
+                return
+
+            # MODO NORMAL: Validar aba atual antes de avançar
             if not self.state.is_valid(self.current_tab):
                 # Obter mensagem específica de validação
                 validation_msg = self.state.get_validation_message(self.current_tab)
@@ -362,7 +383,23 @@ class EngineeringWizardDialog(QDialog):
 
     def _on_tab_changed(self, index: int):
         """Handler para mudanca de aba."""
-        # Bloquear navegação para abas não permitidas
+        # MODO LIVRE: Permitir qualquer navegação sem validações
+        if self.free_navigation_mode:
+            old_tab = self.current_tab
+            self.current_tab = index
+            self.state.current_tab = index
+
+            # Atualizar barra de progresso
+            self.progress_label.setText(f"Etapa {index + 1} de 7: {self._get_tab_name(index)}")
+            self.progress_bar.setValue(index + 1)
+
+            # Atualizar estado dos botoes
+            self._update_button_states()
+
+            logger.debug(f"🔄 MODO LIVRE: Mudou da aba {old_tab} para aba {index} (sem validação)")
+            return
+
+        # MODO NORMAL: Bloquear navegação para abas não permitidas
         if index > self.current_tab:
             # Tentando avançar - validar dependências
             can_proceed, message = self.state.can_proceed_to_tab(index)
@@ -392,6 +429,14 @@ class EngineeringWizardDialog(QDialog):
         self._update_button_states()
 
         logger.debug(f"🔄 Mudou da aba {old_tab} para aba {index}")
+
+    def _update_title_for_free_navigation(self):
+        """Atualiza título do dialog com indicador de modo livre."""
+        base_title = "Engineering Wizard - Novo Programa de Inspeção"
+        if self.free_navigation_mode:
+            self.setWindowTitle(f"🔓 {base_title} [Navegação Livre]")
+        else:
+            self.setWindowTitle(base_title)
 
     def _get_tab_name(self, index: int) -> str:
         """Retorna o nome da aba."""
