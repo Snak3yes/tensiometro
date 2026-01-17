@@ -193,3 +193,79 @@ class TestFreeNavigationWizardLogic:
                 title = mock_setWindowTitle.call_args[0][0]
                 assert "🔓" in title, "Título deve incluir emoji de cadeado aberto"
                 assert "Navegação Livre" in title, "Título deve incluir texto 'Navegação Livre'"
+
+    def test_update_ui_state_respects_free_navigation_mode(self):
+        """
+        Testa se _update_ui_state respeita o modo de navegação livre.
+
+        BUG FIX: Em modo livre, _update_ui_state não deve desabilitar as abas.
+        """
+        # Arrange: Mock config manager retornando free_navigation=True
+        with patch('consumo_lib.dialogs.engineering_wizard_dialog.AOIConfigManager') as mock_config_cls:
+            mock_config_mgr = Mock()
+            mock_config_mgr.get_free_navigation_enabled = Mock(return_value=True)
+            mock_config_cls.return_value = mock_config_mgr
+
+            from consumo_lib.dialogs.engineering_wizard_dialog import EngineeringWizardDialog
+
+            with patch.object(EngineeringWizardDialog, '_setup_ui'):
+                with patch.object(EngineeringWizardDialog, '_connect_signals'):
+                    with patch.object(EngineeringWizardDialog, '_update_ui_state'):
+                        with patch.object(EngineeringWizardDialog, '_setup_keyboard_shortcuts'):
+                            with patch.object(EngineeringWizardDialog, '_setup_tooltips'):
+                                wizard = EngineeringWizardDialog()
+
+            # Act: Configurar mocks e chamar _update_ui_state
+            wizard.state = Mock()
+            wizard.state.is_valid = Mock(return_value=False)  # Abas inválidas
+            wizard.state.can_proceed_to_tab = Mock(return_value=(False, "Aba inválida"))
+
+            with patch.object(wizard, 'tab_widget') as mock_tab_widget:
+                with patch.object(wizard, '_update_tab_labels'):
+                    wizard._update_ui_state()
+
+                    # Assert: Em modo livre, setTabEnabled não deve ser chamado para desabilitar
+                    # (loop de desabilitação deve ser pulado)
+                    # Verificamos que setTabEnabled NÃO foi chamado com False para abas 1-6
+                    for i in range(1, 7):
+                        # Se foi chamado, deve ter sido apenas com True (habilitar)
+                        for call in mock_tab_widget.setTabEnabled.call_args_list:
+                            if call[0][0] == i:
+                                # Se chamou para esta aba, deve ter sido True
+                                assert call[0][1] is True, (
+                                    f"Em modo livre, aba {i} não deve ser desabilitada"
+                                )
+
+    def test_update_ui_state_disables_tabs_in_normal_mode(self):
+        """
+        Testa se _update_ui_state desabilita abas em modo normal.
+        """
+        # Arrange: Mock config manager retornando free_navigation=False
+        with patch('consumo_lib.dialogs.engineering_wizard_dialog.AOIConfigManager') as mock_config_cls:
+            mock_config_mgr = Mock()
+            mock_config_mgr.get_free_navigation_enabled = Mock(return_value=False)
+            mock_config_cls.return_value = mock_config_mgr
+
+            from consumo_lib.dialogs.engineering_wizard_dialog import EngineeringWizardDialog
+
+            with patch.object(EngineeringWizardDialog, '_setup_ui'):
+                with patch.object(EngineeringWizardDialog, '_connect_signals'):
+                    with patch.object(EngineeringWizardDialog, '_update_ui_state'):
+                        with patch.object(EngineeringWizardDialog, '_setup_keyboard_shortcuts'):
+                            with patch.object(EngineeringWizardDialog, '_setup_tooltips'):
+                                wizard = EngineeringWizardDialog()
+
+            # Act: Configurar mocks e chamar _update_ui_state
+            wizard.state = Mock()
+            wizard.state.is_valid = Mock(return_value=False)  # Abas inválidas
+            wizard.state.can_proceed_to_tab = Mock(return_value=(False, "Aba inválida"))
+
+            with patch.object(wizard, 'tab_widget') as mock_tab_widget:
+                with patch.object(wizard, '_update_tab_labels'):
+                    wizard._update_ui_state()
+
+                    # Assert: Em modo normal, setTabEnabled deve ser chamado com False
+                    # para abas que não podem prosseguir
+                    assert mock_tab_widget.setTabEnabled.called, (
+                        "setTabEnabled deve ser chamado em modo normal"
+                    )

@@ -137,6 +137,12 @@ class AuthenticationManager:
 
             user_role = self.auth_service.get_current_user().role
 
+            # 🔥 CRÍTICO: Atualizar RoleManager com o role do usuário autenticado
+            # Isso garante que has_permission() funciona corretamente
+            if self.role_manager:
+                self.role_manager.set_role(user_role.value)
+                logger.info(f"RoleManager atualizado com role: {user_role.value}")
+
             # Aplica permissões baseado no role
             self._apply_menu_permissions(user_role)
             self._apply_button_permissions(user_role)
@@ -154,14 +160,14 @@ class AuthenticationManager:
             user_role: Role do usuário
         """
         try:
-            # Menu Engenharia - apenas engineering+
+            # Menu Engenharia - apenas engineering+ (usa permissão correta)
             if hasattr(self.main_window, 'engineering_menu'):
-                can_access = self.role_manager.has_permission('engineering')
+                can_access = self.role_manager.can_access_engineering_settings()
                 self.main_window.engineering_menu.setEnabled(can_access)
 
-            # Menu Admin - apenas admin
+            # Menu Admin - apenas admin (verifica role diretamente)
             if hasattr(self.main_window, 'admin_menu'):
-                can_access = self.role_manager.has_permission('admin')
+                can_access = self.role_manager.get_current_role() == 'admin'
                 self.main_window.admin_menu.setEnabled(can_access)
         except Exception as e:
             logger.error(f"Erro ao aplicar permissões de menu: {e}")
@@ -174,7 +180,7 @@ class AuthenticationManager:
             user_role: Role do usuário
         """
         try:
-            # Botões de engenharia - apenas engineering+
+            # Botões de engenharia - apenas engineering+ (usa permissão correta)
             engineering_buttons = [
                 'btn_run_tension',
                 'btn_save_program',
@@ -184,7 +190,7 @@ class AuthenticationManager:
             for btn_name in engineering_buttons:
                 if hasattr(self.main_window, btn_name):
                     button = getattr(self.main_window, btn_name)
-                    can_access = self.role_manager.has_permission('engineering')
+                    can_access = self.role_manager.can_access_engineering_settings()
                     button.setEnabled(can_access)
         except Exception as e:
             logger.error(f"Erro ao aplicar permissões de botão: {e}")
@@ -197,9 +203,9 @@ class AuthenticationManager:
             user_role: Role do usuário
         """
         try:
-            # Tab de engenharia - apenas engineering+
+            # Tab de engenharia - apenas engineering+ (usa permissão correta)
             if hasattr(self.main_window, 'engineering_tab'):
-                can_access = self.role_manager.has_permission('engineering')
+                can_access = self.role_manager.can_access_engineering_settings()
                 # Note: QTabWidget não tem setEnabled por índice diretamente
                 # Precisa usar Qt.ItemFlags ou remover/adicionar aba
                 pass
@@ -210,7 +216,7 @@ class AuthenticationManager:
         """Exibe o diálogo de configurações de autenticação."""
         try:
             # Verifica permissão (apenas engineering+)
-            can_access = self.role_manager.has_permission('engineering')
+            can_access = self.role_manager.can_access_engineering_settings()
 
             if not can_access:
                 logger.warning("Usuário sem permissão para acessar configurações de autenticação")

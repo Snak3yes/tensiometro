@@ -469,10 +469,14 @@ class EngineeringWizardDialog(QDialog):
         """Atualiza o estado da UI baseado no estado compartilhado."""
         self._update_button_states()
 
-        # Habilitar abas subsequentes se dependencias atendidas
-        for i in range(1, 7):
-            can_proceed, _ = self.state.can_proceed_to_tab(i)
-            self.tab_widget.setTabEnabled(i, can_proceed)
+        # MODO LIVRE: Não desabilitar abas (todas permanecem habilitadas)
+        if self.free_navigation_mode:
+            logger.debug("🔓 MODO LIVRE: Pulando desabilitação de abas")
+        else:
+            # MODO NORMAL: Habilitar abas subsequentes se dependencias atendidas
+            for i in range(1, 7):
+                can_proceed, _ = self.state.can_proceed_to_tab(i)
+                self.tab_widget.setTabEnabled(i, can_proceed)
 
         # Atualizar labels com indicadores visuais
         self._update_tab_labels()
