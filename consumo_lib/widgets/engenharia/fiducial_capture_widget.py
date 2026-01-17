@@ -299,12 +299,25 @@ class FiducialCaptureWidget(QWidget):
 
         # Controles de movimento (CRIAR NOVA INSTÂNCIA)
         # A nova instância compartilha o MESMO estado via controller/orchestrator
+        logger.info("🔍 [DEBUG] Tentando criar MovementControlWidget para aba 3...")
+        logger.info(f"🔍 [DEBUG] self._movement_widget is None: {self._movement_widget is None}")
+        logger.info(f"🔍 [DEBUG] parent(): {self.parent()}")
+
         if self._movement_widget is None:
             # Buscar referência para obter parâmetros
+            logger.info("🔍 [DEBUG] Chamando _find_parent_cnc_control_tab()...")
             parent_tab = self._find_parent_cnc_control_tab(self)
+            logger.info(f"🔍 [DEBUG] parent_tab encontrado: {parent_tab is not None}")
+
+            if parent_tab is not None:
+                logger.info(f"🔍 [DEBUG] parent_tab type: {type(parent_tab)}")
+                logger.info(f"🔍 [DEBUG] hasattr controller: {hasattr(parent_tab, 'controller')}")
+                logger.info(f"🔍 [DEBUG] hasattr config_manager: {hasattr(parent_tab, 'config_manager')}")
+                logger.info(f"🔍 [DEBUG] hasattr orchestrator: {hasattr(parent_tab, 'orchestrator')}")
 
             if parent_tab is not None and hasattr(parent_tab, 'controller') and hasattr(parent_tab, 'config_manager'):
                 # Criar nova instância do MovementControlWidget com os MESMOS parâmetros
+                logger.info("🔍 [DEBUG] Criando MovementControlWidget...")
                 self._movement_widget = MovementControlWidget(
                     parent_tab.controller,
                     parent_tab.config_manager,
@@ -315,12 +328,16 @@ class FiducialCaptureWidget(QWidget):
                 logger.warning("⚠️ CNCControlTab não encontrado - não foi possível criar MovementControlWidget")
 
         # Adicionar MovementControlWidget à aba 3
+        logger.info(f"🔍 [DEBUG] self._movement_widget is not None: {self._movement_widget is not None}")
         if self._movement_widget is not None:
+            logger.info("🔍 [DEBUG] Criando QGroupBox e adicionando MovementControlWidget...")
             movement_group = QGroupBox("Controle de Movimento")
             movement_layout = QVBoxLayout(movement_group)
             movement_layout.addWidget(self._movement_widget)
             main_layout.addWidget(movement_group, 1)
             logger.info("✅ MovementControlWidget adicionado à aba 3 do Engineering Wizard")
+        else:
+            logger.warning("⚠️ MovementControlWidget é None - não será adicionado à aba 3")
 
         # Controles
         controls_group = QGroupBox("Controles de Captura")
