@@ -131,11 +131,13 @@ class RoleManager(QObject):
             True se role foi definida com sucesso
         """
         try:
-            new_role = UserRole(role)
             old_role = self._current_role
+            logger.debug(f"set_role() chamado: role='{role}', current_role='{old_role.value if old_role else None}'")
+
+            new_role = UserRole(role)
             self._current_role = new_role
 
-            logger.info(f"Role alterada: {old_role.value} → {new_role.value}")
+            logger.info(f"Role alterada: {old_role.value if old_role else 'None'} → {new_role.value}")
             self.role_changed.emit(new_role.value)
             return True
         except ValueError:
@@ -173,6 +175,11 @@ class RoleManager(QObject):
         """
         allowed_permissions = self.ROLE_PERMISSIONS.get(self._current_role, [])
         has_perm = permission in allowed_permissions
+
+        logger.debug(
+            f"has_permission('{permission}'): role={self._current_role.value}, "
+            f"allowed={allowed_permissions}, has_perm={has_perm}"
+        )
 
         if not has_perm:
             logger.warning(
