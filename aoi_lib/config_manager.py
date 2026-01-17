@@ -90,6 +90,11 @@ class AOIConfigManager:
         "authentication": {
             "require_login_on_startup": True,  # Exigir login ao iniciar aplicação
             "default_role": "operator"          # Papel padrão para auto-login (operator|engineering|quality|admin)
+        },
+        # ---------- CONFIGURAÇÕES DO ENGINEERING WIZARD -----------
+        "engineering_wizard": {
+            "free_navigation_enabled": False,  # Habilitar navegação livre (testing/debug)
+            "last_used_mode": "normal"          # Rastrear último modo usado (normal|free)
         }
     }
 
@@ -219,6 +224,26 @@ class AOIConfigManager:
             role: Papel padrão (operator|engineering|quality|admin).
         """
         self.set("authentication", "default_role", value=role)
+
+    # -------- atalhos para configurações do Engineering Wizard ---------------
+    def get_free_navigation_enabled(self) -> bool:
+        """
+        Retorna se navegação livre está habilitada no Engineering Wizard.
+
+        Returns:
+            bool: True se navegação livre está habilitada, False caso contrário.
+                  Padrão: False
+        """
+        return self.get("engineering_wizard", "free_navigation_enabled", default=False)
+
+    def set_free_navigation_enabled(self, value: bool):
+        """
+        Define se navegação livre está habilitada no Engineering Wizard.
+
+        Args:
+            value: True para habilitar navegação livre, False para desabilitar.
+        """
+        self.set("engineering_wizard", "free_navigation_enabled", value=value)
 
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")
