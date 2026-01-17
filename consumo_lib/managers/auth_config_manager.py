@@ -109,18 +109,125 @@ class AuthConfigManager:
             Dicionário com configurações atuais:
             {
                 'require_login_on_startup': bool,
-                'default_role': str
+                'default_role': str,
+                'free_navigation_enabled': bool
             }
 
             Se seção não existir, retorna valores padrão.
         """
         config = {
             'require_login_on_startup': self.config_manager.get_require_login_on_startup(),
-            'default_role': self.config_manager.get_default_role()
+            'default_role': self.config_manager.get_default_role(),
+            'free_navigation_enabled': self.config_manager.get_free_navigation_enabled()
         }
 
         self.log.debug(f"Configuração atual lida: {config}")
         return config
+
+    def get_free_navigation_enabled(self) -> bool:
+        """
+        Retorna se navegação livre está habilitada no Engineering Wizard.
+
+        Returns:
+            True se navegação livre está habilitada, False caso contrário.
+        """
+        return self.config_manager.get_free_navigation_enabled()
+
+    def set_free_navigation_enabled(
+        self,
+        enabled: bool,
+        confirming_user: str,
+        password: str
+    ) -> bool:
+        """
+        Atualiza configuração de navegação livre com confirmação de senha.
+
+        Args:
+            enabled: True para habilitar navegação livre, False para desabilitar
+            confirming_user: Nome de usuário que está confirmando a mudança
+            password: Senha do usuário para confirmação
+
+        Returns:
+            True se configuração foi atualizada com sucesso, False caso contrário.
+
+        Raises:
+            PermissionError: Se usuário não tem permissão engineering+
+            ValueError: Se senha incorreta
+        """
+        # 1. Verificar permissão
+        if not self.can_modify_config():
+            current_user = self.auth_service.get_current_user()
+            error_msg = (
+                f"Usuário {current_user.username if current_user else 'N/A'} "
+                f"sem permissão para modificar configuração de navegação livre"
+            )
+            self.log.error(error_msg)
+            raise PermissionError(error_msg)
+
+        # 2. Capturar configuração atual para auditoria
+        old_config = {
+            'free_navigation_enabled': self.config_manager.get_free_navigation_enabled()
+        }
+
+        # 3. Confirmar senha do usuário que está modificando
+        if not self.auth_service.authenticate(confirming_user, password):
+            error_msg = f"Senha incorreta para usuário {confirming_user}"
+            self.log.warning(error_msg)
+            raise ValueError(error_msg)
+
+        # 4. Atualizar configuração
+        try:
+            self.config_manager.set_free_navigation_enabled(enabled)
+
+            new_config = {
+                'free_navigation_enabled': enabled
+            }
+
+            # 5. Auditar mudança
+            current_user = self.auth_service.get_current_user()
+            self._log_free_navigation_change(
+                user=current_user.username if current_user else confirming_user,
+                old_config=old_config,
+                new_config=new_config
+            )
+
+            self.log.info(
+                f"Configuração de navegação livre atualizada com sucesso: "
+                f"free_navigation_enabled={enabled}"
+            )
+
+            return True
+
+        except Exception as e:
+            self.log.error(f"Erro ao atualizar configuração de navegação livre: {e}")
+            raise
+
+    def _log_free_navigation_change(
+        self,
+        user: str,
+        old_config: Dict,
+        new_config: Dict
+    ):
+        """
+        Registra mudança de configuração de navegação livre no log de auditoria.
+
+        Args:
+            user: Nome de usuário que fez a mudança
+            old_config: Configuração anterior
+            new_config: Nova configuração
+        """
+        timestamp = datetime.now().isoformat()
+
+        audit_log = (
+            f"[{timestamp}] AUDIT: Configuração de navegação livre modificada por {user}\n"
+            f"  ANTES: free_navigation_enabled={old_config.get('free_navigation_enabled')}\n"
+            f"  DEPOIS: free_navigation_enabled={new_config.get('free_navigation_enabled')}"
+        )
+
+        self.log.info(audit_log)
+
+        # TODO: Persistir em arquivo de auditoria separado (futuro)
+        # Por enquanto, apenas loga no logger principal
 
     def update_config(
         self,
