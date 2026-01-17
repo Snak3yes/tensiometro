@@ -43,6 +43,9 @@ class AuthenticationManager:
         self.auth_config_manager = auth_config_manager
         self.main_window = main_window
 
+        # Obter RoleManager do main_window se disponível
+        self.role_manager = getattr(main_window, 'role_manager', None)
+
         logger.debug("AuthenticationManager inicializado")
 
     def show_login_dialog(self) -> bool:
