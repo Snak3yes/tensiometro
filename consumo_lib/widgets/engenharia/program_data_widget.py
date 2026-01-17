@@ -73,19 +73,21 @@ class ValidatedLineEdit(QLineEdit):
         """Define estado de validação com indicador visual."""
         self._is_valid = is_valid
 
-        # Indicador visual via stylesheet
+        # Indicador visual via stylesheet (com cor de texto explicita para legibilidade)
         if is_valid:
             self.setStyleSheet("""
                 QLineEdit {
                     border: 1px solid #4CAF50;
-                    background-color: #F1F8F4;
+                    background-color: #3A3A3A;
+                    color: #FFFFFF;
                 }
             """)
         else:
             self.setStyleSheet("""
                 QLineEdit {
                     border: 1px solid #F44336;
-                    background-color: #FFF8F8;
+                    background-color: #3A3A3A;
+                    color: #FFFFFF;
                 }
             """)
 
@@ -208,6 +210,16 @@ class ProgramDataWidget(QWidget):
             "Descrição detalhada do programa (opcional).\n"
             "Máximo: 500 caracteres"
         )
+        # Aplicar estilo consistente com os demais campos (fundo cinza escuro, texto branco)
+        self.field_description.setStyleSheet("""
+            QTextEdit {
+                border: 1px solid #BDBDBD;
+                background-color: #3A3A3A;
+                color: #FFFFFF;
+                padding: 5px;
+                border-radius: 3px;
+            }
+        """)
         form_layout.addRow("Descrição:", self.field_description)
 
         # Campo 4: Versão (obrigatório, padrão v1.0)
