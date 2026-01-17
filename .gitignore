@@ -23,6 +23,7 @@ data/
 recipes/
 reports/
 archive/
+poc_gerber/
 
 # =============================================================================
 # LARGE ARCHIVES
