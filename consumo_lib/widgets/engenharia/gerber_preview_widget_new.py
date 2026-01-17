@@ -485,20 +485,20 @@ class GerberPreviewWidget(QGraphicsView):
         if self._objects and poly_index < len(self._objects):
             obj = self._objects[poly_index]
             lines.append("")
-            lines.append(f"Tipo: {getattr(obj, 'obj_type', 'unknown')}")
+            lines.append(f"Tipo: {getattr(obj, 'kind', 'unknown')}")
 
             # Posição do flash (se disponível)
-            x_mm = getattr(obj, 'x', None)
-            y_mm = getattr(obj, 'y', None)
+            x_mm = getattr(obj, 'x_mm', None)
+            y_mm = getattr(obj, 'y_mm', None)
             if x_mm is not None and y_mm is not None:
                 lines.append(f"Posição do flash: ({x_mm:.6f}, {y_mm:.6f}) mm")
 
-            # Dimensões específicas
-            if hasattr(obj, 'diameter') and obj.diameter is not None:
-                lines.append(f"Diâmetro: {obj.diameter:.6f} mm")
-            if hasattr(obj, 'width') and obj.width is not None:
-                if hasattr(obj, 'height') and obj.height is not None:
-                    lines.append(f"Largura x Altura: {obj.width:.6f} x {obj.height:.6f} mm")
+            # Dimensões específicas (do params)
+            params = getattr(obj, 'params', {})
+            if 'dia_mm' in params:
+                lines.append(f"Diâmetro: {float(params['dia_mm']):.6f} mm")
+            if 'width_mm' in params and 'height_mm' in params:
+                lines.append(f"Largura x Altura: {float(params['width_mm']):.6f} x {float(params['height_mm']):.6f} mm")
 
         # Exibir informações
         text = "\n".join(lines)
@@ -683,27 +683,28 @@ class GerberPreviewWidget(QGraphicsView):
         Converte GerberObject para dict (compatibilidade com código legado).
 
         Args:
-            obj: GerberObject
+            obj: GerberObject (POC)
             index: Índice do objeto
 
         Returns:
             Dict com dados da aperture
         """
-        # Extrair atributos do GerberObject
+        # Extrair atributos do GerberObject do POC
         data = {
             'id': index,
-            'type': getattr(obj, 'obj_type', 'unknown'),
-            'x': getattr(obj, 'x', 0.0),
-            'y': getattr(obj, 'y', 0.0),
+            'type': getattr(obj, 'kind', 'unknown'),
+            'x': getattr(obj, 'x_mm', 0.0),
+            'y': getattr(obj, 'y_mm', 0.0),
         }
 
-        # Adicionar dimensões específicas
-        if hasattr(obj, 'diameter') and obj.diameter is not None:
-            data['d'] = obj.diameter
-        if hasattr(obj, 'width') and obj.width is not None:
-            data['width'] = obj.width
-        if hasattr(obj, 'height') and obj.height is not None:
-            data['height'] = obj.height
+        # Adicionar dimensões específicas do params
+        params = getattr(obj, 'params', {})
+        if 'dia_mm' in params:
+            data['d'] = float(params['dia_mm'])
+        if 'width_mm' in params:
+            data['width'] = float(params['width_mm'])
+        if 'height_mm' in params:
+            data['height'] = float(params['height_mm'])
 
         return data
 

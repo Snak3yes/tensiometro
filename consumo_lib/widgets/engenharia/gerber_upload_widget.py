@@ -613,18 +613,18 @@ class GerberUploadWidget(QWidget):
             obj = self.preview_widget._objects[index]
 
             logger.info(
-                f"Editando objeto: idx={index}, kind={obj.obj_type}, "
-                f"x={obj.x:.3f}, y={obj.y:.3f}"
+                f"Editando objeto: idx={index}, kind={obj.kind}, "
+                f"x={obj.x_mm:.3f}, y={obj.y_mm:.3f}"
             )
 
             # Diálogo específico por tipo
-            if obj.obj_type == "flash_circle":
+            if obj.kind == "flash_circle":
                 self._edit_flash_circle(obj, index)
 
-            elif obj.obj_type in ("flash_rect", "flash_oval"):
+            elif obj.kind in ("flash_rect", "flash_oval"):
                 self._edit_flash_rect_or_oval(obj, index)
 
-            elif obj.obj_type == "region":
+            elif obj.kind == "region":
                 self._edit_region(obj, index)
 
             else:
@@ -633,7 +633,7 @@ class GerberUploadWidget(QWidget):
                     self,
                     "Não Editável",
                     "Este tipo de objeto ainda não pode ser editado.\n\n"
-                    f"Tipo: {obj.obj_type}\n\n"
+                    f"Tipo: {obj.kind}\n\n"
                     "Tipos suportados: flash_circle, flash_rect, flash_oval, region"
                 )
                 return
@@ -653,7 +653,7 @@ class GerberUploadWidget(QWidget):
         """Edita um círculo (diâmetro)."""
         from PyQt6.QtWidgets import QInputDialog
 
-        cur_dia = obj.diameter if obj.diameter else 0.0
+        cur_dia = float(obj.params.get("dia_mm", 0.0))
         new_dia, ok = QInputDialog.getDouble(
             self,
             "Editar Diâmetro",
@@ -672,25 +672,25 @@ class GerberUploadWidget(QWidget):
             return
 
         # Atualizar objeto
-        obj.diameter = new_dia
+        obj.params["dia_mm"] = new_dia
 
         # Recalcula o polígono do círculo
-        if obj.x is None or obj.y is None:
+        if obj.x_mm is None or obj.y_mm is None:
             logger.warning(f"Objeto {index} não tem posição válida")
             return
 
-        polys = circle_to_polys_mm(obj.x, obj.y, new_dia)
+        polys = circle_to_polys_mm(obj.x_mm, obj.y_mm, new_dia)
         obj.polygon_mm = polys[0]
 
         logger.info(f"Círculo {index} atualizado: diâmetro={new_dia:.3f}")
 
     def _edit_flash_rect_or_oval(self, obj, index: int):
         """Edita um retângulo ou oval (largura x altura)."""
-        cur_w = obj.width if obj.width else 0.0
-        cur_h = obj.height if obj.height else 0.0
+        cur_w = float(obj.params.get("width_mm", 0.0))
+        cur_h = float(obj.params.get("height_mm", 0.0))
 
         # Pergunta largura e altura na MESMA janela
-        title = "Editar Abertura Retangular" if obj.obj_type == "flash_rect" else "Editar Abertura Oval"
+        title = "Editar Abertura Retangular" if obj.kind == "flash_rect" else "Editar Abertura Oval"
         dlg = WidthHeightDialog(
             title=title,
             label_width="Largura (mm):",
@@ -711,22 +711,22 @@ class GerberUploadWidget(QWidget):
             return
 
         # Atualizar objeto
-        obj.width = new_w
-        obj.height = new_h
+        obj.params["width_mm"] = new_w
+        obj.params["height_mm"] = new_h
 
         # Recalcula o polígono
-        if obj.x is None or obj.y is None:
+        if obj.x_mm is None or obj.y_mm is None:
             logger.warning(f"Objeto {index} não tem posição válida")
             return
 
-        if obj.obj_type == "flash_rect":
-            polys = rect_to_polys_mm(obj.x, obj.y, new_w, new_h)
+        if obj.kind == "flash_rect":
+            polys = rect_to_polys_mm(obj.x_mm, obj.y_mm, new_w, new_h)
         else:  # flash_oval
-            polys = oval_to_polys_mm(obj.x, obj.y, new_w, new_h)
+            polys = oval_to_polys_mm(obj.x_mm, obj.y_mm, new_w, new_h)
 
         obj.polygon_mm = polys[0]
 
-        logger.info(f"{obj.obj_type} {index} atualizado: {new_w:.3f}x{new_h:.3f}")
+        logger.info(f"{obj.kind} {index} atualizado: {new_w:.3f}x{new_h:.3f}")
 
     def _edit_region(self, obj, index: int):
         """Edita uma região (redimensiona largura x altura)."""
@@ -798,27 +798,27 @@ class GerberUploadWidget(QWidget):
 
     def _move_object(self, obj, dx: float, dy: float):
         """Move um objeto (flash_circle, flash_rect, flash_oval)."""
-        if obj.x is not None:
-            obj.x += dx
-        if obj.y is not None:
-            obj.y += dy
+        if obj.x_mm is not None:
+            obj.x_mm += dx
+        if obj.y_mm is not None:
+            obj.y_mm += dy
 
         # Recalcula o polígono com a nova posição
-        if obj.obj_type == "flash_circle":
-            dia = obj.diameter if obj.diameter else 0.0
-            polys = circle_to_polys_mm(obj.x, obj.y, dia)
+        if obj.kind == "flash_circle":
+            dia = float(obj.params.get("dia_mm", 0.0))
+            polys = circle_to_polys_mm(obj.x_mm, obj.y_mm, dia)
             obj.polygon_mm = polys[0]
 
-        elif obj.obj_type == "flash_rect":
-            w = obj.width if obj.width else 0.0
-            h = obj.height if obj.height else 0.0
-            polys = rect_to_polys_mm(obj.x, obj.y, w, h)
+        elif obj.kind == "flash_rect":
+            w = float(obj.params.get("width_mm", 0.0))
+            h = float(obj.params.get("height_mm", 0.0))
+            polys = rect_to_polys_mm(obj.x_mm, obj.y_mm, w, h)
             obj.polygon_mm = polys[0]
 
-        elif obj.obj_type == "flash_oval":
-            w = obj.width if obj.width else 0.0
-            h = obj.height if obj.height else 0.0
-            polys = oval_to_polys_mm(obj.x, obj.y, w, h)
+        elif obj.kind == "flash_oval":
+            w = float(obj.params.get("width_mm", 0.0))
+            h = float(obj.params.get("height_mm", 0.0))
+            polys = oval_to_polys_mm(obj.x_mm, obj.y_mm, w, h)
             obj.polygon_mm = polys[0]
 
         # Re-renderizar
@@ -882,7 +882,7 @@ class GerberUploadWidget(QWidget):
                 return
 
             objs = [self.preview_widget._objects[i] for i in valid_indices]
-            kinds = {o.obj_type for o in objs}
+            kinds = {o.kind for o in objs}
 
             if len(kinds) != 1:
                 QMessageBox.information(
@@ -928,8 +928,8 @@ class GerberUploadWidget(QWidget):
         hs = []
         for o in objs:
             try:
-                w = o.width if o.width else 0.0
-                h = o.height if o.height else 0.0
+                w = float(o.params.get("width_mm", 0.0))
+                h = float(o.params.get("height_mm", 0.0))
                 ws.append(w)
                 hs.append(h)
             except Exception:
@@ -990,22 +990,22 @@ class GerberUploadWidget(QWidget):
                 return
 
             for o in objs:
-                o.width = new_w
-                o.height = new_h
-                if o.x is None or o.y is None:
+                o.params["width_mm"] = new_w
+                o.params["height_mm"] = new_h
+                if o.x_mm is None or o.y_mm is None:
                     continue
                 if kind == "flash_rect":
-                    polys = rect_to_polys_mm(o.x, o.y, new_w, new_h)
+                    polys = rect_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
                 else:  # flash_oval
-                    polys = oval_to_polys_mm(o.x, o.y, new_w, new_h)
+                    polys = oval_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
                 o.polygon_mm = polys[0]
         else:
             # Edição apenas por % → usamos os fatores de escala
             sx, sy = dlg.scales()
             for o in objs:
                 try:
-                    w0 = o.width if o.width else 0.0
-                    h0 = o.height if o.height else 0.0
+                    w0 = float(o.params.get("width_mm", 0.0))
+                    h0 = float(o.params.get("height_mm", 0.0))
                 except Exception:
                     continue
 
@@ -1014,15 +1014,15 @@ class GerberUploadWidget(QWidget):
                 if new_w <= 0 or new_h <= 0:
                     continue
 
-                o.width = new_w
-                o.height = new_h
-                if o.x is None or o.y is None:
+                o.params["width_mm"] = new_w
+                o.params["height_mm"] = new_h
+                if o.x_mm is None or o.y_mm is None:
                     continue
 
                 if kind == "flash_rect":
-                    polys = rect_to_polys_mm(o.x, o.y, new_w, new_h)
+                    polys = rect_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
                 else:
-                    polys = oval_to_polys_mm(o.x, o.y, new_w, new_h)
+                    polys = oval_to_polys_mm(o.x_mm, o.y_mm, new_w, new_h)
                 o.polygon_mm = polys[0]
 
         logger.info(f"{len(objs)} objetos {kind} editados em grupo")
@@ -1140,10 +1140,10 @@ class GerberUploadWidget(QWidget):
 
         # Atualiza posição do flash/centro, se existir
         for obj in objs:
-            if obj.x is not None:
-                obj.x += dx
-            if obj.y is not None:
-                obj.y += dy
+            if obj.x_mm is not None:
+                obj.x_mm += dx
+            if obj.y_mm is not None:
+                obj.y_mm += dy
             # Translada o polígono associado
             if obj.polygon_mm:
                 obj.polygon_mm = [
