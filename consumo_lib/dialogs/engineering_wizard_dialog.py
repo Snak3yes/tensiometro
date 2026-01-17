@@ -114,8 +114,11 @@ class EngineeringWizardDialog(QDialog):
         """
         Busca recursivamente pela CNCControlTab na hierarquia de widgets.
 
+        SOBRE APENAS PAIS (não busca em filhos para evitar recursão infinita).
+
         Args:
-            widget: Widget para começar a busca (padrão: self)
+            widget: Widget atual na busca (padrão: self)
+            visited: Conjunto de IDs já visitados para evitar loops
 
         Returns:
             CNCControlTab se encontrada, None caso contrário
@@ -123,20 +126,27 @@ class EngineeringWizardDialog(QDialog):
         if widget is None:
             widget = self
 
+        # Inicializa conjunto de visitados
+        if visited is None:
+            visited = set()
+
+        # Proteção contra loops: rastreia widgets visitados por ID
+        widget_id = id(widget)
+        if widget_id in visited:
+            logger.debug("⚠️ Loop detectado em _find_parent_cnc_control_tab, widget já visitado")
+            return None
+        visited.add(widget_id)
+
         # Se este widget é CNCControlTab, retorna
         if widget.__class__.__name__ == 'CNCControlTab':
+            logger.debug("✅ CNCControlTab encontrado")
             return widget
 
-        # Busca recursivamente nos filhos
-        for child in widget.findChildren(QWidget):
-            result = self._find_parent_cnc_control_tab(child)
-            if result is not None:
-                return result
-
-        # Busca no pai se existir
+        # Busca APENAS no pai (não busca em filhos para evitar explosão combinatória)
         if widget.parent() is not None:
-            return self._find_parent_cnc_control_tab(widget.parent())
+            return self._find_parent_cnc_control_tab(widget.parent(), visited)
 
+        logger.debug("ℹ️ CNCControlTab não encontrado na hierarquia")
         return None
 
     def _setup_ui(self):
