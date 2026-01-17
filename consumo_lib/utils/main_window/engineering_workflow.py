@@ -55,6 +55,7 @@ class MainWindowEngineeringWorkflow:
         Cria EngineeringHardwareCoordinator com os controllers de hardware disponíveis
         e abre o diálogo com 7 abas para criar programa de inspeção completo.
         """
+        print("🚀 [DEBUG] ENTRANDO EM open_wizard() - engineering_workflow.py")
         logger.info("Abrindo Engineering Wizard")
 
         try:
