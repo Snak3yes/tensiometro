@@ -22,11 +22,14 @@ from datetime import datetime
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QPushButton, QLabel, QGroupBox, QDoubleSpinBox,
-    QSpinBox, QMessageBox, QProgressBar
+    QSpinBox, QMessageBox, QProgressBar, QTabWidget
 )
 from PyQt6.QtCore import pyqtSignal, Qt, QThread
 from PyQt6.QtGui import QPixmap, QImage, QPainter, QColor
 import numpy as np
+
+# Import para usar CameraCaptureWidget unificado
+from consumo_lib.widgets.camera_capture import CameraCaptureWidget
 
 logger = logging.getLogger(__name__)
 
@@ -295,12 +298,13 @@ class MosaicCaptureWidget(QWidget):
     mosaic_captured = pyqtSignal(dict)
     validation_changed = pyqtSignal(bool)
 
-    def __init__(self, parent=None, hardware_coordinator=None):
+    def __init__(self, parent=None, hardware_coordinator=None, cnc_control_tab=None):
         """Inicializa o widget.
 
         Args:
             parent: Widget pai
             hardware_coordinator: EngineeringHardwareCoordinator (opcional)
+            cnc_control_tab: CNCControlTab para acessar controller/cfg (opcional)
         """
         super().__init__(parent)
         logger.info("🎨 Inicializando MosaicCaptureWidget")
@@ -316,6 +320,9 @@ class MosaicCaptureWidget(QWidget):
         # Legado: controllers individuais (para compatibilidade)
         self._camera_controller = None
         self._plc_controller = None
+
+        # CNCControlTab para acessar controller/cfg
+        self._cnc_control_tab = cnc_control_tab
 
         # Setup UI
         self._setup_ui()
@@ -385,12 +392,27 @@ class MosaicCaptureWidget(QWidget):
         # Layout principal (preview | controles)
         main_layout = QHBoxLayout()
 
-        # Preview
-        preview_group = QGroupBox("Preview do Mosaico")
+        # Preview com abas (Câmera | Mosaico)
+        preview_group = QGroupBox("Preview")
         preview_layout = QVBoxLayout(preview_group)
 
+        # Tab widget para alternar entre câmera e mosaico
+        self.tab_widget = QTabWidget()
+
+        # Aba 1: Câmera (usa CameraCaptureWidget unificado)
+        self.camera_capture = CameraCaptureWidget(
+            controller=None,  # Será injetado depois via set_hardware
+            cfg=None,
+            click_to_move_service=None,
+            fov_converter=None
+        )
+        self.tab_widget.addTab(self.camera_capture, "📷 Câmera")
+
+        # Aba 2: Mosaico (usa MosaicPreviewWidget)
         self.preview_widget = MosaicPreviewWidget()
-        preview_layout.addWidget(self.preview_widget, 1)
+        self.tab_widget.addTab(self.preview_widget, "🖼️ Mosaico")
+
+        preview_layout.addWidget(self.tab_widget)
 
         # Progress bar
         self.progress_bar = QProgressBar()
@@ -402,6 +424,26 @@ class MosaicCaptureWidget(QWidget):
         # Controles
         controls_group = QGroupBox("Configuração do Grid")
         controls_layout = QVBoxLayout(controls_group)
+
+        # Instrução
+        instructions = QLabel(
+            "<b>Instruções:</b><br>"
+            "1. Use a aba 'Câmera' para posicionar a máquina<br>"
+            "2. Configure os cantos da área (X1, Y1, X2, Y2)<br>"
+            "3. Defina linhas e colunas do grid<br>"
+            "4. Clique em 'Capturar Mosaico'<br>"
+            "5. Acompanhe o progresso e veja o resultado na aba 'Mosaico'"
+        )
+        instructions.setWordWrap(True)
+        instructions.setStyleSheet("""
+            QLabel {
+                padding: 10px;
+                background-color: #E3F2FD;
+                border-radius: 4px;
+                color: #1565C0;
+            }
+        """)
+        controls_layout.addWidget(instructions)
 
         # Cantos
         controls_layout.addWidget(QLabel("Canto 1 (Superior Esquerdo):"))
@@ -532,10 +574,31 @@ class MosaicCaptureWidget(QWidget):
         self.btn_capture.clicked.connect(self._on_capture_clicked)
         self.btn_stop.clicked.connect(self._on_stop_clicked)
 
-    def set_hardware(self, camera_controller, plc_controller):
-        """Define controllers de hardware."""
+    def set_hardware(self, camera_controller, plc_controller, cfg=None, click_to_move_service=None, fov_converter=None):
+        """
+        Define controllers de hardware.
+
+        Args:
+            camera_controller: CameraController
+            plc_controller: PLCController
+            cfg: AOIConfigManager (opcional)
+            click_to_move_service: ClickToMoveService (opcional)
+            fov_converter: CameraFOVConverter (opcional)
+        """
         self._camera_controller = camera_controller
         self._plc_controller = plc_controller
+
+        # Injeta parâmetros no CameraCaptureWidget
+        if camera_controller:
+            self.camera_capture.controller = camera_controller
+            if cfg:
+                self.camera_capture.cfg = cfg
+            if click_to_move_service:
+                self.camera_capture.click_to_move_service = click_to_move_service
+            if fov_converter:
+                self.camera_capture.fov_converter = fov_converter
+
+            logger.info("✅ CameraCaptureWidget configurado em MosaicCaptureWidget")
 
     def _on_calculate_grid(self):
         """Calcula grid baseado na área."""

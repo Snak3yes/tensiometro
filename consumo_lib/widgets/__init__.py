@@ -10,6 +10,7 @@ Este módulo exporta todos os widgets para facilitar importação:
 
 # Importa todos os widgets para exportação
 from .camera_preview import CameraPreviewWidget
+from .camera_capture import CameraCaptureWidget  # NOVO: Widget unificado de câmera
 from .image_viewer import ImageViewerWidget
 from .zoomable_image_view import ZoomableImageView
 from .movement_control import MovementControlWidget
@@ -30,6 +31,7 @@ from .engenharia import (
 
 __all__ = [
     'CameraPreviewWidget',
+    'CameraCaptureWidget',  # NOVO: Widget unificado de câmera
     'ImageViewerWidget',
     'ZoomableImageView',
     'MovementControlWidget',

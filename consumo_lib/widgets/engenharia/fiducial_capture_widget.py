@@ -22,8 +22,7 @@ from datetime import datetime
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QPushButton, QLabel, QGroupBox, QDoubleSpinBox,
-    QSpinBox, QMessageBox
+    QPushButton, QLabel, QGroupBox, QMessageBox
 )
 from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap, QImage
@@ -31,8 +30,8 @@ import numpy as np
 
 # Import para criar MovementControlWidget na aba 3
 from consumo_lib.widgets.movement_control import MovementControlWidget
-
-from PyQt6.QtWidgets import QStackedWidget  # Import adicionado
+# Import para usar CameraCaptureWidget unificado
+from consumo_lib.widgets.camera_capture import CameraCaptureWidget
 
 logger = logging.getLogger(__name__)
 
@@ -58,111 +57,6 @@ class FiducialTemplate:
             'window_size': self.window_size,
             'captured_at': self.captured_at
         }
-
-
-class FiducialPreviewWidget(QWidget):
-    """
-    Widget de preview de câmera com clique para captura.
-
-    Features:
-        - Preview em tempo real
-        - Clique para capturar template
-        - Crosshair no centro
-    """
-
-    capture_requested = pyqtSignal(float, float)  # x, y na imagem
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setMinimumSize(640, 480)
-
-        # Estado
-        self._current_frame: Optional[np.ndarray] = None
-        self._show_crosshair = True
-
-        # Estilo
-        self.setStyleSheet("""
-            FiducialPreviewWidget {
-                background-color: #000;
-                border: 2px solid #444;
-                border-radius: 4px;
-            }
-        """)
-
-    def set_frame(self, frame: np.ndarray):
-        """Define frame atual da câmera."""
-        self._current_frame = frame
-        self.update()
-
-    def mousePressEvent(self, event):
-        """Captura template na posição clicada."""
-        if event.button() == Qt.MouseButton.LeftButton and self._current_frame is not None:
-            x = event.pos().x()
-            y = event.pos().y()
-            self.capture_requested.emit(float(x), float(y))
-
-    def paintEvent(self, event):
-        """Renderiza frame + crosshair."""
-        from PyQt6.QtGui import QPainter, QPen, QColor
-
-        painter = QPainter(self)
-
-        # Background preto
-        painter.fillRect(self.rect(), QColor("#000000"))
-
-        if self._current_frame is not None:
-            # Converter numpy para QImage
-            height, width = self._current_frame.shape[:2]
-            bytes_per_line = 3 * width
-
-            # Se grayscale, converter para RGB
-            if len(self._current_frame.shape) == 2:
-                frame_rgb = np.stack([
-                    self._current_frame,
-                    self._current_frame,
-                    self._current_frame
-                ], axis=2)
-            else:
-                frame_rgb = self._current_frame
-
-            q_img = QImage(
-                frame_rgb.data,
-                width,
-                height,
-                bytes_per_line,
-                QImage.Format.Format_RGB888
-            )
-
-            # Desenhar frame ajustado ao widget
-            pixmap = QPixmap.fromImage(q_img)
-            scaled_pixmap = pixmap.scaled(
-                self.size(),
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-
-            x_offset = (self.width() - scaled_pixmap.width()) // 2
-            y_offset = (self.height() - scaled_pixmap.height()) // 2
-            painter.drawPixmap(x_offset, y_offset, scaled_pixmap)
-
-        # Desenhar crosshair
-        if self._show_crosshair:
-            pen = QPen(QColor("#00FF00"), 1)
-            painter.setPen(pen)
-
-            center_x = self.width() // 2
-            center_y = self.height() // 2
-            crosshair_size = 20
-
-            # Linha horizontal
-            painter.drawLine(center_x - crosshair_size, center_y,
-                          center_x + crosshair_size, center_y)
-            # Linha vertical
-            painter.drawLine(center_x, center_y - crosshair_size,
-                          center_x, center_y + crosshair_size)
-
-        painter.end()
-
 
 class FiducialCaptureWidget(QWidget):
     """
@@ -254,49 +148,28 @@ class FiducialCaptureWidget(QWidget):
         layout.setContentsMargins(20, 20, 20, 20)
         layout.setSpacing(15)
 
-        # Título
-        title = QLabel("🎯 Capturar Fiduciais")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
-                font-weight: bold;
-                color: #2196F3;
-                padding: 10px;
-            }
-        """)
-        layout.addWidget(title)
-
-        # Instrução
-        instruction = QLabel(
-            "Capture 2 fiduciais do stencil para alinhamento automático.\n"
-            "Mova a máquina para cada fiducial e clique na imagem para capturar."
-        )
-        instruction.setStyleSheet("color: #757575; padding: 5px;")
-        layout.addWidget(instruction)
-
-        # Layout principal (preview | controles)
+        # Layout principal (preview | coluna direita)
         main_layout = QHBoxLayout()
 
-        # Preview da câmera
+        # Preview da câmera (usa CameraCaptureWidget unificado)
         preview_group = QGroupBox("Preview da Câmera")
         preview_layout = QVBoxLayout(preview_group)
 
-        self.preview_widget = FiducialPreviewWidget()
-        preview_layout.addWidget(self.preview_widget, 1)
-
-        # Label de status
-        self.lbl_camera_status = QLabel("⚠️ Câmera não conectada")
-        self.lbl_camera_status.setStyleSheet("""
-            QLabel {
-                padding: 5px;
-                background-color: #FFF3CD;
-                border-radius: 4px;
-                color: #856404;
-            }
-        """)
-        preview_layout.addWidget(self.lbl_camera_status)
+        # Criar CameraCaptureWidget
+        # NOTA: Precisamos injetar controller e cfg depois via set_camera_controller
+        # Por enquanto, cria sem parâmetros (será configurado depois)
+        self.camera_capture = CameraCaptureWidget(
+            controller=None,  # Será injetado depois
+            cfg=None,  # Será injetado depois
+            click_to_move_service=None,  # Opcional
+            fov_converter=None  # Opcional
+        )
+        preview_layout.addWidget(self.camera_capture, 1)
 
         main_layout.addWidget(preview_group, 2)
+
+        # Coluna direita (Controle de Movimento + Controles de Captura)
+        right_column = QVBoxLayout()
 
         # Controles de movimento (CRIAR NOVA INSTÂNCIA)
         # A nova instância compartilha o MESMO estado via controller/orchestrator
@@ -315,13 +188,10 @@ class FiducialCaptureWidget(QWidget):
         elif self._movement_widget is None:
             logger.warning("⚠️ CNCControlTab não foi passada como parâmetro - não foi possível criar MovementControlWidget")
 
-        # Adicionar MovementControlWidget à aba 3
+        # Adicionar MovementControlWidget à coluna direita (SEM GROUPBOX - usa o título interno do widget)
         if self._movement_widget is not None:
-            movement_group = QGroupBox("Controle de Movimento")
-            movement_layout = QVBoxLayout(movement_group)
-            movement_layout.addWidget(self._movement_widget)
-            main_layout.addWidget(movement_group, 1)
-            logger.info("✅ MovementControlWidget adicionado à aba 3 do Engineering Wizard")
+            right_column.addWidget(self._movement_widget)
+            logger.info("✅ MovementControlWidget adicionado à aba 3 do Engineering Wizard (sem groupbox externa)")
 
         # Controles
         controls_group = QGroupBox("Controles de Captura")
@@ -353,78 +223,41 @@ class FiducialCaptureWidget(QWidget):
         self.fiducial_selector.addWidget(self.btn_fid2, 0, 1)
         controls_layout.addLayout(self.fiducial_selector)
 
-        # Posição XYZ
-        controls_layout.addWidget(QLabel("Posição da Máquina:"))
-        pos_layout = QGridLayout()
-
-        pos_layout.addWidget(QLabel("X (mm):"), 0, 0)
-        self.spin_x = QDoubleSpinBox()
-        self.spin_x.setRange(-1000, 1000)
-        self.spin_x.setDecimals(2)
-        self.spin_x.setSuffix(" mm")
-        pos_layout.addWidget(self.spin_x, 0, 1)
-
-        pos_layout.addWidget(QLabel("Y (mm):"), 1, 0)
-        self.spin_y = QDoubleSpinBox()
-        self.spin_y.setRange(-1000, 1000)
-        self.spin_y.setDecimals(2)
-        self.spin_y.setSuffix(" mm")
-        pos_layout.addWidget(self.spin_y, 1, 1)
-
-        pos_layout.addWidget(QLabel("Z (mm):"), 2, 0)
-        self.spin_z = QDoubleSpinBox()
-        self.spin_z.setRange(-100, 100)
-        self.spin_z.setDecimals(2)
-        self.spin_z.setSuffix(" mm")
-        pos_layout.addWidget(self.spin_z, 2, 1)
-
-        controls_layout.addLayout(pos_layout)
-
-        # Window size
-        controls_layout.addWidget(QLabel("Tamanho do Template:"))
-        self.spin_window = QSpinBox()
-        self.spin_window.setRange(10, 200)
-        self.spin_window.setValue(50)
-        self.spin_window.setSuffix(" px")
-        self.spin_window.setToolTip(
-            "Tamanho da janela de captura ao redor do centro.\n"
-            "Padrão: 50x50 pixels"
+        # Label de instruções
+        instructions = QLabel(
+            "<b>Instruções:</b><br>"
+            "1. Selecione Fiducial 1 ou 2<br>"
+            "2. Inicie o preview da câmera<br>"
+            "3. Mova a máquina até o fiducial<br>"
+            "4. Clique em 'Capturar Template'<br>"
+            "5. Repita para o outro fiducial"
         )
-        controls_layout.addWidget(self.spin_window)
-
-        # Botão capturar
-        self.btn_capture = QPushButton("📸 Capturar Template")
-        self.btn_capture.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border: none;
+        instructions.setWordWrap(True)
+        instructions.setStyleSheet("""
+            QLabel {
                 padding: 10px;
-                font-size: 14px;
-                font-weight: bold;
+                background-color: #E3F2FD;
                 border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-                color: #757575;
+                color: #1565C0;
             }
         """)
-        self.btn_capture.setEnabled(False)
-        controls_layout.addWidget(self.btn_capture)
+        controls_layout.addWidget(instructions)
 
         controls_layout.addStretch()
 
-        # Status dos fiduciais
-        controls_layout.addWidget(QLabel("Status:"))
+        # Status dos fiduciais (labels lado a lado)
+        status_layout = QHBoxLayout()
         self.lbl_fid1_status = QLabel("❌ Fiducial 1: Não capturado")
         self.lbl_fid2_status = QLabel("❌ Fiducial 2: Não capturado")
-        controls_layout.addWidget(self.lbl_fid1_status)
-        controls_layout.addWidget(self.lbl_fid2_status)
+        status_layout.addWidget(self.lbl_fid1_status)
+        status_layout.addWidget(self.lbl_fid2_status)
+        controls_layout.addLayout(status_layout)
 
-        main_layout.addWidget(controls_group, 1)
+        # Adicionar Controles de Captura à coluna direita
+        right_column.addWidget(controls_group)
+
+        # Adicionar coluna direita ao layout principal
+        main_layout.addLayout(right_column, 1)
 
         layout.addLayout(main_layout, 1)
 
@@ -445,24 +278,32 @@ class FiducialCaptureWidget(QWidget):
         """Conecta signals."""
         self.btn_fid1.clicked.connect(lambda: self._select_fiducial(0))
         self.btn_fid2.clicked.connect(lambda: self._select_fiducial(1))
-        self.preview_widget.capture_requested.connect(self._on_capture_requested)
-        self.btn_capture.clicked.connect(self._on_capture_clicked)
-        self.spin_window.valueChanged.connect(self._on_window_changed)
+        # Conectar signal do CameraCaptureWidget para capturar template
+        self.camera_capture.image_captured.connect(self._on_template_captured)
 
-    def set_camera_controller(self, camera_controller):
-        """Define controller de câmera (injeção de dependência)."""
+    def set_camera_controller(self, camera_controller, cfg=None, click_to_move_service=None, fov_converter=None):
+        """
+        Define controller de câmera (injeção de dependência).
+
+        Args:
+            camera_controller: CameraController
+            cfg: AOIConfigManager (opcional)
+            click_to_move_service: ClickToMoveService (opcional)
+            fov_converter: CameraFOVConverter (opcional)
+        """
         self._camera_controller = camera_controller
-        if camera_controller and camera_controller.is_connected:
-            self.lbl_camera_status.setText("✅ Câmera conectada")
-            self.lbl_camera_status.setStyleSheet("""
-                QLabel {
-                    padding: 5px;
-                    background-color: #D4EDDA;
-                    border-radius: 4px;
-                    color: #155724;
-                }
-            """)
-            self.btn_capture.setEnabled(True)
+
+        # Injeta parâmetros no CameraCaptureWidget
+        if camera_controller:
+            self.camera_capture.controller = camera_controller
+            if cfg:
+                self.camera_capture.cfg = cfg
+            if click_to_move_service:
+                self.camera_capture.click_to_move_service = click_to_move_service
+            if fov_converter:
+                self.camera_capture.fov_converter = fov_converter
+
+            logger.info("✅ CameraCaptureWidget configurado com controller, cfg e services")
 
     def _select_fiducial(self, fid_id: int):
         """Seleciona fiducial ativo."""
@@ -476,91 +317,24 @@ class FiducialCaptureWidget(QWidget):
             self.btn_fid1.setChecked(False)
             self.btn_fid2.setChecked(True)
 
-    def _on_window_changed(self, size: int):
-        """Handler quando window size muda."""
-        self._window_size = size
-
-    def _on_capture_requested(self, x: float, y: float):
-        """Handler quando usuário clica no preview."""
-        # Capturar template
-        self._capture_fiducial_at(x, y)
-
-    def _on_capture_clicked(self):
-        """Handler do botão capturar (captura no centro)."""
-        if self.preview_widget.width() > 0 and self.preview_widget.height() > 0:
-            center_x = self.preview_widget.width() / 2
-            center_y = self.preview_widget.height() / 2
-            self._capture_fiducial_at(center_x, center_y)
-
-    def _capture_fiducial_at(self, x: float, y: float):
-        """Captura template na posição especificada."""
-        try:
-            # Prioridade: Usar EngineeringHardwareCoordinator se disponível
-            if self._hardware_coordinator:
-                self._capture_with_coordinator(x, y)
-            elif self._camera_controller:
-                self._capture_with_camera_controller(x, y)
-            else:
-                QMessageBox.warning(
-                    self,
-                    "Hardware Não Disponível",
-                    "Nenhum hardware disponível. Conecte o coordenador de hardware ou câmera."
-                )
-                return
-
-        except Exception as e:
-            logger.error(f"❌ Erro ao capturar fiducial: {e}")
-            QMessageBox.critical(
-                self,
-                "Erro de Captura",
-                f"Não foi possível capturar fiducial:\n{e}"
-            )
-
-    def _capture_with_coordinator(self, x: float, y: float):
-        """Captura usando EngineeringHardwareCoordinator.
+    def _on_template_captured(self, image: np.ndarray, metadata: dict):
+        """
+        Handler quando template é capturado via CameraCaptureWidget.
 
         Args:
-            x: Posição X no preview (não usado, captura é no centro)
-            y: Posição Y no preview (não usado, captura é no centro)
+            image: Imagem capturada (numpy array)
+            metadata: Metadados da captura (x, y, z, window_size, etc)
         """
-        from consumo_lib.coordinators.engineering_hardware_coordinator import HardwareType
-
-        # Verificar hardware
-        ready, message = self._hardware_coordinator.is_hardware_ready([
-            HardwareType.CAMERA,
-            HardwareType.PLC
-        ])
-        if not ready:
-            QMessageBox.warning(
-                self,
-                "Hardware Não Pronto",
-                f"Hardware indisponível:\n{message}"
-            )
-            return
-
-        # Obter posição dos spinboxes
-        pos_x = self.spin_x.value()
-        pos_y = self.spin_y.value()
-        pos_z = self.spin_z.value()
-
         try:
-            # Capturar usando coordinator
-            result = self._hardware_coordinator.capture_fiducial_template(
-                x=pos_x,
-                y=pos_y,
-                z=pos_z,
-                window_size=self._window_size
-            )
-
             # Criar fiducial
             fiducial = FiducialTemplate(
                 id=self._current_fiducial_id,
-                x=pos_x,
-                y=pos_y,
-                z=pos_z,
-                image=result['image'],
-                window_size=self._window_size,
-                captured_at=result.get('captured_at', datetime.now().isoformat())
+                x=metadata.get('x', 0.0),
+                y=metadata.get('y', 0.0),
+                z=metadata.get('z', 0.0),
+                image=image,
+                window_size=metadata.get('window_size', self._window_size),
+                captured_at=datetime.now().isoformat()
             )
 
             # Remover fiducial anterior do mesmo ID se existir
@@ -573,85 +347,18 @@ class FiducialCaptureWidget(QWidget):
             # Atualizar UI
             self._update_status()
 
-            logger.info(f"✅ Fiducial {self._current_fiducial_id + 1} capturado via coordinator")
+            logger.info(
+                f"✅ Fiducial {self._current_fiducial_id + 1} capturado "
+                f"em ({fiducial.x:.2f}, {fiducial.y:.2f}, {fiducial.z:.2f})"
+            )
 
-        except RuntimeError as e:
-            QMessageBox.warning(
+        except Exception as e:
+            logger.error(f"❌ Erro ao processar template capturado: {e}")
+            QMessageBox.critical(
                 self,
                 "Erro de Captura",
-                f"Erro ao capturar fiducial:\n{e}"
+                f"Não foi possível processar template:\n{e}"
             )
-
-    def _capture_with_camera_controller(self, x: float, y: float):
-        """Captura usando camera_controller (modo legado).
-
-        Args:
-            x: Posição X no preview
-            y: Posição Y no preview
-        """
-        if not self._camera_controller or not self._camera_controller.is_connected:
-            QMessageBox.warning(
-                self,
-                "Câmera Não Conectada",
-                "Conecte a câmera antes de capturar fiduciais."
-            )
-            return
-
-        # Obter frame atual
-        frame = self._camera_controller.capture_frame()
-        if frame is None:
-            QMessageBox.warning(
-                self,
-                "Erro de Captura",
-                "Não foi possível capturar imagem da câmera."
-            )
-            return
-
-        # Extrair template (window ao redor do ponto)
-        half_window = self._window_size // 2
-        h, w = frame.shape[:2]
-        x0 = int(max(0, x - half_window))
-        y0 = int(max(0, y - half_window))
-        x1 = int(min(w, x + half_window))
-        y1 = int(min(h, y + half_window))
-
-        template = frame[y0:y1, x0:x1]
-
-        if template.size == 0:
-            QMessageBox.warning(
-                self,
-                "Erro de Captura",
-                "Região de captura inválida."
-            )
-            return
-
-        # Obter posição da máquina
-        pos_x = self.spin_x.value()
-        pos_y = self.spin_y.value()
-        pos_z = self.spin_z.value()
-
-        # Criar fiducial
-        fiducial = FiducialTemplate(
-            id=self._current_fiducial_id,
-            x=pos_x,
-            y=pos_y,
-            z=pos_z,
-            image=template,
-            window_size=self._window_size,
-            captured_at=datetime.now().isoformat()
-        )
-
-        # Remover fiducial anterior do mesmo ID se existir
-        self._fiducials = [f for f in self._fiducials if f.id != self._current_fiducial_id]
-        self._fiducials.append(fiducial)
-
-        # Emitir signal
-        self.fiducial_captured.emit(fiducial.to_dict())
-
-        # Atualizar UI
-        self._update_status()
-
-        logger.info(f"✅ Fiducial {self._current_fiducial_id + 1} capturado (modo legado)")
 
     def _update_status(self):
         """Atualiza display de status."""
