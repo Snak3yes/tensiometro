@@ -366,3 +366,4 @@ claude-conductor/
 # Arquivos temporários criados pelo Claude Code durante execução
 tmpclaude-*
 
+nul
