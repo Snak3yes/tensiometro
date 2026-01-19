@@ -12,7 +12,9 @@ from PyQt6.QtWidgets import (
     QPushButton, QProgressBar, QTextEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QThread
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -59,19 +61,14 @@ class InspectionProgressDialog(QDialog):
         # Título
         mode_title = self._get_mode_title()
         title_label = QLabel(f"Execução: {mode_title}")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet("color: #111827;")
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title_label)
 
         # Subtítulo
         subtitle_label = QLabel(f"Stencil: {self.stencil_code}")
-        subtitle_font = subtitle_label.font()
-        subtitle_font.setPointSize(12)
-        subtitle_label.setFont(subtitle_font)
-        subtitle_label.setStyleSheet("color: #6B7280;")
+        subtitle_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
+        subtitle_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(subtitle_label)
 
         layout.addSpacing(10)
@@ -79,47 +76,47 @@ class InspectionProgressDialog(QDialog):
         # Barra de progresso
         self.progress_bar = QProgressBar()
         self.progress_bar.setMinimumHeight(25)
-        self.progress_bar.setStyleSheet("""
-            QProgressBar {
-                border: 2px solid #E5E7EB;
-                border-radius: 6px;
+        self.progress_bar.setStyleSheet(f"""
+            QProgressBar {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
                 text-align: center;
                 font-size: 12px;
                 font-weight: 600;
-            }
-            QProgressBar::chunk {
-                background-color: #3B82F6;
-                border-radius: 4px;
-            }
+            }}
+            QProgressBar::chunk {{
+                background-color: {COLORS.PRIMARY};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
         """)
         layout.addWidget(self.progress_bar)
 
         # Label de status
         self.status_label = QLabel("Preparando execução...")
-        self.status_label.setStyleSheet("color: #374151; font-size: 13px; font-weight: 500;")
+        self.status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_MEDIUM}; font-weight: 500;")
         layout.addWidget(self.status_label)
 
         layout.addSpacing(10)
 
         # Área de log
         log_group = QLabel("Log de Operações")
-        log_group.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        log_group.setStyleSheet("color: #374151;")
+        log_group.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        log_group.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(log_group)
 
         self.log_text = QTextEdit()
         self.log_text.setReadOnly(True)
         self.log_text.setMinimumHeight(250)
-        self.log_text.setStyleSheet("""
-            QTextEdit {
-                background-color: #F9FAFB;
-                border: 1px solid #E5E7EB;
-                border-radius: 6px;
-                padding: 12px;
+        self.log_text.setStyleSheet(f"""
+            QTextEdit {{
+                background-color: {COLORS.SURFACE};
+                border: 1px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px;
                 font-family: 'Consolas', 'Monaco', monospace;
                 font-size: 11px;
-                color: #1F2937;
-            }
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         layout.addWidget(self.log_text)
 
@@ -131,45 +128,45 @@ class InspectionProgressDialog(QDialog):
 
         self.cancel_button = QPushButton("Cancelar Execução")
         self.cancel_button.setMinimumWidth(160)
-        self.cancel_button.setMinimumHeight(40)
-        self.cancel_button.setStyleSheet("""
-            QPushButton {
-                background-color: #EF4444;
-                color: white;
+        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ERROR};
+                color: {COLORS.ON_ERROR};
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #DC2626;
-            }
-            QPushButton:disabled {
-                background-color: #E5E7EB;
-                color: #9CA3AF;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.ERROR_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.OUTLINE};
+                color: {COLORS.ON_OUTLINE};
+            }}
         """)
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         buttons_layout.addWidget(self.cancel_button)
 
         self.close_button = QPushButton("Fechar")
         self.close_button.setMinimumWidth(120)
-        self.close_button.setMinimumHeight(40)
+        self.close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.close_button.hide()  # Inicialmente oculto
-        self.close_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: white;
+        self.close_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
         """)
         self.close_button.clicked.connect(self.accept)
         buttons_layout.addWidget(self.close_button)
