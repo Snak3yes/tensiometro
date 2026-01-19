@@ -28,6 +28,9 @@ from PyQt6.QtCore import pyqtSignal, Qt
 from PyQt6.QtGui import QPixmap, QImage
 import numpy as np
 
+# Design System
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 # Import para criar MovementControlWidget na aba 3
 from consumo_lib.widgets.movement_control import MovementControlWidget
 # Import para usar CameraCaptureWidget unificado
@@ -205,19 +208,19 @@ class FiducialCaptureWidget(QWidget):
         self.btn_fid1.setCheckable(True)
         self.btn_fid2.setCheckable(True)
         self.btn_fid1.setChecked(True)
-        self.btn_fid1.setStyleSheet("""
-            QPushButton:checked {
-                background-color: #4CAF50;
-                color: white;
+        self.btn_fid1.setStyleSheet(f"""
+            QPushButton:checked {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
                 font-weight: bold;
-            }
+            }}
         """)
-        self.btn_fid2.setStyleSheet("""
-            QPushButton:checked {
-                background-color: #4CAF50;
-                color: white;
+        self.btn_fid2.setStyleSheet(f"""
+            QPushButton:checked {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
                 font-weight: bold;
-            }
+            }}
         """)
         self.fiducial_selector.addWidget(self.btn_fid1, 0, 0)
         self.fiducial_selector.addWidget(self.btn_fid2, 0, 1)
@@ -233,13 +236,13 @@ class FiducialCaptureWidget(QWidget):
             "5. Repita para o outro fiducial"
         )
         instructions.setWordWrap(True)
-        instructions.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #E3F2FD;
-                border-radius: 4px;
-                color: #1565C0;
-            }
+        instructions.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.SECONDARY_LIGHT};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.ON_SECONDARY_LIGHT};
+            }}
         """)
         controls_layout.addWidget(instructions)
 
@@ -263,14 +266,14 @@ class FiducialCaptureWidget(QWidget):
 
         # Status geral
         self.status_label = QLabel("⚠️ Capture 2 fiduciais para continuar")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #FFF3CD;
-                border: 1px solid #FFC107;
-                border-radius: 4px;
-                color: #856404;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 1px solid {COLORS.WARNING_BORDER};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.ON_WARNING_LIGHT};
+            }}
         """)
         layout.addWidget(self.status_label)
 
@@ -368,17 +371,17 @@ class FiducialCaptureWidget(QWidget):
 
         if fid1_captured:
             self.lbl_fid1_status.setText("✅ Fiducial 1: Capturado")
-            self.lbl_fid1_status.setStyleSheet("color: #4CAF50; font-weight: bold;")
+            self.lbl_fid1_status.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
         else:
             self.lbl_fid1_status.setText("❌ Fiducial 1: Não capturado")
-            self.lbl_fid1_status.setStyleSheet("color: #F44336;")
+            self.lbl_fid1_status.setStyleSheet(f"color: {COLORS.ERROR};")
 
         if fid2_captured:
             self.lbl_fid2_status.setText("✅ Fiducial 2: Capturado")
-            self.lbl_fid2_status.setStyleSheet("color: #4CAF50; font-weight: bold;")
+            self.lbl_fid2_status.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
         else:
             self.lbl_fid2_status.setText("❌ Fiducial 2: Não capturado")
-            self.lbl_fid2_status.setStyleSheet("color: #F44336;")
+            self.lbl_fid2_status.setStyleSheet(f"color: {COLORS.ERROR};")
 
         # Validar
         is_valid = fid1_captured and fid2_captured
@@ -389,28 +392,28 @@ class FiducialCaptureWidget(QWidget):
             self.status_label.setText(
                 f"✅ 2 fiduciais capturados - Pronto para alinhamento"
             )
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    padding: 10px;
-                    background-color: #D4EDDA;
-                    border: 1px solid #28A745;
-                    border-radius: 4px;
-                    color: #155724;
-                }
+            self.status_label.setStyleSheet(f"""
+                QLabel {{
+                    padding: {SPACE.SM}px;
+                    background-color: {COLORS.SUCCESS_LIGHT};
+                    border: 1px solid {COLORS.SUCCESS};
+                    border-radius: {DIM.RADIUS_SM}px;
+                    color: {COLORS.ON_SUCCESS_LIGHT};
+                }}
             """)
         else:
             captured_count = len(self._fiducials)
             self.status_label.setText(
                 f"⚠️ Capture {2 - captured_count} fiduciais para continuar"
             )
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    padding: 10px;
-                    background-color: #FFF3CD;
-                    border: 1px solid #FFC107;
-                    border-radius: 4px;
-                    color: #856404;
-                }
+            self.status_label.setStyleSheet(f"""
+                QLabel {{
+                    padding: {SPACE.SM}px;
+                    background-color: {COLORS.WARNING_LIGHT};
+                    border: 1px solid {COLORS.WARNING_BORDER};
+                    border-radius: {DIM.RADIUS_SM}px;
+                    color: {COLORS.ON_WARNING_LIGHT};
+                }}
             """)
 
         # Emitir signal se validação mudou
