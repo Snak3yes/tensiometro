@@ -21,6 +21,9 @@ from PyQt6.QtWidgets import (
     QFileDialog, QCheckBox, QSpinBox, QSplitter, QWidget
 )
 
+# Design System
+from consumo_lib.ui import COLORS, TYPO
+
 # Add project root to path for imports
 import sys
 from pathlib import Path as _Path
@@ -257,11 +260,11 @@ class MapSettingsDialog(QDialog):
         info_grid = QHBoxLayout()
         info_grid.addWidget(QLabel("Passo X ajustado:"))
         self.lbl_adjusted_step_x = QLabel("--")
-        self.lbl_adjusted_step_x.setStyleSheet("font-weight: bold; color: #2196F3;")
+        self.lbl_adjusted_step_x.setStyleSheet(f"font-weight: bold; color: {COLORS.SECONDARY};")
         info_grid.addWidget(self.lbl_adjusted_step_x)
         info_grid.addWidget(QLabel("Passo Y ajustado:"))
         self.lbl_adjusted_step_y = QLabel("--")
-        self.lbl_adjusted_step_y.setStyleSheet("font-weight: bold; color: #2196F3;")
+        self.lbl_adjusted_step_y.setStyleSheet(f"font-weight: bold; color: {COLORS.SECONDARY};")
         info_grid.addWidget(self.lbl_adjusted_step_y)
         info_layout.addLayout(info_grid)
 
@@ -279,7 +282,7 @@ class MapSettingsDialog(QDialog):
         info_grid3 = QHBoxLayout()
         info_grid3.addWidget(QLabel("Total de imagens:"))
         self.lbl_total_images = QLabel("--")
-        self.lbl_total_images.setStyleSheet("font-weight: bold; font-size: 14px; color: #4CAF50;")
+        self.lbl_total_images.setStyleSheet(f"font-weight: bold; font-size: 14px; color: {COLORS.SUCCESS};")
         info_grid3.addWidget(self.lbl_total_images)
         info_grid3.addWidget(QLabel("Área (mm):"))
         self.lbl_area = QLabel("--")
@@ -290,7 +293,7 @@ class MapSettingsDialog(QDialog):
         # Status message
         self.lbl_adjustment_status = QLabel("")
         self.lbl_adjustment_status.setWordWrap(True)
-        self.lbl_adjustment_status.setStyleSheet("color: #666; font-style: italic;")
+        self.lbl_adjustment_status.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-style: italic;")
         info_layout.addWidget(self.lbl_adjustment_status)
 
         info_group.setLayout(info_layout)
@@ -402,10 +405,10 @@ class MapSettingsDialog(QDialog):
 
         if messages:
             self.lbl_adjustment_status.setText("ℹ️ " + " | ".join(messages))
-            self.lbl_adjustment_status.setStyleSheet("color: #FF9800; font-style: italic;")
+            self.lbl_adjustment_status.setStyleSheet(f"color: {COLORS.WARNING}; font-style: italic;")
         else:
             self.lbl_adjustment_status.setText("✅ Os passos dividem a área uniformemente.")
-            self.lbl_adjustment_status.setStyleSheet("color: #4CAF50; font-style: italic;")
+            self.lbl_adjustment_status.setStyleSheet(f"color: {COLORS.SUCCESS}; font-style: italic;")
 
     def update_field_values(self, program_name: str, base_folder: str,
                            step_x: float, step_y: float,
