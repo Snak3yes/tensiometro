@@ -12,10 +12,11 @@ from PyQt6.QtWidgets import (
     QComboBox, QLineEdit, QSlider, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QPixmap, QImage, QFont, QPainter
+from PyQt6.QtGui import QPixmap, QImage, QPainter
 
 from .final_decision_dialog import FinalDecisionDialog
 from consumo_lib.widgets.zoomable_image_view import ZoomableImageView
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -149,33 +150,30 @@ class DefectJudgmentDialog(QDialog):
 
         # Título principal
         title_label = QLabel("Julgamento de Defeitos")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet("color: #111827;")
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title_label)
 
         # Info da sessão
         info_text = f"Stencil: {self.session_data.get('stencil_code')}   |   " \
                     f"Operador: {self.session_data.get('operator')}"
         info_label = QLabel(info_text)
-        info_label.setStyleSheet("color: #6B7280; font-size: 12px;")
+        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(info_label)
 
         # Barra de progresso
         progress_text = f"Defeito {self.current_index + 1} de {len(self.defects)} " \
                         f"({self._get_analyzed_count()} analisados)"
         self.progress_label = QLabel(progress_text)
-        self.progress_label.setStyleSheet("""
-            QLabel {
-                background-color: #DBEAFE;
-                color: #1E40AF;
-                padding: 8px;
-                border-radius: 6px;
+        self.progress_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SECONDARY_LIGHT};
+                color: {COLORS.ON_SECONDARY_LIGHT};
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_MD}px;
                 font-weight: 600;
-                font-size: 13px;
-            }
+                {TYPO.BODY_MEDIUM}
+            }}
         """)
         self.progress_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.progress_label)
@@ -195,12 +193,12 @@ class DefectJudgmentDialog(QDialog):
 
         # Preview da imagem
         image_frame = QFrame()
-        image_frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 10px;
-            }
+        image_frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px;
+            }}
         """)
 
         image_layout = QVBoxLayout(image_frame)
@@ -208,8 +206,8 @@ class DefectJudgmentDialog(QDialog):
 
         # Label "Imagem do Defeito"
         image_title = QLabel("Imagem do Defeito")
-        image_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        image_title.setStyleSheet("color: #374151;")
+        image_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        image_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         image_layout.addWidget(image_title)
 
         # Widget de imagem com zoom
@@ -226,7 +224,7 @@ class DefectJudgmentDialog(QDialog):
         zoom_layout.addWidget(zoom_out_btn)
 
         zoom_label = QLabel("Zoom:")
-        zoom_label.setStyleSheet("color: #6B7280; font-size: 11px;")
+        zoom_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         zoom_layout.addWidget(zoom_label)
 
         zoom_in_btn = QPushButton("🔍+")
@@ -249,39 +247,39 @@ class DefectJudgmentDialog(QDialog):
     def _create_defect_info_frame(self) -> QFrame:
         """Cria frame com informações do defeito atual"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                background-color: #F9FAFB;
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.SURFACE};
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.LG}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
-        layout.setSpacing(8)
+        layout.setSpacing(SPACE.XS)
 
         # Título
         title = QLabel("Informações do Defeito")
-        title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        title.setStyleSheet("color: #111827;")
+        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title)
 
         # Campos de informação (serão preenchidos dinamicamente)
         self.info_position = QLabel("Posição: --")
-        self.info_position.setStyleSheet("color: #374151; font-size: 12px;")
+        self.info_position.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_position)
 
         self.info_type = QLabel("Tipo: --")
-        self.info_type.setStyleSheet("color: #374151; font-size: 12px;")
+        self.info_type.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_type)
 
         self.info_status = QLabel("Status: --")
-        self.info_status.setStyleSheet("color: #374151; font-size: 12px;")
+        self.info_status.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_status)
 
         self.info_percentage = QLabel("Abertura: --")
-        self.info_percentage.setStyleSheet("color: #374151; font-size: 12px;")
+        self.info_percentage.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_percentage)
 
         return frame
@@ -295,26 +293,26 @@ class DefectJudgmentDialog(QDialog):
 
         # Análise do Sistema
         system_frame = QFrame()
-        system_frame.setStyleSheet("""
-            QFrame {
-                background-color: #FEF3C7;
-                border: 2px solid #FCD34D;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        system_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 2px solid {COLORS.WARNING_BORDER};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.LG}px;
+            }}
         """)
 
         system_layout = QVBoxLayout(system_frame)
-        system_layout.setSpacing(8)
+        system_layout.setSpacing(SPACE.XS)
 
         system_title = QLabel("Análise do Sistema")
-        system_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        system_title.setStyleSheet("color: #92400E;")
+        system_title.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+        system_title.setStyleSheet(f"color: {COLORS.ON_WARNING};")
         system_layout.addWidget(system_title)
 
         self.system_details = QLabel("--")
         self.system_details.setWordWrap(True)
-        self.system_details.setStyleSheet("color: #78350F; font-size: 11px;")
+        self.system_details.setStyleSheet(f"color: {COLORS.ON_WARNING_DARK}; {TYPO.BODY_SMALL}")
         self.system_details.setAlignment(Qt.AlignmentFlag.AlignTop)
         system_layout.addWidget(self.system_details, 1)
 
@@ -322,31 +320,31 @@ class DefectJudgmentDialog(QDialog):
 
         # Tipo de Defeito (dropdown)
         type_frame = QFrame()
-        type_frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        type_frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.LG}px;
+            }}
         """)
 
         type_layout = QVBoxLayout(type_frame)
-        type_layout.setSpacing(10)
+        type_layout.setSpacing(SPACE.SM)
 
         type_label = QLabel("Classificação do Defeito:")
-        type_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        type_label.setStyleSheet("color: #374151;")
+        type_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+        type_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         type_layout.addWidget(type_label)
 
         self.defect_type_combo = QComboBox()
         self.defect_type_combo.addItems(["Selecione..."] + self.defect_types)
-        self.defect_type_combo.setStyleSheet("""
-            QComboBox {
-                padding: 8px;
-                border: 2px solid #D1D5DB;
-                border-radius: 6px;
-                font-size: 12px;
-            }
+        self.defect_type_combo.setStyleSheet(f"""
+            QComboBox {{
+                padding: {SPACE.SM}px;
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+                {TYPO.BODY_SMALL}
+            }}
         """)
         type_layout.addWidget(self.defect_type_combo)
 
@@ -354,31 +352,31 @@ class DefectJudgmentDialog(QDialog):
 
         # Anotações (opcional)
         notes_frame = QFrame()
-        notes_frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        notes_frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.LG}px;
+            }}
         """)
 
         notes_layout = QVBoxLayout(notes_frame)
-        notes_layout.setSpacing(10)
+        notes_layout.setSpacing(SPACE.SM)
 
         notes_label = QLabel("Anotações (opcional):")
-        notes_label.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        notes_label.setStyleSheet("color: #374151;")
+        notes_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+        notes_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         notes_layout.addWidget(notes_label)
 
         self.notes_input = QLineEdit()
         self.notes_input.setPlaceholderText("Observações sobre este defeito...")
-        self.notes_input.setStyleSheet("""
-            QLineEdit {
-                padding: 8px;
-                border: 2px solid #D1D5DB;
-                border-radius: 6px;
-                font-size: 12px;
-            }
+        self.notes_input.setStyleSheet(f"""
+            QLineEdit {{
+                padding: {SPACE.SM}px;
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+                {TYPO.BODY_SMALL}
+            }}
         """)
         notes_layout.addWidget(self.notes_input)
 
@@ -388,64 +386,64 @@ class DefectJudgmentDialog(QDialog):
 
         # Seu Julgamento
         judgment_frame = QFrame()
-        judgment_frame.setStyleSheet("""
-            QFrame {
-                background-color: #EFF6FF;
-                border: 2px solid #DBEAFE;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        judgment_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.PRIMARY_LIGHT};
+                border: 2px solid {COLORS.SECONDARY_LIGHT};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.LG}px;
+            }}
         """)
 
         judgment_layout = QVBoxLayout(judgment_frame)
-        judgment_layout.setSpacing(15)
+        judgment_layout.setSpacing(SPACE.MD)
 
         judgment_title = QLabel("Seu Julgamento")
-        judgment_title.setFont(QFont("Arial", 13, QFont.Weight.Bold))
-        judgment_title.setStyleSheet("color: #1E40AF;")
+        judgment_title.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        judgment_title.setStyleSheet(f"color: {COLORS.ON_SECONDARY_LIGHT};")
         judgment_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         judgment_layout.addWidget(judgment_title)
 
         judgment_subtitle = QLabel("Este defeito é REAL?")
-        judgment_subtitle.setStyleSheet("color: #1E3A8A; font-size: 12px;")
+        judgment_subtitle.setStyleSheet(f"color: {COLORS.ON_PRIMARY_DARK}; {TYPO.BODY_SMALL}")
         judgment_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         judgment_layout.addWidget(judgment_subtitle)
 
         # Botões de julgamento
         approve_btn = QPushButton("✓ APROVAR (Falha Falsa)")
-        approve_btn.setMinimumHeight(50)
-        approve_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #10B981;
-                color: white;
-                font-size: 14px;
+        approve_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        approve_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
+                {TYPO.BODY_MEDIUM}
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #059669;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px {SPACE.XL}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
         """)
         approve_btn.clicked.connect(self.on_approve_clicked)
         judgment_layout.addWidget(approve_btn)
 
         confirm_btn = QPushButton("✓ CONFIRMAR como Defeito Real")
-        confirm_btn.setMinimumHeight(50)
-        confirm_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #EF4444;
-                color: white;
-                font-size: 14px;
+        confirm_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        confirm_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ERROR};
+                color: {COLORS.ON_ERROR};
+                {TYPO.BODY_MEDIUM}
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #DC2626;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px {SPACE.XL}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.ERROR_DARK};
+            }}
         """)
         confirm_btn.clicked.connect(self.on_confirm_clicked)
         judgment_layout.addWidget(confirm_btn)
@@ -463,26 +461,26 @@ class DefectJudgmentDialog(QDialog):
 
         # Botão Anterior
         self.prev_button = QPushButton("◀ Anterior")
-        self.prev_button.setMinimumHeight(40)
+        self.prev_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.prev_button.setMinimumWidth(120)
         self.prev_button.setEnabled(False)  # Desabilitado no primeiro
-        self.prev_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
-                color: white;
-                font-size: 13px;
+        self.prev_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.OUTLINE_VARIANT};
+                color: {COLORS.ON_OUTLINE_VARIANT};
+                {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
-            QPushButton:disabled {
-                background-color: #E5E7EB;
-                color: #9CA3AF;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.OUTLINE};
+                color: {COLORS.ON_OUTLINE};
+            }}
         """)
         self.prev_button.clicked.connect(self.on_previous_clicked)
         layout.addWidget(self.prev_button)
@@ -491,21 +489,21 @@ class DefectJudgmentDialog(QDialog):
 
         # Botão Finalizar Análise
         self.finish_button = QPushButton("📋 Finalizar Análise")
-        self.finish_button.setMinimumHeight(45)
+        self.finish_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.finish_button.setMinimumWidth(180)
-        self.finish_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: white;
-                font-size: 14px;
+        self.finish_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
+                {TYPO.BODY_MEDIUM}
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px {SPACE.XL}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
         """)
         self.finish_button.clicked.connect(self.on_finish_clicked)
         layout.addWidget(self.finish_button)
@@ -514,25 +512,25 @@ class DefectJudgmentDialog(QDialog):
 
         # Botão Próximo
         self.next_button = QPushButton("Próximo ▶")
-        self.next_button.setMinimumHeight(40)
+        self.next_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.next_button.setMinimumWidth(120)
-        self.next_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
-                color: white;
-                font-size: 13px;
+        self.next_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.OUTLINE_VARIANT};
+                color: {COLORS.ON_OUTLINE_VARIANT};
+                {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
-            QPushButton:disabled {
-                background-color: #E5E7EB;
-                color: #9CA3AF;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.OUTLINE};
+                color: {COLORS.ON_OUTLINE};
+            }}
         """)
         self.next_button.clicked.connect(self.on_next_clicked)
         layout.addWidget(self.next_button)
@@ -558,16 +556,16 @@ class DefectJudgmentDialog(QDialog):
         percentage = defect.get('percentage_open', 0)
         if percentage < 70:
             status_text = "BLOQUEADA"
-            status_color = "#DC2626"  # Vermelho
+            status_color = COLORS.ERROR_DARK
         elif percentage < 90:
             status_text = "PARCIAL"
-            status_color = "#F59E0B"  # Amarelo
+            status_color = COLORS.WARNING
         else:
             status_text = "OK"
-            status_color = "#10B981"  # Verde
+            status_color = COLORS.SUCCESS
 
         self.info_status.setText(f"Status: {status_text}")
-        self.info_status.setStyleSheet(f"color: {status_color}; font-size: 12px; font-weight: bold;")
+        self.info_status.setStyleSheet(f"color: {status_color}; {TYPO.BODY_SMALL}; font-weight: bold;")
 
         self.info_percentage.setText(f"Abertura: {percentage}%")
 
