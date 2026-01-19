@@ -18,9 +18,9 @@ from typing import Optional
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QPushButton, QLabel, QCheckBox, QSpinBox,
-    QMessageBox
+    QMessageBox, QApplication
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QTimer, QApplication
+from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QImage
 import numpy as np
 
