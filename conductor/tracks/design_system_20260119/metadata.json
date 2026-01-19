@@ -1,0 +1,223 @@
+{
+  "track_id": "design_system_20260119",
+  "title": "Design System - Padrão de Estilo da Aplicação",
+  "type": "feature",
+  "status": "pending",
+  "priority": "medium-high",
+  "created_at": "2026-01-19T12:00:00Z",
+  "updated_at": "2026-01-19T12:00:00Z",
+  "started_at": null,
+  "completed_at": null,
+  "estimated_duration_weeks": 6,
+  "estimated_hours": 100,
+  "actual_duration_weeks": null,
+  "actual_hours": null,
+
+  "description": "Estabelecer o Design System oficial do projeto Tensiometro, criando uma padronização completa de interface que será usada em toda a aplicação. O sistema incluirá tokens de design (cores, fontes, espaçamentos), componentes base reutilizáveis, gerenciador de temas e documentação abrangente.",
+
+  "objectives": [
+    "Criar sistema de design tokens centralizado (cores, fontes, espaçamentos, dimensões)",
+    "Criar Qt Style Sheet global (.qss) para estilos consistentes",
+    "Criar componentes base padronizados (StandardButton, StandardLabel, etc.)",
+    "Criar Theme Manager para gerenciamento de temas",
+    "Migrar 10 arquivos críticos como prova de conceito",
+    "Documentar Design System completamente (4 guias + CLAUDE.md)"
+  ],
+
+  "phases": [
+    {
+      "phase_id": 1,
+      "name": "Fundação do Design System",
+      "duration_weeks": 2,
+      "tasks_total": 13,
+      "tasks_completed": 0,
+      "status": "pending",
+      "objectives": [
+        "Criar estrutura de diretórios consumo_lib/ui/",
+        "Implementar ColorPalette com 30+ cores",
+        "Implementar Typography com type scale Material Design 3",
+        "Implementar Spacing com baseline grid de 4px",
+        "Implementar Dimensions com tamanhos padronizados",
+        "Implementar Elevation, Opacity, Transitions, Breakpoints, Accessibility",
+        "Criar styles.qss com estilos para todos componentes Qt",
+        "Criar StandardButton, StandardLabel e outros componentes base",
+        "Criar funções helper para tarefas comuns de UI"
+      ]
+    },
+    {
+      "phase_id": 2,
+      "name": "Gerenciador de Temas e Integração",
+      "duration_weeks": 1,
+      "tasks_total": 8,
+      "tasks_completed": 0,
+      "status": "pending",
+      "objectives": [
+        "Implementar ThemeManager com carregamento de stylesheet",
+        "Adicionar gerenciamento de temas (set_theme)",
+        "Implementar singleton pattern",
+        "Testar ThemeManager completamente",
+        "Atualizar __init__.py do ui/ com exports",
+        "Integrar ThemeManager em main_window.py",
+        "Validar stylesheet global visualmente",
+        "Criar checkpoint da fase"
+      ]
+    },
+    {
+      "phase_id": 3,
+      "name": "Migração Parcial (Prova de Conceito)",
+      "duration_weeks": 2,
+      "tasks_total": 12,
+      "tasks_completed": 0,
+      "status": "pending",
+      "objectives": [
+        "Migrar 10 arquivos críticos para usar Design System",
+        "Remover todas as cores hardcoded dos arquivos migrados",
+        "Remover todas as fontes hardcoded dos arquivos migrados",
+        "Remover todos os tamanhos hardcoded dos arquivos migrados",
+        "Validar visualmente todos os arquivos migrados",
+        "Documentar padrões de migração observados"
+      ]
+    },
+    {
+      "phase_id": 4,
+      "name": "Documentação e Validação",
+      "duration_weeks": 1,
+      "tasks_total": 5,
+      "tasks_completed": 0,
+      "status": "pending",
+      "objectives": [
+        "Criar README do Design System",
+        "Criar Guia de Tokens (TOKENS.md)",
+        "Criar Guia de Componentes (COMPONENTS.md)",
+        "Criar Guia de Migração (MIGRATION.md)",
+        "Atualizar CLAUDE.md e finalizar track"
+      ]
+    }
+  ],
+
+  "acceptance_criteria": {
+    "functional": [
+      "Design tokens criados (ColorPalette, Typography, Spacing, Dimensions, etc.)",
+      "Qt Style Sheet global criado com estilos para todos componentes",
+      "Componentes base criados (StandardButton, StandardLabel, StandardInput, etc.)",
+      "ThemeManager funcionando e integrado com aplicação",
+      "10 arquivos críticos migrados sem hardcoded values",
+      "Documentação completa (README + 3 guias + CLAUDE.md)"
+    ],
+    "non_functional": [
+      "Stylesheet carrega em <100ms",
+      "Overhead de renderização <5%",
+      "Zero breaking changes na API pública",
+      "Type hints em 100% do código público",
+      "Pylint score >8.0",
+      "Coverage >80% para código novo",
+      "Contrast ratios WCAG 2.1 AA atendidos"
+    ]
+  },
+
+  "deliverables": [
+    "consumo_lib/ui/design_tokens.py (250+ linhas)",
+    "consumo_lib/ui/styles.qss (200+ linhas)",
+    "consumo_lib/ui/widget_standards.py (150+ linhas)",
+    "consumo_lib/ui/theme_manager.py (100+ linhas)",
+    "consumo_lib/ui/helpers.py (50+ linhas)",
+    "10 arquivos migrados (status_badge, movement_control, operator_interface, etc.)",
+    "docs/design_system/README.md",
+    "docs/design_system/TOKENS.md",
+    "docs/design_system/COMPONENTS.md",
+    "docs/design_system/MIGRATION.md",
+    "CLAUDE.md atualizado com seção Design System",
+    "tests/unit/test_design_tokens.py",
+    "tests/unit/test_theme_manager.py"
+  ],
+
+  "benefits": [
+    "Manutenibilidade: Alterar cor = modificar 1 linha (ao invés de 15+ arquivos)",
+    "Consistência: Interface uniforme em toda aplicação",
+    "Produtividade: Autocomplete e padrões claros para desenvolvedores",
+    "Escalabilidade: Facilita implementação de dark mode e temas customizados",
+    "Redução de código: 30-40% de redução em código de styling"
+  ],
+
+  "metrics": {
+    "current_state": {
+      "hardcoded_colors": 145,
+      "hardcoded_fonts": 40,
+      "hardcoded_dimensions": 80,
+      "files_with_hardcoding": 39,
+      "design_system_exists": false
+    },
+    "target_state": {
+      "hardcoded_colors_migrated": 10,
+      "hardcoded_fonts_migrated": 10,
+      "hardcoded_dimensions_migrated": 10,
+      "files_migrated": 10,
+      "design_system_implemented": true,
+      "documentation_complete": true
+    }
+  },
+
+  "dependencies": {
+    "internal": [
+      "consumo_lib/main_window.py",
+      "consumo_lib/widgets/*",
+      "consumo_lib/dialogs/*"
+    ],
+    "external": [
+      "PyQt6 ^6.0",
+      "Python ^3.10"
+    ],
+    "tracks_required": [],
+    "tracks_dependent": [
+      "ui_standardization_migration_202601XX (futura)"
+    ]
+  },
+
+  "risks": [
+    {
+      "risk": "Stylesheet .qss pode não suportar todas as funcionalidades CSS3",
+      "impact": "medium",
+      "mitigation": "Testar todos os estilos antecipadamente, usar Qt properties como workaround"
+    },
+    {
+      "risk": "Migração pode introduzir regressões visuais",
+      "impact": "high",
+      "mitigation": "Validação visual manual de todos os arquivos migrados, screenshots antes/depois"
+    },
+    {
+      "risk": "Design tokens podem não cobrir todos os casos de uso",
+      "impact": "low",
+      "mitigation": "Tokens extensíveis,允许 customização onde necessário"
+    }
+  ],
+
+  "exclusions": [
+    "Dark mode completo (apenas placeholder com TODOs)",
+    "Migração de todos os 39 arquivos (apenas 10 críticos nesta track)",
+    "Temas customizados além de light/dark",
+    "Animações complexas",
+    "Testes E2E de UI (apenas validação manual)"
+  ],
+
+  "testing_strategy": {
+    "design_tokens": "Test-After (simples, apenas constantes)",
+    "componentes_base": "Test-After + validação manual visual",
+    "theme_manager": "TDD (lógica de carregamento de arquivos)",
+    "migration": "Test-After + validação manual visual",
+    "target_coverage": ">80% para código novo"
+  },
+
+  "team": {
+    "lead": "RONALDBUZAGLO",
+    "contributors": []
+  },
+
+  "commits": [],
+
+  "tags": [],
+
+  "links": {
+    "analysis_report": "docs/reports/UI_STANDARDIZATION_ANALYSIS_2026-01-19.md",
+    "related_tracks": []
+  }
+}

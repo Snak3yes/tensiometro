@@ -49,8 +49,8 @@ from .widget_standards import (
     StandardGroupBox,
 )
 
-# Theme manager será exportado aqui quando implementado (Fase 2)
-# from .theme_manager import init_theme_manager, get_theme_manager
+# Theme manager (implementado na Fase 2)
+from .theme_manager import init_theme_manager, get_theme_manager
 
 # Helpers (implementados na Fase 1)
 from .helpers import (
@@ -83,6 +83,9 @@ __all__ = [
     "StandardDoubleSpinBox",
     "StandardComboBox",
     "StandardGroupBox",
+    # Theme manager
+    "init_theme_manager",
+    "get_theme_manager",
     # Helpers
     "create_h_spacer",
     "create_v_spacer",

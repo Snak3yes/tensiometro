@@ -4,6 +4,54 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## 🎨 Track: Design System - Padrão de Estilo da Aplicação (ACTIVE) <!-- 2026-01-19 -->
+*Link: [./conductor/tracks/design_system_20260119/](./conductor/tracks/design_system_20260119/)*
+- **Track ID:** design_system_20260119
+- **Status:** ⏳ Active (Pending)
+- **Priority:** 🟡 MEDIUM-HIGH
+- **Type:** Feature
+- **Created:** 2026-01-19
+- **Est. Duration:** 4-6 weeks
+- **Phases:** 4/4 planned (38 tasks total)
+- **Plan:** ./tracks/design_system_20260119/plan.md
+- **Spec:** ./tracks/design_system_20260119/spec.md
+- **Metadata:** ./tracks/design_system_20260119/metadata.json
+- **Description:**
+  - Estabelecer o Design System oficial do projeto Tensiometro
+  - Criar sistema de design tokens centralizado (cores, fontes, espaçamentos, dimensões)
+  - Criar Qt Style Sheet global (.qss) para estilos consistentes
+  - Criar componentes base padronizados (StandardButton, StandardLabel, etc.)
+  - Criar Theme Manager para gerenciamento de temas
+  - Migrar 10 arquivos críticos como prova de conceito
+  - Documentar Design System completamente
+- **Benefits:**
+  - Manutenibilidade: Alterar cor = modificar 1 linha (ao invés de 15+ arquivos)
+  - Consistência: Interface uniforme em toda aplicação
+  - Produtividade: Autocomplete e padrões claros para desenvolvedores
+  - Escalabilidade: Facilita implementação de dark mode e temas customizados
+  - Redução de código: 30-40% de redução em código de styling
+- **Current State:**
+  - ❌ 412 ocorrências de estilos hardcoded em 39 arquivos
+  - ❌ 145 ocorrências de cores hexadecimais hardcoded
+  - ❌ 40+ ocorrências de tamanhos de fonte inconsistentes
+  - ❌ Nenhum sistema de design centralizado
+- **Target State:**
+  - ✅ Design System implementado e documentado
+  - ✅ 10 arquivos críticos migrados sem breaking changes
+  - ✅ Componentes base reutilizáveis
+  - ✅ Theme Manager funcionando
+- **Deliverables:**
+  - consumo_lib/ui/design_tokens.py (250+ linhas)
+  - consumo_lib/ui/styles.qss (200+ linhas)
+  - consumo_lib/ui/widget_standards.py (150+ linhas)
+  - consumo_lib/ui/theme_manager.py (100+ linhas)
+  - consumo_lib/ui/helpers.py (50+ linhas)
+  - 10 arquivos migrados
+  - docs/design_system/ (4 guias + README)
+- **Analysis:** Ver relatório completo em [docs/reports/UI_STANDARDIZATION_ANALYSIS_2026-01-19.md](../docs/reports/UI_STANDARDIZATION_ANALYSIS_2026-01-19.md)
+
+---
+
 ## [x] Track: Engineering Wizard Free Navigation Mode (archived) <!-- 2026-01-16 -->
 *Link: [./conductor/archive/engineering_free_navigation_20260116/](./conductor/archive/engineering_free_navigation_20260116/)*
 - **Track ID:** engineering_free_navigation_20260116
