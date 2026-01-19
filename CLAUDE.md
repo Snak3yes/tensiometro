@@ -875,6 +875,182 @@ logger.warning("⚠️ Timeout aguardando eixo X")
 logger.error("❌ Falha na leitura do tensiômetro")
 ```
 
+### Design System Guidelines
+
+**O QUE É**: Sistema de design unificado para garantir consistência visual na aplicação.
+
+**LOCALIZAÇÃO**: `consumo_lib/ui/` + `docs/design_system/`
+
+**DOCUMENTAÇÃO**:
+- `docs/design_system/README.md` - Visão geral e getting started
+- `docs/design_system/TOKENS.md` - Referência completa de tokens (cores, fontes, espaçamentos)
+- `docs/design_system/COMPONENTS.md` - Componentes base (StandardButton, StandardLabel, etc)
+- `docs/design_system/MIGRATION.md` - Guia de migração de código legado
+
+**Por que usar Design System**:
+- ✅ Single source of truth para cores, fontes, espaçamentos
+- ✅ Type-safe (tokens são constantes, não strings)
+- ✅ Refatoração fácil (alterar cor afeta toda aplicação)
+- ✅ Componentes prontos com estilos consistentes
+
+#### Quando Usar Design System
+
+**Sempre** para código novo. Para código legado, migre gradualmente durante refatorações.
+
+#### Como Importar
+
+```python
+# Importar design tokens
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
+# Importar componentes base
+from consumo_lib.ui.widget_standards import (
+    StandardButton,
+    StandardLabel,
+    StandardInput,
+    StandardSpinBox,
+    StandardDoubleSpinBox,
+    StandardComboBox,
+    StandardGroupBox
+)
+```
+
+#### Exemplos Rápidos
+
+**1. Usar Cores**
+
+```python
+from consumo_lib.ui import COLORS
+
+# Antes: hardcoded string
+btn.setStyleSheet(f"background-color: #4CAF50;")
+
+# Depois: design token
+btn.setStyleSheet(f"background-color: {COLORS.PRIMARY};")
+```
+
+**2. Usar Fontes**
+
+```python
+from consumo_lib.ui import TYPO
+
+# Antes: QFont manual
+font = QFont()
+font.setPointSize(14)
+font.setBold(True)
+label.setFont(font)
+
+# Depois: token
+label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+```
+
+**3. Usar Espaçamentos**
+
+```python
+from consumo_lib.ui import SPACE
+
+# Antes: hardcoded
+layout.setContentsMargins(16, 16, 16, 16)
+layout.setSpacing(16)
+
+# Depois: tokens
+layout.setContentsMargins(SPACE.MD, SPACE.MD, SPACE.MD, SPACE.MD)
+layout.setSpacing(SPACE.MD)
+```
+
+**4. Usar Componentes Padrão**
+
+```python
+from consumo_lib.ui.widget_standards import StandardButton
+
+# Antes: QPushButton manual
+btn = QPushButton("Salvar")
+btn.setFont(QFont("Arial", 14, QFont.Bold))
+btn.setMinimumHeight(40)
+btn.setStyleSheet("...")
+
+# Depois: componente pronto
+btn = StandardButton("Salvar", variant="primary")
+```
+
+#### Tokens Mais Usados
+
+**Cores**:
+```python
+COLORS.PRIMARY              # Ações principais (#4CAF50)
+COLORS.SUCCESS              # Sucesso (#2ecc71)
+COLORS.ERROR                # Erros (#e74c3c)
+COLORS.WARNING              # Avisos (#f1c40f)
+COLORS.BACKGROUND           # Fundo branco (#FFFFFF)
+COLORS.ON_BACKGROUND        # Texto preto (#212121)
+```
+
+**Fontes**:
+```python
+TYPO.BODY_MEDIUM            # Texto padrão (14px)
+TYPO.BODY_LARGE             # Botões (16px)
+TYPO.HEADLINE_SMALL         # Títulos (24px)
+TYPO.LABEL_SMALL            # Badges (11px)
+```
+
+**Espaçamentos**:
+```python
+SPACE.SM                    # 8px
+SPACE.MD                    # 16px (padrão)
+SPACE.LG                    # 24px
+```
+
+**Dimensões**:
+```python
+DIM.BUTTON_HEIGHT_MD        # 40px
+DIM.INPUT_HEIGHT_MD         # 40px
+DIM.RADIUS_MD               # 8px
+```
+
+#### Migrar Código Legado
+
+**Padrão: Cores Hex → Design Tokens**
+
+```python
+# Antes
+setStyleSheet(f"background-color: #4CAF50;")
+
+# Depois
+from consumo_lib.ui import COLORS
+setStyleSheet(f"background-color: {COLORS.PRIMARY};")
+```
+
+**Padrão: QFont Manual → Typography**
+
+```python
+# Antes
+font = QFont()
+font.setPointSize(14)
+font.setBold(True)
+label.setFont(font)
+
+# Depois
+from consumo_lib.ui import TYPO
+label.setFont(TYPO.get_font(14, bold=True))
+```
+
+**Padrão: Tamanhos Hardcoded → Dimensions**
+
+```python
+# Antes
+btn.setMinimumHeight(40)
+
+# Depois
+from consumo_lib.ui import DIM
+btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+```
+
+**Arquivos Migrados**:
+- ✅ `consumo_lib/widgets/status_badge.py` (commit 1f34c30)
+- ✅ `consumo_lib/widgets/movement_control.py` (commit 122ed8d)
+
+**Para detalhes completos, consulte**: `docs/design_system/MIGRATION.md`
+
 ---
 
 ## Module Import Patterns
