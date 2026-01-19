@@ -15,7 +15,8 @@ from PyQt6.QtWidgets import (
     QFileDialog, QMessageBox, QFrame, QWidget
 )
 from PyQt6.QtCore import Qt, QDate
-from PyQt6.QtGui import QFont
+
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -54,11 +55,8 @@ class InspectionHistoryDialog(QDialog):
 
         # Título
         title_label = QLabel(f"Histórico: {self.stencil_code}")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        title_label.setStyleSheet("color: #111827;")
+        title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title_label)
 
         # Filtros
@@ -67,32 +65,32 @@ class InspectionHistoryDialog(QDialog):
 
         # Tabela
         table_label = QLabel("Inspeções")
-        table_label.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        table_label.setStyleSheet("color: #374151;")
+        table_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        table_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(table_label)
 
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["Data/Hora", "Tipo", "Classificação", "Operador", "Arquivo"])
-        self.table.setStyleSheet("""
-            QTableWidget {
-                border: 1px solid #E5E7EB;
-                border-radius: 6px;
+        self.table.setStyleSheet(f"""
+            QTableWidget {{
+                border: 1px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
                 background-color: white;
-                selection-background-color: #3B82F6;
-            }
-            QTableWidget::item {
-                padding: 8px;
-                border-bottom: 1px solid #F3F4F6;
-            }
-            QHeaderView::section {
-                background-color: #F9FAFB;
-                color: #374151;
+                selection-background-color: {COLORS.PRIMARY};
+            }}
+            QTableWidget::item {{
+                padding: {SPACE.SM}px;
+                border-bottom: 1px solid {COLORS.SURFACE};
+            }}
+            QHeaderView::section {{
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_SURFACE};
                 font-weight: bold;
                 border: none;
-                border-bottom: 2px solid #E5E7EB;
-                padding: 10px;
-            }
+                border-bottom: 2px solid {COLORS.OUTLINE};
+                padding: {SPACE.SM}px;
+            }}
         """)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.table.verticalHeader().setVisible(False)
@@ -105,39 +103,39 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout.addStretch()
 
         self.export_button = QPushButton("📄 Exportar CSV")
-        self.export_button.setMinimumHeight(40)
-        self.export_button.setStyleSheet("""
-            QPushButton {
-                background-color: #8B5CF6;
+        self.export_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        self.export_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SECONDARY};
                 color: white;
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #7C3AED;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SECONDARY_DARK};
+            }}
         """)
         self.export_button.clicked.connect(self.export_to_csv)
         buttons_layout.addWidget(self.export_button)
 
         close_button = QPushButton("Fechar")
-        close_button.setMinimumHeight(40)
-        close_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
+        close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        close_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ON_SURFACE};
                 color: white;
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+            }}
         """)
         close_button.clicked.connect(self.accept)
         buttons_layout.addWidget(close_button)
@@ -147,13 +145,13 @@ class InspectionHistoryDialog(QDialog):
     def _create_filters_frame(self) -> QFrame:
         """Cria frame de filtros"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                background-color: #F9FAFB;
-                padding: 15px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                background-color: {COLORS.SURFACE};
+                padding: {SPACE.MD}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
@@ -161,8 +159,8 @@ class InspectionHistoryDialog(QDialog):
 
         # Título
         filters_title = QLabel("FILTROS")
-        filters_title.setFont(QFont("Arial", 11, QFont.Weight.Bold))
-        filters_title.setStyleSheet("color: #374151;")
+        filters_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        filters_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(filters_title)
 
         # Linha 1: Tipo e Classificação
