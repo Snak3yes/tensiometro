@@ -7,6 +7,9 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal, QTimer
 from PyQt6.QtGui import QPixmap, QImage
 
+# Design System
+from consumo_lib.ui import COLORS
+
 from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.fov_calibration import (
     FOVCalibration, CameraFOVConverter, ClickableVideoLabel
@@ -77,7 +80,7 @@ class CameraPreviewWidget(QWidget):
         self.image_label = ClickableVideoLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setText("Camera Preview\n(Clique para mover a head)")
-        self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
+        self.image_label.setStyleSheet(f"border: 1px solid gray; background-color: {COLORS.SURFACE};")
         self.image_label.setMinimumSize(600, 450)
         self.image_label.clicked.connect(self._on_video_click)
         pg_layout.addWidget(self.image_label)
