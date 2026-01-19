@@ -11,9 +11,9 @@ from PyQt6.QtWidgets import (
     QPushButton, QWidget, QFrame, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from aoi_lib.audit_log import get_audit_log
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -80,12 +80,9 @@ class FinalDecisionDialog(QDialog):
 
         # Título principal
         title_label = QLabel("Análise Completa")
-        title_font = QFont()
-        title_font.setPointSize(20)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("color: #111827;")
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title_label)
 
         # Resumo da análise
@@ -98,12 +95,9 @@ class FinalDecisionDialog(QDialog):
         instruction_label = QLabel(
             "Há defeitos confirmados. O que deseja fazer?"
         )
-        instruction_font = instruction_label.font()
-        instruction_font.setPointSize(13)
-        instruction_font.setBold(True)
-        instruction_label.setFont(instruction_font)
+        instruction_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        instruction_label.setStyleSheet("color: #374151;")
+        instruction_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(instruction_label)
 
         layout.addSpacing(20)
@@ -131,21 +125,21 @@ class FinalDecisionDialog(QDialog):
 
         self.cancel_button = QPushButton("Cancelar")
         self.cancel_button.setMinimumWidth(120)
-        self.cancel_button.setMinimumHeight(40)
-        self.cancel_button.setStyleSheet("""
-            QPushButton {
-                background-color: #F5F5F5;
-                color: #6B7280;
+        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SURFACE_DARK};
+                color: {COLORS.ON_SURFACE};
                 font-size: 13px;
                 font-weight: 600;
-                border: 2px solid #E5E7EB;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-                border: 2px solid #D1D5DB;
-            }
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+                border: 2px solid {COLORS.ON_OUTLINE};
+            }}
         """)
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         buttons_layout.addWidget(self.cancel_button)
@@ -155,13 +149,13 @@ class FinalDecisionDialog(QDialog):
     def _create_summary_frame(self) -> QFrame:
         """Cria frame de resumo da análise"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                background-color: #FFFBEB;
-                border: 2px solid #FCD34D;
-                border-radius: 8px;
-                padding: 15px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 2px solid {COLORS.WARNING};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
@@ -170,12 +164,9 @@ class FinalDecisionDialog(QDialog):
         # Contagem total
         total_defects = len(self.defects_confirmed) + len(self.defects_approved)
         total_label = QLabel(f"{total_defects} defeitos analisados")
-        total_font = total_label.font()
-        total_font.setPointSize(14)
-        total_font.setBold(True)
-        total_label.setFont(total_font)
+        total_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        total_label.setStyleSheet("color: #92400E;")
+        total_label.setStyleSheet(f"color: {COLORS.WARNING_DARK};")
         layout.addWidget(total_label)
 
         # Estatísticas
@@ -185,12 +176,12 @@ class FinalDecisionDialog(QDialog):
         """.strip()
 
         stats_label = QLabel(stats_text)
-        stats_label.setStyleSheet("""
-            QLabel {
-                color: #92400E;
+        stats_label.setStyleSheet(f"""
+            QLabel {{
+                color: {COLORS.WARNING_DARK};
                 font-size: 13px;
                 font-weight: 600;
-            }
+            }}
         """)
         stats_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(stats_label)
@@ -200,13 +191,13 @@ class FinalDecisionDialog(QDialog):
     def _create_discard_card(self) -> QFrame:
         """Cria card de opção Descartar"""
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #FEF2F2;
-                border: 2px solid #FECACA;
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.ERROR_LIGHT};
+                border: 2px solid {COLORS.ERROR_LIGHT};
                 border-radius: 12px;
-                padding: 20px;
-            }
+                padding: {SPACE.LG}px;
+            }}
         """)
         card.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -221,12 +212,9 @@ class FinalDecisionDialog(QDialog):
 
         # Título
         title_label = QLabel("Descartar Inspeção")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("color: #991B1B;")
+        title_label.setStyleSheet(f"color: {COLORS.ERROR_DARK};")
         layout.addWidget(title_label)
 
         # Descrição
@@ -237,30 +225,30 @@ class FinalDecisionDialog(QDialog):
         )
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc_label.setStyleSheet("color: #7F1D1D; font-size: 12px;")
+        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; {TYPO.BODY_SMALL}")
         layout.addWidget(desc_label)
 
         layout.addStretch()
 
         # Botão
         discard_btn = QPushButton("Descartar Inspeção")
-        discard_btn.setMinimumHeight(45)
-        discard_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #EF4444;
+        discard_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        discard_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ERROR};
                 color: white;
                 font-size: 14px;
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #DC2626;
-            }
-            QPushButton:pressed {
-                background-color: #B91C1C;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.ERROR_DARK};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.ERROR_DARKER};
+            }}
         """)
         discard_btn.clicked.connect(self.on_discard_clicked)
         layout.addWidget(discard_btn)
@@ -273,13 +261,13 @@ class FinalDecisionDialog(QDialog):
     def _create_reject_card(self) -> QFrame:
         """Cria card de opção Reprovar"""
         card = QFrame()
-        card.setStyleSheet("""
-            QFrame {
-                background-color: #FEF2F2;
-                border: 2px solid #FECACA;
+        card.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.ERROR_LIGHT};
+                border: 2px solid {COLORS.ERROR_LIGHT};
                 border-radius: 12px;
-                padding: 20px;
-            }
+                padding: {SPACE.LG}px;
+            }}
         """)
         card.setCursor(Qt.CursorShape.PointingHandCursor)
 
@@ -294,12 +282,9 @@ class FinalDecisionDialog(QDialog):
 
         # Título
         title_label = QLabel("Reprovar Sessão")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("color: #991B1B;")
+        title_label.setStyleSheet(f"color: {COLORS.ERROR_DARK};")
         layout.addWidget(title_label)
 
         # Descrição
@@ -310,30 +295,30 @@ class FinalDecisionDialog(QDialog):
         )
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc_label.setStyleSheet("color: #7F1D1D; font-size: 12px;")
+        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; {TYPO.BODY_SMALL}")
         layout.addWidget(desc_label)
 
         layout.addStretch()
 
         # Botão
         reject_btn = QPushButton("Reprovar Sessão")
-        reject_btn.setMinimumHeight(45)
-        reject_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #DC2626;
+        reject_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        reject_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ERROR_DARK};
                 color: white;
                 font-size: 14px;
                 font-weight: bold;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #B91C1C;
-            }
-            QPushButton:pressed {
-                background-color: #991B1B;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.ERROR};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.ERROR_DARK};
+            }}
         """)
         reject_btn.clicked.connect(self.on_reject_clicked)
         layout.addWidget(reject_btn)
