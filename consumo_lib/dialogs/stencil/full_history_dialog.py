@@ -17,6 +17,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont
 
 from aoi_lib.stencil_tracker import StencilTracker
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 log = logging.getLogger(__name__)
 
@@ -267,21 +268,21 @@ class StencilFullHistoryDialog(QDialog):
 
         var_text = f"{analysis.variation_percent:+.1f}%"
         if analysis.variation_percent < -5:
-            self.lbl_tension_variation.setStyleSheet("color: #dc3545; font-weight: bold;")
+            self.lbl_tension_variation.setStyleSheet(f"color: {COLORS.ERROR}; font-weight: bold;")
             var_text = f"📉 {var_text}"
         elif analysis.variation_percent > 5:
-            self.lbl_tension_variation.setStyleSheet("color: #28a745; font-weight: bold;")
+            self.lbl_tension_variation.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
             var_text = f"📈 {var_text}"
         else:
-            self.lbl_tension_variation.setStyleSheet("color: #888;")
+            self.lbl_tension_variation.setStyleSheet(f"color: {COLORS.TEXT_DISABLED};")
         self.lbl_tension_variation.setText(var_text)
 
         trend_map = {
-            "stable": ("Estável", "#888"),
-            "degrading": ("Em Degradação ⚠️", "#dc3545"),
-            "improving": ("Melhorando ✓", "#28a745"),
+            "stable": ("Estável", COLORS.TEXT_DISABLED),
+            "degrading": ("Em Degradação ⚠️", COLORS.ERROR),
+            "improving": ("Melhorando ✓", COLORS.SUCCESS),
         }
-        trend_text, trend_color = trend_map.get(analysis.trend, ("?", "#888"))
+        trend_text, trend_color = trend_map.get(analysis.trend, ("?", COLORS.TEXT_DISABLED))
         self.lbl_tension_trend.setText(trend_text)
         self.lbl_tension_trend.setStyleSheet(f"color: {trend_color}; font-weight: bold;")
 
@@ -319,9 +320,9 @@ class StencilFullHistoryDialog(QDialog):
 
         self.lbl_insp_total.setText(str(stats["total_inspections"]))
         self.lbl_insp_pass.setText(f"{stats['pass_count']} ✓")
-        self.lbl_insp_pass.setStyleSheet("color: #28a745; font-weight: bold;")
+        self.lbl_insp_pass.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
         self.lbl_insp_fail.setText(f"{stats['fail_count']} ✗")
-        self.lbl_insp_fail.setStyleSheet("color: #dc3545; font-weight: bold;")
+        self.lbl_insp_fail.setStyleSheet(f"color: {COLORS.ERROR}; font-weight: bold;")
         self.lbl_insp_rate.setText(f"{stats['pass_rate']:.1f}%")
         self.lbl_insp_avg_rate.setText(f"{stats['avg_pass_rate']:.1f}%")
 
@@ -329,10 +330,10 @@ class StencilFullHistoryDialog(QDialog):
         if last_result:
             if last_result == "PASS":
                 self.lbl_insp_last.setText("✓ PASS")
-                self.lbl_insp_last.setStyleSheet("color: #28a745; font-weight: bold;")
+                self.lbl_insp_last.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
             else:
                 self.lbl_insp_last.setText("✗ FAIL")
-                self.lbl_insp_last.setStyleSheet("color: #dc3545; font-weight: bold;")
+                self.lbl_insp_last.setStyleSheet(f"color: {COLORS.ERROR}; font-weight: bold;")
         else:
             self.lbl_insp_last.setText("-")
 
