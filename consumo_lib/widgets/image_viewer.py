@@ -1,6 +1,10 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QGroupBox
+from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 import logging
+
+# Design System
+from consumo_lib.ui import COLORS
 
 logger = logging.getLogger(__name__)
 class ImageViewerWidget(QWidget):
@@ -13,7 +17,7 @@ class ImageViewerWidget(QWidget):
         self.image_label = QLabel()
         self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.image_label.setText("Nenhuma imagem capturada")
-        self.image_label.setStyleSheet("border: 1px solid gray; background-color: #f0f0f0;")
+        self.image_label.setStyleSheet(f"border: 1px solid gray; background-color: {COLORS.SURFACE};")
         self.image_label.setMinimumSize(400, 300)
         
         # Informações da imagem
