@@ -1,16 +1,19 @@
 import numpy as np
+import json
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel, QPushButton,
-    QGridLayout, QFileDialog, QDoubleSpinBox, QSpinBox, QFrame
+    QGridLayout, QFileDialog, QDoubleSpinBox, QSpinBox, QFrame, QMessageBox
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QColor, QPen, QBrush, QPainter
+from PyQt6.QtGui import QColor, QPen, QBrush, QPainter, QFont
 from typing import List, Dict
 import logging
 
 from aoi_lib.config_manager import AOIConfigManager
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 logger = logging.getLogger(__name__)
 class TensionVisualizationWidget(QWidget):
     """
@@ -38,10 +41,7 @@ class TensionVisualizationWidget(QWidget):
         title_layout = QHBoxLayout()
         
         title_label = QLabel("Visualização de Tensão do Stencil")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_font.setPointSize(14)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         
         # Botão para carregar arquivo
         self.load_file_btn = QPushButton("📂 Carregar JSON")
@@ -105,7 +105,7 @@ class TensionVisualizationWidget(QWidget):
         
         # Informações do arquivo carregado
         self.info_label = QLabel("Nenhum arquivo carregado")
-        self.info_label.setStyleSheet("color: #666; font-style: italic;")
+        self.info_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-style: italic;")
         layout.addWidget(self.info_label)
         
         # Canvas de visualização
@@ -115,24 +115,24 @@ class TensionVisualizationWidget(QWidget):
         # ============ ESTATÍSTICAS DE RESULTADO ============
         self.stats_frame = QFrame()
         self.stats_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        self.stats_frame.setStyleSheet("background-color: #f8f8f8; padding: 5px;")
+        self.stats_frame.setStyleSheet(f"background-color: {COLORS.SURFACE}; padding: {SPACE.XS}px;")
         stats_layout = QHBoxLayout(self.stats_frame)
         stats_layout.setContentsMargins(10, 5, 10, 5)
-        
+
         self.stats_label = QLabel("Carregue um arquivo para ver estatísticas")
-        self.stats_label.setStyleSheet("font-size: 12px;")
+        self.stats_label.setStyleSheet(f"{TYPO.BODY_SMALL}")
         stats_layout.addWidget(self.stats_label)
         
         stats_layout.addStretch()
         
         # Indicador visual
         self.result_indicator = QLabel("---")
-        self.result_indicator.setStyleSheet("""
-            font-size: 14px; 
-            font-weight: bold; 
-            padding: 5px 15px;
-            border-radius: 5px;
-            background-color: #ccc;
+        self.result_indicator.setStyleSheet(f"""
+            {TYPO.BODY_LARGE};
+            font-weight: bold;
+            padding: {SPACE.XS}px {SPACE.SM}px;
+            border-radius: {DIM.RADIUS_SM}px;
+            background-color: {COLORS.TEXT_DISABLED};
         """)
         stats_layout.addWidget(self.result_indicator)
         
@@ -217,7 +217,7 @@ class TensionVisualizationWidget(QWidget):
         )
         
         self.info_label.setText(info_text)
-        self.info_label.setStyleSheet("color: #333; font-weight: bold;")
+        self.info_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY}; font-weight: bold;")
         
     def update_legend(self):
         """Atualiza legenda com informações dos valores e classificação"""
@@ -266,21 +266,33 @@ class TensionVisualizationWidget(QWidget):
         # Atualiza indicador de resultado
         if nok_percent > 0:
             self.result_indicator.setText("❌ REPROVADO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #FF6B6B; color: white;
+            self.result_indicator.setStyleSheet(f"""
+                {TYPO.BODY_LARGE};
+                font-weight: bold;
+                padding: {SPACE.XS}px {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_SM}px;
+                background-color: {COLORS.ERROR};
+                color: {COLORS.BACKGROUND};
             """)
         elif warn_percent > 20:  # Mais de 20% warning
             self.result_indicator.setText("⚠️ ATENÇÃO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #FFE66D; color: #333;
+            self.result_indicator.setStyleSheet(f"""
+                {TYPO.BODY_LARGE};
+                font-weight: bold;
+                padding: {SPACE.XS}px {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_SM}px;
+                background-color: {COLORS.WARNING};
+                color: {COLORS.TEXT_PRIMARY};
             """)
         else:
             self.result_indicator.setText("✅ APROVADO")
-            self.result_indicator.setStyleSheet("""
-                font-size: 14px; font-weight: bold; padding: 5px 15px;
-                border-radius: 5px; background-color: #4ECDC4; color: white;
+            self.result_indicator.setStyleSheet(f"""
+                {TYPO.BODY_LARGE};
+                font-weight: bold;
+                padding: {SPACE.XS}px {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_SM}px;
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.BACKGROUND};
             """)
         
         # Passa critérios para o canvas
