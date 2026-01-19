@@ -24,6 +24,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import pyqtSignal, Qt, QRegularExpression
 from PyQt6.QtGui import QRegularExpressionValidator
 
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 logger = logging.getLogger(__name__)
 
 
@@ -75,20 +77,20 @@ class ValidatedLineEdit(QLineEdit):
 
         # Indicador visual via stylesheet (com cor de texto explicita para legibilidade)
         if is_valid:
-            self.setStyleSheet("""
-                QLineEdit {
-                    border: 1px solid #4CAF50;
+            self.setStyleSheet(f"""
+                QLineEdit {{
+                    border: 1px solid {COLORS.SUCCESS};
                     background-color: #3A3A3A;
                     color: #FFFFFF;
-                }
+                }}
             """)
         else:
-            self.setStyleSheet("""
-                QLineEdit {
-                    border: 1px solid #F44336;
+            self.setStyleSheet(f"""
+                QLineEdit {{
+                    border: 1px solid {COLORS.ERROR};
                     background-color: #3A3A3A;
                     color: #FFFFFF;
-                }
+                }}
             """)
 
         # Tooltip com mensagem
@@ -138,31 +140,31 @@ class ProgramDataWidget(QWidget):
 
         # Título
         title = QLabel("📋 Dados do Programa")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
+        title.setStyleSheet(f"""
+            QLabel {{
+                {TYPO.HEADING_LARGE}
                 font-weight: bold;
-                color: #2196F3;
-                padding: 10px;
-            }
+                color: {COLORS.PRIMARY};
+                padding: {SPACE.SM}px;
+            }}
         """)
         layout.addWidget(title)
 
         # Grupo principal
         group = QGroupBox("Informações do Programa")
-        group.setStyleSheet("""
-            QGroupBox {
+        group.setStyleSheet(f"""
+            QGroupBox {{
                 font-weight: bold;
-                border: 2px solid #E0E0E0;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+                margin-top: {SPACE.SM}px;
+                padding-top: {SPACE.SM}px;
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
+                left: {SPACE.SM}px;
+                padding: 0 {SPACE.XXS}px;
+            }}
         """)
 
         form_layout = QFormLayout(group)
@@ -211,14 +213,14 @@ class ProgramDataWidget(QWidget):
             "Máximo: 500 caracteres"
         )
         # Aplicar estilo consistente com os demais campos (fundo cinza escuro, texto branco)
-        self.field_description.setStyleSheet("""
-            QTextEdit {
-                border: 1px solid #BDBDBD;
+        self.field_description.setStyleSheet(f"""
+            QTextEdit {{
+                border: 1px solid {COLORS.TEXT_DISABLED};
                 background-color: #3A3A3A;
                 color: #FFFFFF;
-                padding: 5px;
-                border-radius: 3px;
-            }
+                padding: {SPACE.XXS}px;
+                border-radius: {DIM.RADIUS_XS}px;
+            }}
         """)
         form_layout.addRow("Descrição:", self.field_description)
 
@@ -251,7 +253,7 @@ class ProgramDataWidget(QWidget):
         info_label = QLabel(
             "<i>Campos marcados com * são obrigatórios</i>"
         )
-        info_label.setStyleSheet("color: #757575; font-size: 11px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; {TYPO.BODY_SMALL}")
         form_layout.addRow("", info_label)
 
         layout.addWidget(group)
@@ -261,14 +263,14 @@ class ProgramDataWidget(QWidget):
 
         # Status label (feedback visual)
         self.status_label = QLabel("⚠️ Preencha os campos obrigatórios")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #FFF3CD;
-                border: 1px solid #FFC107;
-                border-radius: 4px;
-                color: #856404;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 1px solid {COLORS.WARNING};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.WARNING_DARK};
+            }}
         """)
         layout.addWidget(self.status_label)
 
@@ -355,14 +357,14 @@ class ProgramDataWidget(QWidget):
                 "✅ Todos os campos estão válidos - "
                 f"Criado em: {datetime.now().strftime('%d/%m/%Y %H:%M')}"
             )
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    padding: 10px;
-                    background-color: #D4EDDA;
-                    border: 1px solid #28A745;
-                    border-radius: 4px;
-                    color: #155724;
-                }
+            self.status_label.setStyleSheet(f"""
+                QLabel {{
+                    padding: {SPACE.SM}px;
+                    background-color: {COLORS.SUCCESS_LIGHT};
+                    border: 1px solid {COLORS.SUCCESS};
+                    border-radius: {DIM.RADIUS_SM}px;
+                    color: {COLORS.SUCCESS_DARK};
+                }}
             """)
         else:
             missing = []
@@ -378,14 +380,14 @@ class ProgramDataWidget(QWidget):
             self.status_label.setText(
                 f"⚠️ Preencha os campos obrigatórios: {', '.join(missing)}"
             )
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    padding: 10px;
-                    background-color: #FFF3CD;
-                    border: 1px solid #FFC107;
-                    border-radius: 4px;
-                    color: #856404;
-                }
+            self.status_label.setStyleSheet(f"""
+                QLabel {{
+                    padding: {SPACE.SM}px;
+                    background-color: {COLORS.WARNING_LIGHT};
+                    border: 1px solid {COLORS.WARNING};
+                    border-radius: {DIM.RADIUS_SM}px;
+                    color: {COLORS.WARNING_DARK};
+                }}
             """)
 
         # Emitir signal se validação mudou
