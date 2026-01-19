@@ -18,7 +18,9 @@ from PyQt6.QtWidgets import (
     QGroupBox, QFormLayout
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 from consumo_lib.managers.auth_config_manager import AuthConfigManager
 from aoi_lib.auth.auth_service import AuthService
@@ -85,10 +87,7 @@ class AuthenticationSettingsDialog(QDialog):
 
         # Título
         title_label = QLabel("Configurações de Autenticação")
-        title_font = QFont()
-        title_font.setPointSize(16)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -97,7 +96,7 @@ class AuthenticationSettingsDialog(QDialog):
             "⚠️ Esta configuração requer privilégios de Engenharia ou superior.\n"
             "As alterações serão confirmadas com sua senha."
         )
-        permission_label.setStyleSheet("color: #d9534f; padding: 10px; background-color: #f9f2f2; border-radius: 5px;")
+        permission_label.setStyleSheet(f"color: {COLORS.ERROR}; padding: {SPACE.SM}px; background-color: {COLORS.ERROR_LIGHT}; border-radius: {DIM.RADIUS_SM}px;")
         permission_label.setWordWrap(True)
         layout.addWidget(permission_label)
 
@@ -150,7 +149,7 @@ class AuthenticationSettingsDialog(QDialog):
             "permitindo acessar qualquer aba diretamente."
         )
         free_nav_desc.setWordWrap(True)
-        free_nav_desc.setStyleSheet("color: #666; font-size: 11px; padding: 5px;")
+        free_nav_desc.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-size: 11px; padding: {SPACE.XS}px;")
         engineering_layout.addRow("", free_nav_desc)
 
         # Aviso
@@ -159,10 +158,10 @@ class AuthenticationSettingsDialog(QDialog):
         )
         free_nav_warning.setWordWrap(True)
         free_nav_warning.setStyleSheet(
-            "color: #856404; "
-            "background-color: #fff3cd; "
-            "padding: 8px; "
-            "border-radius: 4px; "
+            f"color: {COLORS.TEXT_PRIMARY}; "
+            f"background-color: {COLORS.WARNING_LIGHT}; "
+            f"padding: {SPACE.XS}px; "
+            f"border-radius: {DIM.RADIUS_SM}px; "
             "font-weight: bold;"
         )
         engineering_layout.addRow("", free_nav_warning)
@@ -176,7 +175,7 @@ class AuthenticationSettingsDialog(QDialog):
             "o papel padrão selecionado."
         )
         info_text.setWordWrap(True)
-        info_text.setStyleSheet("color: #666; padding: 10px;")
+        info_text.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; padding: {SPACE.SM}px;")
         layout.addWidget(info_text)
 
         layout.addSpacing(20)
@@ -186,14 +185,14 @@ class AuthenticationSettingsDialog(QDialog):
         buttons_layout.addStretch()
 
         self.btn_apply = QPushButton("Aplicar")
-        self.btn_apply.setMinimumHeight(40)
+        self.btn_apply.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.btn_apply.setMinimumWidth(120)
         self.btn_apply.setEnabled(False)  # Desabilitado até mudar config
         self.btn_apply.clicked.connect(self.on_apply_clicked)
         buttons_layout.addWidget(self.btn_apply)
 
         self.btn_cancel = QPushButton("Cancelar")
-        self.btn_cancel.setMinimumHeight(40)
+        self.btn_cancel.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.btn_cancel.setMinimumWidth(120)
         self.btn_cancel.clicked.connect(self.reject)
         buttons_layout.addWidget(self.btn_cancel)
@@ -353,7 +352,7 @@ class AuthenticationSettingsDialog(QDialog):
         # Campo de senha
         password_input = QLineEdit()
         password_input.setEchoMode(QLineEdit.EchoMode.Password)
-        password_input.setMinimumHeight(35)
+        password_input.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         password_input.setPlaceholderText("Senha")
         layout.addWidget(QLabel("Senha:"))
         layout.addWidget(password_input)
