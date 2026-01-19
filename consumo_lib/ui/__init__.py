@@ -38,31 +38,34 @@ from .design_tokens import (
     A11Y,
 )
 
-# Componentes base serão exportados aqui quando implementados
-# from .widget_standards import (
-#     StandardButton,
-#     StandardLabel,
-#     StandardInput,
-#     StandardComboBox,
-#     StandardGroupBox
-# )
+# Componentes base (implementados na Fase 1)
+from .widget_standards import (
+    StandardButton,
+    StandardLabel,
+    StandardInput,
+    StandardSpinBox,
+    StandardDoubleSpinBox,
+    StandardComboBox,
+    StandardGroupBox,
+)
 
-# Theme manager será exportado aqui quando implementado
+# Theme manager será exportado aqui quando implementado (Fase 2)
 # from .theme_manager import init_theme_manager, get_theme_manager
 
-# Helpers serão exportados aqui quando implementados
-# from .helpers import (
-#     create_h_spacer,
-#     create_v_spacer,
-#     add_spacing,
-#     create_separator,
-#     apply_standard_spacing
-# )
+# Helpers (implementados na Fase 1)
+from .helpers import (
+    create_h_spacer,
+    create_v_spacer,
+    add_spacing,
+    create_separator,
+    apply_standard_spacing,
+)
 
 __version__ = "1.0.0"
 __author__ = "RONALDBUZAGLO"
 
 __all__ = [
+    # Design tokens
     "COLORS",
     "TYPO",
     "SPACE",
@@ -72,4 +75,18 @@ __all__ = [
     "TRANS",
     "BREAK",
     "A11Y",
+    # Componentes base
+    "StandardButton",
+    "StandardLabel",
+    "StandardInput",
+    "StandardSpinBox",
+    "StandardDoubleSpinBox",
+    "StandardComboBox",
+    "StandardGroupBox",
+    # Helpers
+    "create_h_spacer",
+    "create_v_spacer",
+    "add_spacing",
+    "create_separator",
+    "apply_standard_spacing",
 ]  # Será preenchido conforme módulos forem implementados
