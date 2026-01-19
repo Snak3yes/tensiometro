@@ -30,6 +30,7 @@ import numpy as np
 
 # Import para usar CameraCaptureWidget unificado
 from consumo_lib.widgets.camera_capture import CameraCaptureWidget
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -175,12 +176,12 @@ class MosaicPreviewWidget(QWidget):
         self._last_pan_pos = None
 
         # Estilo
-        self.setStyleSheet("""
-            MosaicPreviewWidget {
+        self.setStyleSheet(f"""
+            MosaicPreviewWidget {{
                 background-color: #1e1e1e;
-                border: 2px solid #444;
-                border-radius: 4px;
-            }
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
         """)
 
     def set_mosaic(self, mosaic: np.ndarray):
@@ -379,13 +380,13 @@ class MosaicCaptureWidget(QWidget):
 
         # Título
         title = QLabel("🖼️ Capturar Mosaico")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
+        title.setStyleSheet(f"""
+            QLabel {{
+                {TYPO.HEADING_LARGE}
                 font-weight: bold;
-                color: #2196F3;
-                padding: 10px;
-            }
+                color: {COLORS.PRIMARY};
+                padding: {SPACE.SM}px;
+            }}
         """)
         layout.addWidget(title)
 
@@ -435,13 +436,13 @@ class MosaicCaptureWidget(QWidget):
             "5. Acompanhe o progresso e veja o resultado na aba 'Mosaico'"
         )
         instructions.setWordWrap(True)
-        instructions.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #E3F2FD;
-                border-radius: 4px;
-                color: #1565C0;
-            }
+        instructions.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.SECONDARY_LIGHT};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.ON_SECONDARY_LIGHT};
+            }}
         """)
         controls_layout.addWidget(instructions)
 
@@ -521,22 +522,22 @@ class MosaicCaptureWidget(QWidget):
         controls_layout.addLayout(btn_layout)
 
         self.btn_capture = QPushButton("📸 Capturar Mosaico")
-        self.btn_capture.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
+        self.btn_capture.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
                 color: white;
                 border: none;
-                padding: 10px;
+                padding: {SPACE.SM}px;
                 font-size: 14px;
                 font-weight: bold;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #45A049;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.TEXT_DISABLED};
+            }}
         """)
         self.btn_capture.setEnabled(False)
         controls_layout.addWidget(self.btn_capture)
@@ -548,7 +549,7 @@ class MosaicCaptureWidget(QWidget):
         # Info
         controls_layout.addStretch()
         self.lbl_info = QLabel("Configure o grid e clique em Capturar")
-        self.lbl_info.setStyleSheet("color: #757575; padding: 5px;")
+        self.lbl_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; padding: {SPACE.XXS}px;")
         self.lbl_info.setWordWrap(True)
         controls_layout.addWidget(self.lbl_info)
 
@@ -558,14 +559,14 @@ class MosaicCaptureWidget(QWidget):
 
         # Status
         self.status_label = QLabel("⚠️ Configure e capture o mosaico")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #FFF3CD;
-                border: 1px solid #FFC107;
-                border-radius: 4px;
-                color: #856404;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 1px solid {COLORS.WARNING};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.WARNING_DARK};
+            }}
         """)
         layout.addWidget(self.status_label)
 
@@ -805,14 +806,14 @@ class MosaicCaptureWidget(QWidget):
         self.status_label.setText(
             f"✅ Mosaico capturado: {self._mosaic_config.rows}x{self._mosaic_config.cols} FOVs"
         )
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #D4EDDA;
-                border: 1px solid #28A745;
-                border-radius: 4px;
-                color: #155724;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.SUCCESS_LIGHT};
+                border: 1px solid {COLORS.SUCCESS};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.SUCCESS_DARK};
+            }}
         """)
 
         # Emitir signals
@@ -829,14 +830,14 @@ class MosaicCaptureWidget(QWidget):
         self.progress_bar.setVisible(False)
 
         self.status_label.setText(f"❌ Erro: {error}")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #F8D7DA;
-                border: 1px solid #F44336;
-                border-radius: 4px;
-                color: #721C24;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.ERROR_LIGHT};
+                border: 1px solid {COLORS.ERROR};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.ERROR_DARK};
+            }}
         """)
 
         QMessageBox.critical(self, "Erro na Captura", error)
