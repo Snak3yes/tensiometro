@@ -10,6 +10,9 @@ from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.movement_orchestrator import MovementOrchestrator
 import logging
 
+# Design System imports
+from consumo_lib.ui import TYPO, DIM
+
 logger = logging.getLogger(__name__)
 
 # Import para registro de atualização de posição
@@ -70,12 +73,10 @@ class MovementControlWidget(QWidget):
         self.down_button = QPushButton("↓")
         self.left_button = QPushButton("←")
         self.right_button = QPushButton("→")
-        
+
         for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
             btn.setMinimumSize(50, 50)
-            font = QFont()
-            font.setBold(True)
-            font.setPointSize(16)
+            font = TYPO.get_font(16, bold=True)
             btn.setFont(font)
         
         self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  -1))
@@ -106,9 +107,8 @@ class MovementControlWidget(QWidget):
         # Botão de Emergency Stop / Reset
         self.emergency_stop_button = QPushButton("STOP")
         self.emergency_stop_button.setCheckable(True)
-        self.emergency_stop_button.setMinimumSize(100, 40)
-        font_stop = QFont()
-        font_stop.setBold(True)
+        self.emergency_stop_button.setMinimumSize(100, DIM.BUTTON_HEIGHT_MD)
+        font_stop = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
         self.emergency_stop_button.setFont(font_stop)
         self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
         self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle)
@@ -145,9 +145,8 @@ class MovementControlWidget(QWidget):
         # Go to Zero
         self.go_to_zero_btn = QPushButton("Go to Zero")
         self.go_to_zero_btn.clicked.connect(self.go_to_zero)
-        self.go_to_zero_btn.setMinimumHeight(40)
-        font = QFont()
-        font.setBold(True)
+        self.go_to_zero_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
         self.go_to_zero_btn.setFont(font)
         movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)
 
@@ -165,7 +164,7 @@ class MovementControlWidget(QWidget):
         # Backlight
         self.backlight_button = QPushButton("💡 Backlight OFF")
         self.backlight_button.setCheckable(True)
-        self.backlight_button.setMinimumHeight(35)
+        self.backlight_button.setMinimumHeight(DIM.BUTTON_HEIGHT_SM)
         self.backlight_button.setStyleSheet("""
             QPushButton { background-color: #444; color: white; border-radius: 5px; }
             QPushButton:checked { background-color: #FFD700; color: black; font-weight: bold; }
