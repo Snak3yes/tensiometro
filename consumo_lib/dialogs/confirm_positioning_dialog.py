@@ -10,7 +10,9 @@ from PyQt6.QtWidgets import (
     QPushButton, QCheckBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -59,10 +61,7 @@ class ConfirmPositioningDialog(QDialog):
 
         # Título
         title_label = QLabel("Confirmação de Posicionamento")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -72,23 +71,20 @@ class ConfirmPositioningDialog(QDialog):
         icon_container = QLabel()
         icon_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
         icon_container.setFixedSize(100, 100)
-        icon_container.setStyleSheet("""
-            QLabel {
-                background-color: #E3F2FD;
-                border: 2px solid #1976D2;
+        icon_container.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SECONDARY_LIGHT};
+                border: 2px solid {COLORS.PRIMARY_DARK};
                 border-radius: 50px;
                 font-size: 40px;
-            }
+            }}
         """)
         icon_container.setText("📋")
         layout.addWidget(icon_container, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Código do stencil
         code_label = QLabel(self.stencil_code)
-        code_font = code_label.font()
-        code_font.setPointSize(16)
-        code_font.setBold(True)
-        code_label.setFont(code_font)
+        code_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         code_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(code_label)
 
@@ -96,10 +92,7 @@ class ConfirmPositioningDialog(QDialog):
 
         # Instruções
         instruction_label = QLabel("Verifique antes de continuar:")
-        instruction_font = instruction_label.font()
-        instruction_font.setPointSize(12)
-        instruction_font.setBold(True)
-        instruction_label.setFont(instruction_font)
+        instruction_label.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         layout.addWidget(instruction_label)
 
         # Checklist
@@ -118,14 +111,14 @@ class ConfirmPositioningDialog(QDialog):
         warning_label = QLabel(
             "⚠️  Emergency Stop deve estar acessível em caso de emergência!"
         )
-        warning_label.setStyleSheet("""
-            QLabel {
-                background-color: #FFF3E0;
-                color: #E65100;
-                padding: 10px;
-                border-radius: 4px;
+        warning_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.WARNING_LIGHT};
+                color: {COLORS.ON_WARNING_LIGHT};
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_SM}px;
                 font-weight: bold;
-            }
+            }}
         """)
         warning_label.setWordWrap(True)
         warning_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -137,37 +130,37 @@ class ConfirmPositioningDialog(QDialog):
         buttons_layout = QHBoxLayout()
 
         self.confirm_button = QPushButton("✓ Confirmar")
-        self.confirm_button.setMinimumHeight(45)
-        self.confirm_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
+        self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.confirm_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
                 font-size: 14px;
                 font-weight: bold;
-                border-radius: 4px;
-                padding: 5px 15px;
-            }
-            QPushButton:hover {
-                background-color: #45A049;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.XS}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
         """)
         self.confirm_button.clicked.connect(self.on_confirm_clicked)
         buttons_layout.addWidget(self.confirm_button)
 
         self.cancel_button = QPushButton("✗ Cancelar")
-        self.cancel_button.setMinimumHeight(45)
-        self.cancel_button.setStyleSheet("""
-            QPushButton {
-                background-color: #F5F5F5;
-                color: #424242;
+        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_SURFACE};
                 font-size: 14px;
                 font-weight: bold;
-                border-radius: 4px;
-                padding: 5px 15px;
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.XS}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+            }}
         """)
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
