@@ -45,6 +45,7 @@ from consumo_lib.services.fiducial_alignment_service import (
     FiducialAlignmentService,
     AlignmentResult
 )
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -66,12 +67,12 @@ class AlignmentImageView(QLabel):
         super().__init__(parent)
         self.setMinimumSize(600, 400)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet("""
-            QLabel {
+        self.setStyleSheet(f"""
+            QLabel {{
                 background-color: #1e1e1e;
-                border: 2px solid #444;
-                border-radius: 4px;
-            }
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
         """)
         self.setSizePolicy(
             QSizePolicy.Policy.Expanding,
@@ -476,7 +477,7 @@ class AlignmentWidget(QWidget):
 
         # Título
         title = QLabel("📍 Alinhamento Gerber ↔ Mosaico")
-        title.setStyleSheet("font-size: 16px; font-weight: bold; color: #1976D2;")
+        title.setStyleSheet(f"{TYPO.HEADING_LARGE}; font-weight: bold; color: {COLORS.PRIMARY};")
         left_panel.addWidget(title)
 
         # Instrução
@@ -485,7 +486,7 @@ class AlignmentWidget(QWidget):
             "Use os controles manuais para ajustes finos."
         )
         instruction.setWordWrap(True)
-        instruction.setStyleSheet("color: #616161; font-size: 12px; padding: 4px;")
+        instruction.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
         left_panel.addWidget(instruction)
 
         # Preview image
@@ -517,25 +518,25 @@ class AlignmentWidget(QWidget):
         score_layout.addWidget(QLabel("Score de Alinhamento:"))
 
         self.lbl_score = QLabel("0.0%")
-        self.lbl_score.setStyleSheet("""
-            QLabel {
+        self.lbl_score.setStyleSheet(f"""
+            QLabel {{
                 font-size: 14px;
                 font-weight: bold;
-                padding: 4px 12px;
-                background: #E0E0E0;
-                border-radius: 4px;
-            }
+                padding: {SPACE.XXS}px {SPACE.SM}px;
+                background: {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
         """)
         score_layout.addWidget(self.lbl_score)
 
         # Indicador visual
         self.indicator_score = QLabel()
         self.indicator_score.setFixedSize(20, 20)
-        self.indicator_score.setStyleSheet("""
-            QLabel {
-                background: #E0E0E0;
+        self.indicator_score.setStyleSheet(f"""
+            QLabel {{
+                background: {COLORS.OUTLINE};
                 border-radius: 10px;
-            }
+            }}
         """)
         score_layout.addWidget(self.indicator_score)
 
@@ -549,19 +550,19 @@ class AlignmentWidget(QWidget):
 
         # Grupo: Transformação Manual
         group_transform = QGroupBox("🎛️ Controles Manuais")
-        group_transform.setStyleSheet("""
-            QGroupBox {
+        group_transform.setStyleSheet(f"""
+            QGroupBox {{
                 font-weight: bold;
-                border: 2px solid #E0E0E0;
-                border-radius: 5px;
-                margin-top: 10px;
-                padding-top: 10px;
-            }
-            QGroupBox::title {
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+                margin-top: {SPACE.SM}px;
+                padding-top: {SPACE.SM}px;
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 10px;
-                padding: 0 5px;
-            }
+                left: {SPACE.SM}px;
+                padding: 0 {SPACE.XXS}px;
+            }}
         """)
         transform_layout = QFormLayout(group_transform)
 
@@ -983,23 +984,23 @@ class AlignmentWidget(QWidget):
 
         # Atualiza indicador visual
         if score >= 90:
-            color = "#4CAF50"  # Verde
-            bg = "#E8F5E9"
+            color = COLORS.SUCCESS  # Verde
+            bg = COLORS.SUCCESS_LIGHT
         elif score >= 70:
-            color = "#FF9800"  # Laranja
-            bg = "#FFF3E0"
+            color = COLORS.WARNING  # Laranja
+            bg = COLORS.WARNING_LIGHT
         else:
-            color = "#F44336"  # Vermelho
-            bg = "#FFEBEE"
+            color = COLORS.ERROR  # Vermelho
+            bg = COLORS.ERROR_LIGHT
 
         self.lbl_score.setStyleSheet(f"""
             QLabel {{
                 font-size: 14px;
                 font-weight: bold;
-                padding: 4px 12px;
+                padding: {SPACE.XXS}px {SPACE.SM}px;
                 background: {bg};
                 color: {color};
-                border-radius: 4px;
+                border-radius: {DIM.RADIUS_SM}px;
             }}
         """)
 
