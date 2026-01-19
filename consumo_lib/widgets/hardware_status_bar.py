@@ -8,6 +8,9 @@ import logging
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
 from PyQt6.QtCore import Qt, pyqtSignal, QPoint
 
+# Design System
+from consumo_lib.ui import COLORS, TYPO
+
 logger = logging.getLogger(__name__)
 
 
@@ -59,21 +62,21 @@ class HardwareStatusBar(QWidget):
         layout.addStretch()
 
         # Linha separadora
-        self.setStyleSheet("""
-            QWidget {
-                border-top: 1px solid #E0E0E0;
-                background-color: #F5F5F5;
-            }
-            QLabel {
-                font-size: 12px;
+        self.setStyleSheet(f"""
+            QWidget {{
+                border-top: 1px solid {COLORS.BORDER};
+                background-color: {COLORS.SURFACE};
+            }}
+            QLabel {{
+                {TYPO.BODY_SMALL}
                 padding: 2px;
-                color: #333333;
-                background-color: #F5F5F5;
-            }
-            QLabel:hover {
-                background-color: #E8E8E8;
-                color: #000000;
-            }
+                color: {COLORS.TEXT_PRIMARY};
+                background-color: {COLORS.SURFACE};
+            }}
+            QLabel:hover {{
+                background-color: {COLORS.SURFACE_VARIANT};
+                color: {COLORS.TEXT_PRIMARY};
+            }}
         """)
 
     def _make_click_handler(self, hardware: str):
