@@ -1,0 +1,103 @@
+{
+  "track_id": "design_system_migration_20260119",
+  "title": "Design System Migration - Migrate 70 files from inline styles to Design System",
+  "type": "refactoring",
+  "status": "pending",
+  "priority": "high",
+  "created_at": "2026-01-19T13:45:00Z",
+  "updated_at": "2026-01-19T13:45:00Z",
+  "description": "Migrate 70 files with 2,313 inline style problems to Tensiometro Design System v1.0. Three-phase approach: critical files (10), priority files (20), continuous migration (40).",
+  "phases": [
+    {
+      "phase_number": 1,
+      "name": "Critical Files Migration",
+      "duration_weeks": 2,
+      "tasks": 11,
+      "objectives": [
+        "Migrate 10 critical files (75+ problems each)",
+        "Reduce ~40% of total problems",
+        "Zero visual regressions"
+      ],
+      "status": "todo"
+    },
+    {
+      "phase_number": 2,
+      "name": "Priority Files Migration",
+      "duration_weeks": 2,
+      "tasks": 21,
+      "objectives": [
+        "Migrate 20 priority files (10-19 problems each)",
+        "Reduce additional ~35% of problems",
+        "Refine migration patterns"
+      ],
+      "status": "todo"
+    },
+    {
+      "phase_number": 3,
+      "name": "Continuous Migration",
+      "duration_weeks": 8,
+      "tasks": 40,
+      "objectives": [
+        "Migrate remaining ~40 files during maintenance",
+        "Achieve 90%+ Design System adoption",
+        "Consolidate migration guide"
+      ],
+      "status": "todo"
+    }
+  ],
+  "metrics": {
+    "total_files": 70,
+    "total_problems": 2313,
+    "estimated_hours": 50,
+    "files_migrated": 0,
+    "problems_solved": 0,
+    "completion_percentage": 0
+  },
+  "dependencies": [
+    "design_system_20260119"
+  ],
+  "risks": [
+    {
+      "risk": "Visual Regressions",
+      "probability": "medium",
+      "impact": "high",
+      "mitigation": "Smoke test after each file, visual validation, descriptive commits for easy revert"
+    },
+    {
+      "risk": "Token Not Found",
+      "probability": "low",
+      "impact": "medium",
+      "mitigation": "Consult TOKENS.md before using, add token if necessary"
+    },
+    {
+      "risk": "Time Underestimated",
+      "probability": "medium",
+      "impact": "medium",
+      "mitigation": "Short phases (2 weeks), reassessment at phase end, scope adjustment if needed"
+    }
+  ],
+  "acceptance_criteria": [
+    "Phase 1 complete: 10 critical files migrated",
+    "Phase 2 complete: 20 priority files migrated",
+    "Phase 3 in progress: continuous migration",
+    "75% of total problems resolved",
+    "Zero visual regressions",
+    "Design System 90%+ adopted"
+  ],
+  "definition_of_done": [
+    "All files in phase migrated to Design System",
+    "Smoke tests passing for all migrated files",
+    "MIGRATION.md updated",
+    "Checkpoint commit created",
+    "Visual validation complete",
+    "Zero regressions"
+  ],
+  "tags": [
+    "design-system",
+    "refactoring",
+    "ui",
+    "migration",
+    "quality",
+    "technical-debt"
+  ]
+}
