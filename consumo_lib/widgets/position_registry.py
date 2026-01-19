@@ -3,7 +3,10 @@ from PyQt6.QtWidgets import (
     QListWidget, QListWidgetItem, QInputDialog, QMessageBox
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import TYPO
+
 from aoi_lib.config_manager import AOIConfigManager
 import logging
 
@@ -23,9 +26,7 @@ class PositionRegistryWidget(QWidget):
         
         # Title
         title_label = QLabel("Registered Positions")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         layout.addWidget(title_label)
         
         # Registered positions table
