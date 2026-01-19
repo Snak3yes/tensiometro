@@ -19,7 +19,9 @@ from PyQt6.QtWidgets import (
     QWidget
 )
 from PyQt6.QtCore import Qt, QTimer, pyqtSignal
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import TYPO
 
 from consumo_lib.models.engineering.wizard_state import EngineeringWizardState
 from consumo_lib.widgets.engenharia import (
@@ -178,10 +180,7 @@ class EngineeringWizardDialog(QDialog):
 
         # Label com texto de progresso
         self.progress_label = QLabel("Etapa 1 de 7: Dados do Programa")
-        font = QFont()
-        font.setPointSize(10)
-        font.setBold(True)
-        self.progress_label.setFont(font)
+        self.progress_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         progress_layout.addWidget(self.progress_label)
 
         # Barra de progresso visual
