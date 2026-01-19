@@ -11,7 +11,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QWidget, QScrollArea, QFrame, QMessageBox
 )
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -94,11 +95,8 @@ class InspectionResultsDialog(QDialog):
 
         # Título
         title = QLabel("Resultados da Inspeção")
-        title_font = QFont()
-        title_font.setPointSize(20)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: #111827;")
+        title.setFont(TYPO.get_font(TYPO.HEADING_XLARGE, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         layout.addWidget(title)
 
         # Info line
@@ -108,7 +106,7 @@ class InspectionResultsDialog(QDialog):
             f"Modo: {self._get_mode_title()}   |   "
             f"Data: {timestamp}"
         )
-        info_label.setStyleSheet("color: #6B7280; font-size: 12px;")
+        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(info_label)
 
         return widget
@@ -116,22 +114,22 @@ class InspectionResultsDialog(QDialog):
     def _create_resumo(self) -> QFrame:
         """Cria card de resumo com classificação"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                background-color: #F9FAFB;
-                padding: 20px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                background-color: {COLORS.SURFACE};
+                padding: {SPACE.XL}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
-        layout.setSpacing(15)
+        layout.setSpacing(SPACE.MD)
 
         # Título do resumo
         resumo_title = QLabel("RESUMO")
-        resumo_title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        resumo_title.setStyleSheet("color: #374151;")
+        resumo_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        resumo_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(resumo_title)
 
         # Conteúdo baseado no modo
@@ -144,32 +142,32 @@ class InspectionResultsDialog(QDialog):
         """Retorna conteúdo do resumo baseado no modo"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setSpacing(10)
+        layout.setSpacing(SPACE.SM)
 
         if self.mode == "tension":
             # Tensão Média
             tension_avg = self.results.get("tension_avg", 0)
             avg_label = QLabel(f"Tensão Média: {tension_avg} N/cm")
-            avg_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #111827;")
+            avg_label.setStyleSheet(f"{TYPO.HEADING_MEDIUM}; font-weight: bold; color: {COLORS.ON_BACKGROUND};")
             layout.addWidget(avg_label)
 
             # Pontos medidos
             points = self.results.get("points_measured", 0)
             points_label = QLabel(f"Pontos Medidos: {points}")
-            points_label.setStyleSheet("font-size: 14px; color: #374151;")
+            points_label.setStyleSheet(f"{TYPO.BODY_LARGE}; color: {COLORS.ON_SURFACE};")
             layout.addWidget(points_label)
 
             # Classificação
             classification = self.results.get("classification", "UNKNOWN")
             class_label = QLabel(f"Classificação: {self._get_classification_label(classification)}")
-            class_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {self._get_classification_color(classification)};")
+            class_label.setStyleSheet(f"{TYPO.BODY_LARGE}; font-weight: bold; color: {self._get_classification_color(classification)};")
             layout.addWidget(class_label)
 
         elif self.mode == "inspection":
             # Aperturas analisadas
             total = self.results.get("apertures_analyzed", 0)
             total_label = QLabel(f"Aberturas Analisadas: {total}")
-            total_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #111827;")
+            total_label.setStyleSheet(f"{TYPO.HEADING_MEDIUM}; font-weight: bold; color: {COLORS.ON_BACKGROUND};")
             layout.addWidget(total_label)
 
             # Distribuição
@@ -178,13 +176,13 @@ class InspectionResultsDialog(QDialog):
             blocked = self.results.get("blocked_count", 0)
 
             dist_label = QLabel(f"OK: {ok}  |  Parciais: {partial}  |  Bloqueadas: {blocked}")
-            dist_label.setStyleSheet("font-size: 13px; color: #374151;")
+            dist_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.ON_SURFACE};")
             layout.addWidget(dist_label)
 
             # Classificação
             classification = self.results.get("classification", "UNKNOWN")
             class_label = QLabel(f"Classificação: {self._get_classification_label(classification)}")
-            class_label.setStyleSheet(f"font-size: 14px; font-weight: bold; color: {self._get_classification_color(classification)};")
+            class_label.setStyleSheet(f"{TYPO.BODY_LARGE}; font-weight: bold; color: {self._get_classification_color(classification)};")
             layout.addWidget(class_label)
 
         return widget
@@ -192,21 +190,21 @@ class InspectionResultsDialog(QDialog):
     def _create_detalhes_tensao(self) -> QFrame:
         """Cria seção de detalhes para medição de tensão"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 20px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.XL}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
-        layout.setSpacing(15)
+        layout.setSpacing(SPACE.MD)
 
         # Título
         title = QLabel("DADOS DETALHADOS")
-        title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        title.setStyleSheet("color: #374151;")
+        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(title)
 
         # Estatísticas
@@ -218,12 +216,12 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         stats_label = QLabel(stats_text)
-        stats_label.setStyleSheet("font-family: 'Consolas', monospace; font-size: 12px; color: #374151;")
+        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; {TYPO.BODY_SMALL}; color: {COLORS.ON_SURFACE};")
         layout.addWidget(stats_label)
 
         # Placeholder para heatmap (FUTURO)
         heatmap_label = QLabel("[Heatmap de medições será implementado em fase futura]")
-        heatmap_label.setStyleSheet("color: #9CA3AF; font-style: italic; padding: 20px; border: 1px dashed #D1D5DB;")
+        heatmap_label.setStyleSheet(f"color: {COLORS.ON_OUTLINE}; font-style: italic; padding: {SPACE.XL}px; border: 1px dashed {COLORS.OUTLINE};")
         heatmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(heatmap_label)
 
@@ -232,21 +230,21 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
     def _create_detalhes_inspecao(self) -> QFrame:
         """Cria seção de detalhes para inspeção visual"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 20px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.XL}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
-        layout.setSpacing(15)
+        layout.setSpacing(SPACE.MD)
 
         # Título
         title = QLabel("DADOS DETALHADOS")
-        title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        title.setStyleSheet("color: #374151;")
+        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(title)
 
         # Lista de aberturas parciais/bloqueadas
@@ -258,7 +256,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
             if len(partial) > 5:
                 partial_text += f" ... (+{len(partial)-5} mais)"
             partial_label = QLabel(partial_text)
-            partial_label.setStyleSheet("color: #F59E0B; font-size: 12px;")
+            partial_label.setStyleSheet(f"color: {COLORS.WARNING}; {TYPO.BODY_SMALL};")
             layout.addWidget(partial_label)
 
         if blocked:
@@ -266,12 +264,12 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
             if len(blocked) > 5:
                 blocked_text += f" ... (+{len(blocked)-5} mais)"
             blocked_label = QLabel(blocked_text)
-            blocked_label.setStyleSheet("color: #EF4444; font-size: 12px;")
+            blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; {TYPO.BODY_SMALL};")
             layout.addWidget(blocked_label)
 
         if not partial and not blocked:
             ok_label = QLabel("✅ Todas as aberturas aprovadas!")
-            ok_label.setStyleSheet("color: #10B981; font-size: 13px; font-weight: bold;")
+            ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; {TYPO.BODY_MEDIUM}; font-weight: bold;")
             layout.addWidget(ok_label)
 
         return frame
@@ -279,21 +277,21 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
     def _create_detalhes_ambos(self) -> QFrame:
         """Cria seção de detalhes para modo completo"""
         frame = QFrame()
-        frame.setStyleSheet("""
-            QFrame {
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                padding: 20px;
-            }
+        frame.setStyleSheet(f"""
+            QFrame {{
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.XL}px;
+            }}
         """)
 
         layout = QVBoxLayout(frame)
-        layout.setSpacing(10)
+        layout.setSpacing(SPACE.SM)
 
         # Título
         title = QLabel("MODO COMPLETO: TENSÃO + INSPEÇÃO")
-        title.setFont(QFont("Arial", 12, QFont.Weight.Bold))
-        title.setStyleSheet("color: #374151;")
+        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         layout.addWidget(title)
 
         # Resumo dos dois modos
@@ -307,7 +305,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         resumo_label = QLabel(resumo_text)
-        resumo_label.setStyleSheet("font-size: 13px; color: #374151;")
+        resumo_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.ON_SURFACE};")
         layout.addWidget(resumo_label)
 
         return frame
@@ -316,65 +314,65 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """Cria botões de ação"""
         widget = QWidget()
         layout = QHBoxLayout(widget)
-        layout.setSpacing(12)
+        layout.setSpacing(SPACE.SM)
         layout.addStretch()
 
         # Salvar no histórico
         save_btn = QPushButton("Salvar no Histórico")
-        save_btn.setMinimumHeight(40)
-        save_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #10B981;
-                color: white;
-                font-size: 13px;
+        save_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        save_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
+                {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #059669;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
         """)
         save_btn.clicked.connect(self.on_save_clicked)
         layout.addWidget(save_btn)
 
         # Gerar PDF
         pdf_btn = QPushButton("Gerar PDF")
-        pdf_btn.setMinimumHeight(40)
-        pdf_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: white;
-                font-size: 13px;
+        pdf_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        pdf_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
+                {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
         """)
         pdf_btn.clicked.connect(self.on_pdf_clicked)
         layout.addWidget(pdf_btn)
 
         # Fechar
         close_btn = QPushButton("Fechar")
-        close_btn.setMinimumHeight(40)
-        close_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
-                color: white;
-                font-size: 13px;
+        close_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        close_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.OUTLINE_VARIANT};
+                color: {COLORS.ON_OUTLINE_VARIANT};
+                {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.OUTLINE};
+            }}
         """)
         close_btn.clicked.connect(self.accept)
         layout.addWidget(close_btn)
@@ -439,9 +437,9 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
     def _get_classification_color(self, classification: str) -> str:
         """Retorna cor da classificação"""
         colors = {
-            "OK": "#10B981",      # Verde
-            "WARNING": "#F59E0B",  # Amarelo
-            "NOK": "#EF4444",     # Vermelho
-            "UNKNOWN": "#9CA3AF"  # Cinza
+            "OK": COLORS.SUCCESS,           # Verde
+            "WARNING": COLORS.WARNING,      # Amarelo
+            "NOK": COLORS.ERROR,            # Vermelho
+            "UNKNOWN": COLORS.ON_OUTLINE   # Cinza
         }
-        return colors.get(classification, "#9CA3AF")
+        return colors.get(classification, COLORS.ON_OUTLINE)
