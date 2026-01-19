@@ -640,11 +640,11 @@ def test_typography_factory():
 - Exemplos de before/after
 - Validação visual
 
-### Status: ⏳ TODO
+### Status: ✅ COMPLETE (2026-01-19)
 
 ---
 
-### Tarefa 3.1: Migrar status_badge.py
+### Tarefa 3.1: Migrar status_badge.py ✅
 
 **Descrição:** Refatorar StatusBadge para usar design tokens
 
@@ -666,7 +666,7 @@ COLORS = {
 
 **Depois:**
 ```python
-from consumo_lib.ui.design_tokens import COLORS
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 STATUS_COLORS = {
     "approved_auto": COLORS.STATUS_APPROVED_AUTO,
@@ -676,10 +676,10 @@ STATUS_COLORS = {
 ```
 
 **Critérios de Aceite:**
-- [ ] Zero hardcoded colors no arquivo
-- [ ] Cores importadas de COLORS
-- [ ] Testes existentes continuam passando
-- [ ] Visual idêntico ao original
+- [x] Zero hardcoded colors no arquivo
+- [x] Cores importadas de COLORS
+- [x] Testes existentes continuam passando
+- [x] Visual idêntico ao original
 
 **Estimativa:** 1 hora
 **Prioridade:** 🔴 HIGH
@@ -687,7 +687,7 @@ STATUS_COLORS = {
 
 ---
 
-### Tarefa 3.2: Migrar movement_control.py
+### Tarefa 3.2: Migrar movement_control.py ✅
 
 **Descrição:** Refatorar MovementControlWidget para usar design tokens e componentes padrão
 
@@ -701,11 +701,11 @@ STATUS_COLORS = {
 - Substituir `QPushButton` por `StandardButton`
 
 **Critérios de Aceite:**
-- [ ] Zero hardcoded fonts
-- [ ] Zero hardcoded sizes
-- [ ] StandardButton usado para botões de movimento
-- [ ] Testes existentes passando
-- [ ] Funcionalidade mantida
+- [x] Zero hardcoded fonts
+- [x] Zero hardcoded sizes
+- [x] StandardButton usado para botões de movimento
+- [x] Testes existentes passando
+- [x] Funcionalidade mantida
 
 **Estimativa:** 2 horas
 **Prioridade:** 🔴 HIGH
