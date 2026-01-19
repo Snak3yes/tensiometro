@@ -21,7 +21,9 @@ from PyQt6.QtWidgets import (
     QFrame, QSizePolicy
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 from consumo_lib.models.engineering.program_config import ProgramConfig
 
@@ -82,14 +84,14 @@ class WarningPanel(QWidget):
         """Define lista de avisos."""
         self.warnings = warnings
         if not warnings:
-            self.label.setText("""
-                <div style='background-color: #E8F5E9; color: #2E7D32;
-                            padding: 8px; border-radius: 4px;'>
+            self.label.setText(f"""
+                <div style='background-color: {COLORS.SUCCESS_LIGHT}; color: {COLORS.ON_SUCCESS_LIGHT};
+                            padding: {SPACE.XS}px; border-radius: {DIM.RADIUS_SM}px;'>
                     ✓ Nenhum avio - Programa válido
                 </div>
             """)
         else:
-            html = "<div style='background-color: #FFF3E0; padding: 8px; border-radius: 4px;'>"
+            html = f"<div style='background-color: {COLORS.WARNING_LIGHT}; padding: {SPACE.XS}px; border-radius: {DIM.RADIUS_SM}px;'>"
             html += "<b>⚠ Avisos:</b><ul>"
             for warning in warnings:
                 html += f"<li>{warning}</li>"
@@ -132,10 +134,7 @@ class ConfirmSaveWidget(QWidget):
 
         # Título
         title = QLabel("Confirmar e Salvar Programa")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title.setFont(title_font)
+        title.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
@@ -211,7 +210,7 @@ class ConfirmSaveWidget(QWidget):
         self.stencil_code_edit.setTextInteractionFlags(
             Qt.TextInteractionFlag.TextSelectableByMouse
         )
-        self.stencil_code_edit.setStyleSheet("font-weight: bold; color: #1976D2;")
+        self.stencil_code_edit.setStyleSheet(f"font-weight: bold; color: {COLORS.PRIMARY_DARK};")
         stencil_code_layout.addWidget(self.stencil_code_edit)
         stencil_code_layout.addStretch()
         layout.addLayout(stencil_code_layout)
@@ -235,25 +234,22 @@ class ConfirmSaveWidget(QWidget):
         buttons_layout.addWidget(self.test_button)
 
         self.save_button = QPushButton("💾 Salvar Programa")
-        self.save_button.setMinimumHeight(40)
-        save_font = QFont()
-        save_font.setBold(True)
-        save_font.setPointSize(12)
-        self.save_button.setFont(save_font)
-        self.save_button.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border-radius: 4px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:disabled {
-                background-color: #BDBEBD;
-                color: #757575;
-            }
+        self.save_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.save_button.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+        self.save_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
+                color: {COLORS.ON_SUCCESS};
+                border-radius: {DIM.RADIUS_SM}px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         self.save_button.clicked.connect(self._on_save_clicked)
         self.save_button.setEnabled(False)  # Initially disabled
@@ -333,7 +329,7 @@ class ConfirmSaveWidget(QWidget):
 
         # Card 5: Alinhamento
         alignment = config.alignment
-        score_color = "#4CAF50" if alignment.alignment_score >= 70 else "#FF9800"
+        score_color = COLORS.SUCCESS if alignment.alignment_score >= 70 else COLORS.WARNING
         alignment_html = f"""
             <b>Translação X:</b> {alignment.translation_x:.2f} mm<br>
             <b>Translação Y:</b> {alignment.translation_y:.2f} mm<br>
