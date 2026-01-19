@@ -2,14 +2,14 @@
 
 **Track ID:** design_system_migration_20260119
 **Data de Criação:** 2026-01-19
-**Estimativa:** 4-6 semanas (20-25 horas Fase 1, 15-20 horas Fase 2, 5-10 horas Fase 3)
+**Estimativa:** 4-5 semanas (20-25 horas Fase 1, 12-15 horas Fase 2, 5-8 horas Fase 3)
 **Estratégia de Testes**: Test-After Development + Smoke Test Visual
 
 ---
 
 ## 📊 Visão Geral
 
-Este plano detalha a migração gradual de **70 arquivos** com **2.313 problemas** de estilos inline para o Design System do Tensiometro.
+Este plano detalha a migração gradual de **48 arquivos** com **2.313 problemas** de estilos inline para o Design System do Tensiometro.
 
 ### Estratégia de Migração
 
@@ -26,9 +26,9 @@ Este plano detalha a migração gradual de **70 arquivos** com **2.313 problemas
 | Fase | Duração | Arquivos | Problemas | Redução |
 |------|---------|----------|-----------|---------|
 | **Fase 1** | Semanas 1-2 | 10 críticos | ~398 | 40% |
-| **Fase 2** | Semanas 3-4 | 20 prioritários | ~250 | 35% |
-| **Fase 3** | Mês 2+ | ~40 restantes | ~578 | 25% |
-| **TOTAL** | 4-6 semanas | 70 arquivos | 2.313 | 100% |
+| **Fase 2** | Semanas 3-4 | 18 prioritários | ~250 | 35% |
+| **Fase 3** | Mês 2+ | 20 restantes | ~578 | 25% |
+| **TOTAL** | 4-5 semanas | 48 arquivos | 2.313 | 100% |
 
 ---
 
@@ -326,12 +326,12 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 
 ## 📍 Fase 2: Migração de Arquivos Prioritários
 
-**Objetivo:** Migrar 20 arquivos com 10-19 problemas cada
+**Objetivo:** Migrar 18 arquivos com 10-19 problemas cada
 
-**Duração:** Semanas 3-4 (10 dias úteis)
+**Duração:** Semanas 3-4 (9 dias úteis)
 **Saídas:**
-- 20 arquivos migrados
-- 20 commits + 1 checkpoint
+- 18 arquivos migrados
+- 18 commits + 1 checkpoint
 - Padrão de migração refinado
 - Documentação consolidada
 
@@ -367,7 +367,7 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 
 ---
 
-### Tarefa 2.3-2.20: Migrar 18 Arquivos Restantes
+### Tarefa 2.3-2.18: Migrar 16 Arquivos Restantes
 
 **Arquivos-alvo** (em ordem de prioridade):
 1. inspection_progress_dialog.py (18 problemas)
@@ -385,13 +385,11 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 13. operator_interface.py (? problemas)
 14. hardware_status_bar.py (? problemas)
 15. camera_preview.py (? problemas)
-16. camera_capture.py (? problemas)
-17. image_viewer.py (? problemas)
-18. gerber_upload_widget.py (15 problemas)
+16. gerber_upload_widget.py (15 problemas)
 
 **Padrão:** Mesmo da Fase 1, mas com velocidade aumentada (aprendizado)
 
-**Estimativa total:** 12-15 horas
+**Estimativa total:** 10-12 horas
 **Prioridade:** 🟡 MEDIUM
 **Dependências:** Progressivo (cada tarefa depende da anterior)
 
@@ -403,14 +401,14 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 
 **Atividades:**
 1. Executar smoke test completo
-2. Validar visualmente os 20 arquivos migrados
+2. Validar visualmente os 18 arquivos migrados
 3. Atualizar MIGRATION.md
 4. Refinar guia de migração com lições aprendidas
-5. Commit checkpoint: `feat(design-system): Phase 2 complete - 20 priority files migrated`
+5. Commit checkpoint: `feat(design-system): Phase 2 complete - 18 priority files migrated`
 6. Atualizar plan.md
 
 **Critérios de Aceite:**
-- [ ] 20/20 arquivos migrados
+- [ ] 18/18 arquivos migrados
 - [ ] ~75% dos problemas totais resolvidos
 - [ ] Guia de migração refinado
 - [ ] Checkpoint commit criado
@@ -428,7 +426,7 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 
 **Duração:** Mês 2+ (spread ao longo do tempo)
 **Saídas:**
-- ~40 arquivos migrados gradualmente
+- 20 arquivos migrados gradualmente
 - Design System 90%+ adotado
 - Guia definitivo de migração
 
@@ -453,13 +451,13 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 4. Commit separado para migração
 5. Commit para a tarefa original
 
-**Arquivos restantes (~40):**
+**Arquivos restantes (20):**
 - dialogs/restantes/*.py
 - widgets/restantes/*.py
 - controllers/*.py
 - outros/
 
-**Estimativa:** 5-10 horas spread ao longo de 2-3 meses
+**Estimativa:** 5-8 horas spread ao longo de 2-3 meses
 
 ---
 
@@ -467,22 +465,22 @@ type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
 
 ### Estimativa Geral
 - **Total de Fases:** 3
-- **Total de Arquivos:** 70
+- **Total de Arquivos:** 48
 - **Total de Problemas:** 2.313
-- **Estimativa Total:** 40-55 horas
-- **Duração:** 4-6 semanas (Fases 1 e 2) + contínuo (Fase 3)
+- **Estimativa Total:** 37-48 horas
+- **Duração:** 4-5 semanas (Fases 1 e 2) + contínuo (Fase 3)
 
 ### Distribuição por Fase
 - **Fase 1 (Críticos):** 10 arquivos, ~398 problemas, 20-25 horas
-- **Fase 2 (Prioritários):** 20 arquivos, ~250 problemas, 15-20 horas
-- **Fase 3 (Contínuo):** ~40 arquivos, ~578 problemas, 5-10 horas
+- **Fase 2 (Prioritários):** 18 arquivos, ~250 problemas, 12-15 horas
+- **Fase 3 (Contínuo):** 20 arquivos, ~578 problemas, 5-8 horas
 
 ### Critérios de Sucesso da Track
 
 A track será considerada um sucesso quando:
 
 1. ✅ Fase 1 completa (10 arquivos críticos)
-2. ✅ Fase 2 completa (20 arquivos prioritários)
+2. ✅ Fase 2 completa (18 arquivos prioritários)
 3. ✅ Fase 3 em progresso (manutenção contínua)
 4. ✅ 75% dos problemas totais resolvidos
 5. ✅ Zero regressões visuais

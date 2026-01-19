@@ -10,7 +10,7 @@
 
 ## Contexto
 
-O Tensiometro possui um Design System robusto (v1.0) implementado, porém com adoção muito baixa (~1.6% dos arquivos). A auditoria completa identificou **2.313 problemas** de estilos inline distribuídos em aproximadamente **70 arquivos**.
+O Tensiometro possui um Design System robusto (v1.0) implementado, porém com adoção muito baixa (~1.6% dos arquivos). A auditoria completa identificou **2.313 problemas** de estilos inline distribuídos em **48 arquivos**.
 
 ### Situação Atual
 
@@ -44,8 +44,8 @@ O Tensiometro possui um Design System robusto (v1.0) implementado, porém com ad
 ### Metas
 
 1. **Fase 1** (Semanas 1-2): Migrar 10 arquivos críticos (75+ problemas cada)
-2. **Fase 2** (Semanas 3-4): Migrar 20 arquivos prioritários (10-19 problemas cada)
-3. **Fase 3** (Mês 2+): Migrar restantes durante manutenção contínua
+2. **Fase 2** (Semanas 3-4): Migrar 18 arquivos prioritários (10-19 problemas cada)
+3. **Fase 3** (Mês 2+): Migrar 20 arquivos restantes durante manutenção contínua
 
 ### Critérios de Sucesso
 
@@ -219,7 +219,7 @@ widget.setStyleSheet(f"""
 
 ### Fase 2 (Semanas 3-4)
 
-- [ ] Migrar 20 arquivos prioritários
+- [ ] Migrar 18 arquivos prioritários
 - [ ] Reduzir ~35% adicional dos problemas
 - [ ] Padrão de migração refinado
 - [ ] Documentação atualizada
@@ -227,7 +227,7 @@ widget.setStyleSheet(f"""
 
 ### Fase 3 (Mês 2+)
 
-- [ ] Migrar restantes durante manutenção
+- [ ] Migrar 20 arquivos restantes durante manutenção
 - [ ] Reduzir ~25% final dos problemas
 - [ ] Design System 90%+ adotado
 - [ ] Guia de migração consolidado
@@ -253,7 +253,7 @@ widget.setStyleSheet(f"""
 **Tempo estimado**: 20-25 horas
 **Impacto**: Reduz ~40% dos problemas totais das fases 1 e 2
 
-### Fase 2: 20 Arquivos Prioritários (10-19 problemas)
+### Fase 2: 18 Arquivos Prioritários (10-19 problemas)
 
 **Dialogs**:
 - inspection_progress_dialog.py (18)
@@ -271,13 +271,13 @@ widget.setStyleSheet(f"""
 - E outros...
 
 **Total estimado**: ~250 problemas
-**Tempo estimado**: 15-20 horas
+**Tempo estimado**: 12-15 horas
 
 ### Fase 3: Manutenção Contínua
 
-- Restante dos ~40 arquivos
+- Restante dos 20 arquivos
 - Migrar durante bug fixes/features
-- Temporiz undefined: 5-10 horas spread ao longo de meses
+- Tempo estimado: 5-8 horas spread ao longo de meses
 
 ---
 
@@ -338,8 +338,8 @@ widget.setStyleSheet(f"""
 
 ### Fase 2
 
-- 20 arquivos migrados adicionais
-- Commits: 20 commits
+- 18 arquivos migrados adicionais
+- Commits: 18 commits
 - Checkpoint commit ao final
 - Documentação refinada
 
