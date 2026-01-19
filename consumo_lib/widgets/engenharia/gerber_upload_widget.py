@@ -27,6 +27,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import pyqtSignal, Qt, QPoint, QRectF
 from PyQt6.QtGui import QColor
 
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 # Importar NOVO widget baseado em QGraphicsView
 from .gerber_preview_widget_new import GerberPreviewWidget
 from .gerber_geometry import circle_to_polys_mm, rect_to_polys_mm, oval_to_polys_mm
@@ -98,39 +100,39 @@ class GerberUploadWidget(QWidget):
 
         # Título
         title = QLabel("📁 Carregar Arquivo Gerber")
-        title.setStyleSheet("""
-            QLabel {
-                font-size: 18px;
+        title.setStyleSheet(f"""
+            QLabel {{
+                {TYPO.HEADLINE_SMALL};
                 font-weight: bold;
-                color: #2196F3;
-                padding: 10px;
-            }
+                color: {COLORS.SECONDARY};
+                padding: {SPACE.SM}px;
+            }}
         """)
         layout.addWidget(title)
 
         # Botão de upload
         upload_layout = QHBoxLayout()
         self.btn_upload = QPushButton("📤 Carregar Gerber")
-        self.btn_upload.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
+        self.btn_upload.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
                 border: none;
-                padding: 10px 20px;
-                font-size: 14px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+                {TYPO.BODY_MEDIUM};
                 font-weight: bold;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #45A049;
-            }
-            QPushButton:pressed {
-                background-color: #3D8B40;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-                color: #757575;
-            }
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.TEXT_DISABLED};
+                color: {COLORS.TEXT_SECONDARY};
+            }}
         """)
         upload_layout.addWidget(self.btn_upload)
         upload_layout.addStretch()
@@ -168,7 +170,7 @@ class GerberUploadWidget(QWidget):
 
         for lbl in [self.lbl_filename, self.lbl_size, self.lbl_dimensions,
                     self.lbl_apertures]:
-            lbl.setStyleSheet("padding: 5px;")
+            lbl.setStyleSheet(f"padding: {SPACE.XS}px;")
             info_layout.addWidget(lbl)
 
         # Controles de limpeza
@@ -198,14 +200,14 @@ class GerberUploadWidget(QWidget):
 
         # Status label
         self.status_label = QLabel("⚠️ Carregue um arquivo Gerber (.gbr)")
-        self.status_label.setStyleSheet("""
-            QLabel {
-                padding: 10px;
-                background-color: #FFF3CD;
-                border: 1px solid #FFC107;
-                border-radius: 4px;
-                color: #856404;
-            }
+        self.status_label.setStyleSheet(f"""
+            QLabel {{
+                padding: {SPACE.SM}px;
+                background-color: {COLORS.WARNING_LIGHT};
+                border: 1px solid {COLORS.WARNING};
+                border-radius: {DIM.RADIUS_SM}px;
+                color: {COLORS.TEXT_PRIMARY};
+            }}
         """)
         layout.addWidget(self.status_label)
 
@@ -287,14 +289,14 @@ class GerberUploadWidget(QWidget):
                 f"✅ Gerber carregado: {path.name} - "
                 f"{self._gerber_metadata.aperture_count} objetos"
             )
-            self.status_label.setStyleSheet("""
-                QLabel {
-                    padding: 10px;
+            self.status_label.setStyleSheet(f"""
+                QLabel {{
+                    padding: {SPACE.SM}px;
                     background-color: #D4EDDA;
-                    border: 1px solid #28A745;
-                    border-radius: 4px;
-                    color: #155724;
-                }
+                    border: 1px solid {COLORS.SUCCESS};
+                    border-radius: {DIM.RADIUS_SM}px;
+                    color: {COLORS.TEXT_PRIMARY};
+                }}
             """)
 
             logger.info("Gerber carregado com sucesso")
