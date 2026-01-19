@@ -10,6 +10,9 @@ from PyQt6.QtWidgets import QLabel
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QPixmap
 
+# Design System
+from consumo_lib.ui import COLORS, DIM
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,13 +61,13 @@ class ZoomableImageView(QLabel):
         self.zoom_step = zoom_step
 
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.setStyleSheet("""
-            QLabel {
-                background-color: #F3F4F6;
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
+        self.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SURFACE};
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
                 min-height: 300px;
-            }
+            }}
         """)
         self.setText("Nenhuma imagem selecionada")
 
