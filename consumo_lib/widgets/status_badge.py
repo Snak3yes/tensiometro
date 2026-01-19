@@ -7,6 +7,8 @@ Exibe badge colorido para status de aprovação.
 from PyQt6.QtWidgets import QLabel
 from PyQt6.QtCore import Qt
 
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 
 class StatusBadge(QLabel):
     """
@@ -20,13 +22,13 @@ class StatusBadge(QLabel):
         - in_progress: Azul (#2196F3)
     """
 
-    # Cores por status
-    COLORS = {
-        "approved_auto": "#4CAF50",    # Verde vibrante
-        "approved_user": "#CDDC39",    # Verde-amarelo
-        "rejected": "#F44336",         # Vermelho
-        "pending": "#9E9E9E",          # Cinza
-        "in_progress": "#2196F3",      # Azul
+    # Cores por status (usando design tokens)
+    STATUS_COLORS = {
+        "approved_auto": COLORS.STATUS_APPROVED_AUTO,    # Verde vibrante
+        "approved_user": COLORS.STATUS_APPROVED_USER,    # Verde-amarelo
+        "rejected": COLORS.STATUS_REJECTED,              # Vermelho
+        "pending": COLORS.STATUS_PENDING,                # Cinza
+        "in_progress": COLORS.SECONDARY,                 # Azul
     }
 
     # Labels por status
@@ -60,16 +62,16 @@ class StatusBadge(QLabel):
         text = self.LABELS.get(status, status.upper())
         self.setText(text)
 
-        # Aplica estilo com cor
-        color = self.COLORS.get(status, "#999999")
+        # Aplica estilo com design tokens
+        color = self.STATUS_COLORS.get(status, COLORS.STATUS_PENDING)
         self.setStyleSheet(f"""
             QLabel {{
                 background-color: {color};
-                color: white;
-                padding: 4px 12px;
-                border-radius: 4px;
+                color: {COLORS.BACKGROUND};
+                padding: {SPACE.XS}px {SPACE.MD}px;
+                border-radius: {DIM.RADIUS_SM}px;
                 font-weight: bold;
-                font-size: 11px;
+                font-size: {TYPO.LABEL_SMALL}px;
             }}
         """)
 
