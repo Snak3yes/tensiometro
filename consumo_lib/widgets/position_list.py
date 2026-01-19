@@ -3,7 +3,10 @@ from PyQt6.QtWidgets import (
     QListWidget, QInputDialog, QMessageBox, QLabel
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+
+# Design System
+from consumo_lib.ui import TYPO
+
 from aoi_lib import InspectionPosition
 import logging
 
@@ -18,9 +21,7 @@ class PositionListWidget(QWidget):
         
         # Título
         title_label = QLabel("Posições de Inspeção")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         
         # Lista de posições
         self.positions_list = QListWidget()
