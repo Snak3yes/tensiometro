@@ -11,7 +11,8 @@ from PyQt6.QtWidgets import (
     QPushButton, QWidget, QGroupBox, QButtonGroup
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
+
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,7 @@ class ModeCard(QWidget):
 
         self.icon_label = QLabel(icon)
         self.icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.icon_label.setStyleSheet("font-size: 32px; background-color: #F9FAFB; border-radius: 28px; padding: 12px;")
+        self.icon_label.setStyleSheet(f"font-size: 32px; background-color: {COLORS.SURFACE}; border-radius: 28px; padding: {SPACE.SM}px;")
         self.icon_label.setFixedSize(56, 56)
         icon_layout.addWidget(self.icon_label)
 
@@ -80,30 +81,25 @@ class ModeCard(QWidget):
 
         # Título
         title_label = QLabel(title)
-        title_font = title_label.font()
-        title_font.setBold(True)
-        title_font.setPointSize(13)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         title_label.setWordWrap(True)
-        title_label.setStyleSheet("color: #1F2937;")
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         content_layout.addWidget(title_label)
 
         # Descrição
         desc_label = QLabel(description)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet("color: #6B7280; font-size: 11px;")
+        desc_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         content_layout.addWidget(desc_label)
 
         # Tempo estimado
         time_label = QLabel(time_estimate.replace("⏱️ ", ""))
-        time_font = time_label.font()
-        time_font.setPointSize(10)
-        time_label.setFont(time_font)
-        time_label.setStyleSheet("""
-            color: #059669;
-            background-color: #ECFDF5;
-            padding: 4px 8px;
-            border-radius: 4px;
+        time_label.setFont(TYPO.get_font(TYPO.BODY_SMALL))
+        time_label.setStyleSheet(f"""
+            color: {COLORS.SUCCESS_DARK};
+            background-color: {COLORS.SUCCESS_LIGHT};
+            padding: {SPACE.XXS}px {SPACE.SM}px;
+            border-radius: {DIM.RADIUS_SM}px;
             font-weight: 600;
         """)
         content_layout.addWidget(time_label)
@@ -118,20 +114,20 @@ class ModeCard(QWidget):
         """Atualiza estilo visual baseado no estado de seleção"""
         if self.is_selected:
             # Card selecionado: estilo destacado
-            bg_color = "#EFF6FF"
-            border_color = "#3B82F6"
+            bg_color = COLORS.PRIMARY_LIGHT
+            border_color = COLORS.PRIMARY
             border_width = "2px"
-            icon_bg = "#DBEAFE"
+            icon_bg = COLORS.SECONDARY_LIGHT
         else:
             # Card normal: estilo neutro
-            bg_color = "#FFFFFF"
-            border_color = "#E5E7EB"
+            bg_color = COLORS.BACKGROUND
+            border_color = COLORS.OUTLINE
             border_width = "1px"
-            icon_bg = "#F9FAFB"
+            icon_bg = COLORS.SURFACE
 
         # Atualiza fundo do ícone
         if self.icon_label:
-            self.icon_label.setStyleSheet(f"font-size: 32px; background-color: {icon_bg}; border-radius: 28px; padding: 12px;")
+            self.icon_label.setStyleSheet(f"font-size: 32px; background-color: {icon_bg}; border-radius: 28px; padding: {SPACE.SM}px;")
 
         self.setStyleSheet(f"""
             QWidget {{
@@ -140,8 +136,8 @@ class ModeCard(QWidget):
                 border-radius: 12px;
             }}
             QWidget:hover {{
-                background-color: {"#F9FAFB" if not self.is_selected else "#EFF6FF"};
-                border: 2px solid {"#D1D5DB" if not self.is_selected else "#3B82F6"};
+                background-color: {COLORS.SURFACE if not self.is_selected else COLORS.PRIMARY_LIGHT};
+                border: 2px solid {COLORS.OUTLINE if not self.is_selected else COLORS.PRIMARY};
             }}
         """)
 
@@ -232,27 +228,22 @@ class ModeSelectionDialog(QDialog):
 
         # Header
         header_widget = QWidget()
-        header_widget.setStyleSheet("background-color: #F9FAFB; border-bottom: 1px solid #E5E7EB;")
+        header_widget.setStyleSheet(f"background-color: {COLORS.SURFACE}; border-bottom: 1px solid {COLORS.OUTLINE};")
         header_layout = QVBoxLayout(header_widget)
         header_layout.setContentsMargins(40, 30, 40, 30)
         header_layout.setSpacing(12)
 
         # Título principal
         title_label = QLabel("Escolha o Modo de Inspeção")
-        title_font = QFont()
-        title_font.setPointSize(22)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet("color: #111827;")
+        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         header_layout.addWidget(title_label)
 
         # Subtítulo com código do stencil
         subtitle_label = QLabel(f"Stencil: {self.stencil_code}")
-        subtitle_font = subtitle_label.font()
-        subtitle_font.setPointSize(13)
-        subtitle_label.setFont(subtitle_font)
-        subtitle_label.setStyleSheet("color: #6B7280;")
+        subtitle_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM))
+        subtitle_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle_label)
 
@@ -260,29 +251,29 @@ class ModeSelectionDialog(QDialog):
 
         # Container principal (fundo branco)
         content_widget = QWidget()
-        content_widget.setStyleSheet("background-color: #FFFFFF;")
+        content_widget.setStyleSheet(f"background-color: {COLORS.BACKGROUND};")
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(40, 40, 40, 40)
         content_layout.setSpacing(30)
 
         # Grupo de seleção de modo
         mode_group = QGroupBox("Modo de Inspeção")
-        mode_group.setStyleSheet("""
-            QGroupBox {
+        mode_group.setStyleSheet(f"""
+            QGroupBox {{
                 font-size: 14px;
                 font-weight: 600;
-                color: #374151;
-                border: 2px solid #E5E7EB;
+                color: {COLORS.ON_SURFACE};
+                border: 2px solid {COLORS.OUTLINE};
                 border-radius: 12px;
                 margin-top: 12px;
                 padding-top: 20px;
-            }
-            QGroupBox::title {
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
                 left: 20px;
-                padding: 0 8px 0 8px;
-                background-color: #FFFFFF;
-            }
+                padding: 0 {SPACE.SM}px 0 {SPACE.SM}px;
+                background-color: {COLORS.BACKGROUND};
+            }}
         """)
         mode_group_layout = QVBoxLayout(mode_group)
         mode_group_layout.setSpacing(20)
@@ -318,53 +309,53 @@ class ModeSelectionDialog(QDialog):
 
         self.cancel_button = QPushButton("Cancelar")
         self.cancel_button.setMinimumWidth(140)
-        self.cancel_button.setMinimumHeight(44)
-        self.cancel_button.setStyleSheet("""
-            QPushButton {
-                background-color: #FFFFFF;
-                color: #6B7280;
+        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.cancel_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.BACKGROUND};
+                color: {COLORS.ON_SURFACE};
                 font-size: 13px;
                 font-weight: 600;
-                border: 2px solid #D1D5DB;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #F9FAFB;
-                border: 2px solid #9CA3AF;
-                color: #374151;
-            }
-            QPushButton:pressed {
-                background-color: #F3F4F6;
-            }
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SURFACE};
+                border: 2px solid {COLORS.ON_OUTLINE};
+                color: {COLORS.ON_SURFACE};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.SURFACE_DARK};
+            }}
         """)
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 
         self.confirm_button = QPushButton("Confirmar Seleção")
         self.confirm_button.setMinimumWidth(160)
-        self.confirm_button.setMinimumHeight(44)
+        self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.confirm_button.setEnabled(False)  # Desabilitado até selecionar
-        self.confirm_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
+        self.confirm_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
                 color: white;
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
-            QPushButton:pressed {
-                background-color: #1D4ED8;
-            }
-            QPushButton:disabled {
-                background-color: #E5E7EB;
-                color: #9CA3AF;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.PRIMARY_DARKER};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.OUTLINE};
+                color: {COLORS.ON_OUTLINE};
+            }}
         """)
         self.confirm_button.clicked.connect(self.on_confirm_clicked)
         buttons_layout.addWidget(self.confirm_button)
