@@ -34,6 +34,7 @@ from consumo_lib.models.inspection_window import (
     create_groups_from_windows,
     create_default_config
 )
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 logger = logging.getLogger(__name__)
 
@@ -60,18 +61,18 @@ class WindowPreviewWidget(QWidget):
 
         # Title
         title = QLabel("Preview Visual (3 exemplos)")
-        title.setStyleSheet("font-weight: bold; color: #424242;")
+        title.setStyleSheet(f"font-weight: bold; color: {COLORS.ON_SURFACE};")
         layout.addWidget(title)
 
         # Preview area
         self.preview_area = QWidget()
         self.preview_area.setMinimumHeight(150)
-        self.preview_area.setStyleSheet("""
-            QWidget {
-                background-color: #F5F5F5;
-                border: 1px solid #E0E0E0;
-                border-radius: 4px;
-            }
+        self.preview_area.setStyleSheet(f"""
+            QWidget {{
+                background-color: {COLORS.SURFACE};
+                border: 1px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
         """)
         preview_layout = QHBoxLayout(self.preview_area)
         preview_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -80,7 +81,7 @@ class WindowPreviewWidget(QWidget):
 
         # Status label
         self.status_label = QLabel("Nenhum grupo selecionado")
-        self.status_label.setStyleSheet("color: #616161; font-size: 11px;")
+        self.status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.status_label)
 
     def set_windows(self, windows: List[InspectionWindow]) -> None:
@@ -121,9 +122,9 @@ class WindowPreviewWidget(QWidget):
 
         widget.setStyleSheet(f"""
             QWidget {{
-                background-color: #FFFFFF;
+                background-color: {COLORS.BACKGROUND};
                 border: 2px solid {border_color};
-                border-radius: 8px;
+                border-radius: {DIM.RADIUS_MD}px;
             }}
         """)
 
@@ -143,7 +144,7 @@ class WindowPreviewWidget(QWidget):
 
         # Window info
         info_label = QLabel(f"ID: {window.id}\n{window.kind}")
-        info_label.setStyleSheet("font-size: 10px; color: #424242;")
+        info_label.setStyleSheet(f"{TYPO.BODY_SMALL}; color: {COLORS.ON_SURFACE};")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -178,13 +179,13 @@ class GroupConfigPanel(QWidget):
 
         # Group info
         self.group_info_label = QLabel("Nenhum grupo selecionado")
-        self.group_info_label.setStyleSheet("""
+        self.group_info_label.setStyleSheet(f"""
             font-size: 14px;
             font-weight: bold;
-            color: #1976D2;
-            padding: 8px;
-            background-color: #E3F2FD;
-            border-radius: 4px;
+            color: {COLORS.PRIMARY};
+            padding: {SPACE.XS}px;
+            background-color: {COLORS.SECONDARY_LIGHT};
+            border-radius: {DIM.RADIUS_SM}px;
         """)
         layout.addWidget(self.group_info_label)
 
@@ -212,7 +213,7 @@ class GroupConfigPanel(QWidget):
 
         # Blocked note
         blocked_label = QLabel("❌ BLOQUEADO < threshold PARTIAL")
-        blocked_label.setStyleSheet("color: #F44336; font-size: 11px;")
+        blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; {TYPO.BODY_SMALL}")
         thresholds_layout.addWidget(blocked_label, 2, 0, 1, 2)
 
         thresholds_group.setLayout(thresholds_layout)
@@ -244,7 +245,7 @@ class GroupConfigPanel(QWidget):
         # Apply checkbox
         self.apply_all_checkbox = QCheckBox("Aplicar a todas do grupo")
         self.apply_all_checkbox.setChecked(True)
-        self.apply_all_checkbox.setStyleSheet("color: #424242; padding: 8px;")
+        self.apply_all_checkbox.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: {SPACE.XS}px;")
         layout.addWidget(self.apply_all_checkbox)
 
         # Buttons
@@ -253,20 +254,20 @@ class GroupConfigPanel(QWidget):
         self.confirm_btn = QPushButton("Confirmar Grupo ✅")
         self.confirm_btn.setEnabled(False)
         self.confirm_btn.clicked.connect(self._on_confirm)
-        self.confirm_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
+        self.confirm_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
                 color: white;
                 font-weight: bold;
-                padding: 8px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #45A049;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-            }
+                padding: {SPACE.XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.TEXT_DISABLED};
+            }}
         """)
         button_layout.addWidget(self.confirm_btn, 0, 0)
 
@@ -437,7 +438,7 @@ class LibraryPanel(QWidget):
 
         # Title
         title = QLabel("📚 Biblioteca de Configs")
-        title.setStyleSheet("font-weight: bold; color: #1976D2; padding: 4px;")
+        title.setStyleSheet(f"font-weight: bold; color: {COLORS.PRIMARY}; padding: {SPACE.XXS}px;")
         layout.addWidget(title)
 
         # Library list
@@ -467,7 +468,7 @@ class LibraryPanel(QWidget):
             "automaticamente baseadas no nome\n"
             "do grupo (dimensão + forma)."
         )
-        info_label.setStyleSheet("color: #616161; font-size: 10px; padding: 4px;")
+        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
         layout.addWidget(info_label)
 
         # Update display
