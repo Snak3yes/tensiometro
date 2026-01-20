@@ -881,17 +881,19 @@ logger.error("❌ Falha na leitura do tensiômetro")
 
 **LOCALIZAÇÃO**: `consumo_lib/ui/` + `docs/design_system/`
 
+**VERSÃO**: 2.0 (2026-01-20)
+
 **DOCUMENTAÇÃO**:
-- `docs/design_system/README.md` - Visão geral e getting started
-- `docs/design_system/TOKENS.md` - Referência completa de tokens (cores, fontes, espaçamentos)
-- `docs/design_system/COMPONENTS.md` - Componentes base (StandardButton, StandardLabel, etc)
-- `docs/design_system/MIGRATION.md` - Guia de migração de código legado
+- `TYPOGRAPHY_GUIDE.md` - Guia completo de tipografia (Material Design 3)
+- `BUTTON_GUIDE.md` - Guia completo de botões (variants, sizes, usage)
+- `MIGRATION_GUIDE.md` - Guia de migração v1.0 → v2.0
 
 **Por que usar Design System**:
 - ✅ Single source of truth para cores, fontes, espaçamentos
 - ✅ Type-safe (tokens são constantes, não strings)
 - ✅ Refatoração fácil (alterar cor afeta toda aplicação)
 - ✅ Componentes prontos com estilos consistentes
+- ✅ Material Design 3 (padrão de mercado)
 
 #### Quando Usar Design System
 
@@ -901,7 +903,7 @@ logger.error("❌ Falha na leitura do tensiômetro")
 
 ```python
 # Importar design tokens
-from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.design_tokens import COLORS, TYPO, DIM, SPACE, FontWeight
 
 # Importar componentes base
 from consumo_lib.ui.widget_standards import (
@@ -920,7 +922,7 @@ from consumo_lib.ui.widget_standards import (
 **1. Usar Cores**
 
 ```python
-from consumo_lib.ui import COLORS
+from consumo_lib.ui.design_tokens import COLORS
 
 # Antes: hardcoded string
 btn.setStyleSheet(f"background-color: #4CAF50;")
@@ -929,10 +931,10 @@ btn.setStyleSheet(f"background-color: #4CAF50;")
 btn.setStyleSheet(f"background-color: {COLORS.PRIMARY};")
 ```
 
-**2. Usar Fontes**
+**2. Usar Fontes (v2.0 - FontWeight)**
 
 ```python
-from consumo_lib.ui import TYPO
+from consumo_lib.ui.design_tokens import TYPO, FontWeight
 
 # Antes: QFont manual
 font = QFont()
@@ -940,14 +942,16 @@ font.setPointSize(14)
 font.setBold(True)
 label.setFont(font)
 
-# Depois: token
-label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
+# Depois: token com weight
+label.setFont(TYPO.get_font(14, weight=FontWeight.MEDIUM))
+# OU método conveniente:
+label.setFont(TYPO.medium(14))
 ```
 
 **3. Usar Espaçamentos**
 
 ```python
-from consumo_lib.ui import SPACE
+from consumo_lib.ui.design_tokens import SPACE
 
 # Antes: hardcoded
 layout.setContentsMargins(16, 16, 16, 16)
@@ -958,7 +962,7 @@ layout.setContentsMargins(SPACE.MD, SPACE.MD, SPACE.MD, SPACE.MD)
 layout.setSpacing(SPACE.MD)
 ```
 
-**4. Usar Componentes Padrão**
+**4. Usar Componentes Padrão (v2.0 - StandardButton)**
 
 ```python
 from consumo_lib.ui.widget_standards import StandardButton
@@ -970,7 +974,10 @@ btn.setMinimumHeight(40)
 btn.setStyleSheet("...")
 
 # Depois: componente pronto
-btn = StandardButton("Salvar", variant="primary")
+btn = StandardButton("Salvar", variant="primary-green")
+# NOVO v2.0: variant aceita primary-green, primary-blue, primary-orange, secondary, emergency
+# NOVO v2.0: size aceita sm/md/lg
+btn = StandardButton("OK", variant="secondary", size="sm")
 ```
 
 #### Tokens Mais Usados
@@ -985,7 +992,23 @@ COLORS.BACKGROUND           # Fundo branco (#FFFFFF)
 COLORS.ON_BACKGROUND        # Texto preto (#212121)
 ```
 
-**Fontes**:
+**Font Weights (NOVO v2.0)**:
+```python
+FontWeight.LIGHT            # 300 - Uso raro (5%)
+FontWeight.NORMAL           # 400 - Texto padrão (70%)
+FontWeight.MEDIUM           # 500 - Títulos, botões (20%)
+FontWeight.SEMIBOLD         # 600 - Títulos principais (4%)
+FontWeight.BOLD             # 700 - Emergências apenas (1%)
+
+# Métodos convenientes:
+TYPO.light(size)            # 300
+TYPO.normal(size)           # 400 (default)
+TYPO.medium(size)           # 500
+TYPO.semibold(size)         # 600
+TYPO.bold(size)             # 700
+```
+
+**Tamanhos de Fonte**:
 ```python
 TYPO.BODY_MEDIUM            # Texto padrão (14px)
 TYPO.BODY_LARGE             # Botões (16px)
@@ -1003,6 +1026,7 @@ SPACE.LG                    # 24px
 **Dimensões**:
 ```python
 DIM.BUTTON_HEIGHT_MD        # 40px
+DIM.BUTTON_SIZE_MD          # (120, 40) - width, height (NOVO v2.0)
 DIM.INPUT_HEIGHT_MD         # 40px
 DIM.RADIUS_MD               # 8px
 ```
@@ -1016,11 +1040,11 @@ DIM.RADIUS_MD               # 8px
 setStyleSheet(f"background-color: #4CAF50;")
 
 # Depois
-from consumo_lib.ui import COLORS
+from consumo_lib.ui.design_tokens import COLORS
 setStyleSheet(f"background-color: {COLORS.PRIMARY};")
 ```
 
-**Padrão: QFont Manual → Typography**
+**Padrão: QFont Manual → Typography (v2.0)**
 
 ```python
 # Antes
@@ -1029,27 +1053,35 @@ font.setPointSize(14)
 font.setBold(True)
 label.setFont(font)
 
-# Depois
-from consumo_lib.ui import TYPO
-label.setFont(TYPO.get_font(14, bold=True))
+# Depois (v2.0 - recomendado)
+from consumo_lib.ui.design_tokens import TYPO, FontWeight
+label.setFont(TYPO.medium(14))  # MEDIUM (500) para botões
 ```
 
-**Padrão: Tamanhos Hardcoded → Dimensions**
+**Padrão: Botões (v1.0 → v2.0)**
 
 ```python
-# Antes
-btn.setMinimumHeight(40)
+# Antes (v1.0 - StyleManager)
+from consumo_lib.ui.style_manager import StyleManager
+btn = StyleManager.create_button("Salvar", 'primary')
 
-# Depois
-from consumo_lib.ui import DIM
-btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+# Depois (v2.0 - StandardButton)
+from consumo_lib.ui.widget_standards import StandardButton
+btn = StandardButton("Salvar", variant="primary-green")
+
+# NOVO v2.0: Tamanhos
+btn_sm = StandardButton("OK", variant="secondary", size="sm")   # (80, 32)
+btn_md = StandardButton("OK", variant="secondary")               # (120, 40) - default
+btn_lg = StandardButton("Confirmar", variant="primary-green", size="lg")  # (160, 48)
 ```
 
 **Arquivos Migrados**:
 - ✅ `consumo_lib/widgets/status_badge.py` (commit 1f34c30)
 - ✅ `consumo_lib/widgets/movement_control.py` (commit 122ed8d)
+- ✅ `consumo_lib/ui/design_tokens.py` (v2.0 - Phase 3: Font Weights)
+- ✅ `consumo_lib/ui/widget_standards.py` (v2.0 - Phase 2: Button Variants)
 
-**Para detalhes completos, consulte**: `docs/design_system/MIGRATION.md`
+**Para detalhes completos, consulte**: `MIGRATION_GUIDE.md`
 
 ---
 
