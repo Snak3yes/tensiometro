@@ -370,7 +370,7 @@ class RecipeEditorDialog(QDialog):
         info_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SURFACE};
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: 5px;
                 padding: {SPACE.LG}px;
                 color: {COLORS.TEXT_HINT};

@@ -168,7 +168,7 @@ class DefectJudgmentDialog(QDialog):
         self.progress_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SECONDARY_LIGHT};
-                color: {COLORS.ON_SECONDARY_LIGHT};
+                color: {COLORS.TEXT_PRIMARY};
                 padding: {SPACE.SM}px;
                 border-radius: {DIM.RADIUS_MD}px;
                 font-weight: 600;
@@ -195,7 +195,7 @@ class DefectJudgmentDialog(QDialog):
         image_frame = QFrame()
         image_frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.MD}px;
             }}
@@ -250,7 +250,7 @@ class DefectJudgmentDialog(QDialog):
         frame.setStyleSheet(f"""
             QFrame {{
                 background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.LG}px;
             }}
@@ -296,7 +296,7 @@ class DefectJudgmentDialog(QDialog):
         system_frame.setStyleSheet(f"""
             QFrame {{
                 background-color: {COLORS.WARNING_LIGHT};
-                border: 2px solid {COLORS.WARNING_BORDER};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.LG}px;
             }}
@@ -307,12 +307,12 @@ class DefectJudgmentDialog(QDialog):
 
         system_title = QLabel("Análise do Sistema")
         system_title.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
-        system_title.setStyleSheet(f"color: {COLORS.ON_WARNING};")
+        system_title.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         system_layout.addWidget(system_title)
 
         self.system_details = QLabel("--")
         self.system_details.setWordWrap(True)
-        self.system_details.setStyleSheet(f"color: {COLORS.ON_WARNING_DARK}; {TYPO.BODY_SMALL}")
+        self.system_details.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY_DARK}; {TYPO.BODY_SMALL}")
         self.system_details.setAlignment(Qt.AlignmentFlag.AlignTop)
         system_layout.addWidget(self.system_details, 1)
 
@@ -322,7 +322,7 @@ class DefectJudgmentDialog(QDialog):
         type_frame = QFrame()
         type_frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.LG}px;
             }}
@@ -341,7 +341,7 @@ class DefectJudgmentDialog(QDialog):
         self.defect_type_combo.setStyleSheet(f"""
             QComboBox {{
                 padding: {SPACE.SM}px;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 {TYPO.BODY_SMALL}
             }}
@@ -354,7 +354,7 @@ class DefectJudgmentDialog(QDialog):
         notes_frame = QFrame()
         notes_frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.LG}px;
             }}
@@ -373,7 +373,7 @@ class DefectJudgmentDialog(QDialog):
         self.notes_input.setStyleSheet(f"""
             QLineEdit {{
                 padding: {SPACE.SM}px;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 {TYPO.BODY_SMALL}
             }}
@@ -400,7 +400,7 @@ class DefectJudgmentDialog(QDialog):
 
         judgment_title = QLabel("Seu Julgamento")
         judgment_title.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
-        judgment_title.setStyleSheet(f"color: {COLORS.ON_SECONDARY_LIGHT};")
+        judgment_title.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         judgment_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         judgment_layout.addWidget(judgment_title)
 
@@ -415,7 +415,7 @@ class DefectJudgmentDialog(QDialog):
         approve_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM}
                 font-weight: bold;
                 border: none;
@@ -434,7 +434,7 @@ class DefectJudgmentDialog(QDialog):
         confirm_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.ERROR};
-                color: {COLORS.ON_ERROR};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM}
                 font-weight: bold;
                 border: none;
@@ -466,8 +466,8 @@ class DefectJudgmentDialog(QDialog):
         self.prev_button.setEnabled(False)  # Desabilitado no primeiro
         self.prev_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.OUTLINE_VARIANT};
-                color: {COLORS.ON_OUTLINE_VARIANT};
+                background-color: {COLORS.BORDER_VARIANT};
+                color: {COLORS.TEXT_PRIMARY_VARIANT};
                 {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
@@ -475,11 +475,11 @@ class DefectJudgmentDialog(QDialog):
                 padding: {SPACE.SM}px {SPACE.LG}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.OUTLINE};
-                color: {COLORS.ON_OUTLINE};
+                background-color: {COLORS.BORDER};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.prev_button.clicked.connect(self.on_previous_clicked)
@@ -516,8 +516,8 @@ class DefectJudgmentDialog(QDialog):
         self.next_button.setMinimumWidth(120)
         self.next_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.OUTLINE_VARIANT};
-                color: {COLORS.ON_OUTLINE_VARIANT};
+                background-color: {COLORS.BORDER_VARIANT};
+                color: {COLORS.TEXT_PRIMARY_VARIANT};
                 {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
@@ -525,11 +525,11 @@ class DefectJudgmentDialog(QDialog):
                 padding: {SPACE.SM}px {SPACE.LG}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.OUTLINE};
-                color: {COLORS.ON_OUTLINE};
+                background-color: {COLORS.BORDER};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.next_button.clicked.connect(self.on_next_clicked)

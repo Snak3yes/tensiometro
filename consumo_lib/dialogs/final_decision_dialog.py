@@ -128,17 +128,17 @@ class FinalDecisionDialog(QDialog):
         self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.SURFACE_DARK};
+                background-color: {COLORS.SURFACE};
                 color: {COLORS.TEXT_HINT};
                 font-size: 13px;
                 font-weight: 600;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 padding: {SPACE.SM}px {SPACE.MD}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
-                border: 2px solid {COLORS.ON_OUTLINE};
+                background-color: {COLORS.BORDER};
+                border: 2px solid {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
@@ -247,7 +247,7 @@ class FinalDecisionDialog(QDialog):
                 background-color: {COLORS.ERROR_DARK};
             }}
             QPushButton:pressed {{
-                background-color: {COLORS.ERROR_DARKER};
+                background-color: {COLORS.ERROR_DARK};
             }}
         """)
         discard_btn.clicked.connect(self.on_discard_clicked)

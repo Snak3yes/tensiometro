@@ -70,7 +70,7 @@ class AlignmentImageView(QLabel):
         self.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
         """)
@@ -523,7 +523,7 @@ class AlignmentWidget(QWidget):
                 font-size: 14px;
                 font-weight: bold;
                 padding: {SPACE.XXS}px {SPACE.SM}px;
-                background: {COLORS.OUTLINE};
+                background: {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
         """)
@@ -534,7 +534,7 @@ class AlignmentWidget(QWidget):
         self.indicator_score.setFixedSize(20, 20)
         self.indicator_score.setStyleSheet(f"""
             QLabel {{
-                background: {COLORS.OUTLINE};
+                background: {COLORS.BORDER};
                 border-radius: 10px;
             }}
         """)
@@ -553,7 +553,7 @@ class AlignmentWidget(QWidget):
         group_transform.setStyleSheet(f"""
             QGroupBox {{
                 font-weight: bold;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 margin-top: {SPACE.SM}px;
                 padding-top: {SPACE.SM}px;
@@ -631,7 +631,7 @@ class AlignmentWidget(QWidget):
         self.btn_auto_tune.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.WARNING};
-                color: {COLORS.ON_WARNING};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM};
                 font-weight: bold;
                 padding: {SPACE.SM}px;
@@ -988,7 +988,7 @@ class AlignmentWidget(QWidget):
         # Atualiza indicador visual
         if score >= 90:
             color = COLORS.SUCCESS  # Verde
-            bg = COLORS.SUCCESS_LIGHT
+            bg = COLORS.SUCCESS
         elif score >= 70:
             color = COLORS.WARNING  # Laranja
             bg = COLORS.WARNING_LIGHT

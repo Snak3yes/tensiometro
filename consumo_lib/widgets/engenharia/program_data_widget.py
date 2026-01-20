@@ -155,7 +155,7 @@ class ProgramDataWidget(QWidget):
         group.setStyleSheet(f"""
             QGroupBox {{
                 font-weight: bold;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 margin-top: {SPACE.SM}px;
                 padding-top: {SPACE.SM}px;
@@ -360,7 +360,7 @@ class ProgramDataWidget(QWidget):
             self.status_label.setStyleSheet(f"""
                 QLabel {{
                     padding: {SPACE.SM}px;
-                    background-color: {COLORS.SUCCESS_LIGHT};
+                    background-color: {COLORS.SUCCESS};
                     border: 1px solid {COLORS.SUCCESS};
                     border-radius: {DIM.RADIUS_SM}px;
                     color: {COLORS.SUCCESS_DARK};

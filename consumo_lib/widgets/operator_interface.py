@@ -331,14 +331,14 @@ class InspectionResultsWidget(QWidget):
         """Define estilo para resultado APROVADO."""
         self._classification_label.setText("APROVADO")
         self._classification_label.setStyleSheet(
-            f"background-color: {COLORS.SUCCESS}; color: {COLORS.ON_SUCCESS}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
+            f"background-color: {COLORS.SUCCESS}; color: {COLORS.TEXT_PRIMARY}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
 
     def _set_fail_style(self):
         """Define estilo para resultado REPROVADO."""
         self._classification_label.setText("REPROVADO")
         self._classification_label.setStyleSheet(
-            f"background-color: {COLORS.ERROR}; color: {COLORS.ON_ERROR}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
+            f"background-color: {COLORS.ERROR}; color: {COLORS.TEXT_PRIMARY}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
 
     def display_results(self, result: Dict[str, Any]):

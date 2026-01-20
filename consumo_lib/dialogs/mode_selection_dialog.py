@@ -97,7 +97,7 @@ class ModeCard(QWidget):
         time_label.setFont(TYPO.get_font(TYPO.BODY_SMALL))
         time_label.setStyleSheet(f"""
             color: {COLORS.SUCCESS_DARK};
-            background-color: {COLORS.SUCCESS_LIGHT};
+            background-color: {COLORS.SUCCESS};
             padding: {SPACE.XXS}px {SPACE.SM}px;
             border-radius: {DIM.RADIUS_SM}px;
             font-weight: 600;
@@ -121,7 +121,7 @@ class ModeCard(QWidget):
         else:
             # Card normal: estilo neutro
             bg_color = COLORS.BACKGROUND
-            border_color = COLORS.OUTLINE
+            border_color = COLORS.BORDER
             border_width = "1px"
             icon_bg = COLORS.SURFACE
 
@@ -137,7 +137,7 @@ class ModeCard(QWidget):
             }}
             QWidget:hover {{
                 background-color: {COLORS.SURFACE if not self.is_selected else COLORS.PRIMARY_LIGHT};
-                border: 2px solid {COLORS.OUTLINE if not self.is_selected else COLORS.PRIMARY};
+                border: 2px solid {COLORS.BORDER if not self.is_selected else COLORS.PRIMARY};
             }}
         """)
 
@@ -228,7 +228,7 @@ class ModeSelectionDialog(QDialog):
 
         # Header
         header_widget = QWidget()
-        header_widget.setStyleSheet(f"background-color: {COLORS.SURFACE}; border-bottom: 1px solid {COLORS.OUTLINE};")
+        header_widget.setStyleSheet(f"background-color: {COLORS.SURFACE}; border-bottom: 1px solid {COLORS.BORDER};")
         header_layout = QVBoxLayout(header_widget)
         header_layout.setContentsMargins(40, 30, 40, 30)
         header_layout.setSpacing(12)
@@ -263,7 +263,7 @@ class ModeSelectionDialog(QDialog):
                 font-size: 14px;
                 font-weight: 600;
                 color: {COLORS.TEXT_HINT};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: 12px;
                 margin-top: 12px;
                 padding-top: 20px;
@@ -316,17 +316,17 @@ class ModeSelectionDialog(QDialog):
                 color: {COLORS.TEXT_HINT};
                 font-size: 13px;
                 font-weight: 600;
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.SM}px {SPACE.LG}px;
             }}
             QPushButton:hover {{
                 background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.ON_OUTLINE};
+                border: 2px solid {COLORS.TEXT_PRIMARY};
                 color: {COLORS.TEXT_HINT};
             }}
             QPushButton:pressed {{
-                background-color: {COLORS.SURFACE_DARK};
+                background-color: {COLORS.SURFACE};
             }}
         """)
         self.cancel_button.clicked.connect(self.reject)
@@ -350,11 +350,11 @@ class ModeSelectionDialog(QDialog):
                 background-color: {COLORS.PRIMARY_DARK};
             }}
             QPushButton:pressed {{
-                background-color: {COLORS.PRIMARY_DARKER};
+                background-color: {COLORS.PRIMARY_DARK};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.OUTLINE};
-                color: {COLORS.ON_OUTLINE};
+                background-color: {COLORS.BORDER};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.confirm_button.clicked.connect(self.on_confirm_clicked)

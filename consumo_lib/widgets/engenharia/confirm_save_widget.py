@@ -85,7 +85,7 @@ class WarningPanel(QWidget):
         self.warnings = warnings
         if not warnings:
             self.label.setText(f"""
-                <div style='background-color: {COLORS.SUCCESS_LIGHT}; color: {COLORS.ON_SUCCESS_LIGHT};
+                <div style='background-color: {COLORS.SUCCESS}; color: {COLORS.TEXT_PRIMARY_LIGHT};
                             padding: {SPACE.XS}px; border-radius: {DIM.RADIUS_SM}px;'>
                     ✓ Nenhum avio - Programa válido
                 </div>
@@ -239,7 +239,7 @@ class ConfirmSaveWidget(QWidget):
         self.save_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 border-radius: {DIM.RADIUS_SM}px;
                 padding: {SPACE.SM}px {SPACE.MD}px;
             }}

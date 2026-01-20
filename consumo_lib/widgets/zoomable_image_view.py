@@ -64,7 +64,7 @@ class ZoomableImageView(QLabel):
         self.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 min-height: 300px;
             }}

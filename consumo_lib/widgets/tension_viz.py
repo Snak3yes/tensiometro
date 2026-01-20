@@ -460,7 +460,7 @@ class TensionCanvas(QWidget):
         rect_y = center_y - rect_height / 2
         
         # Desenha borda
-        painter.setPen(QPen(COLORS.to_qcolor(COLORS.OUTLINE_VARIANT), 2))
+        painter.setPen(QPen(COLORS.to_qcolor(COLORS.BORDER_VARIANT), 2))
         painter.setBrush(QBrush())  # Sem preenchimento
         painter.drawRect(QRectF(rect_x, rect_y, rect_width, rect_height))
 

@@ -114,7 +114,7 @@ class ConfirmPositioningDialog(QDialog):
         warning_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.WARNING_LIGHT};
-                color: {COLORS.ON_WARNING_LIGHT};
+                color: {COLORS.TEXT_PRIMARY_LIGHT};
                 padding: {SPACE.SM}px;
                 border-radius: {DIM.RADIUS_SM}px;
                 font-weight: bold;
@@ -134,7 +134,7 @@ class ConfirmPositioningDialog(QDialog):
         self.confirm_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 font-size: 14px;
                 font-weight: bold;
                 border-radius: {DIM.RADIUS_SM}px;
@@ -159,7 +159,7 @@ class ConfirmPositioningDialog(QDialog):
                 padding: {SPACE.XS}px {SPACE.MD}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
             }}
         """)
         self.cancel_button.clicked.connect(self.reject)

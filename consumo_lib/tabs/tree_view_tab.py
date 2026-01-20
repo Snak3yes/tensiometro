@@ -397,7 +397,7 @@ class TreeViewTab(QWidget):
 
         # Linha separadora
         details_html += f"""
-            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.OUTLINE}; margin: {SPACE.SM}px 0;"></td></tr>
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.BORDER}; margin: {SPACE.SM}px 0;"></td></tr>
         """
 
         # Dados físicos
@@ -414,7 +414,7 @@ class TreeViewTab(QWidget):
 
         # Dados de manutenção
         details_html += f"""
-            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.OUTLINE}; margin: {SPACE.SM}px 0;"></td></tr>
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.BORDER}; margin: {SPACE.SM}px 0;"></td></tr>
         """
         details_html += f"""
             <tr><td class="label">Última Limpeza:</td><td class="value">{stencil.get('last_cleaning', '-')}</td></tr>

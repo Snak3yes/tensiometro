@@ -74,7 +74,7 @@ class InspectionHistoryDialog(QDialog):
         self.table.setHorizontalHeaderLabels(["Data/Hora", "Tipo", "Classificação", "Operador", "Arquivo"])
         self.table.setStyleSheet(f"""
             QTableWidget {{
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
                 background-color: white;
                 selection-background-color: {COLORS.PRIMARY};
@@ -88,7 +88,7 @@ class InspectionHistoryDialog(QDialog):
                 color: {COLORS.TEXT_HINT};
                 font-weight: bold;
                 border: none;
-                border-bottom: 2px solid {COLORS.OUTLINE};
+                border-bottom: 2px solid {COLORS.BORDER};
                 padding: {SPACE.SM}px;
             }}
         """)
@@ -134,7 +134,7 @@ class InspectionHistoryDialog(QDialog):
                 padding: {SPACE.SM}px {SPACE.MD}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
             }}
         """)
         close_button.clicked.connect(self.accept)
@@ -147,7 +147,7 @@ class InspectionHistoryDialog(QDialog):
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 background-color: {COLORS.SURFACE};
                 padding: {SPACE.MD}px;

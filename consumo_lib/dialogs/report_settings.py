@@ -53,7 +53,7 @@ class ColorButton(QPushButton):
             QPushButton {{
                 background-color: rgb({r}, {g}, {b});
                 color: {text_color};
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: 4px;
             }}
             QPushButton:hover {{
@@ -135,7 +135,7 @@ class ReportSettingsDialog(QDialog):
         self.lbl_logo_preview.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SURFACE};
-                border: 2px dashed {COLORS.OUTLINE};
+                border: 2px dashed {COLORS.BORDER};
                 border-radius: 8px;
             }}
         """)

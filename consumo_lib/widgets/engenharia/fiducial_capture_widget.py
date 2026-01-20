@@ -211,14 +211,14 @@ class FiducialCaptureWidget(QWidget):
         self.btn_fid1.setStyleSheet(f"""
             QPushButton:checked {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 font-weight: bold;
             }}
         """)
         self.btn_fid2.setStyleSheet(f"""
             QPushButton:checked {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 font-weight: bold;
             }}
         """)
@@ -241,7 +241,7 @@ class FiducialCaptureWidget(QWidget):
                 padding: {SPACE.SM}px;
                 background-color: {COLORS.SECONDARY_LIGHT};
                 border-radius: {DIM.RADIUS_SM}px;
-                color: {COLORS.ON_SECONDARY_LIGHT};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         controls_layout.addWidget(instructions)
@@ -270,9 +270,9 @@ class FiducialCaptureWidget(QWidget):
             QLabel {{
                 padding: {SPACE.SM}px;
                 background-color: {COLORS.WARNING_LIGHT};
-                border: 1px solid {COLORS.WARNING_BORDER};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
-                color: {COLORS.ON_WARNING_LIGHT};
+                color: {COLORS.TEXT_PRIMARY_LIGHT};
             }}
         """)
         layout.addWidget(self.status_label)
@@ -395,10 +395,10 @@ class FiducialCaptureWidget(QWidget):
             self.status_label.setStyleSheet(f"""
                 QLabel {{
                     padding: {SPACE.SM}px;
-                    background-color: {COLORS.SUCCESS_LIGHT};
+                    background-color: {COLORS.SUCCESS};
                     border: 1px solid {COLORS.SUCCESS};
                     border-radius: {DIM.RADIUS_SM}px;
-                    color: {COLORS.ON_SUCCESS_LIGHT};
+                    color: {COLORS.TEXT_PRIMARY_LIGHT};
                 }}
             """)
         else:
@@ -410,9 +410,9 @@ class FiducialCaptureWidget(QWidget):
                 QLabel {{
                     padding: {SPACE.SM}px;
                     background-color: {COLORS.WARNING_LIGHT};
-                    border: 1px solid {COLORS.WARNING_BORDER};
+                    border: 1px solid {COLORS.BORDER};
                     border-radius: {DIM.RADIUS_SM}px;
-                    color: {COLORS.ON_WARNING_LIGHT};
+                    color: {COLORS.TEXT_PRIMARY_LIGHT};
                 }}
             """)
 

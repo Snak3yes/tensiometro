@@ -70,7 +70,7 @@ class WindowPreviewWidget(QWidget):
         self.preview_area.setStyleSheet(f"""
             QWidget {{
                 background-color: {COLORS.SURFACE};
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
         """)

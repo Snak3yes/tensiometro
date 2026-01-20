@@ -210,7 +210,7 @@ class TensionMeasurementDialog(QDialog):
         self.stop_btn = QPushButton("⏹ Parar")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
-        self.stop_btn.setStyleSheet(f"background-color: {COLORS.ERROR}; color: {COLORS.ON_ERROR}; font-weight: bold; padding: {SPACE.MD}px;")
+        self.stop_btn.setStyleSheet(f"background-color: {COLORS.ERROR}; color: {COLORS.TEXT_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.stop_btn)
 
         self.close_btn = QPushButton("Fechar")

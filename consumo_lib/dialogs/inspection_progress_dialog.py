@@ -78,7 +78,7 @@ class InspectionProgressDialog(QDialog):
         self.progress_bar.setMinimumHeight(25)
         self.progress_bar.setStyleSheet(f"""
             QProgressBar {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 text-align: center;
                 font-size: 12px;
@@ -110,7 +110,7 @@ class InspectionProgressDialog(QDialog):
         self.log_text.setStyleSheet(f"""
             QTextEdit {{
                 background-color: {COLORS.SURFACE};
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.MD}px;
                 font-family: 'Consolas', 'Monaco', monospace;
@@ -132,7 +132,7 @@ class InspectionProgressDialog(QDialog):
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.ERROR};
-                color: {COLORS.ON_ERROR};
+                color: {COLORS.TEXT_PRIMARY};
                 font-size: 13px;
                 font-weight: 600;
                 border: none;
@@ -143,8 +143,8 @@ class InspectionProgressDialog(QDialog):
                 background-color: {COLORS.ERROR_DARK};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.OUTLINE};
-                color: {COLORS.ON_OUTLINE};
+                background-color: {COLORS.BORDER};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.cancel_button.clicked.connect(self.on_cancel_clicked)

@@ -179,7 +179,7 @@ class MosaicPreviewWidget(QWidget):
         self.setStyleSheet(f"""
             MosaicPreviewWidget {{
                 background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
         """)
@@ -441,7 +441,7 @@ class MosaicCaptureWidget(QWidget):
                 padding: {SPACE.SM}px;
                 background-color: {COLORS.SECONDARY_LIGHT};
                 border-radius: {DIM.RADIUS_SM}px;
-                color: {COLORS.ON_SECONDARY_LIGHT};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         controls_layout.addWidget(instructions)
@@ -809,7 +809,7 @@ class MosaicCaptureWidget(QWidget):
         self.status_label.setStyleSheet(f"""
             QLabel {{
                 padding: {SPACE.SM}px;
-                background-color: {COLORS.SUCCESS_LIGHT};
+                background-color: {COLORS.SUCCESS};
                 border: 1px solid {COLORS.SUCCESS};
                 border-radius: {DIM.RADIUS_SM}px;
                 color: {COLORS.SUCCESS_DARK};

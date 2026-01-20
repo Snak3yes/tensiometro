@@ -120,7 +120,7 @@ class OperatorWorkflowDialog(QDialog):
                 font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
                 color: {COLORS.TEXT_PRIMARY};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 margin-top: {SPACE.SM}px;
                 padding-top: {SPACE.MD}px;
@@ -176,7 +176,7 @@ class OperatorWorkflowDialog(QDialog):
                 background-color: {COLORS.PRIMARY_DARK};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
                 color: {COLORS.TEXT_HINT};
             }}
         """)
@@ -194,7 +194,7 @@ class OperatorWorkflowDialog(QDialog):
                 font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
                 color: {COLORS.TEXT_PRIMARY};
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 margin-top: {SPACE.SM}px;
                 padding-top: {SPACE.MD}px;

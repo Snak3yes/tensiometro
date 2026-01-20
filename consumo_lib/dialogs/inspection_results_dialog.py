@@ -116,7 +116,7 @@ class InspectionResultsDialog(QDialog):
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 background-color: {COLORS.SURFACE};
                 padding: {SPACE.XL}px;
@@ -192,7 +192,7 @@ class InspectionResultsDialog(QDialog):
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.XL}px;
             }}
@@ -221,7 +221,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
 
         # Placeholder para heatmap (FUTURO)
         heatmap_label = QLabel("[Heatmap de medições será implementado em fase futura]")
-        heatmap_label.setStyleSheet(f"color: {COLORS.ON_OUTLINE}; font-style: italic; padding: {SPACE.XL}px; border: 1px dashed {COLORS.OUTLINE};")
+        heatmap_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY}; font-style: italic; padding: {SPACE.XL}px; border: 1px dashed {COLORS.BORDER};")
         heatmap_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(heatmap_label)
 
@@ -232,7 +232,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.XL}px;
             }}
@@ -279,7 +279,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         frame = QFrame()
         frame.setStyleSheet(f"""
             QFrame {{
-                border: 2px solid {COLORS.OUTLINE};
+                border: 2px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.XL}px;
             }}
@@ -323,7 +323,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         save_btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SUCCESS};
-                color: {COLORS.ON_SUCCESS};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
@@ -362,8 +362,8 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         close_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         close_btn.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.OUTLINE_VARIANT};
-                color: {COLORS.ON_OUTLINE_VARIANT};
+                background-color: {COLORS.BORDER_VARIANT};
+                color: {COLORS.TEXT_PRIMARY_VARIANT};
                 {TYPO.BODY_MEDIUM}
                 font-weight: 600;
                 border: none;
@@ -371,7 +371,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
                 padding: {SPACE.SM}px {SPACE.LG}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.OUTLINE};
+                background-color: {COLORS.BORDER};
             }}
         """)
         close_btn.clicked.connect(self.accept)
@@ -440,6 +440,6 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
             "OK": COLORS.SUCCESS,           # Verde
             "WARNING": COLORS.WARNING,      # Amarelo
             "NOK": COLORS.ERROR,            # Vermelho
-            "UNKNOWN": COLORS.ON_OUTLINE   # Cinza
+            "UNKNOWN": COLORS.TEXT_PRIMARY   # Cinza
         }
-        return colors.get(classification, COLORS.ON_OUTLINE)
+        return colors.get(classification, COLORS.TEXT_PRIMARY)

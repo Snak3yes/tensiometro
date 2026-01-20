@@ -125,7 +125,7 @@ class RecipeManagerDialog(QDialog):
         self.preview_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.SURFACE};
-                border: 1px solid {COLORS.OUTLINE};
+                border: 1px solid {COLORS.BORDER};
                 border-radius: 5px;
                 padding: {SPACE.MD}px;
             }}
@@ -146,7 +146,7 @@ class RecipeManagerDialog(QDialog):
                 background-color: {COLORS.SUCCESS};
             }}
             QPushButton:disabled {{
-                background-color: {COLORS.DISABLED};
+                background-color: {COLORS.TEXT_DISABLED};
             }}
         """)
         self.btn_load.clicked.connect(self._on_load_recipe)
