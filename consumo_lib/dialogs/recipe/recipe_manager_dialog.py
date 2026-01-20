@@ -19,6 +19,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from aoi_lib.recipe_manager import RecipeManager
+from consumo_lib.ui import COLORS, TYPO, SPACE
 from consumo_lib.dialogs.recipe.recipe_list_widget import RecipeListWidget
 from consumo_lib.dialogs.recipe.recipe_edit_dialog import RecipeEditorDialog
 
@@ -74,10 +75,7 @@ class RecipeManagerDialog(QDialog):
 
         # Título
         title = QLabel("📋 Receitas Disponíveis")
-        title_font = QFont()
-        title_font.setBold(True)
-        title_font.setPointSize(12)
-        title.setFont(title_font)
+        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         left_layout.addWidget(title)
 
         # Lista de receitas
@@ -124,32 +122,32 @@ class RecipeManagerDialog(QDialog):
         self.preview_label = QLabel("Selecione uma receita para ver os detalhes.")
         self.preview_label.setWordWrap(True)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignTop)
-        self.preview_label.setStyleSheet("""
-            QLabel {
-                background-color: #f9f9f9;
-                border: 1px solid #ddd;
+        self.preview_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SURFACE};
+                border: 1px solid {COLORS.OUTLINE};
                 border-radius: 5px;
-                padding: 15px;
-            }
+                padding: {SPACE.MD}px;
+            }}
         """)
         right_layout.addWidget(self.preview_label, 1)
 
         # Botão de carregar
         self.btn_load = QPushButton("🚀 Carregar Receita")
         self.btn_load.setMinimumHeight(40)
-        self.btn_load.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
+        self.btn_load.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SUCCESS};
                 color: white;
                 font-weight: bold;
                 border-radius: 5px;
-            }
-            QPushButton:hover {
-                background-color: #45a049;
-            }
-            QPushButton:disabled {
-                background-color: #ccc;
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SUCCESS};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.DISABLED};
+            }}
         """)
         self.btn_load.clicked.connect(self._on_load_recipe)
         self.btn_load.setEnabled(False)

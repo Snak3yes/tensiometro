@@ -34,6 +34,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QObject, pyqtSignal
 
 from aoi_lib.stencil_inspector import InspectionResult, InspectionThresholds
+from consumo_lib.ui import COLORS
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
 from aoi_lib.inspection_flow_service import InspectionFlowService
 from consumo_lib.dialogs import InspectionSettingsDialog
@@ -272,7 +273,7 @@ desde a seleção de arquivos até a exibição de resultados.
         btn_layout.addWidget(btn_cancel)
 
         btn_run = QPushButton("▶️ Executar Inspeção")
-        btn_run.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        btn_run.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_run.clicked.connect(self.run_inspection)
         btn_layout.addWidget(btn_run)
 

@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from aoi_lib.stencil_inspector import InspectionThresholds
+from consumo_lib.ui import COLORS
 
 log = logging.getLogger(__name__)
 
@@ -194,7 +195,7 @@ class InspectionSettingsDialog(QDialog):
         btn_layout.addWidget(btn_cancel)
 
         btn_save = QPushButton("💾 Salvar")
-        btn_save.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        btn_save.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_save.clicked.connect(self._save)
         btn_layout.addWidget(btn_save)
 

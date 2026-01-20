@@ -15,6 +15,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from aoi_lib.stencil_tracker import StencilTracker, Stencil
+from consumo_lib.ui import TYPO
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class StencilEditDialog(QDialog):
 
         # Código (somente leitura)
         self.lbl_code = QLabel(self.stencil.code)
-        self.lbl_code.setFont(QFont("Consolas", 11))
+        self.lbl_code.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, family="Consolas"))
         form.addRow("Código:", self.lbl_code)
 
         # Descrição

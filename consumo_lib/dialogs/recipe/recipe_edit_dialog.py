@@ -25,6 +25,7 @@ from aoi_lib.recipe_manager import (
     TensionAcceptance, CaptureConfig, InspectionConfig,
     Point2D, MACHINE_LIMITS
 )
+from consumo_lib.ui import COLORS, SPACE
 
 logger = logging.getLogger(__name__)
 
@@ -272,7 +273,7 @@ class RecipeEditorDialog(QDialog):
             "⚠️ WARNING: Fora do range de warning mas dentro do aceitável\n"
             "❌ NOK: Fora do range mín/máx"
         )
-        legend.setStyleSheet("color: #666; font-size: 10px;")
+        legend.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: 10px;")
         acc_layout.addWidget(legend, 2, 0, 1, 4)
 
         layout.addWidget(acc_group)
@@ -366,14 +367,14 @@ class RecipeEditorDialog(QDialog):
             "• Gerar máscaras de inspeção\n"
             "• Configurar threshold e critérios\n"
         )
-        info_label.setStyleSheet("""
-            QLabel {
-                background-color: #f0f0f0;
-                border: 1px solid #ccc;
+        info_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SURFACE};
+                border: 1px solid {COLORS.OUTLINE};
                 border-radius: 5px;
-                padding: 20px;
-                color: #666;
-            }
+                padding: {SPACE.LG}px;
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         info_label.setWordWrap(True)
         layout.addWidget(info_label)

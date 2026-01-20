@@ -21,6 +21,8 @@ from PyQt6.QtWidgets import (
     QHeaderView, QPushButton, QHBoxLayout, QLabel, QMessageBox
 )
 
+from consumo_lib.ui import COLORS
+
 logger = logging.getLogger(__name__)
 
 
@@ -224,7 +226,7 @@ class MainWindowEngineeringWorkflow:
 
             # Título
             title = QLabel("📁 Programas de Inspeção Salvos")
-            title.setStyleSheet("font-size: 16px; font-weight: bold; color: #1976D2;")
+            title.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {COLORS.PRIMARY};")
             layout.addWidget(title)
 
             # Tabela de programas

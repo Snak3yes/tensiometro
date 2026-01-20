@@ -15,6 +15,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from aoi_lib.stencil_tracker import StencilTracker, Stencil
+from consumo_lib.ui import COLORS, TYPO, SPACE
 
 log = logging.getLogger(__name__)
 
@@ -45,14 +46,14 @@ class StencilCreateDialog(QDialog):
             "O código é o identificador único (código de barras)."
         )
         info.setWordWrap(True)
-        info.setStyleSheet("color: #666; margin-bottom: 10px;")
+        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         form = QFormLayout()
 
         # Código (obrigatório)
         self.txt_code = QLineEdit()
-        self.txt_code.setFont(QFont("Consolas", 11))
+        self.txt_code.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, family="Consolas"))
         self.txt_code.setPlaceholderText("Código de barras (obrigatório)")
         form.addRow("Código*:", self.txt_code)
 

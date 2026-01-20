@@ -27,6 +27,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QPixmap, QColor, QPalette
 
 from aoi_lib.reports import ReportConfig
+from consumo_lib.ui import COLORS, SPACE
 
 log = logging.getLogger(__name__)
 
@@ -52,11 +53,11 @@ class ColorButton(QPushButton):
             QPushButton {{
                 background-color: rgb({r}, {g}, {b});
                 color: {text_color};
-                border: 1px solid #888;
+                border: 1px solid {COLORS.OUTLINE};
                 border-radius: 4px;
             }}
             QPushButton:hover {{
-                border: 2px solid #333;
+                border: 2px solid {COLORS.ON_BACKGROUND};
             }}
         """)
         self.setText(f"#{r:02X}{g:02X}{b:02X}")
@@ -131,12 +132,12 @@ class ReportSettingsDialog(QDialog):
         self.lbl_logo_preview = QLabel()
         self.lbl_logo_preview.setFixedSize(150, 150)
         self.lbl_logo_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_logo_preview.setStyleSheet("""
-            QLabel {
-                background-color: #f0f0f0;
-                border: 2px dashed #ccc;
+        self.lbl_logo_preview.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SURFACE};
+                border: 2px dashed {COLORS.OUTLINE};
                 border-radius: 8px;
-            }
+            }}
         """)
         self.lbl_logo_preview.setText("Nenhum logo\nselecionado")
 
@@ -268,7 +269,7 @@ class ReportSettingsDialog(QDialog):
         btn_layout.addWidget(btn_cancel)
 
         btn_save = QPushButton("💾 Salvar")
-        btn_save.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold;")
+        btn_save.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_save.clicked.connect(self._save_config)
         btn_layout.addWidget(btn_save)
 

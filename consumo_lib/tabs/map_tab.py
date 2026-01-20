@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import QVBoxLayout, QGroupBox, QHBoxLayout, QPushButton
 from PyQt6.QtCore import pyqtSignal
 
 from .base_tab import BaseTab
+from consumo_lib.ui import COLORS
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ class MapTab(BaseTab):
         from PyQt6.QtWidgets import QLabel
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet("color: #666; padding: 20px;")
+        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: 20px;")
         info_layout.addWidget(info_label)
 
         # Botões de ação

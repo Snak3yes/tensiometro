@@ -14,6 +14,8 @@ from PyQt6.QtWidgets import (
     QMenu, QMessageBox
 )
 
+from consumo_lib.ui import COLORS
+
 logger = logging.getLogger(__name__)
 
 
@@ -171,9 +173,9 @@ class GerberPreviewWidget(QGraphicsView):
         self._redo_stack: List[RemoveObjectCommand] = []
 
         # Cores
-        self._aperture_color = QColor("#00BCD4")  # Ciano (regions)
-        self._selection_color = QColor("#FF5722")  # Laranja avermelhado
-        self._bg_color = QColor("#1e1e1e")  # Fundo escuro
+        self._aperture_color = COLORS.to_qcolor(COLORS.PRIMARY)  # Primary color
+        self._selection_color = COLORS.to_qcolor(COLORS.ERROR)  # Error color (orange/red)
+        self._bg_color = COLORS.to_qcolor(COLORS.SURFACE)  # Surface color (dark background)
 
         # Configurações da view
         self.setRenderHints(

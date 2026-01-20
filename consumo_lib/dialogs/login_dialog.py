@@ -13,6 +13,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 from aoi_lib.auth.auth_service import AuthService
+from consumo_lib.ui import COLORS, TYPO
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,7 @@ class LoginDialog(QDialog):
 
         # Logo/Título
         title_label = QLabel("TENSIO METRO")
-        title_font = QFont()
-        title_font.setPointSize(24)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(24, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -99,7 +97,7 @@ class LoginDialog(QDialog):
         # Versão e informação
         version_label = QLabel("Versão 0.4.0")
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_label.setStyleSheet("color: #888; font-size: 11px;")
+        version_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px;")
         layout.addWidget(version_label)
 
         info_label = QLabel(
@@ -109,7 +107,7 @@ class LoginDialog(QDialog):
             "admin / admin123"
         )
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet("color: #666; font-size: 10px;")
+        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: 10px;")
         layout.addWidget(info_label)
 
         # Conexões

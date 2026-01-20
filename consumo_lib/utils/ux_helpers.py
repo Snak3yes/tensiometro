@@ -13,6 +13,8 @@ from PyQt6.QtWidgets import QWidget, QLabel, QPushButton
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QKeySequence, QShortcut
 
+from consumo_lib.ui import COLORS
+
 
 # ========================
 # Tooltips do Engineering Wizard
@@ -269,11 +271,11 @@ def update_validation_indicator(label: QLabel, is_valid: bool, field_name: str =
     """
     if is_valid:
         label.setText("✓")
-        label.setStyleSheet("color: green; font-weight: bold;")
+        label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
         label.setToolTip(f"{field_name} válido" if field_name else "Válido")
     else:
         label.setText("⚠")
-        label.setStyleSheet("color: orange; font-weight: bold;")
+        label.setStyleSheet(f"color: {COLORS.WARNING}; font-weight: bold;")
         label.setToolTip(f"{field_name} pendente" if field_name else "Pendente")
 
 

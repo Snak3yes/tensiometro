@@ -17,6 +17,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor
 
 from aoi_lib.stencil_tracker import StencilTracker
+from consumo_lib.ui import COLORS
 
 log = logging.getLogger(__name__)
 
@@ -97,7 +98,7 @@ class StencilManagerDialog(QDialog):
 
         self.btn_delete = QPushButton("🗑️ Excluir")
         self.btn_delete.clicked.connect(self._delete_selected)
-        self.btn_delete.setStyleSheet("color: #dc3545;")
+        self.btn_delete.setStyleSheet(f"color: {COLORS.ERROR};")
         btn_layout.addWidget(self.btn_delete)
 
         btn_layout.addStretch()
@@ -123,9 +124,9 @@ class StencilManagerDialog(QDialog):
         self.table.setRowCount(len(stencils))
 
         status_display = {
-            "active": ("🟢 Ativo", "#d4edda"),
-            "warning": ("🟡 Alerta", "#fff3cd"),
-            "retired": ("🔴 Retirado", "#f8d7da"),
+            "active": ("🟢 Ativo", COLORS.SUCCESS),
+            "warning": ("🟡 Alerta", COLORS.WARNING),
+            "retired": ("🔴 Retirado", COLORS.ERROR),
         }
 
         for row, stencil in enumerate(stencils):
@@ -148,10 +149,10 @@ class StencilManagerDialog(QDialog):
 
             # Status com cor
             status_text, status_color = status_display.get(
-                stencil.status, ("?", "#f0f0f0")
+                stencil.status, ("?", COLORS.SURFACE)
             )
             status_item = QTableWidgetItem(status_text)
-            status_item.setBackground(QColor(status_color))
+            status_item.setBackground(COLORS.to_qcolor(status_color))
             self.table.setItem(row, 5, status_item)
 
     def _get_selected_code(self) -> Optional[str]:
