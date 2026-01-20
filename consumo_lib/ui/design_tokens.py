@@ -561,7 +561,7 @@ class Typography:
     Escala de tipos: https://m3.material.io/styles/typography/type-scale-tokens
 
     Atributos:
-        FONT_FAMILY: Fonte padrão (Arial - fallback seguro para Windows)
+        FONT_FAMILY: Fonte padrão (Segoe UI - moderna do Windows)
         FONT_FAMILY_MONOSPACE: Fonte monoespaçada (Consolas - para código)
     """
 
@@ -569,8 +569,8 @@ class Typography:
     # FONT FAMILIES
     # =========================================================================
 
-    FONT_FAMILY: str = "Arial"
-    """Fonte padrão da aplicação (fallback seguro para Windows)"""
+    FONT_FAMILY: str = "Segoe UI"
+    """Fonte padrão da aplicação (moderna do Windows, fallback: Arial, Helvetica)"""
 
     FONT_FAMILY_MONOSPACE: str = "Consolas"
     """Fonte monoespaçada para código/técnicos"""
@@ -1016,6 +1016,19 @@ class Dimensions:
 
     BUTTON_HEIGHT_LG: int = 48
     """Altura de botão grande"""
+
+    # =========================================================================
+    # BUTTON SIZES (width, height tuples)
+    # =========================================================================
+
+    BUTTON_SIZE_SM: tuple = (80, 32)
+    """Tamanho de botão pequeno (largura, altura)"""
+
+    BUTTON_SIZE_MD: tuple = (120, 40)
+    """Tamanho de botão médio (largura, altura) - padrão"""
+
+    BUTTON_SIZE_LG: tuple = (160, 48)
+    """Tamanho de botão grande (largura, altura)"""
 
     # =========================================================================
     # INPUT HEIGHTS

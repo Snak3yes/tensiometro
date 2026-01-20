@@ -10,7 +10,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 
-from .design_tokens import ColorPalette, Typography, Dimensions, Spacing, COLORS, TYPO, DIM, SPACE
+from .design_tokens import ColorPalette, Typography, Dimensions, Spacing, FontWeight, COLORS, TYPO, DIM, SPACE
 
 
 class StandardButton(QPushButton):
@@ -23,10 +23,12 @@ class StandardButton(QPushButton):
         >>> btn = StandardButton("Parar", variant="primary-orange")
         >>> btn = StandardButton("Cancelar", variant="secondary")
         >>> btn = StandardButton("Excluir", variant="emergency")
+        >>> btn = StandardButton("OK", size="sm")  # Botão pequeno
 
     Args:
         text: Texto do botão
         variant: primary-green | primary-blue | primary-orange | secondary | emergency | outline
+        size: sm | md | lg (tamanho do botão)
         parent: Widget pai
 
     Variants:
@@ -38,19 +40,25 @@ class StandardButton(QPushButton):
         danger: [DEPRECATED] Use emergency instead
         outline: Borda verde, fundo transparente [LEGADO - use secondary]
 
+    Sizes:
+        sm: (80, 32) - Botão pequeno
+        md: (120, 40) - Botão médio (padrão)
+        lg: (160, 48) - Botão grande
+
     Migration Notes (v1.0 → v2.0):
         - variant="primary" → variant="primary-green"
         - variant="secondary" (azul sólido) → variant="secondary" (outline azul)
         - variant="danger" → variant="emergency"
     """
 
-    def __init__(self, text: str, variant: str = "primary-green", parent=None):
+    def __init__(self, text: str, variant: str = "primary-green", size: str = "md", parent=None):
         """
         Inicializa botão padrão
 
         Args:
             text: Texto do botão
             variant: Variant do botão (primary-green|primary-blue|primary-orange|secondary|emergency|outline)
+            size: Tamanho do botão (sm|md|lg)
             parent: Widget pai
         """
         super().__init__(text, parent)
@@ -76,11 +84,18 @@ class StandardButton(QPushButton):
             variant = "emergency"
 
         # Aplicar fonte padrão
-        font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
+        font = TYPO.get_font(TYPO.BODY_LARGE, weight=FontWeight.MEDIUM)
         self.setFont(font)
 
-        # Aplicar tamanho padrão
-        self.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
+        # Aplicar tamanho (sm/md/lg)
+        if size == "sm":
+            width, height = DIM.BUTTON_SIZE_SM
+        elif size == "lg":
+            width, height = DIM.BUTTON_SIZE_LG
+        else:  # md (default)
+            width, height = DIM.BUTTON_SIZE_MD
+
+        self.setMinimumSize(width, height)
 
         # Aplicar variante via property (para stylesheet)
         self.setProperty("variant", variant)
