@@ -26,110 +26,103 @@ class LightThemePalette:
     """
     Paleta de cores para o tema Light (claro)
 
-    Atualizado para v2.1: Foco em contraste WCAG AA e minimalismo industrial.
-
-    Principais mudanças:
-    - PRIMARY: Verde escuro para melhor contraste (#43A047)
-    - SECONDARY: Azul petróleo sóbrio (#455A64)
-    - WARNING: Ocre para contraste adequado (#F57F17)
-    - ERROR: Vermelho escuro menos agressivo (#C62828)
-    - STATUS_APPROVED_USER: Oliva para legibilidade (#558B2F)
+    Segue especificação Material Design 3 para tema claro.
+    Todas as cores são valores hexadecimais compatíveis com Qt.
     """
 
     # =========================================================================
-    # PRIMARY COLORS (Verde - Success/Confirmation)
+    # PRIMARY COLORS (Verde - Success/Action)
     # =========================================================================
 
-    PRIMARY: str = "#43A047"  # Green 700 (era #4CAF50 v2.0)
-    """Verde escuro para máximo contraste (11.2:1)"""
+    PRIMARY: str = "#4CAF50"  # Green 500
+    """Cor primária para ações principais e botões"""
 
-    PRIMARY_DARK: str = "#2E7D32"  # Green 800 (era #388E3C)
-    """Versão escura para hover (ainda maior contraste)"""
+    PRIMARY_DARK: str = "#388E3C"  # Green 700
+    """Versão escura da cor primária (hover states)"""
 
-    PRIMARY_LIGHT: str = "#66BB6A"  # Green 400
-    """Versão clara para estados especiais"""
+    PRIMARY_LIGHT: str = "#81C784"  # Green 300
+    """Versão clara da cor primária"""
 
     ON_PRIMARY: str = "#FFFFFF"  # White
-    """Texto branco sobre verde"""
+    """Cor de texto/símbolos sobre cor primária"""
 
     ON_PRIMARY_DARK: str = "#E0E0E0"  # Gray 200
-    """Texto cinza claro sobre verde escuro"""
+    """Variação escura de ON_PRIMARY"""
 
     # =========================================================================
-    # SECONDARY COLORS (Azul Petróleo - Information/Neutral)
+    # SECONDARY COLORS (Azul - Information)
     # =========================================================================
 
-    SECONDARY: str = "#455A64"  # Blue Grey 700 (era #2196F3 v2.0)
-    """Azul petróleo sóbrio, profissional (8.9:1)"""
+    SECONDARY: str = "#2196F3"  # Blue 500
+    """Cor secundária para informações e ações secundárias"""
 
-    SECONDARY_DARK: str = "#37474F"  # Blue Grey 800
-    """Versão escura para hover"""
+    SECONDARY_DARK: str = "#1976D2"  # Blue 700
+    """Versão escura da cor secundária"""
 
-    SECONDARY_LIGHT: str = "#607D8B"  # Blue Grey 500
-    """Versão clara"""
+    SECONDARY_LIGHT: str = "#64B5F6"  # Blue 300
+    """Versão clara da cor secundária"""
 
     ON_SECONDARY: str = "#FFFFFF"  # White
-    """Texto branco sobre azul petróleo"""
+    """Cor de texto/símbolos sobre cor secundária"""
 
     # =========================================================================
     # SUCCESS COLORS
     # =========================================================================
 
-    SUCCESS: str = "#2E7D32"  # Green 800 (era #2ecc71 v2.0)
-    """Verde escuro vibrante (11.2:1)"""
+    SUCCESS: str = "#2ecc71"  # Emerald
+    """Cor para indicar sucesso (mais vibrante que PRIMARY)"""
 
-    SUCCESS_DARK: str = "#1B5E20"  # Green 900 (era #27ae60)
-    """Versão escura"""
+    SUCCESS_DARK: str = "#27ae60"  # Emerald dark
+    """Versão escura da cor de sucesso"""
 
     # =========================================================================
     # WARNING COLORS
     # =========================================================================
 
-    WARNING: str = "#F57F17"  # Ocre (era #f1c40f v2.0)
-    """Ocre escuro - CORRIGIDO: Agora 7.1:1 (era 3.3:1)"""
+    WARNING: str = "#f1c40f"  # Yellow
+    """Cor para avisos e atenção"""
 
-    WARNING_DARK: str = "#FF8F00"  # Amber 800 (era #f39c12)
-    """Versão escura (mais urgente)"""
+    WARNING_DARK: str = "#f39c12"  # Orange
+    """Versão escura da cor de aviso (mais urgente)"""
 
-    WARNING_LIGHT: str = "#FFB300"  # Amber 600
-    """Versão clara para backgrounds"""
+    WARNING_LIGHT: str = "#FFF9C4"  # Yellow light
+    """Versão clara da cor de aviso (backgrounds)"""
 
     # =========================================================================
     # ERROR COLORS
     # =========================================================================
 
-    ERROR: str = "#C62828"  # Red 800 (era #e74c3c v2.0)
-    """Vermelho escuro - menos agressivo (9.8:1)"""
+    ERROR: str = "#e74c3c"  # Red
+    """Cor para erros e estados críticos"""
 
-    ERROR_DARK: str = "#B71C1C"  # Red 900
-    """Versão escura"""
+    ERROR_DARK: str = "#c0392b"  # Red dark
+    """Versão escura da cor de erro"""
 
-    ERROR_LIGHT: str = "#E57373"  # Red 300
-    """Versão clara para backgrounds"""
+    ERROR_LIGHT: str = "#FFCDD2"  # Red light
+    """Versão clara da cor de erro (backgrounds)"""
 
     # =========================================================================
     # STATUS COLORS (Domínio Específico - Inspeção)
     # =========================================================================
 
-    STATUS_APPROVED_AUTO: str = "#2E7D32"  # Verde escuro
+    STATUS_APPROVED_AUTO: str = "#4CAF50"  # Verde vibrante
     """Status: aprovado automaticamente (algoritmo)"""
 
-    STATUS_APPROVED_USER: str = "#558B2F"  # Oliva (era #CDDC39 v2.0)
-    """Status: aprovado manualmente - CORRIGIDO: Agora 7.8:1 (era 2.8:1)"""
+    STATUS_APPROVED_USER: str = "#CDDC39"  # Verde-amarelo
+    """Status: aprovado manualmente (usuário)"""
 
-    STATUS_REJECTED: str = "#C62828"  # Vermelho escuro (era #F44336)
+    STATUS_REJECTED: str = "#F44336"  # Vermelho
     """Status: reprovado/falha na inspeção"""
 
-    STATUS_PENDING: str = "#757575"  # Cinza médio
+    STATUS_PENDING: str = "#9E9E9E"  # Cinza médio
     """Status: pendente (ainda não inspecionado)"""
 
-    STATUS_IN_PROGRESS: str = "#455A64"  # Azul petróleo (era #2196F3)
+    STATUS_IN_PROGRESS: str = "#2196F3"  # Azul
     """Status: em andamento (inspeção em curso)"""
 
     # =========================================================================
     # NEUTRAL COLORS (Texto, Background, Surface)
     # =========================================================================
-    # Mantidos iguais - já tinham bom contraste
 
     TEXT_PRIMARY: str = "#212121"  # Almost black
     """Cor de texto principal (alto contraste)"""
@@ -140,19 +133,19 @@ class LightThemePalette:
     TEXT_PRIMARY_VARIANT: str = "#757575"  # Gray 600
     """Variação de TEXT_PRIMARY"""
 
-    TEXT_SECONDARY: str = "#616161"  # Gray 700 (era #757575)
-    """Cor de texto secundário - ajustado para melhor contraste"""
+    TEXT_SECONDARY: str = "#757575"  # Medium gray
+    """Cor de texto secundário (menos proeminente)"""
 
-    TEXT_DISABLED: str = "#9E9E9E"  # Gray 500 (era #BDBDBD)
+    TEXT_DISABLED: str = "#BDBDBD"  # Light gray
     """Cor de texto desabilitado"""
 
-    TEXT_HINT: str = "#757575"  # Gray 600
+    TEXT_HINT: str = "#9E9E9E"  # Gray
     """Cor de hint/placeholder text"""
 
     BACKGROUND: str = "#FFFFFF"  # White
     """Cor de fundo principal da aplicação"""
 
-    SURFACE: str = "#FAFAFA"  # Gray 50 (era #F5F5F5)
+    SURFACE: str = "#F5F5F5"  # Light gray
     """Cor de superfície (cards, panels)"""
 
     SURFACE_VARIANT: str = "#EEEEEE"  # Gray 100
@@ -171,8 +164,8 @@ class LightThemePalette:
     BORDER_VARIANT: str = "#EEEEEE"  # Gray 200
     """Variação de borda (mais clara que BORDER)"""
 
-    BORDER_FOCUS: str = "#455A64"  # Blue Grey 700 (era #2196F3)
-    """Cor de borda em estado de focus - atualizado para consistência"""
+    BORDER_FOCUS: str = "#2196F3"  # Blue
+    """Cor de borda em estado de focus"""
 
     # =========================================================================
     # OVERLAY & SPECIAL COLORS
@@ -228,86 +221,81 @@ class DarkThemePalette:
     """
     Paleta de cores para o tema Dark (escuro)
 
-    Atualizado para v2.1: Consistência com light theme.
-
-    Principais mudanças:
-    - SECONDARY: Azul acinzentado consistente (#607D8B)
-    - SUCCESS: Verde vibrante para bom contraste (#4CAF50)
-    - WARNING: Âmbar escuro para visibilidade (#FF8F00)
-    - ERROR: Vermelho suave mantido (#EF5350)
-    - STATUS_APPROVED_USER: Oliva claro (#7CB342)
+    Segue especificação Material Design 3 para tema escuro.
+    Cores otimizadas para reduzir fadiga visual em ambientes escuros.
     """
 
     # =========================================================================
-    # PRIMARY COLORS (Verde - Success/Confirmation)
+    # PRIMARY COLORS (Verde - Success/Action)
     # =========================================================================
+    # No dark mode, cores primárias são levemente mais suaves para evitar glare
 
-    PRIMARY: str = "#66BB6A"  # Green 400
-    """Verde suave para dark theme (7.2:1)"""
+    PRIMARY: str = "#66BB6A"  # Green 400 (mais suave que light theme)
+    """Cor primária para ações principais e botões"""
 
-    PRIMARY_DARK: str = "#43A047"  # Green 700
-    """Versão escura para hover"""
+    PRIMARY_DARK: str = "#43A047"  # Green 600
+    """Versão escura da cor primária (hover states)"""
 
     PRIMARY_LIGHT: str = "#81C784"  # Green 300
-    """Versão clara"""
+    """Versão clara da cor primária"""
 
     ON_PRIMARY: str = "#121212"  # Almost black
-    """Texto escuro sobre verde"""
+    """Cor de texto/símbolos sobre cor primária (invertido no dark)"""
 
     ON_PRIMARY_DARK: str = "#000000"  # Black
-    """Texto preto sobre verde claro"""
+    """Variação escura de ON_PRIMARY (no dark theme)"""
 
     # =========================================================================
-    # SECONDARY COLORS (Azul Acinzentado - Information/Neutral)
+    # SECONDARY COLORS (Azul - Information)
     # =========================================================================
 
-    SECONDARY: str = "#607D8B"  # Blue Grey 500 (era #42A5F5 v2.0)
-    """Azul acinzentado suave (6.8:1)"""
+    SECONDARY: str = "#42A5F5"  # Blue 400 (mais suave)
+    """Cor secundária para informações e ações secundárias"""
 
-    SECONDARY_DARK: str = "#455A64"  # Blue Grey 700
-    """Versão escura para hover"""
+    SECONDARY_DARK: str = "#1E88E5"  # Blue 600
+    """Versão escura da cor secundária"""
 
-    SECONDARY_LIGHT: str = "#78909C"  # Blue Grey 400
-    """Versão clara"""
+    SECONDARY_LIGHT: str = "#64B5F6"  # Blue 300
+    """Versão clara da cor secundária"""
 
     ON_SECONDARY: str = "#121212"  # Almost black
-    """Texto escuro sobre azul"""
+    """Cor de texto/símbolos sobre cor secundária (invertido no dark)"""
 
     # =========================================================================
     # SUCCESS COLORS
     # =========================================================================
 
-    SUCCESS: str = "#4CAF50"  # Green 500
-    """Verde vibrante para bom contraste (5.8:1)"""
+    SUCCESS: str = "#4CAF50"  # Green 500 (mais vibrante no dark)
+    """Cor para indicar sucesso"""
 
     SUCCESS_DARK: str = "#388E3C"  # Green 700
-    """Versão escura"""
+    """Versão escura da cor de sucesso"""
 
     # =========================================================================
     # WARNING COLORS
     # =========================================================================
 
-    WARNING: str = "#FF8F00"  # Amber 600 (era #FFD54F v2.0)
-    """Âmbar escuro para good contraste (5.4:1)"""
+    WARNING: str = "#FFD54F"  # Amber 300 (mais visível em fundo escuro)
+    """Cor para avisos e atenção"""
 
-    WARNING_DARK: str = "#FF6F00"  # Amber 700
-    """Versão escura"""
+    WARNING_DARK: str = "#FFB300"  # Amber 600
+    """Versão escura da cor de aviso"""
 
-    WARNING_LIGHT: str = "#FFA000"  # Amber 500
-    """Versão clara"""
+    WARNING_LIGHT: str = "#FFE082"  # Amber 200
+    """Versão clara da cor de aviso (backgrounds)"""
 
     # =========================================================================
     # ERROR COLORS
     # =========================================================================
 
-    ERROR: str = "#EF5350"  # Red 400
-    """Vermelho suave (5.1:1)"""
+    ERROR: str = "#EF5350"  # Red 400 (mais suave que light)
+    """Cor para erros e estados críticos"""
 
     ERROR_DARK: str = "#E53935"  # Red 700
-    """Versão escura"""
+    """Versão escura da cor de erro"""
 
     ERROR_LIGHT: str = "#EF9A9A"  # Red 200
-    """Versão clara para backgrounds"""
+    """Versão clara da cor de erro (backgrounds)"""
 
     # =========================================================================
     # STATUS COLORS (Domínio Específico - Inspeção)
@@ -316,7 +304,7 @@ class DarkThemePalette:
     STATUS_APPROVED_AUTO: str = "#66BB6A"  # Verde suave
     """Status: aprovado automaticamente (algoritmo)"""
 
-    STATUS_APPROVED_USER: str = "#7CB342"  # Oliva claro (era #D4E157)
+    STATUS_APPROVED_USER: str = "#D4E157"  # Verde-amarelo ajustado
     """Status: aprovado manualmente (usuário)"""
 
     STATUS_REJECTED: str = "#EF5350"  # Vermelho suave
@@ -325,7 +313,7 @@ class DarkThemePalette:
     STATUS_PENDING: str = "#757575"  # Cinza médio
     """Status: pendente (ainda não inspecionado)"""
 
-    STATUS_IN_PROGRESS: str = "#607D8B"  # Azul acinzentado (era #42A5F5)
+    STATUS_IN_PROGRESS: str = "#42A5F5"  # Azul suave
     """Status: em andamento (inspeção em curso)"""
 
     # =========================================================================
@@ -373,8 +361,8 @@ class DarkThemePalette:
     BORDER_VARIANT: str = "#616161"  # Gray 700
     """Variação de borda (igual ao BORDER_DARK no dark theme)"""
 
-    BORDER_FOCUS: str = "#607D8B"  # Blue Grey 500 (era #42A5F5)
-    """Cor de borda em estado de focus - atualizado para consistência"""
+    BORDER_FOCUS: str = "#42A5F5"  # Blue 400
+    """Cor de borda em estado de focus"""
 
     # =========================================================================
     # OVERLAY & SPECIAL COLORS
@@ -418,8 +406,8 @@ class DarkThemePalette:
     ICON_ACTIVE: str = "#E0E0E0"  # Gray 300
     """Cor para ícones ativos/selecionados"""
 
-    LINK: str = "#607D8B"  # Blue Grey 500 (era #42A5F5)
-    """Cor para links e texto clicável - atualizado para consistência"""
+    LINK: str = "#42A5F5"  # Blue 400
+    """Cor para links e texto clicável"""
 
     LINK_VISITED: str = "#AB47BC"  # Purple 400
     """Cor para links visitados"""

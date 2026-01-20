@@ -4,8 +4,8 @@
  * Segue Material Design 3 principles
  * Usa design tokens definidos em design_tokens.py
  *
- * Última atualização: 2026-01-20
- * Versão: 2.1.0 - Cores v2.1: WCAG AA compliance + Minimalismo Industrial
+ * Última atualização: 2026-01-19
+ * Versão: 1.0.0
  */
 
 /* =============================================================================
@@ -53,11 +53,11 @@ QPushButton:disabled {
 
 /* Button Variants (via property) */
 
-/* Primary Green (ações de confirmação/início) - v2.1 */
+/* Primary Green (ações de confirmação/início) */
 QPushButton[variant="primary-green"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #43A047, stop:1 #2E7D32);  /* Green 700-800 */
-    border: 2px solid #2E7D32;  /* Green 800 */
+                                stop:0 {{PRIMARY}}, stop:1 {{PRIMARY_DARK}});
+    border: 2px solid {{SUCCESS}};
     color: white;
     border-radius: 10px;
     font-weight: 500;
@@ -65,14 +65,20 @@ QPushButton[variant="primary-green"] {
 
 QPushButton[variant="primary-green"]:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #66BB6A, stop:1 #43A047);  /* Green 400-700 */
+                                stop:0 {{SUCCESS}}, stop:1 {{PRIMARY}});
 }
 
-/* Primary Blue (ações padrão/genéricas) - v2.1 */
+QPushButton[variant="primary-green"]:disabled {
+    background-color: {{BORDER}};
+    border: 2px solid {{BORDER_DARK}};
+    color: {{TEXT_DISABLED}};
+}
+
+/* Primary Blue (ações padrão/genéricas) */
 QPushButton[variant="primary-blue"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #455A64, stop:1 #37474F);  /* Blue Grey 700-800 */
-    border: 2px solid #37474F;  /* Blue Grey 800 */
+                                stop:0 {{SECONDARY}}, stop:1 {{ON_SECONDARY}});
+    border: 2px solid {{ON_SECONDARY_DARK}};
     color: white;
     border-radius: 10px;
     font-weight: 500;
@@ -80,14 +86,20 @@ QPushButton[variant="primary-blue"] {
 
 QPushButton[variant="primary-blue"]:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #607D8B, stop:1 #455A64);  /* Blue Grey 500-700 */
+                                stop:0 {{SECONDARY_LIGHT}}, stop:1 {{SECONDARY}});
 }
 
-/* Primary Orange (ações de parada/atenção) - v2.1 */
+QPushButton[variant="primary-blue"]:disabled {
+    background-color: {{BORDER}};
+    border: 2px solid {{BORDER_DARK}};
+    color: {{TEXT_DISABLED}};
+}
+
+/* Primary Orange (ações de parada/atenção) */
 QPushButton[variant="primary-orange"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #E65100, stop:1 #BF360C);  /* Orange 900-900 */
-    border: 2px solid #BF360C;  /* Orange 900 */
+                                stop:0 {{WARNING}}, stop:1 {{WARNING_DARK}});
+    border: 2px solid {{WARNING}};
     color: white;
     border-radius: 10px;
     font-weight: 500;
@@ -95,22 +107,27 @@ QPushButton[variant="primary-orange"] {
 
 QPushButton[variant="primary-orange"]:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #FF9800, stop:1 #E65100);  /* Orange 500-900 */
+                                stop:0 {{WARNING_LIGHT}}, stop:1 {{WARNING}});
 }
 
-/* Secondary (outline - ações alternativas/cancelamento) - v2.1 */
+QPushButton[variant="primary-orange"]:disabled {
+    background-color: {{BORDER}};
+    border: 2px solid {{BORDER_DARK}};
+    color: {{TEXT_DISABLED}};
+}
+
+/* Secondary (outline - ações alternativas/cancelamento) */
 QPushButton[variant="secondary"] {
     background-color: transparent;
-    border: 2px solid #455A64;  /* Blue Grey 700 */
-    color: #455A64;
+    border: 2px solid {{SECONDARY}};
+    color: {{SECONDARY}};
     border-radius: 5px;
     font-weight: 500;
 }
 
 QPushButton[variant="secondary"]:hover {
     background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #607D8B, stop:1 #455A64);  /* Blue Grey 500-700 */
-    color: white;
+                                stop:0 {{SECONDARY_LIGHT}}, stop:1 {{SECONDARY}});
 }
 
 QPushButton[variant="secondary"]:disabled {
@@ -119,11 +136,11 @@ QPushButton[variant="secondary"]:disabled {
     color: {{TEXT_DISABLED}};
 }
 
-/* Emergency (emergências físicas - uso raro 1%) - v2.1 */
+/* Emergency (emergências físicas - uso raro 1%) */
 QPushButton[variant="emergency"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #C62828, stop:1 #B71C1C);  /* Red 800-900 */
-    border: 3px solid #B71C1C;  /* Red 900 */
+                                stop:0 {{ERROR}}, stop:1 {{ERROR_DARK}});
+    border: 3px solid {{ERROR_DARK}};
     color: white;
     border-radius: 25px;
     padding: 15px 40px;
@@ -133,7 +150,7 @@ QPushButton[variant="emergency"] {
 
 QPushButton[variant="emergency"]:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
-                                stop:0 #E53935, stop:1 #C62828);  /* Red 700-800 */
+                                stop:0 {{ERROR_LIGHT}}, stop:1 {{ERROR}});
 }
 
 QPushButton[variant="emergency"]:disabled {
