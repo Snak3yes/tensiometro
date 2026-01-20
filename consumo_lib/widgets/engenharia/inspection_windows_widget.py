@@ -114,11 +114,11 @@ class WindowPreviewWidget(QWidget):
 
         # Determine border color based on status
         status_colors = {
-            WindowStatus.NOT_CONFIGURED: "#9E9E9E",  # Gray
-            WindowStatus.CONFIGURED: "#4CAF50",  # Green
-            WindowStatus.CONFIRMED: "#1976D2"  # Blue
+            WindowStatus.NOT_CONFIGURED: COLORS.TEXT_HINT,  # Gray
+            WindowStatus.CONFIGURED: COLORS.PRIMARY,  # Green
+            WindowStatus.CONFIRMED: COLORS.SECONDARY_DARK  # Blue
         }
-        border_color = status_colors.get(window.status, "#9E9E9E")
+        border_color = status_colors.get(window.status, COLORS.TEXT_HINT)
 
         widget.setStyleSheet(f"""
             QWidget {{
