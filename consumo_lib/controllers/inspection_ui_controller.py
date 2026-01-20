@@ -35,6 +35,7 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 from aoi_lib.stencil_inspector import InspectionResult, InspectionThresholds
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 from aoi_lib.inspection_result_viewer import InspectionResultWidget
 from aoi_lib.inspection_flow_service import InspectionFlowService
 from consumo_lib.dialogs import InspectionSettingsDialog
@@ -170,7 +171,7 @@ desde a seleção de arquivos até a exibição de resultados.
         self._gerber_path_input = QLineEdit()
         self._gerber_path_input.setPlaceholderText("Selecione o arquivo Gerber...")
         gerber_layout.addWidget(self._gerber_path_input)
-        btn_browse_gerber = QPushButton("📁")
+        btn_browse_gerber = StandardButton("📁", icon_only=True)
         btn_browse_gerber.clicked.connect(self._browse_gerber)
         gerber_layout.addWidget(btn_browse_gerber)
         files_layout.addRow("Arquivo Gerber:", gerber_layout)
@@ -186,7 +187,7 @@ desde a seleção de arquivos até a exibição de resultados.
             self._mosaic_path_input.setText(last_mosaic)
 
         mosaic_layout.addWidget(self._mosaic_path_input)
-        btn_browse_mosaic = QPushButton("📁")
+        btn_browse_mosaic = StandardButton("📁", icon_only=True)
         btn_browse_mosaic.clicked.connect(self._browse_mosaic)
         mosaic_layout.addWidget(btn_browse_mosaic)
         files_layout.addRow("Imagem Mosaico:", mosaic_layout)
@@ -242,7 +243,7 @@ desde a seleção de arquivos até a exibição de resultados.
         align_layout.addWidget(self._use_alignment_checkbox)
 
         # Botão para configurar alinhamento
-        btn_align = QPushButton("🎯 Configurar Alinhamento de Fiduciais...")
+        btn_align = StandardButton("🎯 Configurar Alinhamento", variant="primary")
         btn_align.clicked.connect(self._open_fiducial_alignment)
         align_layout.addWidget(btn_align)
 
@@ -262,18 +263,17 @@ desde a seleção de arquivos até a exibição de resultados.
         # Botões
         btn_layout = QHBoxLayout()
 
-        btn_settings = QPushButton("⚙️ Parâmetros")
+        btn_settings = StandardButton("⚙️ Parâmetros")
         btn_settings.clicked.connect(lambda: self.show_settings_dialog(inspection_thresholds))
         btn_layout.addWidget(btn_settings)
 
         btn_layout.addStretch()
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = StandardButton("Cancelar")
         btn_cancel.clicked.connect(self._dialog.reject)
         btn_layout.addWidget(btn_cancel)
 
-        btn_run = QPushButton("▶️ Executar Inspeção")
-        btn_run.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
+        btn_run = StandardButton("▶️ Executar Inspeção", variant="primary")
         btn_run.clicked.connect(self.run_inspection)
         btn_layout.addWidget(btn_run)
 
@@ -343,7 +343,7 @@ desde a seleção de arquivos até a exibição de resultados.
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        btn_close = QPushButton("Fechar")
+        btn_close = StandardButton("Fechar")
         btn_close.clicked.connect(dialog.accept)
         btn_layout.addWidget(btn_close)
 

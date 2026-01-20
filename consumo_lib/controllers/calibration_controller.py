@@ -16,6 +16,9 @@ from PyQt6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QMessageBox, QGridLayout
 )
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 # Add project root to path for imports
 import sys
 from pathlib import Path as _Path
@@ -114,7 +117,7 @@ class CalibrationController(QObject):
         # Action buttons
         buttons_layout = QHBoxLayout()
 
-        apply_btn = QPushButton("Aplicar Parâmetros")
+        apply_btn = StandardButton("Aplicar Parâmetros", variant="primary")
 
         def apply_and_close():
             dialog.accept()
@@ -122,10 +125,10 @@ class CalibrationController(QObject):
 
         apply_btn.clicked.connect(apply_and_close)
 
-        test_btn = QPushButton("Testar Calibração")
+        test_btn = StandardButton("Testar Calibração")
         test_btn.clicked.connect(lambda: [dialog.accept(), self.show_test_dialog(parent_widget)])
 
-        cancel_btn = QPushButton("Cancelar")
+        cancel_btn = StandardButton("Cancelar")
         cancel_btn.clicked.connect(dialog.reject)
 
         buttons_layout.addWidget(apply_btn)
@@ -283,13 +286,13 @@ class CalibrationController(QObject):
         # Test buttons
         buttons_layout = QHBoxLayout()
 
-        move_x_btn = QPushButton("Mover X")
+        move_x_btn = StandardButton("Mover X")
         move_x_btn.clicked.connect(lambda: self.test_calibration_move(0, float(distance_input.text())))
 
-        move_y_btn = QPushButton("Mover Y")
+        move_y_btn = StandardButton("Mover Y")
         move_y_btn.clicked.connect(lambda: self.test_calibration_move(1, float(distance_input.text())))
 
-        reset_position_btn = QPushButton("Zerar Posição")
+        reset_position_btn = StandardButton("Zerar Posição")
         reset_position_btn.clicked.connect(self.set_zero_position)
 
         buttons_layout.addWidget(move_x_btn)
@@ -309,7 +312,7 @@ class CalibrationController(QObject):
 
         # Control buttons
         control_layout = QHBoxLayout()
-        close_btn = QPushButton("Concluir")
+        close_btn = StandardButton("Concluir", variant="primary")
         close_btn.clicked.connect(dialog.accept)
         control_layout.addWidget(close_btn)
 

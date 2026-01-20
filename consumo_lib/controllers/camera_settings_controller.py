@@ -17,6 +17,9 @@ from PyQt6.QtWidgets import (
     QSpinBox, QPushButton, QMessageBox, QFileDialog
 )
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 # Add project root to path for imports
 import sys
 from pathlib import Path as _Path
@@ -262,7 +265,7 @@ class CameraSettingsController(QObject):
         self.combo_cam_presets = QComboBox()
         self._load_camera_presets_into_combo()
         sel_row.addWidget(self.combo_cam_presets, 1)
-        btn_load_preset = QPushButton("Carregar")
+        btn_load_preset = StandardButton("Carregar")
         btn_load_preset.clicked.connect(self._load_selected_camera_preset)
         sel_row.addWidget(btn_load_preset)
         presets_layout.addLayout(sel_row)
@@ -272,17 +275,17 @@ class CameraSettingsController(QObject):
         save_row.addWidget(QLabel("Nome:"))
         self.edit_preset_name = QLineEdit()
         save_row.addWidget(self.edit_preset_name, 1)
-        btn_save_preset = QPushButton("Salvar/Atualizar")
+        btn_save_preset = StandardButton("Salvar/Atualizar", variant="primary")
         btn_save_preset.clicked.connect(self._save_current_camera_preset)
         save_row.addWidget(btn_save_preset)
         presets_layout.addLayout(save_row)
 
         # Apply and export
         action_row = QHBoxLayout()
-        btn_apply_now = QPushButton("Aplicar Ajustes")
+        btn_apply_now = StandardButton("Aplicar Ajustes", variant="primary")
         btn_apply_now.clicked.connect(lambda: self._apply_current_camera_settings(cap))
         action_row.addWidget(btn_apply_now)
-        btn_export_preset = QPushButton("Exportar JSON")
+        btn_export_preset = StandardButton("Exportar JSON")
         btn_export_preset.clicked.connect(self._export_current_camera_settings)
         action_row.addWidget(btn_export_preset)
         presets_layout.addLayout(action_row)
@@ -292,19 +295,19 @@ class CameraSettingsController(QObject):
         # ============== BUTTONS ==============
         btn_layout = QHBoxLayout()
 
-        btn_reset = QPushButton("Restaurar Padrão")
+        btn_reset = StandardButton("Restaurar Padrão")
         btn_reset.clicked.connect(lambda: self._reset_camera_props(cap))
         btn_layout.addWidget(btn_reset)
 
-        btn_apply = QPushButton("Aplicar Espelhamento")
+        btn_apply = StandardButton("Aplicar Espelhamento")
         btn_apply.clicked.connect(self._apply_mirror_settings)
         btn_layout.addWidget(btn_apply)
 
-        btn_apply_all = QPushButton("Aplicar Ajustes (Câmera)")
+        btn_apply_all = StandardButton("Aplicar Ajustes (Câmera)", variant="primary")
         btn_apply_all.clicked.connect(lambda: self._apply_current_camera_settings(cap))
         btn_layout.addWidget(btn_apply_all)
 
-        btn_close = QPushButton("Fechar")
+        btn_close = StandardButton("Fechar")
         btn_close.clicked.connect(dialog.accept)
         btn_layout.addWidget(btn_close)
 
