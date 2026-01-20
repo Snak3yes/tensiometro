@@ -18,17 +18,21 @@ class StandardButton(QPushButton):
     Botão padrão com estilo consistente
 
     Usage:
-        >>> btn = StandardButton("Salvar", variant="primary-green")
-        >>> btn = StandardButton("Configurar", variant="primary-blue")
-        >>> btn = StandardButton("Parar", variant="primary-orange")
-        >>> btn = StandardButton("Cancelar", variant="secondary")
-        >>> btn = StandardButton("Excluir", variant="emergency")
-        >>> btn = StandardButton("OK", size="sm")  # Botão pequeno
+        >>> # NOVO (Recomendado - v1.1)
+        >>> btn = StandardButton("Salvar", semantic_size="dialog-primary")
+        >>> btn = StandardButton("Cancelar", semantic_size="dialog-secondary")
+        >>> btn = StandardButton("Home", semantic_size="function-primary")
+        >>>
+        >>> # ANTIGO (Ainda funciona - backward compat)
+        >>> btn = StandardButton("Salvar", size="lg")
+        >>> btn = StandardButton("Configurar", size="md")
+        >>> btn = StandardButton("OK", size="sm")
 
     Args:
         text: Texto do botão
         variant: primary-green | primary-blue | primary-orange | secondary | emergency | outline
-        size: sm | md | lg (tamanho do botão)
+        size: sm | md | lg (tamanho do botão) [DEPRECATED - Use semantic_size]
+        semantic_size: Tamanho semântico baseado em contexto (NOVO v1.1)
         parent: Widget pai
 
     Variants:
@@ -40,25 +44,84 @@ class StandardButton(QPushButton):
         danger: [DEPRECATED] Use emergency instead
         outline: Borda verde, fundo transparente [LEGADO - use secondary]
 
-    Sizes:
+    Semantic Sizes (NOVO v1.1):
+        Dialog Buttons:
+            dialog-primary: 48×120px (Salvar, Confirmar, OK)
+            dialog-secondary: 40×100px (Cancelar, Fechar)
+            dialog-tertiary: 36×90px (Apply, Reset)
+            emergency: 56×140px (STOP, Emergency)
+
+        Movement Buttons:
+            directional: 50×50px (↑, ↓, ←, →)
+            z-axis: 50×35px (Z+, Z-)
+            function-primary: 40×100px (Home, Zero, Go To)
+            function-secondary: 40×90px (Step/Continuous)
+            toggle-status: 44×44px (Backlight, Mode)
+
+        Toolbar Buttons:
+            toolbar-text: 36×120px (Anterior, Próximo)
+            toolbar-icon: 40×40px (Refresh, Clear)
+            toolbar-icon-large: 48×48px (New, Open, Save)
+
+        Inline Buttons:
+            inline-primary: 36px altura (Capturar, Calcular)
+            inline-secondary: 32px altura (Limpar, Reset)
+            inline-compact: 28px altura [CUIDADO: usar com moderação]
+
+        Grid Buttons:
+            grid-action: 44×80px (Edit, Delete, View) [WCAG compliant]
+            grid-status: 24px altura (Badges clicáveis)
+
+    Sizes (Legacy - mantido para backward compatibility):
         sm: (80, 32) - Botão pequeno
         md: (120, 40) - Botão médio (padrão)
         lg: (160, 48) - Botão grande
 
-    Migration Notes (v1.0 → v2.0):
-        - variant="primary" → variant="primary-green"
-        - variant="secondary" (azul sólido) → variant="secondary" (outline azul)
-        - variant="danger" → variant="emergency"
+    Migration Notes (v1.0 → v1.1):
+        - size="lg" → semantic_size="dialog-primary"
+        - size="md" → semantic_size="dialog-secondary"
+        - Use semantic_size para novos códigos (mais claro)
     """
 
-    def __init__(self, text: str, variant: str = "primary-green", size: str = "md", parent=None):
+    # Mapeamento de tamanhos semânticos para (altura, largura_min)
+    SEMANTIC_SIZES = {
+        # Dialog Buttons
+        "dialog-primary": (48, 120),
+        "dialog-secondary": (40, 100),
+        "dialog-tertiary": (36, 90),
+        "emergency": (56, 140),
+
+        # Movement Buttons
+        "directional": (50, 50),
+        "z-axis": (35, 50),
+        "function-primary": (40, 100),
+        "function-secondary": (40, 90),
+        "toggle-status": (44, 44),
+
+        # Toolbar Buttons
+        "toolbar-text": (36, 120),
+        "toolbar-icon": (40, 40),
+        "toolbar-icon-large": (48, 48),
+
+        # Inline Buttons
+        "inline-primary": (36, 80),
+        "inline-secondary": (32, 70),
+        "inline-compact": (28, 60),
+
+        # Grid Buttons
+        "grid-action": (44, 80),
+        "grid-status": (24, 0),  # 0 = auto (largura ajusta ao conteúdo)
+    }
+
+    def __init__(self, text: str, variant: str = "primary-green", size: str = "md", semantic_size: str | None = None, parent=None):
         """
         Inicializa botão padrão
 
         Args:
             text: Texto do botão
             variant: Variant do botão (primary-green|primary-blue|primary-orange|secondary|emergency|outline)
-            size: Tamanho do botão (sm|md|lg)
+            size: [DEPRECATED] Tamanho do botão (sm|md|lg)
+            semantic_size: [NOVO v1.1] Tamanho semântico baseado em contexto
             parent: Widget pai
         """
         super().__init__(text, parent)
@@ -68,7 +131,7 @@ class StandardButton(QPushButton):
             import warnings
             warnings.warn(
                 'variant="primary" is deprecated. Use variant="primary-green" instead. '
-                'Will be removed in v0.5.0',
+                'Will be removed in v0.6.0',
                 DeprecationWarning,
                 stacklevel=2
             )
@@ -87,15 +150,50 @@ class StandardButton(QPushButton):
         font = TYPO.get_font(TYPO.BODY_LARGE, weight=FontWeight.MEDIUM)
         self.setFont(font)
 
-        # Aplicar tamanho (sm/md/lg)
-        if size == "sm":
-            width, height = DIM.BUTTON_SIZE_SM
-        elif size == "lg":
-            width, height = DIM.BUTTON_SIZE_LG
-        else:  # md (default)
-            width, height = DIM.BUTTON_SIZE_MD
+        # Prioridade: semantic_size > size
+        if semantic_size:
+            if semantic_size not in self.SEMANTIC_SIZES:
+                valid_sizes = list(self.SEMANTIC_SIZES.keys())
+                raise ValueError(
+                    f"semantic_size inválido: '{semantic_size}'\n"
+                    f"Valores válidos: {valid_sizes}\n"
+                    f"Veja documentação: docs/design_system/BUTTON_DIMENSIONS_PROPOSAL.md"
+                )
 
-        self.setMinimumSize(width, height)
+            height, min_width = self.SEMANTIC_SIZES[semantic_size]
+
+            # Aplicar dimensões
+            self.setMinimumHeight(height)
+
+            # Ajustes especiais para semantic_size específicos
+            if semantic_size == "directional":
+                # Botões direcionais são sempre quadrados
+                self.setMaximumSize(height, height)
+
+            elif semantic_size in ["toolbar-icon", "toolbar-icon-large", "toggle-status"]:
+                # Botões quadrados
+                self.setMaximumSize(height, height)
+
+            elif semantic_size == "z-axis":
+                # Z-axis tem formato retangular específico
+                self.setMinimumSize(min_width, height)  # min_width=50, height=35
+                self.setMaximumSize(height * 2, height)  # max_width=100, height=35
+
+            else:
+                # Largura padrão
+                if min_width > 0:
+                    self.setMinimumWidth(min_width)
+
+        else:
+            # Fallback para size (sm/md/lg) - BACKWARD COMPAT
+            if size == "sm":
+                width, height = DIM.BUTTON_SIZE_SM
+            elif size == "lg":
+                width, height = DIM.BUTTON_SIZE_LG
+            else:  # md (default)
+                width, height = DIM.BUTTON_SIZE_MD
+
+            self.setMinimumSize(width, height)
 
         # Aplicar variante via property (para stylesheet)
         self.setProperty("variant", variant)
