@@ -11,7 +11,8 @@ from aoi_lib.movement_orchestrator import MovementOrchestrator
 import logging
 
 # Design System imports
-from consumo_lib.ui import TYPO, DIM, COLORS
+from consumo_lib.ui import TYPO, DIM, COLORS, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -105,12 +106,9 @@ class MovementControlWidget(QWidget):
         movement_layout.addWidget(self.z_down_button, 2, 3, 1, 2)
 
         # Botão de Emergency Stop / Reset
-        self.emergency_stop_button = QPushButton("STOP")
+        self.emergency_stop_button = StandardButton("STOP", variant="danger")
         self.emergency_stop_button.setCheckable(True)
         self.emergency_stop_button.setMinimumSize(100, DIM.BUTTON_HEIGHT_MD)
-        font_stop = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
-        self.emergency_stop_button.setFont(font_stop)
-        self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
         self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle)
         movement_layout.addWidget(self.emergency_stop_button, 1, 1, Qt.AlignmentFlag.AlignCenter)
         
@@ -143,15 +141,12 @@ class MovementControlWidget(QWidget):
         self.feed_rate.editingFinished.connect(self._save_step_feed)
 
         # Go to Zero
-        self.go_to_zero_btn = QPushButton("Go to Zero")
+        self.go_to_zero_btn = StandardButton("Go to Zero", variant="primary")
         self.go_to_zero_btn.clicked.connect(self.go_to_zero)
-        self.go_to_zero_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
-        self.go_to_zero_btn.setFont(font)
         movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)
 
         # Go to Position
-        self.go_to_position_btn = QPushButton("Go to Position")
+        self.go_to_position_btn = StandardButton("Go to Position", variant="primary")
         self.go_to_position_btn.setToolTip("Ir para posição de trabalho específica (WPos)")
         self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
         movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
@@ -174,15 +169,15 @@ class MovementControlWidget(QWidget):
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
-        self.mode_absolute = QPushButton("Passo")
+        self.mode_absolute = StandardButton("Passo", variant="secondary")
         self.mode_absolute.setCheckable(True)
         self.mode_absolute.clicked.connect(lambda: self.set_motion_mode("G90"))
-        
-        self.mode_relative = QPushButton("Contínuo")
+
+        self.mode_relative = StandardButton("Contínuo", variant="secondary")
         self.mode_relative.setCheckable(True)
         self.mode_relative.setChecked(True)
         self.mode_relative.clicked.connect(lambda: self.set_motion_mode("G91"))
-        
+
         mode_layout.addWidget(self.mode_absolute)
         mode_layout.addWidget(self.mode_relative)
         movement_layout.addLayout(mode_layout, 5, 0, 1, 3)
@@ -445,7 +440,17 @@ class MovementControlWidget(QWidget):
             result = self.orchestrator.emergency_stop()
             if result.success:
                 self.emergency_stop_button.setText("Reset")
-                self.emergency_stop_button.setStyleSheet("background-color: orange; color: black;")
+                self.emergency_stop_button.setStyleSheet(f"""
+                    QPushButton {{
+                        background-color: {COLORS.WARNING};
+                        color: {COLORS.ON_PRIMARY};
+                        border: none;
+                        border-radius: {DIM.RADIUS_SM}px;
+                        padding: {SPACE.SM}px {SPACE.MD}px;
+                        font-size: {TYPO.BODY_LARGE}px;
+                        font-weight: bold;
+                    }}
+                """)
                 if self.window(): self.window().statusBar().showMessage("Máquina parada.")
             else:
                 QMessageBox.critical(self, "Erro", f"Falha na parada: {result.error_message}")
@@ -455,7 +460,7 @@ class MovementControlWidget(QWidget):
             result = self.orchestrator.unlock()
             if result.success:
                 self.emergency_stop_button.setText("STOP")
-                self.emergency_stop_button.setStyleSheet("background-color: red; color: white;")
+                # StandardButton danger variant handles STOP state
                 if self.window(): self.window().statusBar().showMessage("Máquina desbloqueada.")
             else:
                 QMessageBox.critical(self, "Erro", f"Falha no desbloqueio: {result.error_message}")

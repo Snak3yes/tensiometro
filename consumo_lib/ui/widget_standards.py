@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import (
     QSpinBox, QDoubleSpinBox, QCheckBox, QGroupBox, QWidget
 )
 from PyQt6.QtCore import Qt
-from .design_tokens import ColorPalette, Typography, Dimensions, Spacing
+from .design_tokens import ColorPalette, Typography, Dimensions, Spacing, COLORS, TYPO, DIM, SPACE
 
 
 class StandardButton(QPushButton):
@@ -45,11 +45,11 @@ class StandardButton(QPushButton):
         super().__init__(text, parent)
 
         # Aplicar fonte padrão
-        font = Typography.get_font(Typography.BODY_LARGE, bold=True)
+        font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
         self.setFont(font)
 
         # Aplicar tamanho padrão
-        self.setMinimumHeight(Dimensions.BUTTON_HEIGHT_MD)
+        self.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
 
         # Aplicar variante via property (para stylesheet)
         self.setProperty("variant", variant)
@@ -88,16 +88,16 @@ class StandardLabel(QLabel):
         super().__init__(text, parent)
 
         if variant == "heading":
-            font = Typography.get_font(Typography.TITLE_MEDIUM, bold=True)
+            font = TYPO.get_font(TYPO.TITLE_MEDIUM, bold=True)
             self.setProperty("heading", True)
         elif variant == "subheading":
-            font = Typography.get_font(Typography.BODY_LARGE, bold=True)
+            font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
             self.setProperty("subheading", True)
         elif variant == "caption":
-            font = Typography.get_font(Typography.LABEL_SMALL)
+            font = TYPO.get_font(TYPO.LABEL_SMALL)
             self.setProperty("caption", True)
         else:  # body (default)
-            font = Typography.get_font(Typography.BODY_MEDIUM)
+            font = TYPO.get_font(TYPO.BODY_MEDIUM)
 
         self.setFont(font)
 
