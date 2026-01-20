@@ -387,13 +387,13 @@ class TensionCanvas(QWidget):
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         
         # Fundo branco
-        painter.fillRect(self.rect(), QColor(255, 255, 255))
-        
+        painter.fillRect(self.rect(), COLORS.to_qcolor(COLORS.BACKGROUND))
+
         if not self.measurements:
             # Desenha mensagem quando não há dados
-            painter.setPen(QColor(128, 128, 128))
+            painter.setPen(COLORS.to_qcolor(COLORS.TEXT_HINT))
             painter.drawText(
-                self.rect(), 
+                self.rect(),
                 Qt.AlignmentFlag.AlignCenter,
                 "Carregue um arquivo JSON para visualizar os dados"
             )
@@ -460,12 +460,12 @@ class TensionCanvas(QWidget):
         rect_y = center_y - rect_height / 2
         
         # Desenha borda
-        painter.setPen(QPen(QColor(200, 200, 200), 2))
+        painter.setPen(QPen(COLORS.to_qcolor(COLORS.OUTLINE_VARIANT), 2))
         painter.setBrush(QBrush())  # Sem preenchimento
         painter.drawRect(QRectF(rect_x, rect_y, rect_width, rect_height))
-        
+
         # Desenha grid de referência (opcional)
-        painter.setPen(QPen(QColor(240, 240, 240), 1))
+        painter.setPen(QPen(COLORS.to_qcolor(COLORS.SURFACE_VARIANT), 1))
         
         # Linhas verticais
         for i in range(1, 3):  # Assume grid 3x3
@@ -516,16 +516,16 @@ class TensionCanvas(QWidget):
         
         # Desenha círculo
         point_radius = 20
-        painter.setPen(QPen(QColor(100, 100, 100), 2))
+        painter.setPen(QPen(COLORS.to_qcolor(COLORS.TEXT_SECONDARY), 2))
         painter.setBrush(QBrush(color))
-        
+
         painter.drawEllipse(
-            QPointF(canvas_x, canvas_y), 
+            QPointF(canvas_x, canvas_y),
             point_radius, point_radius
         )
-        
+
         # Desenha texto com valor
-        painter.setPen(QColor(0, 0, 0))
+        painter.setPen(COLORS.to_qcolor(COLORS.TEXT_PRIMARY))
         painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
         
         # Texto centralizado no círculo
@@ -539,7 +539,7 @@ class TensionCanvas(QWidget):
         # Desenha coordenadas menores abaixo
         coord_text = f"({x:.1f},{y:.1f})"
         painter.setFont(QFont("Arial", 6))
-        painter.setPen(QColor(80, 80, 80))
+        painter.setPen(COLORS.to_qcolor(COLORS.TEXT_SECONDARY))
         
         coord_rect = painter.fontMetrics().boundingRect(coord_text)
         coord_x = canvas_x - coord_rect.width() / 2
@@ -558,32 +558,32 @@ class TensionCanvas(QWidget):
         if self.acceptance_criteria:
             result = self.acceptance_criteria.classify(tension)
             if result == 'OK':
-                return QColor(76, 205, 196)  # Verde-azulado (#4ECDC4)
+                return COLORS.to_qcolor(COLORS.SUCCESS)
             elif result == 'WARNING':
-                return QColor(255, 230, 109)  # Amarelo (#FFE66D)
+                return COLORS.to_qcolor(COLORS.WARNING)
             else:  # NOK
-                return QColor(255, 107, 107)  # Vermelho (#FF6B6B)
+                return COLORS.to_qcolor(COLORS.ERROR)
         
         # Fallback: gradiente baseado nos dados
         if tension_range == 0:
-            return QColor(100, 200, 100)  # Verde padrão
-            
+            return COLORS.to_qcolor(COLORS.SUCCESS)
+
         # Normaliza tensão (0-1)
         normalized = (tension - min_tension) / tension_range
-        
+
         # Mapeia para cores: Verde (baixo) -> Amarelo (médio) -> Vermelho (alto)
         if normalized < 0.33:
             # Verde para amarelo
             ratio = normalized * 3
-            return QColor(int(100 + 155 * ratio), 200, int(100 * (1 - ratio)))
+            return QColor.fromRgbF(0.39 + 0.61 * ratio, 0.78, 0.39 * (1 - ratio))
         elif normalized < 0.66:
             # Amarelo para laranja
             ratio = (normalized - 0.33) * 3
-            return QColor(255, int(200 - 50 * ratio), 0)
+            return QColor.fromRgbF(1.0, 0.78 - 0.2 * ratio, 0.0)
         else:
             # Laranja para vermelho
             ratio = (normalized - 0.66) * 3
-            return QColor(255, int(150 * (1 - ratio)), 0)
+            return QColor.fromRgbF(1.0, 0.59 * (1 - ratio), 0.0)
 
 
 
