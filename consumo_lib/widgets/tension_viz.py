@@ -526,19 +526,19 @@ class TensionCanvas(QWidget):
 
         # Desenha texto com valor
         painter.setPen(COLORS.to_qcolor(COLORS.TEXT_PRIMARY))
-        painter.setFont(QFont("Arial", 8, QFont.Weight.Bold))
-        
+        painter.setFont(TYPO.label_small(bold=True))
+
         # Texto centralizado no círculo
         text = f"{tension:.1f}"
         text_rect = painter.fontMetrics().boundingRect(text)
         text_x = canvas_x - text_rect.width() / 2
         text_y = canvas_y + text_rect.height() / 4
-        
+
         painter.drawText(QPointF(text_x, text_y), text)
-        
+
         # Desenha coordenadas menores abaixo
         coord_text = f"({x:.1f},{y:.1f})"
-        painter.setFont(QFont("Arial", 6))
+        painter.setFont(TYPO.LABEL_SMALL)
         painter.setPen(COLORS.to_qcolor(COLORS.TEXT_SECONDARY))
         
         coord_rect = painter.fontMetrics().boundingRect(coord_text)

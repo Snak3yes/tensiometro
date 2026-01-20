@@ -216,7 +216,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         stats_label = QLabel(stats_text)
-        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; font-size: {TYPO.BODY_SMALL}px; color: {COLORS.TEXT_HINT};")
+        stats_label.setStyleSheet(f"font-size: {TYPO.BODY_SMALL}px; color: {COLORS.TEXT_HINT};")
         layout.addWidget(stats_label)
 
         # Placeholder para heatmap (FUTURO)

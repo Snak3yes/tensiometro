@@ -60,7 +60,7 @@ class StencilIdentificationWidget(QWidget):
         self.code_input = QLineEdit()
         self.code_input.setPlaceholderText("Escaneie ou digite o código de barras...")
         self.code_input.setMinimumWidth(250)
-        self.code_input.setFont(QFont("Consolas", 12))
+        self.code_input.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
         input_layout.addWidget(self.code_input, 1)
 
         self.btn_load = QPushButton("🔍 Carregar")

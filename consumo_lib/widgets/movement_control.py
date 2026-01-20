@@ -211,7 +211,6 @@ class MovementControlWidget(QWidget):
                     background-color: #333;
                     color: #0f0;
                     padding: 4px 8px;
-                    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                     font-size: 13px;
                     font-weight: bold;
                     border-radius: 3px;
@@ -226,7 +225,6 @@ class MovementControlWidget(QWidget):
                 background-color: #333;
                 color: #fc0;
                 padding: 4px 8px;
-                font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
                 font-size: 12px;
                 font-weight: bold;
                 border-radius: 3px;

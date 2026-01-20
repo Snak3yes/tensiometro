@@ -113,7 +113,6 @@ class InspectionProgressDialog(QDialog):
                 border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_MD}px;
                 padding: {SPACE.MD}px;
-                font-family: 'Consolas', 'Monaco', monospace;
                 font-size: 11px;
                 color: {COLORS.TEXT_HINT};
             }}
