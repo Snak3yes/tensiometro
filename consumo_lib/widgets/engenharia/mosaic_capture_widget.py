@@ -178,7 +178,7 @@ class MosaicPreviewWidget(QWidget):
         # Estilo
         self.setStyleSheet(f"""
             MosaicPreviewWidget {{
-                background-color: #1e1e1e;
+                background-color: {COLORS.SURFACE};
                 border: 2px solid {COLORS.OUTLINE};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
@@ -212,7 +212,7 @@ class MosaicPreviewWidget(QWidget):
         painter = QPainter(self)
 
         # Background
-        painter.fillRect(self.rect(), QColor("#1e1e1e"))
+        painter.fillRect(self.rect(), COLORS.to_qcolor(COLORS.SURFACE))
 
         if self._mosaic is not None:
             # Converter numpy para QImage
