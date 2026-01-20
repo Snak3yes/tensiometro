@@ -16,7 +16,8 @@ from PyQt6.QtWidgets import (
     QComboBox, QPushButton, QGroupBox, QFrame
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont, QPalette, QColor
+
+from consumo_lib.ui import COLORS, TYPO, SPACE
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +50,11 @@ class StencilSelector(QWidget):
 
         # Label
         label = QLabel("Stencil:")
-        label.setFont(QFont("Arial", 10))
+        label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
 
         # Dropdown
         self._combo = QComboBox()
-        self._combo.setFont(QFont("Arial", 10))
+        self._combo.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
         self._combo.currentTextChanged.connect(self._on_selection_changed)
 
         # Layout
@@ -167,11 +168,11 @@ class ProgramSelector(QWidget):
 
         # Label
         label = QLabel("Programa de Inspeção:")
-        label.setFont(QFont("Arial", 10))
+        label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
 
         # Dropdown
         self._combo = QComboBox()
-        self._combo.setFont(QFont("Arial", 10))
+        self._combo.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
         self._combo.currentTextChanged.connect(self._on_selection_changed)
 
         # Layout
@@ -291,20 +292,20 @@ class InspectionResultsWidget(QWidget):
 
         # GroupBox
         self._group = QGroupBox("Resultado da Inspeção")
-        self._group.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        self._group.setFont(TYPO.get_font(TYPO.LABEL_LARGE, bold=True))
 
         group_layout = QVBoxLayout()
 
         # Label de classificação (OK/NOK)
         self._classification_label = QLabel("---")
         self._classification_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._classification_label.setFont(QFont("Arial", 36, QFont.Weight.Bold))
+        self._classification_label.setFont(TYPO.get_font(TYPO.DISPLAY_LARGE, bold=True))
         self._classification_label.setAutoFillBackground(True)
 
         # Label de métricas
         self._metrics_label = QLabel("Aguardando inspeção...")
         self._metrics_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._metrics_label.setFont(QFont("Arial", 10))
+        self._metrics_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
 
         # Layout
         group_layout.addWidget(self._classification_label)
@@ -322,7 +323,7 @@ class InspectionResultsWidget(QWidget):
         """Define estilo neutro (sem resultado)."""
         self._classification_label.setText("---")
         self._classification_label.setStyleSheet(
-            "background-color: #E0E0E0; color: #808080; padding: 20px; border-radius: 10px;"
+            f"background-color: {COLORS.SURFACE}; color: {COLORS.ON_SURFACE}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
         self._metrics_label.setText("Aguardando inspeção...")
 
@@ -330,14 +331,14 @@ class InspectionResultsWidget(QWidget):
         """Define estilo para resultado APROVADO."""
         self._classification_label.setText("APROVADO")
         self._classification_label.setStyleSheet(
-            "background-color: #4CAF50; color: white; padding: 20px; border-radius: 10px;"
+            f"background-color: {COLORS.SUCCESS}; color: {COLORS.ON_SUCCESS}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
 
     def _set_fail_style(self):
         """Define estilo para resultado REPROVADO."""
         self._classification_label.setText("REPROVADO")
         self._classification_label.setStyleSheet(
-            "background-color: #F44336; color: white; padding: 20px; border-radius: 10px;"
+            f"background-color: {COLORS.ERROR}; color: {COLORS.ON_ERROR}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
 
     def display_results(self, result: Dict[str, Any]):
