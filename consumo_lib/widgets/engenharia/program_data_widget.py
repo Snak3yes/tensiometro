@@ -80,16 +80,16 @@ class ValidatedLineEdit(QLineEdit):
             self.setStyleSheet(f"""
                 QLineEdit {{
                     border: 1px solid {COLORS.SUCCESS};
-                    background-color: #3A3A3A;
-                    color: #FFFFFF;
+                    background-color: {COLORS.SURFACE};
+                    color: {COLORS.ON_BACKGROUND};
                 }}
             """)
         else:
             self.setStyleSheet(f"""
                 QLineEdit {{
                     border: 1px solid {COLORS.ERROR};
-                    background-color: #3A3A3A;
-                    color: #FFFFFF;
+                    background-color: {COLORS.SURFACE};
+                    color: {COLORS.ON_BACKGROUND};
                 }}
             """)
 
@@ -216,8 +216,8 @@ class ProgramDataWidget(QWidget):
         self.field_description.setStyleSheet(f"""
             QTextEdit {{
                 border: 1px solid {COLORS.TEXT_DISABLED};
-                background-color: #3A3A3A;
-                color: #FFFFFF;
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_BACKGROUND};
                 padding: {SPACE.XXS}px;
                 border-radius: {DIM.RADIUS_XS}px;
             }}
