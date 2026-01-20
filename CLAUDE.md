@@ -881,12 +881,295 @@ logger.error("❌ Falha na leitura do tensiômetro")
 
 **LOCALIZAÇÃO**: `consumo_lib/ui/` + `docs/design_system/`
 
-**VERSÃO**: 2.0 (2026-01-20)
+**VERSÃO**: 2.1 (2026-01-20)
 
 **DOCUMENTAÇÃO**:
 - `TYPOGRAPHY_GUIDE.md` - Guia completo de tipografia (Material Design 3)
-- `BUTTON_GUIDE.md` - Guia completo de botões (variants, sizes, usage)
-- `MIGRATION_GUIDE.md` - Guia de migração v1.0 → v2.0
+- `COMPONENTS.md` - Guia completo de componentes base (StandardButton, etc)
+- `TOKENS.md` - Referência completa de tokens (cores, fontes, espaçamentos)
+- `BUTTON_DIMENSIONS_GUIDE.md` - Guia de dimensões semânticas de botões
+- `MIGRATION.md` - Guia de migração para Design System
+
+---
+
+## ⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED
+
+### 🚨 **ZERO TOLERÂNCIA PARA ESTILO INLINE/HARDCODED**
+
+**É COMPLETAMENTE PROIBIDO:**
+
+❌ **Estilo inline** (`.setStyleSheet("...")` direto em widgets)
+❌ **Estilo local** (definir styles no próprio arquivo Python)
+❌ **Estilo hardcoded** (valores mágicos como `"#4CAF50"`, `setMinimumHeight(45)`)
+❌ **Estilo mágico** (números sem contexto ou semântica clara)
+
+---
+
+### ✅ **REGRA OBRIGATÓRIA: CENTRALIZAR TUDO NO DESIGN SYSTEM**
+
+**TODAS as configurações de estilo DEVEM:**
+
+1. **Usar tokens do Design System** (`COLORS.*`, `TYPO.*`, `DIM.*`, `SPACE.*`)
+2. **Usar componentes padronizados** (`StandardButton`, `StandardLabel`, etc)
+3. **Criar novos tokens no Design System** quando necessário**
+4. **Documentar novos tokens** em `design_tokens.py` ou `styles.qss.template`
+
+---
+
+### 🎯 **POR QUE ESSA REGRA É CRÍTICA?**
+
+**Problemas de estilo inline/hardcoded:**
+- ❌ Inconsistência visual (cada developer usa valores diferentes)
+- ❌ Impossível refatoração global (mudar cor = alterar em 100+ arquivos)
+- ❌ Semântica obscura (por que `45px` e não `40px`?)
+- ❌ Viola single source of truth (Design System fica inútil)
+- ❌ Duplicação de código (styles repetidos em toda aplicação)
+- ❌ Manutenção impossível (onde está aquele estilo usado?)
+
+**Benefícios de centralizar no Design System:**
+- ✅ Single source of truth (única fonte de verdade)
+- ✅ Type-safe (constantes, não strings)
+- ✅ Refatoração fácil (alterar token = atualiza toda aplicação)
+- ✅ Intenção clara (semântica embutida no nome do token)
+- ✅ Consistência garantida (todos usam os mesmos valores)
+- ✅ Manutenção simples (um lugar para mudar)
+
+---
+
+### 📋 **EXEMPLOS: O QUE É PROIBIDO VS PERMITIDO**
+
+#### ❌ **PROIBIDO: Estilo Inline**
+
+```python
+# ❌ ERRADO - setStyleSheet inline
+btn = QPushButton("Salvar")
+btn.setStyleSheet("""
+    QPushButton {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 8px 16px;
+        font-size: 14px;
+        font-weight: bold;
+        min-height: 40px;
+    }
+""")
+
+# ❌ ERRADO - Valores hardcoded
+label.setFixedSize(100, 50)  # Por que 100? Por que 50?
+input.setMinimumHeight(45)    # Por que 45? Por que não 40?
+layout.setSpacing(12)         # Por que 12? Não é SPACE.SM (8) nem SPACE.MD (16)
+```
+
+#### ✅ **PERMITIDO: Design System Tokens**
+
+```python
+from consumo_lib.ui import COLORS, TYPO, DIM, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
+
+# ✅ CORRETO - Componente padronizado com tokens semânticos
+btn = StandardButton(
+    "Salvar",
+    variant="primary-green",
+    semantic_size="dialog-primary"  # Semântica clara: dialogo primário
+)
+# Altura: DIM.BUTTON_DIALOG_PRIMARY_HEIGHT (48px)
+# Largura: DIM.BUTTON_DIALOG_PRIMARY_MIN_WIDTH (120px)
+
+# ✅ CORRETO - Font com token semântico
+label.setFont(TYPO.get_font(14, weight=FontWeight.MEDIUM))
+# Semântica: peso MEDIUM (500), uso padrão
+
+# ✅ CORRETO - Espaçamento com token
+layout.setSpacing(SPACE.MD)  # 16px - espaçamento padrão
+layout.setContentsMargins(SPACE.MD, SPACE.MD, SPACE.MD, SPACE.MD)
+```
+
+---
+
+### 🚫 **O QUE FAZER SE PRECISAR DE UM ESTILO ESPECÍFICO?**
+
+Se você precisa de um estilo **NOVO** que não existe no Design System:
+
+**1. Criar novo token em `design_tokens.py`:**
+
+```python
+@dataclass(frozen=True)
+class CustomStyles:
+    """Estilos personalizados para widget específico"""
+
+    # Exemplo: Botão especial de calibração
+    CALIBRATION_BUTTON_HEIGHT: int = 60
+    CALIBRATION_BUTTON_MIN_WIDTH: int = 200
+    CALIBRATION_BUTTON_BG: str = "#FF5722"  # Laranja específica
+
+    # Exemplo: Badge de status customizado
+    STATUS_CALIBRATING_COLOR: str = "#FFA726"  # Laranja
+```
+
+**2. Usar o novo token no código:**
+
+```python
+from consumo_lib.ui.design_tokens import CustomStyles
+
+btn = QPushButton("Calibrar")
+btn.setMinimumHeight(CustomStyles.CALIBRATION_BUTTON_HEIGHT)
+btn.setMinimumWidth(CustomStyles.CALIBRATION_BUTTON_MIN_WIDTH)
+btn.setStyleSheet(f"""
+    QPushButton {{
+        background-color: {CustomStyles.CALIBRATION_BUTTON_BG};
+        color: white;
+    }}
+""")
+```
+
+**3. Documentar o novo token:**
+
+```python
+@dataclass(frozen=True)
+class CustomStyles:
+    """
+    Estilos personalizados para widgets específicos
+
+    NOTA: Estes estilos são exceções justificadas e documentadas.
+    Para código geral, use sempre tokens padrão do Design System.
+    """
+
+    # Calibração - Botão prominente para ações críticas
+    CALIBRATION_BUTTON_HEIGHT: int = 60
+    """Altura do botão de calibração (maior que padrão para destaque)"""
+```
+
+---
+
+### 🎨 **COMO MIGRAR CÓDIGO LEGADO COM ESTILO INLINE**
+
+**Antes (ERRADO):**
+```python
+class LoginDialog(QDialog):
+    def setup_ui(self):
+        btn = QPushButton("Entrar")
+        btn.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 8px 16px;
+                font-size: 14px;
+                font-weight: bold;
+                min-height: 40px;
+            }
+        """)  # ❌ Estilo inline proibido!
+```
+
+**Depois (CORRETO):**
+```python
+from consumo_lib.ui.widget_standards import StandardButton
+
+class LoginDialog(QDialog):
+    def setup_ui(self):
+        btn = StandardButton(
+            "Entrar",
+            variant="primary-green",
+            semantic_size="dialog-primary"  # ✅ Centralizado no Design System
+        )  # ✅ Sem setStyleSheet, sem hardcoded values
+```
+
+---
+
+### 🔍 **COMO IDENTIFICAR VIOLAÇÕES**
+
+**Padrões proibidos:**
+- `.setStyleSheet("...")` → **PROIBIDO**
+- Valores hex hardcoded: `#4CAF50`, `#FFFFFF`, `#212121` → **PROIBIDO**
+- Números mágicos: `setMinimumHeight(45)`, `setFixedSize(100, 50)` → **PROIBIDO**
+- QFont manual: `QFont("Arial", 14, QFont.Bold)` → **PROIBIDO** (use `TYPO.get_font`)
+
+**Padrões permitidos:**
+- `COLORS.PRIMARY`, `COLORS.ERROR`, etc. → **OBRIGATÓRIO**
+- `DIM.BUTTON_HEIGHT_MD`, `DIM.BUTTON_DIALOG_PRIMARY_HEIGHT` → **OBRIGATÓRIO**
+- `SPACE.MD`, `SPACE.LG` → **OBRIGATÓRIO**
+- `StandardButton(...)`, `StandardLabel(...)` → **OBRIGATÓRIO**
+
+---
+
+### 📌 **COMO APLICAR ESTA REGRA EM ARQUIVOS UI**
+
+**Adicione este comentário DESTACADO no topo de arquivos que trabalham com UI:**
+
+```python
+"""
+Módulo de widgets da aplicação Tensiometro.
+
+⚠️⚠️⚠️ REGRA CRÍTICA: DESIGN SYSTEM ⚠️⚠️⚠️
+
+É COMPLETAMENTE PROIBIDO:
+❌ Estilo inline (.setStyleSheet)
+❌ Estilo local (definir styles neste arquivo)
+❌ Estilo hardcoded (valores mágicos sem semântica)
+❌ Estilo mágico (números sem contexto claro)
+
+TODOS os estilos DEVEM ser centralizados no Design System:
+✅ Use tokens: COLORS.*, TYPO.*, DIM.*, SPACE.*
+✅ Use componentes: StandardButton, StandardLabel, etc.
+✅ Precisa de estilo novo? Crie token em design_tokens.py
+✅ Sem exceções. Esta regra NÃO pode ser burlada.
+
+Violations will be rejected in code review.
+"""
+
+from PyQt6.QtWidgets import QWidget, QVBoxLayout
+from consumo_lib.ui import COLORS, TYPO, DIM, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
+```
+
+---
+
+**POR QUE ESTA REGRA EXISTE:**
+
+1. **Consistência visual:** Garante que toda aplicação tem a mesma aparência
+2. **Manutenibilidade:** Um lugar para mudar (não 100 arquivos)
+3. **Refatoração:** Mudar cor/fonte/tamanho = alterar token, não arquivo por arquivo
+4. **Semântica:** Tokens têm nomes que explicam intenção (`dialog-primary` vs `45`)
+5. **Single Source of Truth:** Design System é a única fonte de verdade para estilos
+
+---
+
+### 🎓 **EXCEPÇÕES (MUITO RARAS E JUSTIFICADAS)**
+
+Exceções precisam ser:
+1. **Documentadas** em `design_tokens.py`
+2. **Aprovadas** em code review
+3. **Justificadas** com motivo técnico claro
+4. **Planejadas** para migração futura ao Design System
+
+Exemplo de exceção justificada:
+```python
+# EM design_tokens.py - exceção documentada
+@dataclass(frozen=True)
+class TemporaryMigrationTokens:
+    """
+    Tokens temporários para migração gradual de código legado.
+
+    ATENÇÃO: Estes tokens são EXCEÇÕES e serão removidos após migração.
+    Não use estes tokens em código novo.
+    """
+    LEGACY_BUTTON_HEIGHT: int = 45  # Será removido em v0.6.0
+```
+
+---
+
+**Resumo da Regra:**
+
+> **"TODO estilo deve vir do Design System. Estilo inline/hardcoded é crime contra a manutenibilidade."**
+
+Se você precisa de um estilo específico, crie um token. Se o estilo é para um widget específico, crie um componente padronizado. Se o estilo é temporário, documente e planeje migração.
+
+**Essa regra não é negociável.** Violations will be rejected in code review.
+
+---
 
 **Por que usar Design System**:
 - ✅ Single source of truth para cores, fontes, espaçamentos

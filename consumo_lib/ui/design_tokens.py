@@ -10,6 +10,27 @@ Theme Support:
     - Este arquivo agora suporta múltiplos temas (light, dark, system)
     - Use COLORS dinâmico que carrega a paleta do tema atual
     - Para mudar tema: use ThemeManager.set_theme("dark")
+
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+ESTE ARQUIVO É A ÚNICA FONTE DE VERDADE PARA ESTILOS.
+
+❌ COMPLETAMENTE PROIBIDO em qualquer lugar da aplicação:
+   - Estilo inline (.setStyleSheet)
+   - Estilo local (definir styles em arquivos Python)
+   - Estilo hardcoded (valores mágicos como "#4CAF50", setMinimumHeight(45))
+   - Estilo mágico (números sem contexto ou semântica clara)
+
+✅ SEMPRE USE TOKENS DESTE ARQUIVO:
+   - COLORS.* (cores)
+   - TYPO.* (fontes e pesos)
+   - DIM.* (dimensões)
+   - SPACE.* (espaçamentos)
+
+Se precisa de estilo novo, adicione AQUI e documente.
+Violations will be rejected in code review.
+
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
 """
 
 from dataclasses import dataclass

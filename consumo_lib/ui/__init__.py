@@ -1,4 +1,27 @@
 """
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+Design System - Fonte ÚNICA de Verdade para Estilos
+
+❌ COMPLETAMENTE PROIBIDO em qualquer lugar da aplicação:
+   - .setStyleSheet() inline em código Python (use styles.qss.template + widget_standards.py)
+   - Estilo local (definir styles em arquivos Python fora deste módulo ui/)
+   - Estilo hardcoded (valores mágicos como "#4CAF50", setMinimumHeight(45))
+   - Estilo mágico (números sem contexto ou semântica clara)
+
+✅ SEMPRE USE ESTE MÓDULO PARA TUDO RELACIONADO A UI:
+   - from consumo_lib.ui import COLORS, TYPO, SPACE, DIM (design tokens)
+   - from consumo_lib.ui.widget_standards import StandardButton, StandardLabel, etc.
+   - from consumo_lib.ui.theme_manager import init_theme_manager (aplicar stylesheet global)
+
+✅ SE PRECISA DE ESTILO NOVO:
+   - Para componentes: Crie classe herdada de widget_standards.py
+   - Para tokens: Adicione em design_tokens.py
+   - Para estilos globais: Adicione em styles.qss.template usando {{TOKEN}}
+
+⚠️ ESTA REGRA NÃO PODE SER BURLADA - Code review irá rejeitar violações
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
+
 Design System - Tensiometro
 
 Este módulo contém o sistema de design tokens, componentes base e

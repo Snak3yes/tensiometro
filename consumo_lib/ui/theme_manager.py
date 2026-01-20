@@ -1,4 +1,28 @@
 """
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+Este arquivo GERENCIA temas e estilos globais centralizados.
+
+❌ COMPLETAMENTE PROIBIDO em qualquer lugar da aplicação:
+   - .setStyleSheet() inline em código Python
+   - Estilo local (definir styles em arquivos Python fora deste módulo)
+   - Estilo hardcoded (valores mágicos como "#4CAF50", setMinimumHeight(45))
+   - Estilo mágico (números sem contexto ou semântica clara)
+
+✅ SEMPRE USE:
+   - ThemeManager.init_theme_manager() para aplicar estilos globais
+   - tokens COLORS.*, TYPO.*, DIM.*, SPACE.* do Design System
+   - componentes de widget_standards.py para componentes UI
+
+✅ ESTE ARQUIVO:
+   - Carrega styles.qss.template (stylesheet global único)
+   - Aplica stylesheet global via QApplication.setStyleSheet()
+   - Gerencia temas (light/dark/system) com tokens atualizados dinamicamente
+   - Atualiza ColorPalette (COLORS) quando tema muda
+
+⚠️ ESTA REGRA NÃO PODE SER BURLADA - Code review irá rejeitar violações
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
+
 Gerenciador de Temas - Tensiometro
 
 Gerencia aplicação de temas e estilos globais com suporte a:

@@ -2,6 +2,17 @@
 Widget Base Padrão para o Tensiometro
 
 Fornece classes base com estilos consistentes para todos os componentes UI.
+
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+Este arquivo FORNECE COMPONENTES com estilos pré-aplicados do Design System.
+❌ NUNCA use .setStyleSheet() ou valores hardcoded nestes componentes.
+✅ SEMPRE use tokens: COLORS.*, TYPO.*, DIM.*, SPACE.*
+✅ Se precisa de estilo novo, use widget_standards.py como modelo ou crie token em design_tokens.py.
+
+Violations will be rejected in code review.
+
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
 """
 
 from PyQt6.QtWidgets import (

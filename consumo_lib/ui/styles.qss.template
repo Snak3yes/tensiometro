@@ -1,3 +1,29 @@
+/* =============================================================================
+   ⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+   ESTE ARQUIVO É A ÚNICA FONTE DE VERDADE PARA ESTILOS QSS/GLOBAIS.
+
+   ❌ COMPLETAMENTE PROIBIDO em qualquer lugar da aplicação:
+      - .setStyleSheet() inline em código Python
+      - Valores hardcoded de cores (#4CAF50, #e74c3c, etc.)
+      - Valores hardcoded de fontes (14px, bold, etc.)
+      - Valores hardcoded de espaçamento (8px, 16px, etc.)
+      - Qualquer estilo que NÃO esteja centralizado aqui
+
+   ✅ SEMPRE USE ESTE ARQUIVO PARA ESTILOS GLOBAIS:
+      - Defina estilos globais AQUI usando placeholders {{TOKEN}}
+      - Placeholders são substituídos por design_tokens.py em runtime
+      - Para estilos específicos de componentes, use widget_standards.py
+
+   ✅ SE PRECISA DE ESTILO NOVO:
+      - Adicione ESTE arquivo usando placeholder {{TOKEN}}
+      - Crie token correspondente em design_tokens.py
+      - Documente o propósito do estilo
+
+   ⚠️ ESTA REGRA NÃO PODE SER BURLADA - Code review irá rejeitar violações
+   ⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
+   ============================================================================= */
+
 /**
  * Qt Style Sheet Global - Tensiometro
  *
