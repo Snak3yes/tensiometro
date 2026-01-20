@@ -427,14 +427,13 @@ class InspectionHistoryDialog(QDialog):
 
     def _get_classification_color(self, classification: str):
         """Retorna cor da classificação"""
-        from PyQt6.QtGui import QColor
         if classification in ["OK", "PASS"]:
-            return QColor("#10B981")
+            return COLORS.to_qcolor(COLORS.SUCCESS)
         elif classification == "WARNING":
-            return QColor("#F59E0B")
+            return COLORS.to_qcolor(COLORS.WARNING)
         elif classification in ["NOK", "FAIL"]:
-            return QColor("#EF4444")
-        return QColor("#374151")
+            return COLORS.to_qcolor(COLORS.ERROR)
+        return COLORS.to_qcolor(COLORS.TEXT_SECONDARY)
 
     def export_to_csv(self):
         """Exporta tabela para CSV"""
