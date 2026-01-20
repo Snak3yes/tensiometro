@@ -59,7 +59,7 @@ from consumo_lib.ui.widget_standards import StandardButton as Btn
 
 ## StandardButton
 
-Botão padrão com 4 variantes de estilo.
+Botão padrão com variantes de estilo e **tamanhos semânticos** (v1.1).
 
 ### Importar
 
@@ -67,77 +67,152 @@ Botão padrão com 4 variantes de estilo.
 from consumo_lib.ui.widget_standards import StandardButton
 ```
 
-### Variantes Disponíveis
+### Variantes de Cor Disponíveis
 
 | Variante | Cor Hex | Uso |
 |----------|---------|-----|
-| `primary` | `#4CAF50` (verde) | Ações principais (salvar, confirmar) |
-| `secondary` | `#2196F3` (azul) | Ações secundárias (cancelar, voltar) |
-| `danger` | `#F44336` (vermelho) | Ações destrutivas (excluir, reset) |
-| `outline` | Borda verde | Ações terciárias (menos importantes) |
+| `primary-green` | `#43A047` (verde) | Ações principais de confirmação/início |
+| `primary-blue` | `#455A64` (azul petróleo) | Ações padrão/genéricas |
+| `primary-orange` | `#E65100` (laranja) | Ações de parada/atenção |
+| `secondary` | Transparente + borda azul | Ações alternativas/cancelamento |
+| `emergency` | `#C62828` (vermelho) | Emergências físicas (uso raro 1%) |
+| `danger` | `[DEPRECATED]` | Use `emergency` instead |
+| `outline` | Borda verde `[LEGADO]` | Use `secondary` no futuro |
+
+### Tamanhos Semânticos (NOVO v1.1)
+
+#### Quando usar cada `semantic_size`:
+
+| semantic_size | Dimensões | Uso Típico |
+|---------------|-----------|-------------|
+| **Dialog Buttons** |||
+| `dialog-primary` | 48×120px | Salvar, Confirmar, OK (ação principal) |
+| `dialog-secondary` | 40×100px | Cancelar, Fechar (ação secundária) |
+| `dialog-tertiary` | 36×90px | Apply, Reset (ação terciária) |
+| `emergency` | 56×140px | STOP, Emergency (prominente) |
+| **Movement Buttons** |||
+| `directional` | 50×50px (quadrado) | ↑, ↓, ←, → (controles direcionais) |
+| `z-axis` | 50×35px (retangular) | Z+, Z- (eixo Z) |
+| `function-primary` | 40×100px | Home, Zero, Go To (funções críticas) |
+| `function-secondary` | 40×90px | Step/Continuous, Toggle (funções auxiliares) |
+| `toggle-status` | 44×44px (quadrado) | Backlight, Mode (toggle de estado) |
+| **Toolbar Buttons** |||
+| `toolbar-text` | 36×120px | Anterior, Próximo (texto + ícone opcional) |
+| `toolbar-icon` | 40×40px (quadrado) | Refresh, Clear (ícone apenas) |
+| `toolbar-icon-large` | 48×48px (quadrado) | New, Open, Save (ícone grande) |
+| **Inline Buttons** |||
+| `inline-primary` | 36px altura | Capturar, Calcular (ação em formulário) |
+| `inline-secondary` | 32px altura | Limpar, Reset (ação auxiliar) |
+| `inline-compact` | 28px altura `[CUIDADO]` | Edit, Delete em tabelas (uso moderado) |
+| **Grid Buttons** |||
+| `grid-action` | 44×80px | Edit, Delete, View (WCAG 2.5.5 compliant) |
+| `grid-status` | 24px altura | Badges clicáveis de status |
 
 ### API
 
 ```python
-StandardButton(text: str, variant: str = "primary", parent=None)
+StandardButton(
+    text: str,
+    variant: str = "primary-green",
+    size: str = "md",                    # [DEPRECATED - Use semantic_size]
+    semantic_size: str | None = None,   # [NOVO v1.1 - Recomendado]
+    parent=None
+)
 ```
 
 **Parâmetros**:
 - `text`: Texto do botão
-- `variant`: `"primary"` | `"secondary"` | `"danger"` | `"outline"`
+- `variant`: `"primary-green"` | `"primary-blue"` | `"primary-orange"` | `"secondary"` | `"emergency"`
+- `size`: `[DEPRECATED]` `"sm"` | `"md"` | `"lg"` (use `semantic_size` para código novo)
+- `semantic_size`: `[NOVO v1.1]` Ver tabela acima (ex: `"dialog-primary"`, `"directional"`)
 - `parent`: Widget pai (opcional)
 
 ### Estilo Aplicado Automaticamente
 
-- Font: `TYPO.BODY_LARGE` (16px, bold)
-- Altura mínima: `DIM.BUTTON_HEIGHT_MD` (40px)
-- Padding: `SPACE.SM` (8px) vertical, `SPACE.LG` (24px) horizontal
-- Border radius: `DIM.RADIUS_MD` (8px)
+- Font: `TYPO.BODY_LARGE` (16px, weight=MEDIUM)
+- Altura e largura: Baseado em `semantic_size` ou `size`
+- Padding: Ajustado automaticamente para cada tamanho
+- Border radius: Ajustado automaticamente (4-10px dependendo da variante)
 - Cores via stylesheet global (styles.qss)
 
 ### Exemplos de Uso
 
-#### Botão Primário (Ação Principal)
+#### Botão Primário de Dialog (NOVO v1.1 - Recomendado)
 
 ```python
 from consumo_lib.ui.widget_standards import StandardButton
 
-# Botão de salvar
-btn_save = StandardButton("Salvar", variant="primary")
+# Botão de salvar (diálogo principal)
+btn_save = StandardButton(
+    "Salvar",
+    variant="primary-green",
+    semantic_size="dialog-primary"  # 48×120px
+)
 btn_save.clicked.connect(self.on_save)
 layout.addWidget(btn_save)
+
+# Botão de cancelar (diálogo secundário)
+btn_cancel = StandardButton(
+    "Cancelar",
+    variant="secondary",
+    semantic_size="dialog-secondary"  # 40×100px
+)
+btn_cancel.clicked.connect(dialog.reject)
+layout.addWidget(btn_cancel)
 ```
 
-#### Botões de Ação (Dialog)
+#### Botão de Movimento (NOVO v1.1)
 
 ```python
-# Botões de Confirmar/Cancelar
-btn_confirm = StandardButton("Confirmar", variant="primary")
-btn_cancel = StandardButton("Cancelar", variant="secondary")
+from consumo_lib.ui import DIM
+
+# Botão direcional (50×50px - quadrado)
+up_btn = QPushButton("↑")
+up_btn.setMinimumSize(
+    DIM.BUTTON_DIRECTIONAL_SIZE,
+    DIM.BUTTON_DIRECTIONAL_SIZE
+)
+layout.addWidget(up_btn)
+
+# Botão Z-axis (50×35px - retangular)
+z_up_btn = QPushButton("Z+")
+z_up_btn.setMinimumSize(
+    DIM.BUTTON_Z_AXIS_WIDTH,
+    DIM.BUTTON_Z_AXIS_HEIGHT
+)
+layout.addWidget(z_up_btn)
+```
+
+#### Botão de Toolbar (NOVO v1.1)
+
+```python
+# Botão com texto (36×120px)
+new_btn = QPushButton("Novo")
+new_btn.setMinimumHeight(DIM.BUTTON_TOOLBAR_TEXT_HEIGHT)
+new_btn.setMinimumWidth(DIM.BUTTON_TOOLBAR_TEXT_MIN_WIDTH)
+layout.addWidget(new_btn)
+
+# Botão ícone (40×40px - quadrado)
+refresh_btn = QPushButton("🔄")
+refresh_btn.setFixedSize(
+    DIM.BUTTON_TOOLBAR_ICON_SIZE,
+    DIM.BUTTON_TOOLBAR_ICON_SIZE
+)
+layout.addWidget(refresh_btn)
+```
+
+#### Botões de Ação (Dialog) - LEGADO (Ainda funciona)
+
+```python
+# Botões de Confirmar/Cancelar (com size legado)
+btn_confirm = StandardButton("Confirmar", size="lg")    # 160×48px
+btn_cancel = StandardButton("Cancelar", size="md")     # 120×40px
 
 btn_confirm.clicked.connect(dialog.accept)
 btn_cancel.clicked.connect(dialog.reject)
 
 button_layout.addWidget(btn_confirm)
 button_layout.addWidget(btn_cancel)
-```
-
-#### Botão Perigoso (Ação Destrutiva)
-
-```python
-# Botão de excluir
-btn_delete = StandardButton("Excluir", variant="danger")
-btn_delete.clicked.connect(self.on_delete)
-layout.addWidget(btn_delete)
-```
-
-#### Botão Terciário (Menos Importante)
-
-```python
-# Botão de ação secundária
-btn_details = StandardButton("Ver Detalhes", variant="outline")
-btn_details.clicked.connect(self.show_details)
-layout.addWidget(btn_details)
 ```
 
 ### Estados Interativos
@@ -1142,5 +1217,5 @@ label = StandardLabel("Texto", variant="heading")
 
 ---
 
-**Última atualização**: 2026-01-19
-**Versão**: 1.0.0
+**Última atualização**: 2026-01-20
+**Versão**: 1.1.0 - Semantic Button Sizes
