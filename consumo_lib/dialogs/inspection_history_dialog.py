@@ -230,7 +230,7 @@ class InspectionHistoryDialog(QDialog):
                 {TYPO.BODY_SMALL};
                 font-weight: 600;
                 border: none;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
                 padding: {SPACE.XS}px {SPACE.SM}px;
             }}
             QPushButton:hover {{
@@ -248,7 +248,7 @@ class InspectionHistoryDialog(QDialog):
                 {TYPO.BODY_SMALL};
                 font-weight: 600;
                 border: none;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
                 padding: {SPACE.XS}px {SPACE.SM}px;
             }}
             QPushButton:hover {{

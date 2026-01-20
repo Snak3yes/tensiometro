@@ -219,7 +219,7 @@ class ProgramDataWidget(QWidget):
                 background-color: {COLORS.SURFACE};
                 color: {COLORS.TEXT_PRIMARY};
                 padding: {SPACE.XS}px;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
             }}
         """)
         form_layout.addRow("Descrição:", self.field_description)

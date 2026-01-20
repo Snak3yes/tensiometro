@@ -635,7 +635,7 @@ class AlignmentWidget(QWidget):
                 {TYPO.BODY_MEDIUM};
                 font-weight: bold;
                 padding: {SPACE.SM}px;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
             }}
             QPushButton:hover {{
                 background-color: {COLORS.WARNING_DARK};
@@ -658,7 +658,7 @@ class AlignmentWidget(QWidget):
                 color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM};
                 padding: {SPACE.SM}px;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
             }}
             QPushButton:hover {{
                 background-color: {COLORS.TEXT_HINT};
@@ -675,7 +675,7 @@ class AlignmentWidget(QWidget):
                 {TYPO.BODY_MEDIUM};
                 font-weight: bold;
                 padding: {SPACE.SM}px;
-                border-radius: {DIM.RADIUS_XS}px;
+                border-radius: {DIM.RADIUS_SM}px;
             }}
             QPushButton:hover {{
                 background-color: {COLORS.PRIMARY_DARK};
