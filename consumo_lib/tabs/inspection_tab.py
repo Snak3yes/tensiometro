@@ -12,6 +12,7 @@ from PyQt6.QtCore import pyqtSignal
 
 from .base_tab import BaseTab
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -66,11 +67,11 @@ class InspectionTab(BaseTab):
         # Botões placeholder
         btn_layout = QHBoxLayout()
 
-        btn_settings = QPushButton("⚙️ Configurar Parâmetros")
+        btn_settings = StandardButton("⚙️ Configurar Parâmetros")
         btn_settings.clicked.connect(self._on_settings)
         btn_layout.addWidget(btn_settings)
 
-        btn_inspect = QPushButton("🔍 Executar Inspeção")
+        btn_inspect = StandardButton("🔍 Executar Inspeção", variant="primary")
         btn_inspect.setEnabled(False)
         btn_inspect.clicked.connect(self._on_inspect)
         btn_layout.addWidget(btn_inspect)

@@ -30,6 +30,7 @@ import numpy as np
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 # Import para criar MovementControlWidget na aba 3
 from consumo_lib.widgets.movement_control import MovementControlWidget
@@ -203,8 +204,8 @@ class FiducialCaptureWidget(QWidget):
         # Seletor de fiducial
         controls_layout.addWidget(QLabel("Fiducial:"))
         self.fiducial_selector = QGridLayout()
-        self.btn_fid1 = QPushButton("Fiducial 1")
-        self.btn_fid2 = QPushButton("Fiducial 2")
+        self.btn_fid1 = StandardButton("Fiducial 1")
+        self.btn_fid2 = StandardButton("Fiducial 2")
         self.btn_fid1.setCheckable(True)
         self.btn_fid2.setCheckable(True)
         self.btn_fid1.setChecked(True)

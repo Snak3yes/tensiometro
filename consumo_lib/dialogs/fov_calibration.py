@@ -12,6 +12,7 @@ from PyQt6.QtCore import Qt
 
 from aoi_lib.fov_calibration import FOVCalibration
 from consumo_lib.ui import COLORS, TYPO, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 import logging
 
 log = logging.getLogger(__name__)
@@ -93,11 +94,11 @@ class FOVCalibrationDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        btn_save = QPushButton("Salvar")
+        btn_save = StandardButton("Salvar", variant="primary")
         btn_save.clicked.connect(self._save)
         btn_layout.addWidget(btn_save)
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = StandardButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 

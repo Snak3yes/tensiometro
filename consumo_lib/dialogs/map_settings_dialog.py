@@ -23,6 +23,7 @@ from PyQt6.QtWidgets import (
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO
+from consumo_lib.ui.widget_standards import StandardButton
 
 # Add project root to path for imports
 import sys
@@ -150,15 +151,15 @@ class MapSettingsDialog(QDialog):
         # Management buttons
         btn_programs_layout = QHBoxLayout()
 
-        btn_load_program = QPushButton("📂 Carregar")
+        btn_load_program = StandardButton("📂 Carregar")
         btn_load_program.clicked.connect(self._on_load_clicked)
         btn_programs_layout.addWidget(btn_load_program)
 
-        btn_delete_program = QPushButton("🗑️ Excluir")
+        btn_delete_program = StandardButton("🗑️ Excluir", variant="danger")
         btn_delete_program.clicked.connect(self._on_delete_clicked)
         btn_programs_layout.addWidget(btn_delete_program)
 
-        btn_refresh_programs = QPushButton("🔄")
+        btn_refresh_programs = StandardButton("🔄")
         btn_refresh_programs.setMaximumWidth(40)
         btn_refresh_programs.clicked.connect(self._on_refresh_clicked)
         btn_programs_layout.addWidget(btn_refresh_programs)
@@ -186,7 +187,7 @@ class MapSettingsDialog(QDialog):
         h1.addWidget(self.map_program_name_edit)
 
         # Save program button
-        btn_save_program = QPushButton("💾 Salvar")
+        btn_save_program = StandardButton("💾 Salvar", variant="primary")
         btn_save_program.clicked.connect(self.save_requested.emit)
         h1.addWidget(btn_save_program)
         layout.addLayout(h1)
@@ -200,7 +201,7 @@ class MapSettingsDialog(QDialog):
             "Estrutura: [Pasta]/[Nome do Programa]/Imagens/"
         )
         h2.addWidget(self.map_folder_edit)
-        btn_browse = QPushButton("Buscar…")
+        btn_browse = StandardButton("Buscar…")
         btn_browse.clicked.connect(self._on_folder_browse)
         h2.addWidget(btn_browse)
         layout.addLayout(h2)
@@ -231,16 +232,16 @@ class MapSettingsDialog(QDialog):
         layout.addWidget(self._create_capture_group())
 
         # Corner definition buttons
-        btn_origin = QPushButton("Definir canto inferior esquerdo")
+        btn_origin = StandardButton("Definir canto inferior esquerdo")
         btn_origin.clicked.connect(lambda: self.corner_define_requested.emit('origin'))
         layout.addWidget(btn_origin)
 
-        btn_end = QPushButton("Definir canto superior direito")
+        btn_end = StandardButton("Definir canto superior direito")
         btn_end.clicked.connect(lambda: self.corner_define_requested.emit('end'))
         layout.addWidget(btn_end)
 
         # Generate map button
-        btn_generate = QPushButton("🔧 Gerar Mapa de Imagens")
+        btn_generate = StandardButton("🔧 Gerar Mapa de Imagens")
         btn_generate.setMinimumHeight(40)
         btn_generate.clicked.connect(self.generate_requested.emit)
         layout.addWidget(btn_generate)

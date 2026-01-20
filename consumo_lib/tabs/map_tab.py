@@ -12,6 +12,7 @@ from PyQt6.QtCore import pyqtSignal
 
 from .base_tab import BaseTab
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +65,12 @@ class MapTab(BaseTab):
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        btn_define = QPushButton("📐 Definir Mapa")
+        btn_define = StandardButton("📐 Definir Mapa")
         btn_define.setToolTip("Abre diálogo para definir cantos e gerar programa de mapa")
         btn_define.clicked.connect(self._on_define_map)
         btn_layout.addWidget(btn_define)
 
-        btn_mosaic = QPushButton("🖼️ Montar Mosaico")
+        btn_mosaic = StandardButton("🖼️ Montar Mosaico")
         btn_mosaic.setToolTip("Abre o Mosaic Builder para montar imagens capturadas")
         btn_mosaic.clicked.connect(self._on_mosaic_builder)
         btn_layout.addWidget(btn_mosaic)

@@ -21,6 +21,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 # Import refactored modules
 from aoi_lib.tensiometer import (
@@ -97,13 +98,13 @@ class TensionMeasurementDialog(QDialog):
         conn_layout.addWidget(self.port_combo, 0, 1)
 
         # Refresh ports button
-        self.refresh_ports_btn = QPushButton("🔄")
+        self.refresh_ports_btn = StandardButton("🔄")
         self.refresh_ports_btn.setMaximumWidth(40)
         self.refresh_ports_btn.clicked.connect(self._refresh_ports)
         conn_layout.addWidget(self.refresh_ports_btn, 0, 2)
 
         # Connect/Disconnect button
-        self.connect_btn = QPushButton("🔗 Conectar")
+        self.connect_btn = StandardButton("🔗 Conectar")
         self.connect_btn.clicked.connect(self._toggle_connection)
         conn_layout.addWidget(self.connect_btn, 0, 3, 1, 2)
 
@@ -113,7 +114,7 @@ class TensionMeasurementDialog(QDialog):
         conn_layout.addWidget(self.conn_status_label, 1, 0, 1, 5)
 
         # Test button
-        self.test_btn = QPushButton("🧪 Testar Leitura")
+        self.test_btn = StandardButton("🧪 Testar Leitura")
         self.test_btn.clicked.connect(self._test_reading)
         self.test_btn.setEnabled(False)
         conn_layout.addWidget(self.test_btn, 2, 0, 1, 5)
@@ -137,7 +138,7 @@ class TensionMeasurementDialog(QDialog):
         self.start_y_input.setMaximumWidth(80)
         grid_layout.addWidget(self.start_y_input, 0, 2)
 
-        self.capture_start_btn = QPushButton("📍 Capturar")
+        self.capture_start_btn = StandardButton("📍 Capturar")
         self.capture_start_btn.clicked.connect(self._capture_start_position)
         grid_layout.addWidget(self.capture_start_btn, 0, 3)
 
@@ -153,7 +154,7 @@ class TensionMeasurementDialog(QDialog):
         self.end_y_input.setMaximumWidth(80)
         grid_layout.addWidget(self.end_y_input, 1, 2)
 
-        self.capture_end_btn = QPushButton("📍 Capturar")
+        self.capture_end_btn = StandardButton("📍 Capturar")
         self.capture_end_btn.clicked.connect(self._capture_end_position)
         grid_layout.addWidget(self.capture_end_btn, 1, 3)
 
@@ -201,19 +202,19 @@ class TensionMeasurementDialog(QDialog):
         # ==================== CONTROL BUTTONS ====================
         btn_layout = QHBoxLayout()
 
-        self.start_btn = QPushButton("▶ Iniciar Medição")
+        self.start_btn = StandardButton("▶ Iniciar Medição")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._on_start)
         self.start_btn.setStyleSheet(f"background-color: {COLORS.PRIMARY}; color: {COLORS.ON_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.start_btn)
 
-        self.stop_btn = QPushButton("⏹ Parar")
+        self.stop_btn = StandardButton("⏹ Parar")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
         self.stop_btn.setStyleSheet(f"background-color: {COLORS.ERROR}; color: {COLORS.TEXT_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.stop_btn)
 
-        self.close_btn = QPushButton("Fechar")
+        self.close_btn = StandardButton("Fechar")
         self.close_btn.clicked.connect(self.close)
         btn_layout.addWidget(self.close_btn)
 

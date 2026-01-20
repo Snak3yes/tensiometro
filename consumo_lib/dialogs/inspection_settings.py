@@ -23,6 +23,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 from aoi_lib.stencil_inspector import InspectionThresholds
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 log = logging.getLogger(__name__)
 
@@ -184,17 +185,17 @@ class InspectionSettingsDialog(QDialog):
 
         btn_layout = QHBoxLayout()
 
-        btn_default = QPushButton("🔄 Restaurar Padrão")
+        btn_default = StandardButton("🔄 Restaurar Padrão")
         btn_default.clicked.connect(self._restore_defaults)
         btn_layout.addWidget(btn_default)
 
         btn_layout.addStretch()
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = StandardButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-        btn_save = QPushButton("💾 Salvar")
+        btn_save = StandardButton("💾 Salvar", variant="primary")
         btn_save.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_save.clicked.connect(self._save)
         btn_layout.addWidget(btn_save)

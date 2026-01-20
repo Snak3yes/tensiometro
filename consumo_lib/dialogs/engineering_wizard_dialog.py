@@ -22,6 +22,7 @@ from PyQt6.QtCore import Qt, QTimer, pyqtSignal
 
 # Design System
 from consumo_lib.ui import TYPO
+from consumo_lib.ui.widget_standards import StandardButton
 
 from consumo_lib.models.engineering.wizard_state import EngineeringWizardState
 from consumo_lib.widgets.engenharia import (
@@ -246,24 +247,24 @@ class EngineeringWizardDialog(QDialog):
         button_layout.addStretch()
 
         # Botao Anterior
-        self.btn_previous = QPushButton("< Anterior")
+        self.btn_previous = StandardButton("< Anterior")
         self.btn_previous.setMinimumWidth(120)
         self.btn_previous.setEnabled(False)
         button_layout.addWidget(self.btn_previous)
 
         # Botao Proximo
-        self.btn_next = QPushButton("Próximo >")
+        self.btn_next = StandardButton("Próximo >")
         self.btn_next.setMinimumWidth(120)
         self.btn_next.setDefault(True)
         button_layout.addWidget(self.btn_next)
 
         # Botao Cancelar
-        self.btn_cancel = QPushButton("Cancelar")
+        self.btn_cancel = StandardButton("Cancelar")
         self.btn_cancel.setMinimumWidth(120)
         button_layout.addWidget(self.btn_cancel)
 
         # Botao Concluir
-        self.btn_finish = QPushButton("Concluir")
+        self.btn_finish = StandardButton("Concluir", variant="primary")
         self.btn_finish.setMinimumWidth(120)
         self.btn_finish.setEnabled(False)
         button_layout.addWidget(self.btn_finish)

@@ -14,6 +14,7 @@ from PyQt6.QtGui import QFont
 
 from aoi_lib.auth.auth_service import AuthService
 from consumo_lib.ui import COLORS, TYPO
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -82,12 +83,12 @@ class LoginDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
 
-        self.login_button = QPushButton("Entrar")
+        self.login_button = StandardButton("Entrar")
         self.login_button.setMinimumHeight(45)
         self.login_button.clicked.connect(self.on_login_clicked)
         buttons_layout.addWidget(self.login_button)
 
-        self.cancel_button = QPushButton("Cancelar")
+        self.cancel_button = StandardButton("Cancelar")
         self.cancel_button.setMinimumHeight(45)
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)

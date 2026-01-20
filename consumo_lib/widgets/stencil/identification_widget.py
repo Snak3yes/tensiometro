@@ -17,6 +17,7 @@ from PyQt6.QtGui import QFont
 
 from aoi_lib.stencil_tracker import StencilTracker, Stencil
 from consumo_lib.ui import COLORS, TYPO, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 
 log = logging.getLogger(__name__)
 
@@ -63,11 +64,11 @@ class StencilIdentificationWidget(QWidget):
         self.code_input.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
         input_layout.addWidget(self.code_input, 1)
 
-        self.btn_load = QPushButton("🔍 Carregar")
+        self.btn_load = StandardButton("🔍 Carregar")
         self.btn_load.setDefault(True)
         input_layout.addWidget(self.btn_load)
 
-        self.btn_clear = QPushButton("✖ Limpar")
+        self.btn_clear = StandardButton("✖ Limpar")
         self.btn_clear.setEnabled(False)
         input_layout.addWidget(self.btn_clear)
 
@@ -131,11 +132,11 @@ class StencilIdentificationWidget(QWidget):
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        self.btn_history = QPushButton("📊 Histórico")
+        self.btn_history = StandardButton("📊 Histórico")
         self.btn_history.clicked.connect(self._show_history)
         btn_layout.addWidget(self.btn_history)
 
-        self.btn_edit = QPushButton("✏️ Editar")
+        self.btn_edit = StandardButton("✏️ Editar")
         self.btn_edit.clicked.connect(self._edit_stencil)
         btn_layout.addWidget(self.btn_edit)
 

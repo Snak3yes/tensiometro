@@ -17,6 +17,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QDate
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -102,7 +103,7 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.export_button = QPushButton("📄 Exportar CSV")
+        self.export_button = StandardButton("📄 Exportar CSV")
         self.export_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.export_button.setStyleSheet(f"""
             QPushButton {{
@@ -121,7 +122,7 @@ class InspectionHistoryDialog(QDialog):
         self.export_button.clicked.connect(self.export_to_csv)
         buttons_layout.addWidget(self.export_button)
 
-        close_button = QPushButton("Fechar")
+        close_button = StandardButton("Fechar")
         close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         close_button.setStyleSheet(f"""
             QPushButton {{
@@ -222,7 +223,7 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        apply_button = QPushButton("Aplicar Filtros")
+        apply_button = StandardButton("Aplicar Filtros", variant="primary")
         apply_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SECONDARY};
@@ -240,7 +241,7 @@ class InspectionHistoryDialog(QDialog):
         apply_button.clicked.connect(self.apply_filters)
         buttons_layout.addWidget(apply_button)
 
-        clear_button = QPushButton("Limpar Filtros")
+        clear_button = StandardButton("Limpar Filtros")
         clear_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.TEXT_SECONDARY};

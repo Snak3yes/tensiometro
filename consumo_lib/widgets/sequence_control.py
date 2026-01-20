@@ -7,6 +7,9 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from aoi_lib.config_manager import AOIConfigManager
 import logging
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 logger = logging.getLogger(__name__)
 class SequenceControlWidget(QWidget):
     """Widget para controlar a execução da sequência"""
@@ -24,9 +27,9 @@ class SequenceControlWidget(QWidget):
         sequence_layout.addWidget(self.sequence_name, 0, 1)
         
         # Botões de controle
-        self.create_sequence_btn = QPushButton("Criar Sequência")
-        self.run_sequence_btn = QPushButton("Executar Sequência")
-        self.stop_sequence_btn = QPushButton("Parar")
+        self.create_sequence_btn = StandardButton("Criar Sequência")
+        self.run_sequence_btn = StandardButton("Executar Sequência", variant="primary")
+        self.stop_sequence_btn = StandardButton("Parar")
         self.stop_sequence_btn.setEnabled(False)
         
         sequence_layout.addWidget(self.create_sequence_btn, 1, 0)
@@ -43,10 +46,10 @@ class SequenceControlWidget(QWidget):
         # Grupo de arquivo
         file_group = QGroupBox("Salvar/Carregar")
         file_layout = QVBoxLayout()
-        self.save_btn = QPushButton("Salvar Programa (JSON)")
-        self.load_btn = QPushButton("Carregar Programa (JSON)")
-        self.save_gcode_btn = QPushButton("Exportar para G-CODE")
-        self.load_gcode_btn = QPushButton("Importar de G-CODE")
+        self.save_btn = StandardButton("Salvar Programa (JSON)", variant="primary")
+        self.load_btn = StandardButton("Carregar Programa (JSON)")
+        self.save_gcode_btn = StandardButton("Exportar para G-CODE")
+        self.load_gcode_btn = StandardButton("Importar de G-CODE")
         file_layout.addWidget(self.save_btn)
         file_layout.addWidget(self.load_btn)
         file_layout.addWidget(self.save_gcode_btn)

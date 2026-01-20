@@ -12,6 +12,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
 
 from consumo_lib.ui import COLORS, TYPO, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 
 
 class CrosshairSettingsDialog(QDialog):
@@ -49,7 +50,7 @@ class CrosshairSettingsDialog(QDialog):
         self.color_preview.setFixedSize(50, 25)
         color_layout.addWidget(self.color_preview)
 
-        self.btn_choose_color = QPushButton("Escolher Cor...")
+        self.btn_choose_color = StandardButton("Escolher Cor...")
         self.btn_choose_color.clicked.connect(self._choose_color)
         color_layout.addWidget(self.btn_choose_color)
         color_layout.addStretch()
@@ -85,15 +86,15 @@ class CrosshairSettingsDialog(QDialog):
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
-        btn_reset = QPushButton("Restaurar Padrão")
+        btn_reset = StandardButton("Restaurar Padrão")
         btn_reset.clicked.connect(self._reset_to_default)
         btn_layout.addWidget(btn_reset)
 
-        btn_save = QPushButton("Salvar")
+        btn_save = StandardButton("Salvar", variant="primary")
         btn_save.clicked.connect(self._save)
         btn_layout.addWidget(btn_save)
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = StandardButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 

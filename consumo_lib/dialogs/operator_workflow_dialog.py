@@ -22,6 +22,7 @@ from consumo_lib.widgets import (
     StencilSelector, ProgramSelector, InspectionResultsWidget
 )
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.coordinators import OperatorInspectionCoordinator
 
 logger = logging.getLogger(__name__)
@@ -159,7 +160,7 @@ class OperatorWorkflowDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.start_button = QPushButton("▶ Iniciar Inspeção")
+        self.start_button = StandardButton("▶ Iniciar Inspeção")
         self.start_button.setMinimumHeight(50)
         self.start_button.setMinimumWidth(200)
         self.start_button.setStyleSheet(f"""
@@ -218,7 +219,7 @@ class OperatorWorkflowDialog(QDialog):
         footer_layout = QHBoxLayout()
         footer_layout.addStretch()
 
-        close_button = QPushButton("Fechar")
+        close_button = StandardButton("Fechar")
         close_button.setMinimumWidth(120)
         close_button.setMinimumHeight(40)
         close_button.setStyleSheet(f"""

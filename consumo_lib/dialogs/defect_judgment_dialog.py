@@ -17,6 +17,7 @@ from PyQt6.QtGui import QPixmap, QImage, QPainter
 from .final_decision_dialog import FinalDecisionDialog
 from consumo_lib.widgets.zoomable_image_view import ZoomableImageView
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -218,7 +219,7 @@ class DefectJudgmentDialog(QDialog):
         zoom_layout = QHBoxLayout()
         zoom_layout.addStretch()
 
-        zoom_out_btn = QPushButton("🔍-")
+        zoom_out_btn = StandardButton("🔍-")
         zoom_out_btn.setMaximumWidth(50)
         zoom_out_btn.clicked.connect(self.image_preview.zoom_out)
         zoom_layout.addWidget(zoom_out_btn)
@@ -227,12 +228,12 @@ class DefectJudgmentDialog(QDialog):
         zoom_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         zoom_layout.addWidget(zoom_label)
 
-        zoom_in_btn = QPushButton("🔍+")
+        zoom_in_btn = StandardButton("🔍+")
         zoom_in_btn.setMaximumWidth(50)
         zoom_in_btn.clicked.connect(self.image_preview.zoom_in)
         zoom_layout.addWidget(zoom_in_btn)
 
-        reset_zoom_btn = QPushButton("Reset")
+        reset_zoom_btn = StandardButton("Reset")
         reset_zoom_btn.setMaximumWidth(70)
         reset_zoom_btn.clicked.connect(self.image_preview.reset_zoom)
         zoom_layout.addWidget(reset_zoom_btn)
@@ -410,7 +411,7 @@ class DefectJudgmentDialog(QDialog):
         judgment_layout.addWidget(judgment_subtitle)
 
         # Botões de julgamento
-        approve_btn = QPushButton("✓ APROVAR (Falha Falsa)")
+        approve_btn = StandardButton("✓ APROVAR (Falha Falsa)")
         approve_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         approve_btn.setStyleSheet(f"""
             QPushButton {{
@@ -429,7 +430,7 @@ class DefectJudgmentDialog(QDialog):
         approve_btn.clicked.connect(self.on_approve_clicked)
         judgment_layout.addWidget(approve_btn)
 
-        confirm_btn = QPushButton("✓ CONFIRMAR como Defeito Real")
+        confirm_btn = StandardButton("✓ CONFIRMAR como Defeito Real", variant="primary")
         confirm_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         confirm_btn.setStyleSheet(f"""
             QPushButton {{
@@ -460,7 +461,7 @@ class DefectJudgmentDialog(QDialog):
         layout.setSpacing(15)
 
         # Botão Anterior
-        self.prev_button = QPushButton("◀ Anterior")
+        self.prev_button = StandardButton("◀ Anterior")
         self.prev_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.prev_button.setMinimumWidth(120)
         self.prev_button.setEnabled(False)  # Desabilitado no primeiro
@@ -488,7 +489,7 @@ class DefectJudgmentDialog(QDialog):
         layout.addStretch()
 
         # Botão Finalizar Análise
-        self.finish_button = QPushButton("📋 Finalizar Análise")
+        self.finish_button = StandardButton("📋 Finalizar Análise")
         self.finish_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.finish_button.setMinimumWidth(180)
         self.finish_button.setStyleSheet(f"""
@@ -511,7 +512,7 @@ class DefectJudgmentDialog(QDialog):
         layout.addStretch()
 
         # Botão Próximo
-        self.next_button = QPushButton("Próximo ▶")
+        self.next_button = StandardButton("Próximo ▶")
         self.next_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.next_button.setMinimumWidth(120)
         self.next_button.setStyleSheet(f"""

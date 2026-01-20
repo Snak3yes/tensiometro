@@ -24,6 +24,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 from consumo_lib.models.engineering.program_config import ProgramConfig
 
@@ -219,13 +220,13 @@ class ConfirmSaveWidget(QWidget):
         buttons_layout = QHBoxLayout()
         buttons_layout.setSpacing(12)
 
-        self.back_button = QPushButton("← Voltar")
+        self.back_button = StandardButton("← Voltar")
         self.back_button.clicked.connect(self._on_back_clicked)
         buttons_layout.addWidget(self.back_button)
 
         buttons_layout.addStretch()
 
-        self.test_button = QPushButton("🧪 Testar Inspeção")
+        self.test_button = StandardButton("🧪 Testar Inspeção")
         self.test_button.setToolTip(
             "Executa uma inspeção piloto para validar o programa "
             "(opcional, requer hardware conectado)"
@@ -233,7 +234,7 @@ class ConfirmSaveWidget(QWidget):
         self.test_button.clicked.connect(self._on_test_clicked)
         buttons_layout.addWidget(self.test_button)
 
-        self.save_button = QPushButton("💾 Salvar Programa")
+        self.save_button = StandardButton("💾 Salvar Programa", variant="primary")
         self.save_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.save_button.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         self.save_button.setStyleSheet(f"""

@@ -35,6 +35,7 @@ from consumo_lib.models.inspection_window import (
     create_default_config
 )
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -251,7 +252,7 @@ class GroupConfigPanel(QWidget):
         # Buttons
         button_layout = QGridLayout()
 
-        self.confirm_btn = QPushButton("Confirmar Grupo ✅")
+        self.confirm_btn = StandardButton("Confirmar Grupo ✅", variant="primary")
         self.confirm_btn.setEnabled(False)
         self.confirm_btn.clicked.connect(self._on_confirm)
         self.confirm_btn.setStyleSheet(f"""
@@ -271,12 +272,12 @@ class GroupConfigPanel(QWidget):
         """)
         button_layout.addWidget(self.confirm_btn, 0, 0)
 
-        self.exception_btn = QPushButton("Adicionar Exceção ⚙️")
+        self.exception_btn = StandardButton("Adicionar Exceção ⚙️")
         self.exception_btn.setEnabled(False)
         self.exception_btn.clicked.connect(self._on_exception)
         button_layout.addWidget(self.exception_btn, 0, 1)
 
-        self.save_library_btn = QPushButton("Salvar na Biblioteca 💾")
+        self.save_library_btn = StandardButton("Salvar na Biblioteca 💾", variant="primary")
         self.save_library_btn.setEnabled(False)
         self.save_library_btn.clicked.connect(self._on_save_library)
         button_layout.addWidget(self.save_library_btn, 1, 0, 1, 2)
@@ -450,12 +451,12 @@ class LibraryPanel(QWidget):
         # Buttons
         button_layout = QHBoxLayout()
 
-        self.load_btn = QPushButton("Carregar no Grupo")
+        self.load_btn = StandardButton("Carregar no Grupo")
         self.load_btn.setEnabled(False)
         self.load_btn.clicked.connect(self._on_load)
         button_layout.addWidget(self.load_btn)
 
-        self.refresh_btn = QPushButton("🔄")
+        self.refresh_btn = StandardButton("🔄")
         self.refresh_btn.setToolTip("Recarregar biblioteca")
         self.refresh_btn.clicked.connect(self._load_library)
         button_layout.addWidget(self.refresh_btn)
@@ -599,15 +600,15 @@ class InspectionWindowsWidget(QWidget):
         # Tree controls
         tree_controls = QHBoxLayout()
 
-        self.expand_all_btn = QPushButton("Expandir Todos")
+        self.expand_all_btn = StandardButton("Expandir Todos")
         self.expand_all_btn.clicked.connect(self.groups_tree.expandAll)
         tree_controls.addWidget(self.expand_all_btn)
 
-        self.collapse_all_btn = QPushButton("Recolher Todos")
+        self.collapse_all_btn = StandardButton("Recolher Todos")
         self.collapse_all_btn.clicked.connect(self.groups_tree.collapseAll)
         tree_controls.addWidget(self.collapse_all_btn)
 
-        self.auto_group_btn = QPushButton("Auto-Agrupar")
+        self.auto_group_btn = StandardButton("Auto-Agrupar")
         self.auto_group_btn.clicked.connect(self._auto_group)
         tree_controls.addWidget(self.auto_group_btn)
 

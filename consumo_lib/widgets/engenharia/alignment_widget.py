@@ -46,6 +46,7 @@ from consumo_lib.services.fiducial_alignment_service import (
     AlignmentResult
 )
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -506,7 +507,7 @@ class AlignmentWidget(QWidget):
         self.lbl_zoom.setMinimumWidth(50)
         zoom_layout.addWidget(self.lbl_zoom)
 
-        btn_fit = QPushButton("Ajustar à Janela")
+        btn_fit = StandardButton("Ajustar à Janela")
         btn_fit.setMaximumWidth(120)
         btn_fit.clicked.connect(self.image_view.fit_in_view)
         zoom_layout.addWidget(btn_fit)
@@ -627,7 +628,7 @@ class AlignmentWidget(QWidget):
         lbl_auto_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-size: {TYPO.BODY_SMALL}px")
         auto_layout.addWidget(lbl_auto_info)
 
-        self.btn_auto_tune = QPushButton("🔍 Auto-Tuning")
+        self.btn_auto_tune = StandardButton("🔍 Auto-Tuning")
         self.btn_auto_tune.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.WARNING};
@@ -651,7 +652,7 @@ class AlignmentWidget(QWidget):
 
         btn_layout = QVBoxLayout()
 
-        self.btn_reset = QPushButton("🔄 Resetar")
+        self.btn_reset = StandardButton("🔄 Resetar")
         self.btn_reset.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.TEXT_SECONDARY};
@@ -667,7 +668,7 @@ class AlignmentWidget(QWidget):
         self.btn_reset.clicked.connect(self._on_reset)
         btn_layout.addWidget(self.btn_reset)
 
-        self.btn_apply = QPushButton("✅ Aplicar Alinhamento")
+        self.btn_apply = StandardButton("✅ Aplicar Alinhamento", variant="primary")
         self.btn_apply.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.PRIMARY};

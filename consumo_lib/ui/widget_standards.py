@@ -9,6 +9,7 @@ from PyQt6.QtWidgets import (
     QSpinBox, QDoubleSpinBox, QCheckBox, QGroupBox, QWidget
 )
 from PyQt6.QtCore import Qt
+
 from .design_tokens import ColorPalette, Typography, Dimensions, Spacing, COLORS, TYPO, DIM, SPACE
 
 

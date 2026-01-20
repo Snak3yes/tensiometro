@@ -16,6 +16,9 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QPushButton,
     QMessageBox, QInputDialog
 )
+
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
 import cv2
 
 logger = logging.getLogger(__name__)
@@ -386,7 +389,7 @@ class DialogRouter:
             btn_layout = QHBoxLayout()
             btn_layout.addStretch()
 
-            btn_close = QPushButton("Fechar")
+            btn_close = StandardButton("Fechar")
             btn_close.clicked.connect(dialog.accept)
             btn_layout.addWidget(btn_close)
 

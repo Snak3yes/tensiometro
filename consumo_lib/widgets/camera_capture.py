@@ -26,6 +26,7 @@ import numpy as np
 
 # Design System
 from consumo_lib.ui import COLORS, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.fov_calibration import (
@@ -132,9 +133,9 @@ class CameraCaptureWidget(QWidget):
 
         # Botões de preview
         btn_layout = QHBoxLayout()
-        self.start_preview_btn = QPushButton("▶ Start Preview")
+        self.start_preview_btn = StandardButton("▶ Start Preview")
         self.start_preview_btn.clicked.connect(self.start_preview)
-        self.stop_preview_btn = QPushButton("⏸ Stop Preview")
+        self.stop_preview_btn = StandardButton("⏸ Stop Preview", variant="danger")
         self.stop_preview_btn.clicked.connect(self.stop_preview)
         self.stop_preview_btn.setEnabled(False)
         btn_layout.addWidget(self.start_preview_btn)
@@ -162,7 +163,7 @@ class CameraCaptureWidget(QWidget):
         capture_layout.addStretch()
 
         # Botão de captura
-        self.capture_btn = QPushButton("📸 Capturar Template")
+        self.capture_btn = StandardButton("📸 Capturar Template")
         self.capture_btn.clicked.connect(self._capture_template)
         self.capture_btn.setEnabled(False)
         self.capture_btn.setToolTip(

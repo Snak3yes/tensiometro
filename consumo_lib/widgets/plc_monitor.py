@@ -8,6 +8,9 @@ from PyQt6.QtGui import QIntValidator
 from aoi_lib.plc_axis_controller import PLCAxisController
 import logging
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 logger = logging.getLogger(__name__)
 class PLCMonitorWidget(QWidget):
     """
@@ -24,7 +27,7 @@ class PLCMonitorWidget(QWidget):
 
         # Barra superior com atualização e status
         header_layout = QHBoxLayout()
-        self.refresh_btn = QPushButton("Atualizar valores")
+        self.refresh_btn = StandardButton("Atualizar valores")
         self.refresh_btn.clicked.connect(self.refresh_values)
         header_layout.addWidget(self.refresh_btn)
         header_layout.addStretch()
@@ -51,11 +54,11 @@ class PLCMonitorWidget(QWidget):
         self.value_input.setPlaceholderText("Inteiro (holding D...)")
         form_layout.addWidget(self.value_input)
 
-        self.write_btn = QPushButton("Gravar valor")
+        self.write_btn = StandardButton("Gravar valor")
         self.write_btn.clicked.connect(self.write_selected_value)
         form_layout.addWidget(self.write_btn)
 
-        self.pulse_btn = QPushButton("Pulso coil")
+        self.pulse_btn = StandardButton("Pulso coil")
         self.pulse_btn.clicked.connect(self.pulse_selected_coil)
         form_layout.addWidget(self.pulse_btn)
 

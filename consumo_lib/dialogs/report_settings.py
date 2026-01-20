@@ -28,6 +28,7 @@ from PyQt6.QtGui import QPixmap, QColor, QPalette
 
 from aoi_lib.reports import ReportConfig
 from consumo_lib.ui import COLORS, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 
 log = logging.getLogger(__name__)
 
@@ -154,11 +155,11 @@ class ReportSettingsDialog(QDialog):
         self.edit_logo_path.setPlaceholderText("Caminho para o arquivo de imagem...")
         logo_path_layout.addWidget(self.edit_logo_path)
 
-        btn_browse_logo = QPushButton("📁 Procurar")
+        btn_browse_logo = StandardButton("📁 Procurar")
         btn_browse_logo.clicked.connect(self._browse_logo)
         logo_path_layout.addWidget(btn_browse_logo)
 
-        btn_clear_logo = QPushButton("🗑️ Limpar")
+        btn_clear_logo = StandardButton("🗑️ Limpar")
         btn_clear_logo.clicked.connect(self._clear_logo)
         logo_path_layout.addWidget(btn_clear_logo)
 
@@ -180,7 +181,7 @@ class ReportSettingsDialog(QDialog):
         self.edit_output_dir.setPlaceholderText("Ex: reports")
         output_layout.addWidget(self.edit_output_dir)
 
-        btn_browse_output = QPushButton("📁 Procurar")
+        btn_browse_output = StandardButton("📁 Procurar")
         btn_browse_output.clicked.connect(self._browse_output_dir)
         output_layout.addWidget(btn_browse_output)
 
@@ -246,7 +247,7 @@ class ReportSettingsDialog(QDialog):
         colors_layout.addWidget(colors_group)
 
         # Botão para restaurar cores padrão
-        btn_reset_colors = QPushButton("🔄 Restaurar Cores Padrão")
+        btn_reset_colors = StandardButton("🔄 Restaurar Cores Padrão")
         btn_reset_colors.clicked.connect(self._reset_colors)
         colors_layout.addWidget(btn_reset_colors)
 
@@ -258,17 +259,17 @@ class ReportSettingsDialog(QDialog):
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        btn_preview = QPushButton("👁️ Visualizar Exemplo")
+        btn_preview = StandardButton("👁️ Visualizar Exemplo")
         btn_preview.clicked.connect(self._preview_report)
         btn_layout.addWidget(btn_preview)
 
         btn_layout.addStretch()
 
-        btn_cancel = QPushButton("Cancelar")
+        btn_cancel = StandardButton("Cancelar")
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-        btn_save = QPushButton("💾 Salvar")
+        btn_save = StandardButton("💾 Salvar", variant="primary")
         btn_save.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_save.clicked.connect(self._save_config)
         btn_layout.addWidget(btn_save)

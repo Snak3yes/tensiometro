@@ -21,6 +21,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 from consumo_lib.managers.auth_config_manager import AuthConfigManager
 from aoi_lib.auth.auth_service import AuthService
@@ -184,14 +185,14 @@ class AuthenticationSettingsDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.btn_apply = QPushButton("Aplicar")
+        self.btn_apply = StandardButton("Aplicar", variant="primary")
         self.btn_apply.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.btn_apply.setMinimumWidth(120)
         self.btn_apply.setEnabled(False)  # Desabilitado até mudar config
         self.btn_apply.clicked.connect(self.on_apply_clicked)
         buttons_layout.addWidget(self.btn_apply)
 
-        self.btn_cancel = QPushButton("Cancelar")
+        self.btn_cancel = StandardButton("Cancelar")
         self.btn_cancel.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.btn_cancel.setMinimumWidth(120)
         self.btn_cancel.clicked.connect(self.reject)

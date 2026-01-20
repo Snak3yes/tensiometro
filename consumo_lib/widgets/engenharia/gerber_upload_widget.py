@@ -28,6 +28,7 @@ from PyQt6.QtCore import pyqtSignal, Qt, QPoint, QRectF
 from PyQt6.QtGui import QColor
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 # Importar NOVO widget baseado em QGraphicsView
 from .gerber_preview_widget_new import GerberPreviewWidget
@@ -112,7 +113,7 @@ class GerberUploadWidget(QWidget):
 
         # Botão de upload
         upload_layout = QHBoxLayout()
-        self.btn_upload = QPushButton("📤 Carregar Gerber")
+        self.btn_upload = StandardButton("📤 Carregar Gerber")
         self.btn_upload.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.PRIMARY};
@@ -150,7 +151,7 @@ class GerberUploadWidget(QWidget):
 
         # Controles de preview
         preview_controls = QHBoxLayout()
-        btn_fit = QPushButton("🔍 Ajustar")
+        btn_fit = StandardButton("🔍 Ajustar")
         btn_fit.clicked.connect(self.preview_widget.fit_to_view)
         preview_controls.addWidget(btn_fit)
         preview_controls.addStretch()
@@ -177,11 +178,11 @@ class GerberUploadWidget(QWidget):
         cleanup_group = QGroupBox("Limpeza")
         cleanup_layout = QGridLayout(cleanup_group)
 
-        self.btn_remove = QPushButton("🗑️ Remover Selecionado")
+        self.btn_remove = StandardButton("🗑️ Remover Selecionado", variant="danger")
         self.btn_remove.setEnabled(False)
-        self.btn_undo = QPushButton("↩️ Desfazer")
+        self.btn_undo = StandardButton("↩️ Desfazer")
         self.btn_undo.setEnabled(False)
-        self.btn_redo = QPushButton("↪️ Refazer")
+        self.btn_redo = StandardButton("↪️ Refazer")
         self.btn_redo.setEnabled(False)
 
         cleanup_layout.addWidget(self.btn_remove, 0, 0)

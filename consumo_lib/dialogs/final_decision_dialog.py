@@ -14,6 +14,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 from aoi_lib.audit_log import get_audit_log
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class FinalDecisionDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.cancel_button = QPushButton("Cancelar")
+        self.cancel_button = StandardButton("Cancelar")
         self.cancel_button.setMinimumWidth(120)
         self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.cancel_button.setStyleSheet(f"""
@@ -231,7 +232,7 @@ class FinalDecisionDialog(QDialog):
         layout.addStretch()
 
         # Botão
-        discard_btn = QPushButton("Descartar Inspeção")
+        discard_btn = StandardButton("Descartar Inspeção")
         discard_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         discard_btn.setStyleSheet(f"""
             QPushButton {{
@@ -301,7 +302,7 @@ class FinalDecisionDialog(QDialog):
         layout.addStretch()
 
         # Botão
-        reject_btn = QPushButton("Reprovar Sessão")
+        reject_btn = StandardButton("Reprovar Sessão")
         reject_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         reject_btn.setStyleSheet(f"""
             QPushButton {{

@@ -13,6 +13,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -129,7 +130,7 @@ class ConfirmPositioningDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
 
-        self.confirm_button = QPushButton("✓ Confirmar")
+        self.confirm_button = StandardButton("✓ Confirmar", variant="primary")
         self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.confirm_button.setStyleSheet(f"""
             QPushButton {{
@@ -147,7 +148,7 @@ class ConfirmPositioningDialog(QDialog):
         self.confirm_button.clicked.connect(self.on_confirm_clicked)
         buttons_layout.addWidget(self.confirm_button)
 
-        self.cancel_button = QPushButton("✗ Cancelar")
+        self.cancel_button = StandardButton("✗ Cancelar")
         self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{

@@ -32,6 +32,8 @@ from PyQt6.QtCore import QObject, pyqtSignal
 
 from aoi_lib.fiducial_alignment_widget import FiducialAlignmentWidget
 
+from consumo_lib.ui.widget_standards import StandardButton
+
 logger = logging.getLogger("consumo_lib")
 
 
@@ -110,7 +112,7 @@ class FiducialAlignmentController(QObject):
         # Botões de arquivo para carregar imagem
         btn_layout = QHBoxLayout()
 
-        btn_load_image = QPushButton("📷 Carregar Imagem/Mosaico")
+        btn_load_image = StandardButton("📷 Carregar Imagem/Mosaico")
         btn_load_image.clicked.connect(
             lambda: self._load_image(dialog, alignment_widget)
         )

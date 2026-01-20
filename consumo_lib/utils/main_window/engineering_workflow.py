@@ -22,6 +22,7 @@ from PyQt6.QtWidgets import (
 )
 
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -243,15 +244,15 @@ class MainWindowEngineeringWorkflow:
             # Botões
             button_layout = QHBoxLayout()
 
-            btn_load = QPushButton("📂 Carregar como Recipe")
+            btn_load = StandardButton("📂 Carregar como Recipe")
             btn_load.setEnabled(False)
             btn_load.clicked.connect(lambda: self.load_selected_program(table, dialog))
 
-            btn_delete = QPushButton("🗑️ Excluir")
+            btn_delete = StandardButton("🗑️ Excluir", variant="danger")
             btn_delete.setEnabled(False)
             btn_delete.clicked.connect(lambda: self.delete_selected_program(table, dialog))
 
-            btn_close = QPushButton("Fechar")
+            btn_close = StandardButton("Fechar")
             btn_close.clicked.connect(dialog.accept)
 
             button_layout.addWidget(btn_load)

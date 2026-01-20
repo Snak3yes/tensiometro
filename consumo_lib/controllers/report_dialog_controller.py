@@ -29,6 +29,8 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QObject, pyqtSignal, QDate
 
+from consumo_lib.ui.widget_standards import StandardButton
+
 logger = logging.getLogger("consumo_lib")
 
 
@@ -217,7 +219,7 @@ class ReportDialogController(QObject):
         # Botões
         btn_layout = QHBoxLayout()
 
-        btn_search = QPushButton("🔍 Buscar")
+        btn_search = StandardButton("🔍 Buscar")
 
         def do_search():
             # Converter datas
@@ -261,7 +263,7 @@ class ReportDialogController(QObject):
         btn_search.clicked.connect(do_search)
         btn_layout.addWidget(btn_search)
 
-        btn_export = QPushButton("📄 Exportar CSV")
+        btn_export = StandardButton("📄 Exportar CSV")
 
         def do_export():
             if result_table.rowCount() == 0:
@@ -284,7 +286,7 @@ class ReportDialogController(QObject):
 
         btn_layout.addStretch()
 
-        btn_close = QPushButton("Fechar")
+        btn_close = StandardButton("Fechar")
         btn_close.clicked.connect(dialog.accept)
         btn_layout.addWidget(btn_close)
 

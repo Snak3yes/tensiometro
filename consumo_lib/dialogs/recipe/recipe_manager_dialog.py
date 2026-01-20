@@ -20,6 +20,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 from aoi_lib.recipe_manager import RecipeManager
 from consumo_lib.ui import COLORS, TYPO, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.dialogs.recipe.recipe_list_widget import RecipeListWidget
 from consumo_lib.dialogs.recipe.recipe_edit_dialog import RecipeEditorDialog
 
@@ -87,21 +88,21 @@ class RecipeManagerDialog(QDialog):
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        self.btn_new = QPushButton("➕ Nova")
+        self.btn_new = StandardButton("➕ Nova")
         self.btn_new.clicked.connect(self._on_new_recipe)
         btn_layout.addWidget(self.btn_new)
 
-        self.btn_edit = QPushButton("✏️ Editar")
+        self.btn_edit = StandardButton("✏️ Editar")
         self.btn_edit.clicked.connect(self._on_edit_recipe)
         self.btn_edit.setEnabled(False)
         btn_layout.addWidget(self.btn_edit)
 
-        self.btn_delete = QPushButton("🗑️ Excluir")
+        self.btn_delete = StandardButton("🗑️ Excluir", variant="danger")
         self.btn_delete.clicked.connect(self._on_delete_recipe)
         self.btn_delete.setEnabled(False)
         btn_layout.addWidget(self.btn_delete)
 
-        self.btn_duplicate = QPushButton("📄 Duplicar")
+        self.btn_duplicate = StandardButton("📄 Duplicar")
         self.btn_duplicate.clicked.connect(self._on_duplicate_recipe)
         self.btn_duplicate.setEnabled(False)
         btn_layout.addWidget(self.btn_duplicate)
@@ -133,7 +134,7 @@ class RecipeManagerDialog(QDialog):
         right_layout.addWidget(self.preview_label, 1)
 
         # Botão de carregar
-        self.btn_load = QPushButton("🚀 Carregar Receita")
+        self.btn_load = StandardButton("🚀 Carregar Receita")
         self.btn_load.setMinimumHeight(40)
         self.btn_load.setStyleSheet(f"""
             QPushButton {{
@@ -161,7 +162,7 @@ class RecipeManagerDialog(QDialog):
         layout.addWidget(splitter)
 
         # Botão fechar
-        close_btn = QPushButton("Fechar")
+        close_btn = StandardButton("Fechar")
         close_btn.clicked.connect(self.reject)
         layout.addWidget(close_btn)
 

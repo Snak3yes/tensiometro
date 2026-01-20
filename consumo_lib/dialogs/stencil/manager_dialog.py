@@ -18,6 +18,7 @@ from PyQt6.QtGui import QColor
 
 from aoi_lib.stencil_tracker import StencilTracker
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 log = logging.getLogger(__name__)
 
@@ -58,11 +59,11 @@ class StencilManagerDialog(QDialog):
 
         filter_layout.addStretch()
 
-        self.btn_new = QPushButton("➕ Novo Stencil")
+        self.btn_new = StandardButton("➕ Novo Stencil")
         self.btn_new.clicked.connect(self._create_new)
         filter_layout.addWidget(self.btn_new)
 
-        self.btn_refresh = QPushButton("🔄 Atualizar")
+        self.btn_refresh = StandardButton("🔄 Atualizar")
         self.btn_refresh.clicked.connect(self._load_stencils)
         filter_layout.addWidget(self.btn_refresh)
 
@@ -88,22 +89,22 @@ class StencilManagerDialog(QDialog):
         # ================== BOTÕES ==================
         btn_layout = QHBoxLayout()
 
-        self.btn_edit = QPushButton("✏️ Editar")
+        self.btn_edit = StandardButton("✏️ Editar")
         self.btn_edit.clicked.connect(self._edit_selected)
         btn_layout.addWidget(self.btn_edit)
 
-        self.btn_history = QPushButton("📊 Histórico")
+        self.btn_history = StandardButton("📊 Histórico")
         self.btn_history.clicked.connect(self._show_history)
         btn_layout.addWidget(self.btn_history)
 
-        self.btn_delete = QPushButton("🗑️ Excluir")
+        self.btn_delete = StandardButton("🗑️ Excluir", variant="danger")
         self.btn_delete.clicked.connect(self._delete_selected)
         self.btn_delete.setStyleSheet(f"color: {COLORS.ERROR};")
         btn_layout.addWidget(self.btn_delete)
 
         btn_layout.addStretch()
 
-        btn_close = QPushButton("Fechar")
+        btn_close = StandardButton("Fechar")
         btn_close.clicked.connect(self.accept)
         btn_layout.addWidget(btn_close)
 

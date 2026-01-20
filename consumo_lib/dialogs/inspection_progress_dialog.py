@@ -15,6 +15,7 @@ from PyQt6.QtCore import Qt, pyqtSignal, QThread
 
 # Design System
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -125,7 +126,7 @@ class InspectionProgressDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.cancel_button = QPushButton("Cancelar Execução")
+        self.cancel_button = StandardButton("Cancelar Execução")
         self.cancel_button.setMinimumWidth(160)
         self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.cancel_button.setStyleSheet(f"""
@@ -149,7 +150,7 @@ class InspectionProgressDialog(QDialog):
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         buttons_layout.addWidget(self.cancel_button)
 
-        self.close_button = QPushButton("Fechar")
+        self.close_button = StandardButton("Fechar")
         self.close_button.setMinimumWidth(120)
         self.close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.close_button.hide()  # Inicialmente oculto

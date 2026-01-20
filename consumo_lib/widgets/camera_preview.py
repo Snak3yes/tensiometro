@@ -9,6 +9,7 @@ from PyQt6.QtGui import QPixmap, QImage
 
 # Design System
 from consumo_lib.ui import COLORS
+from consumo_lib.ui.widget_standards import StandardButton
 
 from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.fov_calibration import (
@@ -93,9 +94,9 @@ class CameraPreviewWidget(QWidget):
 
         # Botões de preview dentro da mesma groupbox
         btn_layout = QHBoxLayout()
-        self.start_preview_btn = QPushButton("Start Preview")
+        self.start_preview_btn = StandardButton("Start Preview")
         self.start_preview_btn.clicked.connect(self.start_preview)
-        self.stop_preview_btn = QPushButton("Stop Preview")
+        self.stop_preview_btn = StandardButton("Stop Preview", variant="danger")
         self.stop_preview_btn.clicked.connect(self.stop_preview)
         self.stop_preview_btn.setEnabled(False)
         btn_layout.addWidget(self.start_preview_btn)

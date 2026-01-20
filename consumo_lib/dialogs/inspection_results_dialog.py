@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -318,7 +319,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         layout.addStretch()
 
         # Salvar no histórico
-        save_btn = QPushButton("Salvar no Histórico")
+        save_btn = StandardButton("Salvar no Histórico", variant="primary")
         save_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         save_btn.setStyleSheet(f"""
             QPushButton {{
@@ -338,7 +339,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         layout.addWidget(save_btn)
 
         # Gerar PDF
-        pdf_btn = QPushButton("Gerar PDF")
+        pdf_btn = StandardButton("Gerar PDF")
         pdf_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         pdf_btn.setStyleSheet(f"""
             QPushButton {{
@@ -358,7 +359,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         layout.addWidget(pdf_btn)
 
         # Fechar
-        close_btn = QPushButton("Fechar")
+        close_btn = StandardButton("Fechar")
         close_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         close_btn.setStyleSheet(f"""
             QPushButton {{

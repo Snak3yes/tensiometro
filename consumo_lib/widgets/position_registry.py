@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt
 
 # Design System
 from consumo_lib.ui import TYPO
+from consumo_lib.ui.widget_standards import StandardButton
 
 from aoi_lib.config_manager import AOIConfigManager
 import logging
@@ -38,10 +39,10 @@ class PositionRegistryWidget(QWidget):
         # Buttons
         buttons_layout = QHBoxLayout()
         
-        self.delete_button = QPushButton("Delete Selected")
+        self.delete_button = StandardButton("Delete Selected")
         self.delete_button.clicked.connect(self.delete_position)
         
-        self.create_sequence_btn = QPushButton("Create Sequence")
+        self.create_sequence_btn = StandardButton("Create Sequence")
         
         buttons_layout.addWidget(self.delete_button)
         buttons_layout.addWidget(self.create_sequence_btn)

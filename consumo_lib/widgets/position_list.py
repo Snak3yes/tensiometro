@@ -6,6 +6,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 
 # Design System
 from consumo_lib.ui import TYPO
+from consumo_lib.ui.widget_standards import StandardButton
 
 from aoi_lib import InspectionPosition
 import logging
@@ -29,8 +30,8 @@ class PositionListWidget(QWidget):
         
         # Botões
         buttons_layout = QHBoxLayout()
-        self.add_position_btn = QPushButton("Adicionar Posição Atual")
-        self.remove_position_btn = QPushButton("Remover")
+        self.add_position_btn = StandardButton("Adicionar Posição Atual")
+        self.remove_position_btn = StandardButton("Remover", variant="danger")
         buttons_layout.addWidget(self.add_position_btn)
         buttons_layout.addWidget(self.remove_position_btn)
         

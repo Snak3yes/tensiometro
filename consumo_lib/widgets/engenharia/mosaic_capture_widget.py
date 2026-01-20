@@ -31,6 +31,7 @@ import numpy as np
 # Import para usar CameraCaptureWidget unificado
 from consumo_lib.widgets.camera_capture import CameraCaptureWidget
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -516,12 +517,12 @@ class MosaicCaptureWidget(QWidget):
 
         # Botões
         btn_layout = QHBoxLayout()
-        self.btn_calculate = QPushButton("🔢 Calcular Grid")
+        self.btn_calculate = StandardButton("🔢 Calcular Grid")
         self.btn_calculate.clicked.connect(self._on_calculate_grid)
         btn_layout.addWidget(self.btn_calculate)
         controls_layout.addLayout(btn_layout)
 
-        self.btn_capture = QPushButton("📸 Capturar Mosaico")
+        self.btn_capture = StandardButton("📸 Capturar Mosaico")
         self.btn_capture.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SUCCESS};
@@ -542,7 +543,7 @@ class MosaicCaptureWidget(QWidget):
         self.btn_capture.setEnabled(False)
         controls_layout.addWidget(self.btn_capture)
 
-        self.btn_stop = QPushButton("⏹️ Parar")
+        self.btn_stop = StandardButton("⏹️ Parar")
         self.btn_stop.setEnabled(False)
         controls_layout.addWidget(self.btn_stop)
 

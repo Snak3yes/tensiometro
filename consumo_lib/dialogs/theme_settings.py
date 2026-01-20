@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ class ThemeSettingsDialog(QDialog):
         # ================== BOTÕES ==================
         button_layout = QHBoxLayout()
 
-        self.btn_apply = QPushButton("Aplicar")
+        self.btn_apply = StandardButton("Aplicar", variant="primary")
         self.btn_apply.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         self.btn_apply.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         self.btn_apply.setStyleSheet(f"""
@@ -150,7 +151,7 @@ class ThemeSettingsDialog(QDialog):
         """)
         button_layout.addWidget(self.btn_apply)
 
-        self.btn_cancel = QPushButton("Cancelar")
+        self.btn_cancel = StandardButton("Cancelar")
         self.btn_cancel.setFont(TYPO.get_font(TYPO.BODY_LARGE))
         self.btn_cancel.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         button_layout.addWidget(self.btn_cancel)

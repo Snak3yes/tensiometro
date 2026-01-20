@@ -13,6 +13,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +308,7 @@ class ModeSelectionDialog(QDialog):
         buttons_layout.setSpacing(12)
         buttons_layout.addStretch()
 
-        self.cancel_button = QPushButton("Cancelar")
+        self.cancel_button = StandardButton("Cancelar")
         self.cancel_button.setMinimumWidth(140)
         self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.cancel_button.setStyleSheet(f"""
@@ -332,7 +333,7 @@ class ModeSelectionDialog(QDialog):
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 
-        self.confirm_button = QPushButton("Confirmar Seleção")
+        self.confirm_button = StandardButton("Confirmar Seleção", variant="primary")
         self.confirm_button.setMinimumWidth(160)
         self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
         self.confirm_button.setEnabled(False)  # Desabilitado até selecionar

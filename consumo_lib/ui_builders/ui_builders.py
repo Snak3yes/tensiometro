@@ -25,6 +25,9 @@ from consumo_lib.widgets.sequence_control import SequenceControlWidget
 from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
 from consumo_lib.controllers import ConnectionManagerController
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 logger = logging.getLogger(__name__)
 
 
@@ -140,17 +143,17 @@ class MainUIBuilder:
         self.window.camera_id_combo.addItems(["0", "1", "2", "3"])
         connection_layout.addWidget(self.window.camera_id_combo, 2, 1)
 
-        self.window.connect_camera_btn = QPushButton("Conectar Câmera")
+        self.window.connect_camera_btn = StandardButton("Conectar Câmera")
         self.window.connect_camera_btn.clicked.connect(self.window.connect_camera)
         connection_layout.addWidget(self.window.connect_camera_btn, 2, 2)
 
         # Refresh ports button
-        self.window.refresh_ports_btn = QPushButton("Atualizar Portas")
+        self.window.refresh_ports_btn = StandardButton("Atualizar Portas")
         self.window.refresh_ports_btn.clicked.connect(self.window.refresh_ports)
         connection_layout.addWidget(self.window.refresh_ports_btn, 1, 3)
 
         # Test camera button
-        self.window.test_camera_btn = QPushButton("Testar Câmera")
+        self.window.test_camera_btn = StandardButton("Testar Câmera")
         self.window.test_camera_btn.clicked.connect(self.window.test_camera)
         connection_layout.addWidget(self.window.test_camera_btn, 2, 3)
 
@@ -169,7 +172,7 @@ class MainUIBuilder:
         self.window.fuso_input = QLineEdit(str(
             self.window.config.get("calibration", "fuso_pitch", default=5)
         ))
-        self.window.apply_calibration_btn = QPushButton("Aplicar Calibração")
+        self.window.apply_calibration_btn = StandardButton("Aplicar Calibração", variant="primary")
 
         # Conecta ao CalibrationController
         self.window.apply_calibration_btn.clicked.connect(

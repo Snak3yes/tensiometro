@@ -13,6 +13,9 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal
 
+# Design System
+from consumo_lib.ui.widget_standards import StandardButton
+
 from .base_tab import BaseTab
 
 logger = logging.getLogger(__name__)
@@ -69,17 +72,17 @@ class TrackingTab(BaseTab):
         action_group = QGroupBox("⚡ Ações Rápidas")
         action_layout = QHBoxLayout(action_group)
 
-        self.btn_run_tension = QPushButton("📐 Medir Tensão")
+        self.btn_run_tension = StandardButton("📐 Medir Tensão")
         self.btn_run_tension.setEnabled(False)
         self.btn_run_tension.setToolTip("Executa medição de tensão e salva no histórico do stencil")
         self.btn_run_tension.clicked.connect(self._on_run_tension)
         action_layout.addWidget(self.btn_run_tension)
 
-        self.btn_manage_stencils = QPushButton("📋 Gerenciar Stencils")
+        self.btn_manage_stencils = StandardButton("📋 Gerenciar Stencils")
         self.btn_manage_stencils.clicked.connect(self._on_manage_stencils)
         action_layout.addWidget(self.btn_manage_stencils)
 
-        self.btn_new_stencil = QPushButton("➕ Novo Stencil")
+        self.btn_new_stencil = StandardButton("➕ Novo Stencil")
         self.btn_new_stencil.clicked.connect(self._on_new_stencil)
         action_layout.addWidget(self.btn_new_stencil)
 

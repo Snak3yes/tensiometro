@@ -17,6 +17,7 @@ from consumo_lib.widgets.search_line_edit import SearchLineEdit
 from consumo_lib.widgets.status_badge import StatusBadge
 from consumo_lib.widgets.hardware_status_bar import HardwareStatusBar
 from consumo_lib.ui import COLORS, TYPO, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger(__name__)
 
@@ -167,7 +168,7 @@ class TreeViewTab(QWidget):
         layout.addWidget(scroll, 1)
 
         # Botão inspecionar
-        self.inspect_button = QPushButton("🔍 Inspecionar Stencil")
+        self.inspect_button = StandardButton("🔍 Inspecionar Stencil")
         self.inspect_button.setMinimumHeight(45)
         self.inspect_button.setEnabled(False)
         self.inspect_button.setStyleSheet(f"""
@@ -193,7 +194,7 @@ class TreeViewTab(QWidget):
         self.inspect_button.clicked.connect(self.on_inspect_clicked)
 
         # Botão histórico (NOVO - FASE 7)
-        self.history_button = QPushButton("📋 Histórico")
+        self.history_button = StandardButton("📋 Histórico")
         self.history_button.setMinimumHeight(45)
         self.history_button.setEnabled(False)
         self.history_button.setStyleSheet(f"""

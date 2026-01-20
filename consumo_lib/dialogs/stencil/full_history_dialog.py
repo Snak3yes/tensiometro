@@ -18,6 +18,7 @@ from PyQt6.QtGui import QColor, QFont
 
 from aoi_lib.stencil_tracker import StencilTracker
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui.widget_standards import StandardButton
 
 log = logging.getLogger(__name__)
 
@@ -83,13 +84,13 @@ class StencilFullHistoryDialog(QDialog):
         # ================== BOTÕES ==================
         btn_layout = QHBoxLayout()
 
-        btn_export = QPushButton("📥 Exportar CSV")
+        btn_export = StandardButton("📥 Exportar CSV")
         btn_export.clicked.connect(self._export_csv)
         btn_layout.addWidget(btn_export)
 
         btn_layout.addStretch()
 
-        btn_close = QPushButton("Fechar")
+        btn_close = StandardButton("Fechar")
         btn_close.clicked.connect(self.accept)
         btn_layout.addWidget(btn_close)
 
