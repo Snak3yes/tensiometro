@@ -56,7 +56,7 @@ class InspectionHistoryDialog(QDialog):
         # Título
         title_label = QLabel(f"Histórico: {self.stencil_code}")
         title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
-        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title_label)
 
         # Filtros
@@ -244,7 +244,7 @@ class InspectionHistoryDialog(QDialog):
         clear_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.TEXT_SECONDARY};
-                color: {COLORS.ON_BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_SMALL};
                 font-weight: 600;
                 border: none;

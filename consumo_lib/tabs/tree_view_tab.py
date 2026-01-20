@@ -376,7 +376,7 @@ class TreeViewTab(QWidget):
         details_html = f"""
         <style>
             .label {{ color: {COLORS.TEXT_HINT}; font-weight: bold; }}
-            .value {{ color: {COLORS.ON_BACKGROUND}; }}
+            .value {{ color: {COLORS.TEXT_PRIMARY}; }}
         </style>
         <table cellpadding="5" cellspacing="0">
         """

@@ -655,7 +655,7 @@ class AlignmentWidget(QWidget):
         self.btn_reset.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.TEXT_SECONDARY};
-                color: {COLORS.ON_BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
                 {TYPO.BODY_MEDIUM};
                 padding: {SPACE.SM}px;
                 border-radius: {DIM.RADIUS_XS}px;

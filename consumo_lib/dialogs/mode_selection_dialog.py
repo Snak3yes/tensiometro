@@ -83,7 +83,7 @@ class ModeCard(QWidget):
         title_label = QLabel(title)
         title_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         title_label.setWordWrap(True)
-        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         content_layout.addWidget(title_label)
 
         # Descrição
@@ -237,7 +237,7 @@ class ModeSelectionDialog(QDialog):
         title_label = QLabel("Escolha o Modo de Inspeção")
         title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         header_layout.addWidget(title_label)
 
         # Subtítulo com código do stencil

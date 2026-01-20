@@ -151,7 +151,7 @@ class DefectJudgmentDialog(QDialog):
         # Título principal
         title_label = QLabel("Julgamento de Defeitos")
         title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
-        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title_label)
 
         # Info da sessão
@@ -262,7 +262,7 @@ class DefectJudgmentDialog(QDialog):
         # Título
         title = QLabel("Informações do Defeito")
         title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        title.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title)
 
         # Campos de informação (serão preenchidos dinamicamente)

@@ -57,7 +57,7 @@ class ColorButton(QPushButton):
                 border-radius: 4px;
             }}
             QPushButton:hover {{
-                border: 2px solid {COLORS.ON_BACKGROUND};
+                border: 2px solid {COLORS.TEXT_PRIMARY};
             }}
         """)
         self.setText(f"#{r:02X}{g:02X}{b:02X}")

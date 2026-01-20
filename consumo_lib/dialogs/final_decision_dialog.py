@@ -82,7 +82,7 @@ class FinalDecisionDialog(QDialog):
         title_label = QLabel("Análise Completa")
         title_label.setFont(TYPO.get_font(TYPO.DISPLAY_SMALL, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        title_label.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title_label)
 
         # Resumo da análise

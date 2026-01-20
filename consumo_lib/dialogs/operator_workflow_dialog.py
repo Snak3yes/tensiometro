@@ -100,7 +100,7 @@ class OperatorWorkflowDialog(QDialog):
         """Configura header do dialog."""
         title = QLabel("Workflow de Inspeção")
         title.setFont(TYPO.get_font(TYPO.HEADLINE_SMALL, bold=True))
-        title.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
+        title.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
@@ -119,7 +119,7 @@ class OperatorWorkflowDialog(QDialog):
             QGroupBox {{
                 font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
-                color: {COLORS.ON_BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
                 border: 2px solid {COLORS.OUTLINE};
                 border-radius: {DIM.RADIUS_MD}px;
                 margin-top: {SPACE.SM}px;
@@ -193,7 +193,7 @@ class OperatorWorkflowDialog(QDialog):
             QGroupBox {{
                 font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
-                color: {COLORS.ON_BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
                 border: 2px solid {COLORS.OUTLINE};
                 border-radius: {DIM.RADIUS_MD}px;
                 margin-top: {SPACE.SM}px;

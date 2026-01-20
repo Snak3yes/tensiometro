@@ -81,7 +81,7 @@ class ValidatedLineEdit(QLineEdit):
                 QLineEdit {{
                     border: 1px solid {COLORS.SUCCESS};
                     background-color: {COLORS.SURFACE};
-                    color: {COLORS.ON_BACKGROUND};
+                    color: {COLORS.TEXT_PRIMARY};
                 }}
             """)
         else:
@@ -89,7 +89,7 @@ class ValidatedLineEdit(QLineEdit):
                 QLineEdit {{
                     border: 1px solid {COLORS.ERROR};
                     background-color: {COLORS.SURFACE};
-                    color: {COLORS.ON_BACKGROUND};
+                    color: {COLORS.TEXT_PRIMARY};
                 }}
             """)
 
@@ -217,7 +217,7 @@ class ProgramDataWidget(QWidget):
             QTextEdit {{
                 border: 1px solid {COLORS.TEXT_DISABLED};
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
                 padding: {SPACE.XXS}px;
                 border-radius: {DIM.RADIUS_XS}px;
             }}
