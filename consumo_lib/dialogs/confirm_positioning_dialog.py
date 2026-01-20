@@ -114,7 +114,7 @@ class ConfirmPositioningDialog(QDialog):
         warning_label.setStyleSheet(f"""
             QLabel {{
                 background-color: {COLORS.WARNING_LIGHT};
-                color: {COLORS.TEXT_PRIMARY_LIGHT};
+                color: {COLORS.TEXT_PRIMARY};
                 padding: {SPACE.SM}px;
                 border-radius: {DIM.RADIUS_SM}px;
                 font-weight: bold;

@@ -272,7 +272,7 @@ class FiducialCaptureWidget(QWidget):
                 background-color: {COLORS.WARNING_LIGHT};
                 border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
-                color: {COLORS.TEXT_PRIMARY_LIGHT};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
         layout.addWidget(self.status_label)
@@ -398,7 +398,7 @@ class FiducialCaptureWidget(QWidget):
                     background-color: {COLORS.SUCCESS};
                     border: 1px solid {COLORS.SUCCESS};
                     border-radius: {DIM.RADIUS_SM}px;
-                    color: {COLORS.TEXT_PRIMARY_LIGHT};
+                    color: {COLORS.TEXT_PRIMARY};
                 }}
             """)
         else:
@@ -412,7 +412,7 @@ class FiducialCaptureWidget(QWidget):
                     background-color: {COLORS.WARNING_LIGHT};
                     border: 1px solid {COLORS.BORDER};
                     border-radius: {DIM.RADIUS_SM}px;
-                    color: {COLORS.TEXT_PRIMARY_LIGHT};
+                    color: {COLORS.TEXT_PRIMARY};
                 }}
             """)
 

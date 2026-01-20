@@ -85,7 +85,7 @@ class WarningPanel(QWidget):
         self.warnings = warnings
         if not warnings:
             self.label.setText(f"""
-                <div style='background-color: {COLORS.SUCCESS}; color: {COLORS.TEXT_PRIMARY_LIGHT};
+                <div style='background-color: {COLORS.SUCCESS}; color: {COLORS.TEXT_PRIMARY};
                             padding: {SPACE.XS}px; border-radius: {DIM.RADIUS_SM}px;'>
                     ✓ Nenhum avio - Programa válido
                 </div>
