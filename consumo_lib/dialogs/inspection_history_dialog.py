@@ -223,37 +223,37 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout.addStretch()
 
         apply_button = QPushButton("Aplicar Filtros")
-        apply_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
-                color: white;
-                font-size: 12px;
+        apply_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SECONDARY};
+                color: {COLORS.ON_SECONDARY};
+                {TYPO.BODY_SMALL};
                 font-weight: 600;
                 border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
+                border-radius: {DIM.RADIUS_XS}px;
+                padding: {SPACE.XS}px {SPACE.SM}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SECONDARY_DARK};
+            }}
         """)
         apply_button.clicked.connect(self.apply_filters)
         buttons_layout.addWidget(apply_button)
 
         clear_button = QPushButton("Limpar Filtros")
-        clear_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
-                color: white;
-                font-size: 12px;
+        clear_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.TEXT_SECONDARY};
+                color: {COLORS.ON_BACKGROUND};
+                {TYPO.BODY_SMALL};
                 font-weight: 600;
                 border: none;
-                border-radius: 4px;
-                padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
+                border-radius: {DIM.RADIUS_XS}px;
+                padding: {SPACE.XS}px {SPACE.SM}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.TEXT_HINT};
+            }}
         """)
         clear_button.clicked.connect(self.clear_filters)
         buttons_layout.addWidget(clear_button)
