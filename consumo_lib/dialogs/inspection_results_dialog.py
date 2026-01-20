@@ -106,7 +106,7 @@ class InspectionResultsDialog(QDialog):
             f"Modo: {self._get_mode_title()}   |   "
             f"Data: {timestamp}"
         )
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(info_label)
 
         return widget
@@ -148,26 +148,26 @@ class InspectionResultsDialog(QDialog):
             # Tensão Média
             tension_avg = self.results.get("tension_avg", 0)
             avg_label = QLabel(f"Tensão Média: {tension_avg} N/cm")
-            avg_label.setStyleSheet(f"{TYPO.HEADLINE_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+            avg_label.setStyleSheet(f"font-size: {TYPO.HEADLINE_MEDIUM}px; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
             layout.addWidget(avg_label)
 
             # Pontos medidos
             points = self.results.get("points_measured", 0)
             points_label = QLabel(f"Pontos Medidos: {points}")
-            points_label.setStyleSheet(f"{TYPO.BODY_LARGE}; color: {COLORS.TEXT_HINT};")
+            points_label.setStyleSheet(f"font-size: {TYPO.BODY_LARGE}px; color: {COLORS.TEXT_HINT};")
             layout.addWidget(points_label)
 
             # Classificação
             classification = self.results.get("classification", "UNKNOWN")
             class_label = QLabel(f"Classificação: {self._get_classification_label(classification)}")
-            class_label.setStyleSheet(f"{TYPO.BODY_LARGE}; font-weight: bold; color: {self._get_classification_color(classification)};")
+            class_label.setStyleSheet(f"font-size: {TYPO.BODY_LARGE}px; font-weight: bold; color: {self._get_classification_color(classification)};")
             layout.addWidget(class_label)
 
         elif self.mode == "inspection":
             # Aperturas analisadas
             total = self.results.get("apertures_analyzed", 0)
             total_label = QLabel(f"Aberturas Analisadas: {total}")
-            total_label.setStyleSheet(f"{TYPO.HEADLINE_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+            total_label.setStyleSheet(f"font-size: {TYPO.HEADLINE_MEDIUM}px; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
             layout.addWidget(total_label)
 
             # Distribuição
@@ -176,13 +176,13 @@ class InspectionResultsDialog(QDialog):
             blocked = self.results.get("blocked_count", 0)
 
             dist_label = QLabel(f"OK: {ok}  |  Parciais: {partial}  |  Bloqueadas: {blocked}")
-            dist_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.TEXT_HINT};")
+            dist_label.setStyleSheet(f"font-size: {TYPO.BODY_MEDIUM}px; color: {COLORS.TEXT_HINT};")
             layout.addWidget(dist_label)
 
             # Classificação
             classification = self.results.get("classification", "UNKNOWN")
             class_label = QLabel(f"Classificação: {self._get_classification_label(classification)}")
-            class_label.setStyleSheet(f"{TYPO.BODY_LARGE}; font-weight: bold; color: {self._get_classification_color(classification)};")
+            class_label.setStyleSheet(f"font-size: {TYPO.BODY_LARGE}px; font-weight: bold; color: {self._get_classification_color(classification)};")
             layout.addWidget(class_label)
 
         return widget
@@ -216,7 +216,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         stats_label = QLabel(stats_text)
-        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; {TYPO.BODY_SMALL}; color: {COLORS.TEXT_HINT};")
+        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; font-size: {TYPO.BODY_SMALL}px; color: {COLORS.TEXT_HINT};")
         layout.addWidget(stats_label)
 
         # Placeholder para heatmap (FUTURO)
@@ -256,7 +256,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
             if len(partial) > 5:
                 partial_text += f" ... (+{len(partial)-5} mais)"
             partial_label = QLabel(partial_text)
-            partial_label.setStyleSheet(f"color: {COLORS.WARNING}; {TYPO.BODY_SMALL};")
+            partial_label.setStyleSheet(f"color: {COLORS.WARNING}; font-size: {TYPO.BODY_SMALL}px;")
             layout.addWidget(partial_label)
 
         if blocked:
@@ -264,12 +264,12 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
             if len(blocked) > 5:
                 blocked_text += f" ... (+{len(blocked)-5} mais)"
             blocked_label = QLabel(blocked_text)
-            blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; {TYPO.BODY_SMALL};")
+            blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: {TYPO.BODY_SMALL}px;")
             layout.addWidget(blocked_label)
 
         if not partial and not blocked:
             ok_label = QLabel("✅ Todas as aberturas aprovadas!")
-            ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; {TYPO.BODY_MEDIUM}; font-weight: bold;")
+            ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: {TYPO.BODY_MEDIUM}px; font-weight: bold;")
             layout.addWidget(ok_label)
 
         return frame
@@ -305,7 +305,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         resumo_label = QLabel(resumo_text)
-        resumo_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.TEXT_HINT};")
+        resumo_label.setStyleSheet(f"font-size: {TYPO.BODY_MEDIUM}px; color: {COLORS.TEXT_HINT};")
         layout.addWidget(resumo_label)
 
         return frame

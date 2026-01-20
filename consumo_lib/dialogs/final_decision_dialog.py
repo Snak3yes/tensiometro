@@ -225,7 +225,7 @@ class FinalDecisionDialog(QDialog):
         )
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; {TYPO.BODY_SMALL}")
+        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(desc_label)
 
         layout.addStretch()
@@ -295,7 +295,7 @@ class FinalDecisionDialog(QDialog):
         )
         desc_label.setWordWrap(True)
         desc_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; {TYPO.BODY_SMALL}")
+        desc_label.setStyleSheet(f"color: {COLORS.ERROR_DARK}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(desc_label)
 
         layout.addStretch()

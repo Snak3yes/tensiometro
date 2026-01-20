@@ -81,7 +81,7 @@ class WindowPreviewWidget(QWidget):
 
         # Status label
         self.status_label = QLabel("Nenhum grupo selecionado")
-        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(self.status_label)
 
     def set_windows(self, windows: List[InspectionWindow]) -> None:
@@ -144,7 +144,7 @@ class WindowPreviewWidget(QWidget):
 
         # Window info
         info_label = QLabel(f"ID: {window.id}\n{window.kind}")
-        info_label.setStyleSheet(f"{TYPO.BODY_SMALL}; color: {COLORS.TEXT_HINT};")
+        info_label.setStyleSheet(f"font-size: {TYPO.BODY_SMALL}px; color: {COLORS.TEXT_HINT};")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -213,7 +213,7 @@ class GroupConfigPanel(QWidget):
 
         # Blocked note
         blocked_label = QLabel("❌ BLOQUEADO < threshold PARTIAL")
-        blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; {TYPO.BODY_SMALL}")
+        blocked_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: {TYPO.BODY_SMALL}px")
         thresholds_layout.addWidget(blocked_label, 2, 0, 1, 2)
 
         thresholds_group.setLayout(thresholds_layout)
@@ -468,7 +468,7 @@ class LibraryPanel(QWidget):
             "automaticamente baseadas no nome\n"
             "do grupo (dimensão + forma)."
         )
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XS}px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px; padding: {SPACE.XS}px;")
         layout.addWidget(info_label)
 
         # Update display

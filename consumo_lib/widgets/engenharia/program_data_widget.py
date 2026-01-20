@@ -253,7 +253,7 @@ class ProgramDataWidget(QWidget):
         info_label = QLabel(
             "<i>Campos marcados com * são obrigatórios</i>"
         )
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; {TYPO.BODY_SMALL}")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-size: {TYPO.BODY_SMALL}px")
         form_layout.addRow("", info_label)
 
         layout.addWidget(group)

@@ -93,7 +93,7 @@ class InspectionProgressDialog(QDialog):
 
         # Label de status
         self.status_label = QLabel("Preparando execução...")
-        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_MEDIUM}; font-weight: 500;")
+        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_MEDIUM}px; font-weight: 500;")
         layout.addWidget(self.status_label)
 
         layout.addSpacing(10)

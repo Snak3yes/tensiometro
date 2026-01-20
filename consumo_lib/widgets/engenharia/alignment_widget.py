@@ -477,7 +477,7 @@ class AlignmentWidget(QWidget):
 
         # Título
         title = QLabel("📍 Alinhamento Gerber ↔ Mosaico")
-        title.setStyleSheet(f"{TYPO.HEADLINE_LARGE}; font-weight: bold; color: {COLORS.PRIMARY};")
+        title.setStyleSheet(f"font-size: {TYPO.HEADLINE_LARGE}px; font-weight: bold; color: {COLORS.PRIMARY};")
         left_panel.addWidget(title)
 
         # Instrução
@@ -486,7 +486,7 @@ class AlignmentWidget(QWidget):
             "Use os controles manuais para ajustes finos."
         )
         instruction.setWordWrap(True)
-        instruction.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XS}px;")
+        instruction.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px; padding: {SPACE.XS}px;")
         left_panel.addWidget(instruction)
 
         # Preview image
@@ -624,7 +624,7 @@ class AlignmentWidget(QWidget):
             "e calcula a transformação ótima."
         )
         lbl_auto_info.setWordWrap(True)
-        lbl_auto_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; {TYPO.BODY_SMALL}")
+        lbl_auto_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-size: {TYPO.BODY_SMALL}px")
         auto_layout.addWidget(lbl_auto_info)
 
         self.btn_auto_tune = QPushButton("🔍 Auto-Tuning")

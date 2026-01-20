@@ -158,7 +158,7 @@ class DefectJudgmentDialog(QDialog):
         info_text = f"Stencil: {self.session_data.get('stencil_code')}   |   " \
                     f"Operador: {self.session_data.get('operator')}"
         info_label = QLabel(info_text)
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(info_label)
 
         # Barra de progresso
@@ -224,7 +224,7 @@ class DefectJudgmentDialog(QDialog):
         zoom_layout.addWidget(zoom_out_btn)
 
         zoom_label = QLabel("Zoom:")
-        zoom_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        zoom_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         zoom_layout.addWidget(zoom_label)
 
         zoom_in_btn = QPushButton("🔍+")
@@ -267,19 +267,19 @@ class DefectJudgmentDialog(QDialog):
 
         # Campos de informação (serão preenchidos dinamicamente)
         self.info_position = QLabel("Posição: --")
-        self.info_position.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        self.info_position.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(self.info_position)
 
         self.info_type = QLabel("Tipo: --")
-        self.info_type.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        self.info_type.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(self.info_type)
 
         self.info_status = QLabel("Status: --")
-        self.info_status.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        self.info_status.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(self.info_status)
 
         self.info_percentage = QLabel("Abertura: --")
-        self.info_percentage.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        self.info_percentage.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         layout.addWidget(self.info_percentage)
 
         return frame
@@ -312,7 +312,7 @@ class DefectJudgmentDialog(QDialog):
 
         self.system_details = QLabel("--")
         self.system_details.setWordWrap(True)
-        self.system_details.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY_DARK}; {TYPO.BODY_SMALL}")
+        self.system_details.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY_DARK}; font-size: {TYPO.BODY_SMALL}px")
         self.system_details.setAlignment(Qt.AlignmentFlag.AlignTop)
         system_layout.addWidget(self.system_details, 1)
 
@@ -405,7 +405,7 @@ class DefectJudgmentDialog(QDialog):
         judgment_layout.addWidget(judgment_title)
 
         judgment_subtitle = QLabel("Este defeito é REAL?")
-        judgment_subtitle.setStyleSheet(f"color: {COLORS.ON_PRIMARY_DARK}; {TYPO.BODY_SMALL}")
+        judgment_subtitle.setStyleSheet(f"color: {COLORS.ON_PRIMARY_DARK}; font-size: {TYPO.BODY_SMALL}px")
         judgment_subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         judgment_layout.addWidget(judgment_subtitle)
 
@@ -565,7 +565,7 @@ class DefectJudgmentDialog(QDialog):
             status_color = COLORS.SUCCESS
 
         self.info_status.setText(f"Status: {status_text}")
-        self.info_status.setStyleSheet(f"color: {status_color}; {TYPO.BODY_SMALL}; font-weight: bold;")
+        self.info_status.setStyleSheet(f"color: {status_color}; font-size: {TYPO.BODY_SMALL}px; font-weight: bold;")
 
         self.info_percentage.setText(f"Abertura: {percentage}%")
 

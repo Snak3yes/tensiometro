@@ -89,7 +89,7 @@ class ModeCard(QWidget):
         # Descrição
         desc_label = QLabel(description)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
+        desc_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px")
         content_layout.addWidget(desc_label)
 
         # Tempo estimado
