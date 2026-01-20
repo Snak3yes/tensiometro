@@ -165,9 +165,9 @@ class MovementControlWidget(QWidget):
         self.backlight_button = QPushButton("💡 Backlight OFF")
         self.backlight_button.setCheckable(True)
         self.backlight_button.setMinimumHeight(DIM.BUTTON_HEIGHT_SM)
-        self.backlight_button.setStyleSheet("""
-            QPushButton { background-color: #444; color: white; border-radius: 5px; }
-            QPushButton:checked { background-color: #FFD700; color: black; font-weight: bold; }
+        self.backlight_button.setStyleSheet(f"""
+            QPushButton {{ background-color: {COLORS.TEXT_HINT}; color: {COLORS.ON_BACKGROUND}; border-radius: {DIM.RADIUS_XS}px; }}
+            QPushButton:checked {{ background-color: {COLORS.WARNING}; color: {COLORS.ON_WARNING}; font-weight: bold; }}
         """)
         self.backlight_button.toggled.connect(self._on_backlight_toggle)
         movement_layout.addWidget(self.backlight_button, 9, 0, 1, 5)
