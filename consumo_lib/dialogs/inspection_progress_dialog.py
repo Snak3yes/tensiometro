@@ -61,7 +61,7 @@ class InspectionProgressDialog(QDialog):
         # Título
         mode_title = self._get_mode_title()
         title_label = QLabel(f"Execução: {mode_title}")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title_label)
 

@@ -81,7 +81,7 @@ class ModeCard(QWidget):
 
         # Título
         title_label = QLabel(title)
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         title_label.setWordWrap(True)
         title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         content_layout.addWidget(title_label)
@@ -242,7 +242,7 @@ class ModeSelectionDialog(QDialog):
 
         # Subtítulo com código do stencil
         subtitle_label = QLabel(f"Stencil: {self.stencil_code}")
-        subtitle_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM))
+        subtitle_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM))
         subtitle_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle_label)

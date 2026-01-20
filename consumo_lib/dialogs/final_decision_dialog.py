@@ -95,7 +95,7 @@ class FinalDecisionDialog(QDialog):
         instruction_label = QLabel(
             "Há defeitos confirmados. O que deseja fazer?"
         )
-        instruction_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        instruction_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         instruction_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(instruction_label)
@@ -164,7 +164,7 @@ class FinalDecisionDialog(QDialog):
         # Contagem total
         total_defects = len(self.defects_confirmed) + len(self.defects_approved)
         total_label = QLabel(f"{total_defects} defeitos analisados")
-        total_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        total_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         total_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         total_label.setStyleSheet(f"color: {COLORS.WARNING_DARK};")
         layout.addWidget(total_label)
@@ -212,7 +212,7 @@ class FinalDecisionDialog(QDialog):
 
         # Título
         title_label = QLabel("Descartar Inspeção")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet(f"color: {COLORS.ERROR_DARK};")
         layout.addWidget(title_label)
@@ -282,7 +282,7 @@ class FinalDecisionDialog(QDialog):
 
         # Título
         title_label = QLabel("Reprovar Sessão")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         title_label.setStyleSheet(f"color: {COLORS.ERROR_DARK};")
         layout.addWidget(title_label)

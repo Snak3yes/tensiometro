@@ -150,7 +150,7 @@ class DefectJudgmentDialog(QDialog):
 
         # Título principal
         title_label = QLabel("Julgamento de Defeitos")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title_label.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title_label)
 
@@ -399,7 +399,7 @@ class DefectJudgmentDialog(QDialog):
         judgment_layout.setSpacing(SPACE.MD)
 
         judgment_title = QLabel("Seu Julgamento")
-        judgment_title.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        judgment_title.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         judgment_title.setStyleSheet(f"color: {COLORS.ON_SECONDARY_LIGHT};")
         judgment_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         judgment_layout.addWidget(judgment_title)

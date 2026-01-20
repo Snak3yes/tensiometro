@@ -142,7 +142,7 @@ class ProgramDataWidget(QWidget):
         title = QLabel("📋 Dados do Programa")
         title.setStyleSheet(f"""
             QLabel {{
-                {TYPO.HEADING_LARGE}
+                {TYPO.HEADLINE_LARGE}
                 font-weight: bold;
                 color: {COLORS.PRIMARY};
                 padding: {SPACE.SM}px;

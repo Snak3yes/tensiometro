@@ -134,7 +134,7 @@ class ConfirmSaveWidget(QWidget):
 
         # Título
         title = QLabel("Confirmar e Salvar Programa")
-        title.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 

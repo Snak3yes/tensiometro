@@ -61,7 +61,7 @@ class ConfirmPositioningDialog(QDialog):
 
         # Título
         title_label = QLabel("Confirmação de Posicionamento")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_LARGE, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_LARGE, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
@@ -84,7 +84,7 @@ class ConfirmPositioningDialog(QDialog):
 
         # Código do stencil
         code_label = QLabel(self.stencil_code)
-        code_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        code_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         code_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(code_label)
 

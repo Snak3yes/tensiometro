@@ -87,7 +87,7 @@ class AuthenticationSettingsDialog(QDialog):
 
         # Título
         title_label = QLabel("Configurações de Autenticação")
-        title_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 

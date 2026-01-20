@@ -95,7 +95,7 @@ class InspectionResultsDialog(QDialog):
 
         # Título
         title = QLabel("Resultados da Inspeção")
-        title.setFont(TYPO.get_font(TYPO.HEADING_XLARGE, bold=True))
+        title.setFont(TYPO.get_font(TYPO.DISPLAY_LARGE, bold=True))
         title.setStyleSheet(f"color: {COLORS.TEXT_PRIMARY};")
         layout.addWidget(title)
 
@@ -148,7 +148,7 @@ class InspectionResultsDialog(QDialog):
             # Tensão Média
             tension_avg = self.results.get("tension_avg", 0)
             avg_label = QLabel(f"Tensão Média: {tension_avg} N/cm")
-            avg_label.setStyleSheet(f"{TYPO.HEADING_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+            avg_label.setStyleSheet(f"{TYPO.HEADLINE_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
             layout.addWidget(avg_label)
 
             # Pontos medidos
@@ -167,7 +167,7 @@ class InspectionResultsDialog(QDialog):
             # Aperturas analisadas
             total = self.results.get("apertures_analyzed", 0)
             total_label = QLabel(f"Aberturas Analisadas: {total}")
-            total_label.setStyleSheet(f"{TYPO.HEADING_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+            total_label.setStyleSheet(f"{TYPO.HEADLINE_MEDIUM}; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
             layout.addWidget(total_label)
 
             # Distribuição

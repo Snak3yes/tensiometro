@@ -382,7 +382,7 @@ class MosaicCaptureWidget(QWidget):
         title = QLabel("🖼️ Capturar Mosaico")
         title.setStyleSheet(f"""
             QLabel {{
-                {TYPO.HEADING_LARGE}
+                {TYPO.HEADLINE_LARGE}
                 font-weight: bold;
                 color: {COLORS.PRIMARY};
                 padding: {SPACE.SM}px;

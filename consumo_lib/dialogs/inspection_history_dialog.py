@@ -65,7 +65,7 @@ class InspectionHistoryDialog(QDialog):
 
         # Tabela
         table_label = QLabel("Inspeções")
-        table_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
+        table_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         table_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(table_label)
 

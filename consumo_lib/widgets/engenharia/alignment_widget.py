@@ -477,7 +477,7 @@ class AlignmentWidget(QWidget):
 
         # Título
         title = QLabel("📍 Alinhamento Gerber ↔ Mosaico")
-        title.setStyleSheet(f"{TYPO.HEADING_LARGE}; font-weight: bold; color: {COLORS.PRIMARY};")
+        title.setStyleSheet(f"{TYPO.HEADLINE_LARGE}; font-weight: bold; color: {COLORS.PRIMARY};")
         left_panel.addWidget(title)
 
         # Instrução
