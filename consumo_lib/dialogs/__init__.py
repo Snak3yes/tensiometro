@@ -94,3 +94,8 @@ __all__.append('OperatorWorkflowDialog')
 # Engineering Wizard dialog (NOVO - FASE 1)
 from .engineering_wizard_dialog import EngineeringWizardDialog
 __all__.append('EngineeringWizardDialog')
+
+# Theme Settings dialog (NOVO - FASE 8)
+from .theme_settings import ThemeSettingsDialog, show_theme_settings_dialog
+__all__.append('ThemeSettingsDialog')
+__all__.append('show_theme_settings_dialog')

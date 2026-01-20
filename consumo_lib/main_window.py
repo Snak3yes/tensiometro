@@ -528,6 +528,40 @@ class AOIControllerApp(QMainWindow):
 
         dialog.exec()
 
+    def show_theme_settings(self):
+        """
+        Exibe diálogo de configurações de tema.
+
+        Permite usuários selecionar:
+        - Light Theme (tema claro)
+        - Dark Theme (tema escuro)
+        - System Theme (segue OS)
+
+        A escolha é aplicada imediatamente e salva na configuração.
+        """
+        from consumo_lib.dialogs.theme_settings import show_theme_settings_dialog
+        from consumo_lib.ui.theme_manager import get_theme_manager
+
+        # Obtém ThemeManager
+        theme_mgr = get_theme_manager()
+        if theme_mgr is None:
+            QMessageBox.warning(
+                self,
+                "Gerenciador de Tema Não Disponível",
+                "O gerenciador de temas não foi inicializado corretamente.",
+                QMessageBox.StandardButton.Ok
+            )
+            return
+
+        # Mostra diálogo de seleção de tema
+        # Se o usuário confirmar, o diálogo já aplica e salva o tema
+        selected_theme = show_theme_settings_dialog(theme_mgr, parent=self)
+
+        if selected_theme:
+            logger.info(f"✅ Tema alterado via diálogo: {selected_theme}")
+            # O diálogo já aplicou o tema via theme_manager.set_theme()
+            # e salvou no config, então não precisamos fazer mais nada
+
     def _on_auth_config_changed(self):
         """
         Handler chamado quando configuração de autenticação muda.

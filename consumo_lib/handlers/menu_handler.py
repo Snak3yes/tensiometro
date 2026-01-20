@@ -354,6 +354,18 @@ class MenuHandler(QObject):
 
         menu.addSeparator()
 
+        # Configurações de Tema (NOVO - 2026-01-20)
+        theme_settings_action = QAction('🎨 Configurações de Tema...', self.main_window)
+        theme_settings_action.setToolTip(
+            'Alterne entre temas Claro, Escuro ou Automático (sistema operacional).\n'
+            'A escolha é salva e aplicada em todos os componentes da aplicação.'
+        )
+        theme_settings_action.triggered.connect(self.main_window.show_theme_settings)
+        menu.addAction(theme_settings_action)
+        self._register_action('engineering.theme_settings', theme_settings_action)
+
+        menu.addSeparator()
+
         # Programas Salvos
         saved_programs_action = QAction('📁 Programas Salvos...', self.main_window)
         saved_programs_action.setToolTip('Gerencia programas de inspeção salvos')
