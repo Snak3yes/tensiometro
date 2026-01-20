@@ -624,21 +624,22 @@ class AlignmentWidget(QWidget):
             "e calcula a transformação ótima."
         )
         lbl_auto_info.setWordWrap(True)
-        lbl_auto_info.setStyleSheet("color: #616161; font-size: 11px;")
+        lbl_auto_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; {TYPO.BODY_SMALL}")
         auto_layout.addWidget(lbl_auto_info)
 
         self.btn_auto_tune = QPushButton("🔍 Auto-Tuning")
-        self.btn_auto_tune.setStyleSheet("""
-            QPushButton {
-                background-color: #FF9800;
-                color: white;
+        self.btn_auto_tune.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.WARNING};
+                color: {COLORS.ON_WARNING};
+                {TYPO.BODY_MEDIUM};
                 font-weight: bold;
-                padding: 8px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #F57C00;
-            }
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_XS}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.WARNING_DARK};
+            }}
         """)
         self.btn_auto_tune.clicked.connect(self._on_auto_tune)
         auto_layout.addWidget(self.btn_auto_tune)
@@ -651,36 +652,38 @@ class AlignmentWidget(QWidget):
         btn_layout = QVBoxLayout()
 
         self.btn_reset = QPushButton("🔄 Resetar")
-        self.btn_reset.setStyleSheet("""
-            QPushButton {
-                background-color: #757575;
-                color: white;
-                padding: 8px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #616161;
-            }
+        self.btn_reset.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.TEXT_SECONDARY};
+                color: {COLORS.ON_BACKGROUND};
+                {TYPO.BODY_MEDIUM};
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_XS}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.TEXT_HINT};
+            }}
         """)
         self.btn_reset.clicked.connect(self._on_reset)
         btn_layout.addWidget(self.btn_reset)
 
         self.btn_apply = QPushButton("✅ Aplicar Alinhamento")
-        self.btn_apply.setStyleSheet("""
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
+        self.btn_apply.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
+                {TYPO.BODY_MEDIUM};
                 font-weight: bold;
-                padding: 10px;
-                border-radius: 4px;
-            }
-            QPushButton:hover {
-                background-color: #45A049;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-                color: #757575;
-            }
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_XS}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.TEXT_DISABLED};
+                color: {COLORS.TEXT_SECONDARY};
+            }}
         """)
         self.btn_apply.clicked.connect(self._on_apply)
         btn_layout.addWidget(self.btn_apply)
