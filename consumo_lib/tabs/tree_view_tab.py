@@ -11,10 +11,12 @@ from PyQt6.QtWidgets import (
     QComboBox, QGroupBox, QScrollArea
 )
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QFont
 
 from consumo_lib.widgets.search_line_edit import SearchLineEdit
 from consumo_lib.widgets.status_badge import StatusBadge
 from consumo_lib.widgets.hardware_status_bar import HardwareStatusBar
+from consumo_lib.ui import COLORS, TYPO, SPACE
 
 logger = logging.getLogger(__name__)
 
@@ -141,10 +143,7 @@ class TreeViewTab(QWidget):
 
         # Título
         title_label = QLabel("Detalhes do Stencil")
-        title_font = title_label.font()
-        title_font.setBold(True)
-        title_font.setPointSize(14)
-        title_label.setFont(title_font)
+        title_label.setFont(TYPO.get_font(TYPO.HEADLINE_SMALL, bold=True))
         layout.addWidget(title_label)
 
         # Scroll area para detalhes
@@ -161,7 +160,7 @@ class TreeViewTab(QWidget):
             "Clique em um item na lista para exibir informações completas."
         )
         self.details_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.details_placeholder.setStyleSheet("color: #888; padding: 40px; font-size: 12px;")
+        self.details_placeholder.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: {SPACE.XL * 2}px; font-size: {TYPO.BODY_SMALL}px;")
         details_layout.addWidget(self.details_placeholder)
 
         scroll.setWidget(self.details_content)
@@ -171,25 +170,25 @@ class TreeViewTab(QWidget):
         self.inspect_button = QPushButton("🔍 Inspecionar Stencil")
         self.inspect_button.setMinimumHeight(45)
         self.inspect_button.setEnabled(False)
-        self.inspect_button.setStyleSheet("""
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                font-size: 14px;
+        self.inspect_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.ON_PRIMARY};
+                font-size: {TYPO.BODY_LARGE}px;
                 font-weight: bold;
                 border-radius: 4px;
                 padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-            QPushButton:pressed {
-                background-color: #0D47A1;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-                color: #757575;
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.PRIMARY_DARKER};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         self.inspect_button.clicked.connect(self.on_inspect_clicked)
 
@@ -197,31 +196,31 @@ class TreeViewTab(QWidget):
         self.history_button = QPushButton("📋 Histórico")
         self.history_button.setMinimumHeight(45)
         self.history_button.setEnabled(False)
-        self.history_button.setStyleSheet("""
-            QPushButton {
-                background-color: #8B5CF6;
-                color: white;
-                font-size: 14px;
+        self.history_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.SECONDARY};
+                color: {COLORS.ON_SECONDARY};
+                font-size: {TYPO.BODY_LARGE}px;
                 font-weight: bold;
                 border-radius: 4px;
                 padding: 8px 16px;
-            }
-            QPushButton:hover {
-                background-color: #7C3AED;
-            }
-            QPushButton:pressed {
-                background-color: #5B21B6;
-            }
-            QPushButton:disabled {
-                background-color: #BDBDBD;
-                color: #757575;
-            }
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.SECONDARY_DARK};
+            }}
+            QPushButton:pressed {{
+                background-color: {COLORS.SECONDARY_DARKER};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.SURFACE};
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         self.history_button.clicked.connect(self.show_history)
 
         # Layout horizontal para os botões
         buttons_layout = QHBoxLayout()
-        buttons_layout.setSpacing(10)
+        buttons_layout.setSpacing(SPACE.MD)
         buttons_layout.addWidget(self.inspect_button)
         buttons_layout.addWidget(self.history_button)
 
@@ -359,16 +358,13 @@ class TreeViewTab(QWidget):
 
         # Código
         code_label = QLabel(f"Código: {stencil['code']}")
-        code_font = code_label.font()
-        code_font.setBold(True)
-        code_font.setPointSize(12)
-        code_label.setFont(code_font)
+        code_label.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         layout.addWidget(code_label)
 
         # Descrição
         desc_label = QLabel(stencil['description'])
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet("color: #666; margin-bottom: 10px;")
+        desc_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(desc_label)
 
         # Linha separadora
@@ -377,10 +373,10 @@ class TreeViewTab(QWidget):
         layout.addWidget(line)
 
         # Detalhes principais
-        details_html = """
+        details_html = f"""
         <style>
-            .label { color: #666; font-weight: bold; }
-            .value { color: #333; }
+            .label {{ color: {COLORS.ON_SURFACE}; font-weight: bold; }}
+            .value {{ color: {COLORS.ON_BACKGROUND}; }}
         </style>
         <table cellpadding="5" cellspacing="0">
         """
@@ -400,8 +396,8 @@ class TreeViewTab(QWidget):
             """
 
         # Linha separadora
-        details_html += """
-            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;"></td></tr>
+        details_html += f"""
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.OUTLINE}; margin: {SPACE.SM}px 0;"></td></tr>
         """
 
         # Dados físicos
@@ -417,8 +413,8 @@ class TreeViewTab(QWidget):
         """
 
         # Dados de manutenção
-        details_html += """
-            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;"></td></tr>
+        details_html += f"""
+            <tr><td colspan="2"><hr style="border: 0; border-top: 1px solid {COLORS.OUTLINE}; margin: {SPACE.SM}px 0;"></td></tr>
         """
         details_html += f"""
             <tr><td class="label">Última Limpeza:</td><td class="value">{stencil.get('last_cleaning', '-')}</td></tr>
