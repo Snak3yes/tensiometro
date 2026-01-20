@@ -1,0 +1,69 @@
+{
+  "track_id": "migrate_qpushbutton_to_standardbutton_20260120",
+  "title": "Migrar QPushButton para StandardButton - Design System Migration",
+  "type": "refactor",
+  "status": "in_progress",
+  "priority": "high",
+  "created_at": "2026-01-20T12:00:00Z",
+  "updated_at": "2026-01-20T14:30:00Z",
+  "description": "Migrar aproximadamente 197 instâncias de QPushButton para usar StandardButton do Design System ou setStyleSheet() com tokens do Design System (COLORS, DIM).",
+  "estimated_hours": 14,
+  "phases": 4,
+  "total_tasks": 30,
+  "completed_tasks": 5,
+  "completion_percentage": 17,
+  "labels": [
+    "design-system",
+    "refactor",
+    "ui",
+    "material-design-3",
+    "standardbutton"
+  ],
+  "acceptance_criteria": [
+    "Todos os 197 botões usam StandardButton ou setStyleSheet com Design System",
+    "Zero hardcoded colors em botões",
+    "Zero hardcoded sizes em botões",
+    "Consistência visual em toda aplicação",
+    "100% dos testes passando",
+    "Zero warnings de execução"
+  ],
+  "affected_files": {
+    "high_priority": [
+      "consumo_lib/controllers/calibration_controller.py",
+      "consumo_lib/controllers/camera_settings_controller.py",
+      "consumo_lib/controllers/fiducial_alignment_controller.py",
+      "consumo_lib/controllers/inspection_ui_controller.py"
+    ],
+    "medium_priority": [
+      "consumo_lib/dialogs/* (~40 arquivos)"
+    ],
+    "low_priority": [
+      "consumo_lib/widgets/* (~30 arquivos)"
+    ]
+  },
+  "dependencies": [
+    "consumo_lib/ui/widget_standards.py",
+    "consumo_lib/ui/design_tokens.py"
+  ],
+  "risks": [
+    {
+      "type": "functionality",
+      "probability": "low",
+      "impact": "high",
+      "mitigation": "Testes abrangentes após cada arquivo migrado"
+    },
+    {
+      "type": "visual",
+      "probability": "medium",
+      "impact": "medium",
+      "mitigation": "Validação visual em ambiente de teste"
+    },
+    {
+      "type": "performance",
+      "probability": "low",
+      "impact": "low",
+      "mitigation": "Benchmarks antes/depois"
+    }
+  ],
+  "notes": "Migration should be done file-by-file with testing after each migration. Start with high-priority files (calibration_controller.py, camera_settings_controller.py)."
+}
