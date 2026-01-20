@@ -20,6 +20,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+
 # Import refactored modules
 from aoi_lib.tensiometer import (
     MeasurementOrchestrator,
@@ -107,7 +109,7 @@ class TensionMeasurementDialog(QDialog):
 
         # Status label
         self.conn_status_label = QLabel("Status: Desconectado")
-        self.conn_status_label.setStyleSheet("color: gray;")
+        self.conn_status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         conn_layout.addWidget(self.conn_status_label, 1, 0, 1, 5)
 
         # Test button
@@ -191,7 +193,7 @@ class TensionMeasurementDialog(QDialog):
         progress_layout.addWidget(self.progress_label)
 
         self.current_value_label = QLabel("Última leitura: --")
-        self.current_value_label.setStyleSheet("font-size: 14px; font-weight: bold;")
+        self.current_value_label.setStyleSheet(f"font-size: {TYPO.BODY_MEDIUM}px; font-weight: bold;")
         progress_layout.addWidget(self.current_value_label)
 
         main_layout.addWidget(progress_group)
@@ -202,13 +204,13 @@ class TensionMeasurementDialog(QDialog):
         self.start_btn = QPushButton("▶ Iniciar Medição")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._on_start)
-        self.start_btn.setStyleSheet("background-color: #4CAF50; color: white; font-weight: bold; padding: 10px;")
+        self.start_btn.setStyleSheet(f"background-color: {COLORS.PRIMARY}; color: {COLORS.ON_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.start_btn)
 
         self.stop_btn = QPushButton("⏹ Parar")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
-        self.stop_btn.setStyleSheet("background-color: #f44336; color: white; font-weight: bold; padding: 10px;")
+        self.stop_btn.setStyleSheet(f"background-color: {COLORS.ERROR}; color: {COLORS.ON_ERROR}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.stop_btn)
 
         self.close_btn = QPushButton("Fechar")
@@ -256,13 +258,13 @@ class TensionMeasurementDialog(QDialog):
         if connected:
             self.connect_btn.setText("🔌 Desconectar")
             self.conn_status_label.setText("Status: ✅ Conectado")
-            self.conn_status_label.setStyleSheet("color: green;")
+            self.conn_status_label.setStyleSheet(f"color: {COLORS.SUCCESS};")
             self.test_btn.setEnabled(True)
             self.start_btn.setEnabled(True)
         else:
             self.connect_btn.setText("🔗 Conectar")
             self.conn_status_label.setText("Status: Desconectado")
-            self.conn_status_label.setStyleSheet("color: gray;")
+            self.conn_status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
             self.test_btn.setEnabled(False)
             self.start_btn.setEnabled(False)
 
