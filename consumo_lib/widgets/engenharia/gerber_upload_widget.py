@@ -292,7 +292,7 @@ class GerberUploadWidget(QWidget):
             self.status_label.setStyleSheet(f"""
                 QLabel {{
                     padding: {SPACE.SM}px;
-                    background-color: #D4EDDA;
+                    background-color: {COLORS.SUCCESS_LIGHT};
                     border: 1px solid {COLORS.SUCCESS};
                     border-radius: {DIM.RADIUS_SM}px;
                     color: {COLORS.TEXT_PRIMARY};
