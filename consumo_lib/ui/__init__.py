@@ -6,6 +6,7 @@ gerenciador de temas para toda a aplicação Tensiometro.
 
 Módulos:
     - design_tokens: Constantes de design (cores, fontes, espaçamentos)
+    - themes: Paletas de cores para Light/Dark/System themes
     - widget_standards: Componentes base padronizados
     - theme_manager: Gerenciador de temas
     - helpers: Funções utilitárias para UI
@@ -23,6 +24,11 @@ Uso básico:
     >>>
     >>> # Usar componentes padrão
     >>> btn = StandardButton("Salvar", variant="primary")
+    >>>
+    >>> # Mudar tema (se ThemeManager estiver inicializado)
+    >>> from consumo_lib.ui.theme_manager import get_theme_manager
+    >>> mgr = get_theme_manager()
+    >>> mgr.set_theme("dark")  # Cores atualizam automaticamente
 """
 
 # Design tokens (implementados na Fase 1)
@@ -52,6 +58,16 @@ from .widget_standards import (
 # Theme manager (implementado na Fase 2)
 from .theme_manager import init_theme_manager, get_theme_manager
 
+# Themes system (implementado na Fase 3 - Multi-theme support)
+from .themes import (
+    ThemeType,
+    LightThemePalette,
+    DarkThemePalette,
+    ThemePaletteFactory,
+    to_qcolor,
+    get_status_color,
+)
+
 # Helpers (implementados na Fase 1)
 from .helpers import (
     create_h_spacer,
@@ -75,6 +91,13 @@ __all__ = [
     "TRANS",
     "BREAK",
     "A11Y",
+    # Themes system
+    "ThemeType",
+    "LightThemePalette",
+    "DarkThemePalette",
+    "ThemePaletteFactory",
+    "to_qcolor",
+    "get_status_color",
     # Componentes base
     "StandardButton",
     "StandardLabel",

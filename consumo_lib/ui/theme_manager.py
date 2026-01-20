@@ -1,12 +1,31 @@
 """
 Gerenciador de Temas - Tensiometro
 
-Gerencia aplicação de temas e estilos globais.
+Gerencia aplicação de temas e estilos globais com suporte a:
+- Light theme
+- Dark theme
+- System theme (segue OS)
+
+Features:
+        - Aplicar stylesheet global
+        - Alternar temas dinamicamente (light/dark/system)
+        - Atualizar tokens de design (COLORS) automaticamente
+        - Carregar estilos de arquivo .qss
+        - Detectar tema do sistema operacional
+
+Usage:
+        >>> from consumo_lib.ui.theme_manager import init_theme_manager
+        >>> app = QApplication(sys.argv)
+        >>> theme_mgr = init_theme_manager(app)
+        >>> # Stylesheet aplicado automaticamente
+        >>>
+        >>> # Mudar tema
+        >>> theme_mgr.set_theme("dark")  # COLORS atualiza automaticamente
 """
 
 from typing import Optional
 from PyQt6.QtWidgets import QApplication
-from PyQt6.QtCore import QObject, QFile
+from PyQt6.QtCore import QObject, pyqtSignal
 import logging
 
 logger = logging.getLogger(__name__)
@@ -16,30 +35,69 @@ class ThemeManager(QObject):
     """
     Gerenciador central de temas e estilos
 
-    Features:
-        - Aplicar stylesheet global
-        - Alternar temas (light/dark/custom)
-        - Atualizar tokens de design dinamicamente
-        - Carregar estilos de arquivo .qss
+    Este gerenciador coordena:
+        1. Aplicação de stylesheets globais
+        2. Mudança de temas (light/dark/system)
+        3. Atualização dinâmica de ColorPalette (COLORS)
+        4. Notificação de componentes sobre mudança de tema
+
+    Signals:
+        theme_changed: Emitido quando tema muda (str: nome do novo tema)
 
     Usage:
         >>> from consumo_lib.ui.theme_manager import init_theme_manager
         >>> app = QApplication(sys.argv)
         >>> theme_mgr = init_theme_manager(app)
-        >>> # Stylesheet aplicado automaticamente
+        >>>
+        >>> # Mudar tema
+        >>> theme_mgr.set_theme("dark")
+        >>> # COLORS.PRIMARY agora retorna cor do dark theme
     """
 
-    def __init__(self, app: QApplication):
+    # Signal emitido quando tema muda
+    theme_changed = pyqtSignal(str)  # theme_name
+
+    def __init__(self, app: QApplication, initial_theme: str = "light"):
         """
         Inicializa gerenciador de temas
 
         Args:
             app: Instância da QApplication
+            initial_theme: Tema inicial ("light" | "dark" | "system")
         """
         super().__init__()
         self.app = app
-        self.current_theme = "light"
+        self.current_theme = initial_theme
+
+        # Inicializar ColorPalette global com tema inicial
+        self._init_color_palette(initial_theme)
+
+        # Carregar stylesheet inicial
         self._load_stylesheet()
+
+        logger.info(f"✅ ThemeManager inicializado com tema: {initial_theme}")
+
+    def _init_color_palette(self, theme: str):
+        """
+        Inicializa ColorPalette global do design_tokens
+
+        Args:
+            theme: Nome do tema a ser aplicado
+        """
+        try:
+            import consumo_lib.ui.design_tokens as dt_module
+            from consumo_lib.ui.design_tokens import ColorPalette
+
+            if dt_module._COLOR_PALETTE_INSTANCE is None:
+                dt_module._COLOR_PALETTE_INSTANCE = ColorPalette(theme=theme)
+                logger.info(f"ColorPalette inicializada com tema: {theme}")
+            else:
+                # Atualizar paleta existente
+                dt_module._COLOR_PALETTE_INSTANCE._update_palette(theme)
+                logger.info(f"ColorPalette atualizada para tema: {theme}")
+
+        except ImportError as e:
+            logger.error(f"❌ Falha ao importar ColorPalette: {e}")
 
     def _load_stylesheet(self):
         """
@@ -61,22 +119,67 @@ class ThemeManager(QObject):
 
     def set_theme(self, theme_name: str):
         """
-        Altera tema atual
+        Altera tema atual e atualiza ColorPalette global
 
         Args:
-            theme_name: Nome do tema (light | dark | high_contrast)
+            theme_name: Nome do tema ("light" | "dark" | "system")
 
         Note:
-            Apenas 'light' está implementado no momento.
-            'dark' e 'high_contrast' são placeholders para futuro.
+            - "light": Tema claro (padrão)
+            - "dark": Tema escuro
+            - "system": Detecta automaticamente tema do OS
+
+        Example:
+            >>> theme_mgr.set_theme("dark")  # Muda para dark theme
+            >>> COLORS.PRIMARY  # Agora retorna cor do dark theme
+            >>> theme_mgr.set_theme("system")  # Segue configuração do OS
         """
+        # Validar tema
+        valid_themes = ["light", "dark", "system"]
+        if theme_name not in valid_themes:
+            logger.warning(f"⚠️ Tema inválido: '{theme_name}'. Temas válidos: {valid_themes}")
+            return
+
         if theme_name == self.current_theme:
             logger.debug(f"Tema {theme_name} já está ativo")
             return
 
-        logger.info(f"🎨 Alterando tema para: {theme_name}")
+        logger.info(f"🎨 Alterando tema de '{self.current_theme}' para '{theme_name}'")
         self.current_theme = theme_name
+
+        # Atualizar ColorPalette global
+        self._update_color_palette(theme_name)
+
+        # Aplicar stylesheet do tema
         self._apply_theme(theme_name)
+
+        # Emitir signal para componentes interessados
+        self.theme_changed.emit(theme_name)
+
+        logger.info(f"✅ Tema alterado para: {theme_name}")
+
+    def _update_color_palette(self, theme_name: str):
+        """
+        Atualiza ColorPalette global para novo tema
+
+        Args:
+            theme_name: Nome do tema a ser aplicado
+        """
+        try:
+            import consumo_lib.ui.design_tokens as dt_module
+
+            if dt_module._COLOR_PALETTE_INSTANCE is not None:
+                # Atualizar paleta existente
+                dt_module._COLOR_PALETTE_INSTANCE._update_palette(theme_name)
+            else:
+                # Criar nova paleta
+                from consumo_lib.ui.design_tokens import ColorPalette
+                dt_module._COLOR_PALETTE_INSTANCE = ColorPalette(theme=theme_name)
+
+            logger.info(f"✅ ColorPalette atualizada para tema: {theme_name}")
+
+        except Exception as e:
+            logger.error(f"❌ Erro ao atualizar ColorPalette: {e}")
 
     def _apply_theme(self, theme_name: str):
         """
@@ -85,23 +188,44 @@ class ThemeManager(QObject):
         Args:
             theme_name: Nome do tema
         """
-        if theme_name == "dark":
-            # TODO: Implementar dark mode
-            logger.warning("⚠️ Dark mode ainda não implementado (usando light)")
+        if theme_name == "light":
+            # Tema claro (padrão)
             self._load_stylesheet()
 
-        elif theme_name == "high_contrast":
-            # TODO: Implementar high contrast mode
-            logger.warning("⚠️ High contrast mode ainda não implementado (usando light)")
+        elif theme_name == "dark":
+            # TODO: Criar styles_dark.qss com cores apropriadas para dark theme
+            # Por enquanto, usa stylesheet padrão
+            logger.info("🌙 Aplicando dark theme (usando styles.qss padrão)")
             self._load_stylesheet()
 
-        elif theme_name == "light":
-            # Tema padrão (já carregado)
+        elif theme_name == "system":
+            # Detectar e aplicar tema do sistema
+            detected = self._detect_system_theme()
+            logger.info(f"💻 System theme detectado como: {detected}")
             self._load_stylesheet()
 
-        else:
-            logger.warning(f"⚠️ Tema desconhecido: {theme_name} (usando light)")
-            self._load_stylesheet()
+    def _detect_system_theme(self) -> str:
+        """
+        Detecta tema do sistema operacional
+
+        Returns:
+            "light" ou "dark"
+        """
+        try:
+            from consumo_lib.ui.themes import ThemePaletteFactory
+            return ThemePaletteFactory._detect_system_theme()
+        except Exception as e:
+            logger.warning(f"⚠️ Erro ao detectar tema do sistema: {e}")
+            return "light"  # Fallback seguro
+
+    def get_current_theme(self) -> str:
+        """
+        Retorna tema atual
+
+        Returns:
+            Nome do tema atual ("light" | "dark" | "system")
+        """
+        return self.current_theme
 
     @property
     def colors(self):
@@ -110,10 +234,15 @@ class ThemeManager(QObject):
 
         Returns:
             Instância de ColorPalette (do design_tokens)
+
+        Deprecated:
+            Prefira usar COLORS diretamente:
+            >>> from consumo_lib.ui import COLORS
+            >>> COLORS.PRIMARY
         """
         # Import local para evitar circular import
-        from .design_tokens import ColorPalette
-        return ColorPalette()
+        from consumo_lib.ui.design_tokens import get_color_palette
+        return get_color_palette()
 
     @property
     def typo(self):
@@ -122,9 +251,14 @@ class ThemeManager(QObject):
 
         Returns:
             Instância de Typography (do design_tokens)
+
+        Deprecated:
+            Prefira usar TYPO diretamente:
+            >>> from consumo_lib.ui import TYPO
+            >>> TYPO.BODY_MEDIUM
         """
         # Import local para evitar circular import
-        from .design_tokens import Typography
+        from consumo_lib.ui.design_tokens import Typography
         return Typography()
 
 
@@ -135,12 +269,14 @@ class ThemeManager(QObject):
 _instance: Optional[ThemeManager] = None
 
 
-def init_theme_manager(app: QApplication) -> ThemeManager:
+def init_theme_manager(app: QApplication, theme: Optional[str] = None) -> ThemeManager:
     """
     Inicializa ThemeManager global
 
     Args:
         app: Instância da QApplication
+        theme: Tema inicial ("light" | "dark" | "system").
+               Se None, lê do config/aoi_config.json ou usa "light" como padrão.
 
     Returns:
         ThemeManager inicializado
@@ -161,6 +297,9 @@ def init_theme_manager(app: QApplication) -> ThemeManager:
         >>> app = QApplication(sys.argv)
         >>> theme_mgr = init_theme_manager(app)
         >>> print(f"Tema atual: {theme_mgr.current_theme}")
+        >>>
+        >>> # Ou especificar tema explicitamente
+        >>> theme_mgr = init_theme_manager(app, theme="dark")
     """
     global _instance
 
@@ -171,12 +310,50 @@ def init_theme_manager(app: QApplication) -> ThemeManager:
         raise TypeError(f"app deve ser QApplication, não {type(app)}")
 
     if _instance is None:
-        logger.info("🎨 Inicializando ThemeManager global")
-        _instance = ThemeManager(app)
+        # Determinar tema inicial
+        if theme is None:
+            # Tentar ler do config
+            theme = _load_theme_from_config()
+            if theme is None:
+                theme = "light"  # Padrão
+
+        logger.info(f"🎨 Inicializando ThemeManager global com tema: {theme}")
+        _instance = ThemeManager(app, initial_theme=theme)
     else:
         logger.warning("⚠️ ThemeManager já foi inicializado (retornando instância existente)")
 
     return _instance
+
+
+def _load_theme_from_config() -> Optional[str]:
+    """
+    Lê configuração de tema do aoi_config.json
+
+    Returns:
+        "light", "dark", "system" ou None se não configurado/erro
+    """
+    try:
+        from aoi_lib.config_manager import AOIConfigManager
+
+        config_mgr = AOIConfigManager()
+        theme = config_mgr.get("ui", "theme", default=None)
+
+        if theme is not None:
+            valid_themes = ["light", "dark", "system"]
+
+            if theme in valid_themes:
+                logger.info(f"✅ Tema carregado do config: {theme}")
+                return theme
+            else:
+                logger.warning(f"⚠️ Tema inválido no config: '{theme}'. Usando 'light'")
+                return "light"
+        else:
+            logger.debug("Chave ui.theme não encontrada no config")
+            return None
+
+    except Exception as e:
+        logger.warning(f"⚠️ Erro ao ler tema do config: {e}")
+        return None
 
 
 def get_theme_manager() -> Optional[ThemeManager]:

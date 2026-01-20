@@ -5,206 +5,333 @@ Centraliza todas as constantes de design (cores, fontes, espaçamentos).
 Este arquivo é a única fonte de verdade para estilos da aplicação.
 
 Baseado no Material Design 3: https://m3.material.io/styles/color/the-color-system/tokens
+
+Theme Support:
+    - Este arquivo agora suporta múltiplos temas (light, dark, system)
+    - Use COLORS dinâmico que carrega a paleta do tema atual
+    - Para mudar tema: use ThemeManager.set_theme("dark")
 """
 
 from dataclasses import dataclass
+from typing import Optional
 from PyQt6.QtGui import QFont, QColor
+import logging
+
+logger = logging.getLogger(__name__)
+
+# Importar sistema de temas
+from consumo_lib.ui.themes import (
+    ThemeType,
+    LightThemePalette,
+    DarkThemePalette,
+    ThemePaletteFactory
+)
 
 
 # =============================================================================
-# PALETA DE CORES
+# PALETA DE CORES DINÂMICA (Theme-Aware)
 # =============================================================================
 
-@dataclass(frozen=True)
 class ColorPalette:
     """
-    Paleta de cores do Material Design 3
+    Wrapper dinâmico para paleta de cores do tema atual
 
-    Segue especificação: https://m3.material.io/styles/color/the-color-system/tokens
+    Esta classe atua como um proxy para a paleta do tema ativo.
+    Quando o tema muda, todas as cores são atualizadas automaticamente.
 
-    Todas as cores são valores hexadecimais (ex: "#4CAF50") compatíveis com Qt.
+    A paleta atual é gerenciada por ThemeManager.
+    Esta classe fornece acesso compatível com código legado.
 
-    Atributos:
-        PRIMARY: Cor primária para ações principais (verde)
-        SECONDARY: Cor secundária para informações (azul)
-        SUCCESS: Cor para estados de sucesso
-        WARNING: Cor para avisos
-        ERROR: Cor para erros
-        STATUS_*: Cores específicas de status do domínio
+    Usage:
+        >>> from consumo_lib.ui.design_tokens import COLORS
+        >>> COLORS.PRIMARY  # Retorna cor do tema atual
+        '#4CAF50'  # ou '#66BB6A' no dark mode
+
+    Theme Management:
+        >>> from consumo_lib.ui.theme_manager import get_theme_manager
+        >>> mgr = get_theme_manager()
+        >>> mgr.set_theme("dark")  # COLORS atualiza automaticamente
     """
+
+    def __init__(self, theme: ThemeType = "light"):
+        """
+        Inicializa paleta com tema específico
+
+        Args:
+            theme: Nome do tema ("light" | "dark" | "system")
+        """
+        self._theme = theme
+        self._palette = ThemePaletteFactory.create_palette(theme)
+
+    def _update_palette(self, theme: ThemeType):
+        """
+        Atualiza paleta para novo tema (chamado pelo ThemeManager)
+
+        Args:
+            theme: Novo tema a ser aplicado
+        """
+        self._theme = theme
+        self._palette = ThemePaletteFactory.create_palette(theme)
+        logger.info(f"ColorPalette atualizada para tema: {theme}")
 
     # =========================================================================
     # PRIMARY COLORS (Verde - Success/Action)
     # =========================================================================
 
-    PRIMARY: str = "#4CAF50"  # Green 500
-    """Cor primária para ações principais e botões"""
+    @property
+    def PRIMARY(self) -> str:
+        """Cor primária para ações principais e botões"""
+        return self._palette.PRIMARY
 
-    PRIMARY_DARK: str = "#388E3C"  # Green 700
-    """Versão escura da cor primária (hover states)"""
+    @property
+    def PRIMARY_DARK(self) -> str:
+        """Versão escura da cor primária (hover states)"""
+        return self._palette.PRIMARY_DARK
 
-    PRIMARY_LIGHT: str = "#81C784"  # Green 300
-    """Versão clara da cor primária"""
+    @property
+    def PRIMARY_LIGHT(self) -> str:
+        """Versão clara da cor primária"""
+        return self._palette.PRIMARY_LIGHT
 
-    ON_PRIMARY: str = "#FFFFFF"  # White
-    """Cor de texto/símbolos sobre cor primária"""
+    @property
+    def ON_PRIMARY(self) -> str:
+        """Cor de texto/símbolos sobre cor primária"""
+        return self._palette.ON_PRIMARY
 
     # =========================================================================
     # SECONDARY COLORS (Azul - Information)
     # =========================================================================
 
-    SECONDARY: str = "#2196F3"  # Blue 500
-    """Cor secundária para informações e ações secundárias"""
+    @property
+    def SECONDARY(self) -> str:
+        """Cor secundária para informações e ações secundárias"""
+        return self._palette.SECONDARY
 
-    SECONDARY_DARK: str = "#1976D2"  # Blue 700
-    """Versão escura da cor secundária"""
+    @property
+    def SECONDARY_DARK(self) -> str:
+        """Versão escura da cor secundária"""
+        return self._palette.SECONDARY_DARK
 
-    SECONDARY_LIGHT: str = "#64B5F6"  # Blue 300
-    """Versão clara da cor secundária"""
+    @property
+    def SECONDARY_LIGHT(self) -> str:
+        """Versão clara da cor secundária"""
+        return self._palette.SECONDARY_LIGHT
 
-    ON_SECONDARY: str = "#FFFFFF"  # White
-    """Cor de texto/símbolos sobre cor secundária"""
+    @property
+    def ON_SECONDARY(self) -> str:
+        """Cor de texto/símbolos sobre cor secundária"""
+        return self._palette.ON_SECONDARY
 
     # =========================================================================
     # SUCCESS COLORS
     # =========================================================================
 
-    SUCCESS: str = "#2ecc71"  # Emerald
-    """Cor para indicar sucesso (mais vibrante que PRIMARY)"""
+    @property
+    def SUCCESS(self) -> str:
+        """Cor para indicar sucesso (mais vibrante que PRIMARY)"""
+        return self._palette.SUCCESS
 
-    SUCCESS_DARK: str = "#27ae60"  # Emerald dark
-    """Versão escura da cor de sucesso"""
+    @property
+    def SUCCESS_DARK(self) -> str:
+        """Versão escura da cor de sucesso"""
+        return self._palette.SUCCESS_DARK
 
     # =========================================================================
     # WARNING COLORS
     # =========================================================================
 
-    WARNING: str = "#f1c40f"  # Yellow
-    """Cor para avisos e atenção"""
+    @property
+    def WARNING(self) -> str:
+        """Cor para avisos e atenção"""
+        return self._palette.WARNING
 
-    WARNING_DARK: str = "#f39c12"  # Orange
-    """Versão escura da cor de aviso (mais urgente)"""
+    @property
+    def WARNING_DARK(self) -> str:
+        """Versão escura da cor de aviso (mais urgente)"""
+        return self._palette.WARNING_DARK
 
-    WARNING_LIGHT: str = "#FFF9C4"  # Yellow light
-    """Versão clara da cor de aviso (backgrounds)"""
+    @property
+    def WARNING_LIGHT(self) -> str:
+        """Versão clara da cor de aviso (backgrounds)"""
+        return self._palette.WARNING_LIGHT
 
     # =========================================================================
     # ERROR COLORS
     # =========================================================================
 
-    ERROR: str = "#e74c3c"  # Red
-    """Cor para erros e estados críticos"""
+    @property
+    def ERROR(self) -> str:
+        """Cor para erros e estados críticos"""
+        return self._palette.ERROR
 
-    ERROR_DARK: str = "#c0392b"  # Red dark
-    """Versão escura da cor de erro"""
+    @property
+    def ERROR_DARK(self) -> str:
+        """Versão escura da cor de erro"""
+        return self._palette.ERROR_DARK
 
-    ERROR_LIGHT: str = "#FFCDD2"  # Red light
-    """Versão clara da cor de erro (backgrounds)"""
+    @property
+    def ERROR_LIGHT(self) -> str:
+        """Versão clara da cor de erro (backgrounds)"""
+        return self._palette.ERROR_LIGHT
 
     # =========================================================================
     # STATUS COLORS (Domínio Específico - Inspeção)
     # =========================================================================
 
-    STATUS_APPROVED_AUTO: str = "#4CAF50"  # Verde vibrante
-    """Status: aprovado automaticamente (algoritmo)"""
+    @property
+    def STATUS_APPROVED_AUTO(self) -> str:
+        """Status: aprovado automaticamente (algoritmo)"""
+        return self._palette.STATUS_APPROVED_AUTO
 
-    STATUS_APPROVED_USER: str = "#CDDC39"  # Verde-amarelo
-    """Status: aprovado manualmente (usuário)"""
+    @property
+    def STATUS_APPROVED_USER(self) -> str:
+        """Status: aprovado manualmente (usuário)"""
+        return self._palette.STATUS_APPROVED_USER
 
-    STATUS_REJECTED: str = "#F44336"  # Vermelho
-    """Status: reprovado/falha na inspeção"""
+    @property
+    def STATUS_REJECTED(self) -> str:
+        """Status: reprovado/falha na inspeção"""
+        return self._palette.STATUS_REJECTED
 
-    STATUS_PENDING: str = "#9E9E9E"  # Cinza médio
-    """Status: pendente (ainda não inspecionado)"""
+    @property
+    def STATUS_PENDING(self) -> str:
+        """Status: pendente (ainda não inspecionado)"""
+        return self._palette.STATUS_PENDING
 
-    STATUS_IN_PROGRESS: str = "#2196F3"  # Azul
-    """Status: em andamento (inspeção em curso)"""
+    @property
+    def STATUS_IN_PROGRESS(self) -> str:
+        """Status: em andamento (inspeção em curso)"""
+        return self._palette.STATUS_IN_PROGRESS
 
     # =========================================================================
     # NEUTRAL COLORS (Texto, Background, Surface)
     # =========================================================================
 
-    TEXT_PRIMARY: str = "#212121"  # Almost black
-    """Cor de texto principal (alto contraste)"""
+    @property
+    def TEXT_PRIMARY(self) -> str:
+        """Cor de texto principal (alto contraste)"""
+        return self._palette.TEXT_PRIMARY
 
-    TEXT_SECONDARY: str = "#757575"  # Medium gray
-    """Cor de texto secundário (menos proeminente)"""
+    @property
+    def TEXT_SECONDARY(self) -> str:
+        """Cor de texto secundário (menos proeminente)"""
+        return self._palette.TEXT_SECONDARY
 
-    TEXT_DISABLED: str = "#BDBDBD"  # Light gray
-    """Cor de texto desabilitado"""
+    @property
+    def TEXT_DISABLED(self) -> str:
+        """Cor de texto desabilitado"""
+        return self._palette.TEXT_DISABLED
 
-    TEXT_HINT: str = "#9E9E9E"  # Gray
-    """Cor de hint/placeholder text"""
+    @property
+    def TEXT_HINT(self) -> str:
+        """Cor de hint/placeholder text"""
+        return self._palette.TEXT_HINT
 
-    BACKGROUND: str = "#FFFFFF"  # White
-    """Cor de fundo principal da aplicação"""
+    @property
+    def BACKGROUND(self) -> str:
+        """Cor de fundo principal da aplicação"""
+        return self._palette.BACKGROUND
 
-    SURFACE: str = "#F5F5F5"  # Light gray
-    """Cor de superfície (cards, panels)"""
+    @property
+    def SURFACE(self) -> str:
+        """Cor de superfície (cards, panels)"""
+        return self._palette.SURFACE
 
-    SURFACE_VARIANT: str = "#EEEEEE"  # Gray 100
-    """Variante de cor de superfície"""
+    @property
+    def SURFACE_VARIANT(self) -> str:
+        """Variante de cor de superfície"""
+        return self._palette.SURFACE_VARIANT
 
     # =========================================================================
     # BORDER COLORS
     # =========================================================================
 
-    BORDER: str = "#E0E0E0"  # Gray 300
-    """Cor de bordas padrão"""
+    @property
+    def BORDER(self) -> str:
+        """Cor de bordas padrão"""
+        return self._palette.BORDER
 
-    BORDER_DARK: str = "#BDBDBD"  # Gray 400
-    """Cor de bordas escuras"""
+    @property
+    def BORDER_DARK(self) -> str:
+        """Cor de bordas escuras"""
+        return self._palette.BORDER_DARK
 
-    BORDER_FOCUS: str = "#2196F3"  # Blue
-    """Cor de borda em estado de focus"""
+    @property
+    def BORDER_FOCUS(self) -> str:
+        """Cor de borda em estado de focus"""
+        return self._palette.BORDER_FOCUS
 
     # =========================================================================
     # OVERLAY & SPECIAL COLORS
     # =========================================================================
 
-    OVERLAY: str = "rgba(0, 0, 0, 0.5)"
-    """Cor de overlay (semi-transparente)"""
+    @property
+    def OVERLAY(self) -> str:
+        """Cor de overlay (semi-transparente)"""
+        return self._palette.OVERLAY
 
-    OVERLAY_DARK: str = "rgba(0, 0, 0, 0.7)"
-    """Cor de overlay escura (mais opaca)"""
+    @property
+    def OVERLAY_DARK(self) -> str:
+        """Cor de overlay escura (mais opaca)"""
+        return self._palette.OVERLAY_DARK
 
-    SHADOW: str = "rgba(0, 0, 0, 0.1)"
-    """Cor de sombra"""
+    @property
+    def SHADOW(self) -> str:
+        """Cor de sombra"""
+        return self._palette.SHADOW
 
     # =========================================================================
     # ENGINEERING-SPECIFIC COLORS (Visão Computacional)
     # =========================================================================
 
-    OVERLAY_IMAGE: str = "#1e1e1e"  # Dark gray
-    """Cor de overlay para imagens de visão computacional"""
+    @property
+    def OVERLAY_IMAGE(self) -> str:
+        """Cor de overlay para imagens de visão computacional"""
+        return self._palette.OVERLAY_IMAGE
 
-    FIDUCIAL_FOUND: str = "#00ff00"  # Verde neon
-    """Cor para marcar fiduciais encontrados (alta visibilidade)"""
+    @property
+    def FIDUCIAL_FOUND(self) -> str:
+        """Cor para marcar fiduciais encontrados (alta visibilidade)"""
+        return self._palette.FIDUCIAL_FOUND
 
-    FIDUCIAL_NOT_FOUND: str = "#ff0000"  # Vermelho neon
-    """Cor para marcar fiduciais não encontrados (alta visibilidade)"""
+    @property
+    def FIDUCIAL_NOT_FOUND(self) -> str:
+        """Cor para marcar fiduciais não encontrados (alta visibilidade)"""
+        return self._palette.FIDUCIAL_NOT_FOUND
 
-    GRID_LINES: str = "#E0E0E0"  # Gray 300
-    """Cor de linhas de grade em visualizações"""
+    @property
+    def GRID_LINES(self) -> str:
+        """Cor de linhas de grade em visualizações"""
+        return self._palette.GRID_LINES
 
     # =========================================================================
     # ADDITIONAL UI COLORS
     # =========================================================================
 
-    DIVIDER: str = "#E0E0E0"  # Gray 300
-    """Cor de divisores/separadores"""
+    @property
+    def DIVIDER(self) -> str:
+        """Cor de divisores/separadores"""
+        return self._palette.DIVIDER
 
-    ICON: str = "#757575"  # Medium gray
-    """Cor padrão para ícones"""
+    @property
+    def ICON(self) -> str:
+        """Cor padrão para ícones"""
+        return self._palette.ICON
 
-    ICON_ACTIVE: str = "#212121"  # Almost black
-    """Cor para ícones ativos/selecionados"""
+    @property
+    def ICON_ACTIVE(self) -> str:
+        """Cor para ícones ativos/selecionados"""
+        return self._palette.ICON_ACTIVE
 
-    LINK: str = "#2196F3"  # Blue
-    """Cor para links e texto clicável"""
+    @property
+    def LINK(self) -> str:
+        """Cor para links e texto clicável"""
+        return self._palette.LINK
 
-    LINK_VISITED: str = "#9C27B0"  # Purple
-    """Cor para links visitados"""
+    @property
+    def LINK_VISITED(self) -> str:
+        """Cor para links visitados"""
+        return self._palette.LINK_VISITED
 
     # =========================================================================
     # MÉTODOS UTILITÁRIOS
@@ -254,36 +381,110 @@ class ColorPalette:
 
         Exemplo:
             >>> COLORS.get_status_color("approved_auto")
-            '#4CAF50'
+            '#4CAF50'  # light
+            '#66BB6A'  # dark
         """
-        status_map = {
-            "approved_auto": self.STATUS_APPROVED_AUTO,
-            "approved_user": self.STATUS_APPROVED_USER,
-            "rejected": self.STATUS_REJECTED,
-            "pending": self.STATUS_PENDING,
-            "in_progress": self.STATUS_IN_PROGRESS,
-        }
-
-        if status not in status_map:
-            raise ValueError(f"Status desconhecido: {status}")
-
-        return status_map[status]
+        from consumo_lib.ui.themes import get_status_color
+        return get_status_color(self._palette, status)
 
 
 # =============================================================================
-# INSTÂNCIA SINGLETON
+# INSTÂNCIA SINGLETON (Compatibilidade com código legado)
 # =============================================================================
 
-COLORS = ColorPalette()
+# Instância global de ColorPalette (será gerenciada pelo ThemeManager)
+_COLOR_PALETTE_INSTANCE: Optional[ColorPalette] = None
+
+
+def get_color_palette() -> ColorPalette:
+    """
+    Retorna instância singleton de ColorPalette
+
+    Returns:
+        Instância de ColorPalette do tema atual
+
+    Raises:
+        RuntimeError: Se ColorPalette não foi inicializada
+
+    Note:
+        A paleta é inicializada pelo ThemeManager em init_theme_manager().
+        Aplicações devem usar get_theme_manager() para obter o gerenciador.
+
+    Example:
+        >>> from consumo_lib.ui.design_tokens import get_color_palette
+        >>> colors = get_color_palette()
+        >>> colors.PRIMARY
+        '#4CAF50'
+    """
+    global _COLOR_PALETTE_INSTANCE
+
+    if _COLOR_PALETTE_INSTANCE is None:
+        # Fallback: criar instância padrão com tema light
+        logger.warning("ColorPalette não foi inicializada pelo ThemeManager, usando light theme")
+        _COLOR_PALETTE_INSTANCE = ColorPalette(theme="light")
+
+    return _COLOR_PALETTE_INSTANCE
+
+
+# Criar wrapper para compatibilidade com código existente
+class _ColorPaletteProxy:
+    """
+    Proxy para compatibilidade com código legado que importa COLORS diretamente
+
+    Este proxy permite que código existente continue funcionando:
+        from consumo_lib.ui.design_tokens import COLORS
+        btn.setStyleSheet(f"background-color: {COLORS.PRIMARY}")
+
+    Quando o tema muda via ThemeManager.set_theme(), COLORS atualiza automaticamente.
+    """
+
+    def __getattr__(self, name: str):
+        """
+        Proxy para atributos da paleta atual
+
+        Args:
+            name: Nome do atributo (PRIMARY, BACKGROUND, etc.)
+
+        Returns:
+            Valor do atributo da paleta do tema atual
+        """
+        palette = get_color_palette()
+        return getattr(palette, name)
+
+    def __setattr__(self, name: str, _value):
+        """
+        Previne atribuições diretas (paleta é read-only via ThemeManager)
+
+        Args:
+            name: Nome do atributo
+            _value: Valor a ser atribuído (ignorado)
+
+        Raises:
+            AttributeError: Sempre previne atribuição direta
+        """
+        raise AttributeError(
+            f"Cannot assign to COLORS.{name}. "
+            f"Use ThemeManager.set_theme() to change theme."
+        )
+
+
+COLORS = _ColorPaletteProxy()
 """
-Instância singleton de ColorPalette
+Instância proxy de ColorPalette para compatibilidade com código legado
 
 Uso:
     >>> from consumo_lib.ui.design_tokens import COLORS
     >>> COLORS.PRIMARY
-    '#4CAF50'
-    >>> COLORS.get_status_color("approved_auto")
-    '#4CAF50'
+    '#4CAF50'  # light theme
+    >>>
+    >>> # Quando tema muda para dark:
+    >>> COLORS.PRIMARY
+    '#66BB6A'  # dark theme (atualizado automaticamente)
+
+Theme Management:
+    >>> from consumo_lib.ui.theme_manager import get_theme_manager
+    >>> mgr = get_theme_manager()
+    >>> mgr.set_theme("dark")  # COLORS atualiza automaticamente
 """
 
 
