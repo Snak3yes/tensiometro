@@ -1,4 +1,25 @@
 """
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+Este arquivo DEFINE as paletas de cores (LIGHT, DARK, SYSTEM).
+
+❌ COMPLETAMENTE PROIBIDO em qualquer lugar da aplicação:
+   - Usar valores hexadecimais hardcoded (#4CAF50, #e74c3c, etc.)
+   - Definir cores em outros arquivos
+   - Criar "cores mágicas" sem documentação
+
+✅ SEMPRE USE:
+   - COLORS.* do design_tokens.py (que aponta para estas paletas)
+   - Este arquivo para ADICIONAR novas cores ao sistema
+
+✅ SE PRECISA DE UMA NOVA COR:
+   - Adicione AQUI em LightThemePalette e DarkThemePalette
+   - Documente o propósito da cor (usando /**/ docstrings)
+   - Use ColorPalette para acessar dinamicamente com base no tema
+
+⚠️ ESTA REGRA NÃO PODE SER BURLADA - Code review irá rejeitar violações
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
+
 Sistema de Temas - Tensiometro
 
 Define paletas de cores para diferentes temas (Light, Dark, System).

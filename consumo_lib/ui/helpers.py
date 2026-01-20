@@ -1,4 +1,19 @@
 """
+⚠️⚠️⚠️ REGRA CRÍTICA: PROIBIÇÃO DE ESTILOS INLINE/HARDCODED ⚠️⚠️⚠️
+
+Este arquivo FORNECE funções helpers que USEM tokens do Design System.
+
+❌ COMPLETAMENTE PROIBIDO:
+   - Criar helpers que usem valores hardcoded
+   - Definir espaçamentos, tamanhos ou cores mágicos aqui
+
+✅ ESTE ARQUIVO:
+   - FORNECE funções helpers que USEM COLORS.*, TYPO.*, DIM.*, SPACE.*
+   - SEMPRE via design_tokens import (Spacing, Dimensions, ColorPalette)
+
+⚠️ ESTA REGRA NÃO PODE SER BURLADA - Code review irá rejeitar violações
+⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
+
 Funções Helper para UI
 
 Funções utilitárias para tarefas comuns de UI.
