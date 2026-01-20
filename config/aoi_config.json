@@ -31,7 +31,7 @@
     "backlight_coil": 5
   },
   "ui": {
-    "theme": "light"
+    "theme": "system"
   },
   "calibration": {
     "pulses_per_rev": 800.0,

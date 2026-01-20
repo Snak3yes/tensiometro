@@ -18,32 +18,62 @@ class StandardButton(QPushButton):
     Botão padrão com estilo consistente
 
     Usage:
-        >>> btn = StandardButton("Salvar", variant="primary")
+        >>> btn = StandardButton("Salvar", variant="primary-green")
+        >>> btn = StandardButton("Configurar", variant="primary-blue")
+        >>> btn = StandardButton("Parar", variant="primary-orange")
         >>> btn = StandardButton("Cancelar", variant="secondary")
-        >>> btn = StandardButton("Excluir", variant="danger")
+        >>> btn = StandardButton("Excluir", variant="emergency")
 
     Args:
         text: Texto do botão
-        variant: primary | secondary | danger | outline
+        variant: primary-green | primary-blue | primary-orange | secondary | emergency | outline
         parent: Widget pai
 
     Variants:
-        primary: Cor verde (#4CAF50) - ações principais
-        secondary: Cor azul (#2196F3) - ações secundárias
-        danger: Cor vermelha (#F44336) - ações destrutivas
-        outline: Borda verde, fundo transparente - ações terciárias
+        primary-green: Gradiente verde - ações de confirmação/início
+        primary-blue: Gradiente azul - ações padrão/genéricas
+        primary-orange: Gradiente laranja - ações de parada/atenção
+        secondary: Outline transparente com borda azul - ações alternativas/cancelamento
+        emergency: Gradiente vermelho (uso raro 1%) - emergências físicas
+        danger: [DEPRECATED] Use emergency instead
+        outline: Borda verde, fundo transparente [LEGADO - use secondary]
+
+    Migration Notes (v1.0 → v2.0):
+        - variant="primary" → variant="primary-green"
+        - variant="secondary" (azul sólido) → variant="secondary" (outline azul)
+        - variant="danger" → variant="emergency"
     """
 
-    def __init__(self, text: str, variant: str = "primary", parent=None):
+    def __init__(self, text: str, variant: str = "primary-green", parent=None):
         """
         Inicializa botão padrão
 
         Args:
             text: Texto do botão
-            variant: Variant do botão (primary|secondary|danger|outline)
+            variant: Variant do botão (primary-green|primary-blue|primary-orange|secondary|emergency|outline)
             parent: Widget pai
         """
         super().__init__(text, parent)
+
+        # Emitir warning para variantes deprecated
+        if variant == "primary":
+            import warnings
+            warnings.warn(
+                'variant="primary" is deprecated. Use variant="primary-green" instead. '
+                'Will be removed in v0.5.0',
+                DeprecationWarning,
+                stacklevel=2
+            )
+            variant = "primary-green"
+        elif variant == "danger":
+            import warnings
+            warnings.warn(
+                'variant="danger" is deprecated. Use variant="emergency" instead. '
+                'Will be removed in v0.5.0',
+                DeprecationWarning,
+                stacklevel=2
+            )
+            variant = "emergency"
 
         # Aplicar fonte padrão
         font = TYPO.get_font(TYPO.BODY_LARGE, bold=True)
