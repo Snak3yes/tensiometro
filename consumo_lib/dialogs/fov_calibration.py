@@ -11,6 +11,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 
 from aoi_lib.fov_calibration import FOVCalibration
+from consumo_lib.ui import COLORS, TYPO, SPACE
 import logging
 
 log = logging.getLogger(__name__)
@@ -52,7 +53,7 @@ class FOVCalibrationDialog(QDialog):
             "o campo de visão é constante (não varia com a altura)."
         )
         info.setWordWrap(True)
-        info.setStyleSheet("color: #666; margin-bottom: 10px;")
+        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         # Grupo de calibração
@@ -85,7 +86,7 @@ class FOVCalibrationDialog(QDialog):
             "conhecidas no plano focal e meça a largura/altura visível no vídeo."
         )
         tip.setWordWrap(True)
-        tip.setStyleSheet("color: #888; font-size: 11px; margin-top: 10px;")
+        tip.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
         layout.addWidget(tip)
 
         # Botões
