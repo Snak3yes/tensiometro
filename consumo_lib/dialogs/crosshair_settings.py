@@ -11,6 +11,8 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QColor
 from PyQt6.QtCore import Qt
 
+from consumo_lib.ui import COLORS, TYPO, SPACE
+
 
 class CrosshairSettingsDialog(QDialog):
     """Diálogo para configurar a cruz de centralização da câmera."""
@@ -33,7 +35,7 @@ class CrosshairSettingsDialog(QDialog):
             "Use uma linha mais longa para facilitar as calibrações."
         )
         info.setWordWrap(True)
-        info.setStyleSheet("color: #666; margin-bottom: 10px;")
+        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         # Grupo de configurações
@@ -76,7 +78,7 @@ class CrosshairSettingsDialog(QDialog):
             "para facilitar a calibração FOV com régua."
         )
         tip.setWordWrap(True)
-        tip.setStyleSheet("color: #888; font-size: 11px; margin-top: 10px;")
+        tip.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
         layout.addWidget(tip)
 
         # Botões
