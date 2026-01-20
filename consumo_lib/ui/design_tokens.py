@@ -98,6 +98,11 @@ class ColorPalette:
         """Cor de texto/símbolos sobre cor primária"""
         return self._palette.ON_PRIMARY
 
+    @property
+    def ON_PRIMARY_DARK(self) -> str:
+        """Variação escura de ON_PRIMARY"""
+        return self._palette.ON_PRIMARY_DARK
+
     # =========================================================================
     # SECONDARY COLORS (Azul - Information)
     # =========================================================================
@@ -213,6 +218,16 @@ class ColorPalette:
         return self._palette.TEXT_PRIMARY
 
     @property
+    def TEXT_PRIMARY_DARK(self) -> str:
+        """Variação escura de TEXT_PRIMARY"""
+        return self._palette.TEXT_PRIMARY_DARK
+
+    @property
+    def TEXT_PRIMARY_VARIANT(self) -> str:
+        """Variação de TEXT_PRIMARY"""
+        return self._palette.TEXT_PRIMARY_VARIANT
+
+    @property
     def TEXT_SECONDARY(self) -> str:
         """Cor de texto secundário (menos proeminente)"""
         return self._palette.TEXT_SECONDARY
@@ -255,6 +270,11 @@ class ColorPalette:
     def BORDER_DARK(self) -> str:
         """Cor de bordas escuras"""
         return self._palette.BORDER_DARK
+
+    @property
+    def BORDER_VARIANT(self) -> str:
+        """Variação de cor de borda"""
+        return self._palette.BORDER_VARIANT
 
     @property
     def BORDER_FOCUS(self) -> str:

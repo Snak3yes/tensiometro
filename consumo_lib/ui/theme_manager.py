@@ -101,21 +101,96 @@ class ThemeManager(QObject):
 
     def _load_stylesheet(self):
         """
-        Carrega stylesheet global do arquivo styles.qss
+        Gera e aplica stylesheet global com cores do tema atual
+
+        O stylesheet é gerado dinamicamente substituindo placeholders
+        no arquivo styles.qss.template pelos valores atuais de COLORS.
         """
         try:
-            # Tenta carregar do arquivo
-            from importlib.resources import read_text
-            stylesheet = read_text("consumo_lib.ui", "styles.qss")
+            # Gerar stylesheet dinamicamente
+            stylesheet = self._generate_stylesheet()
 
             # Aplica stylesheet
             self.app.setStyleSheet(stylesheet)
-            logger.info("✅ Stylesheet global carregado com sucesso (consumo_lib/ui/styles.qss)")
+            logger.info(f"✅ Stylesheet global gerado e aplicado (tema: {self.current_theme})")
 
         except Exception as e:
-            logger.warning(f"⚠️ Falha ao carregar stylesheet: {e}")
+            logger.warning(f"⚠️ Falha ao gerar stylesheet: {e}")
             logger.warning("   Usando estilos padrão do Qt")
             # Não re-raise - permitir que app rode sem stylesheet
+
+    def _generate_stylesheet(self) -> str:
+        """
+        Gera stylesheet dinamicamente substituindo placeholders
+
+        Returns:
+            Stylesheet com cores do tema atual
+
+        Raises:
+            FileNotFoundError: Se styles.qss.template não existir
+        """
+        from importlib.resources import read_text
+
+        # Ler template
+        template = read_text("consumo_lib.ui", "styles.qss.template")
+
+        # Obter paleta de cores atual
+        from consumo_lib.ui.design_tokens import get_color_palette
+        colors = get_color_palette()
+
+        # Dicionário de substituição (placeholder -> valor atual)
+        replacements = {
+            # Primary Colors
+            '{{PRIMARY}}': colors.PRIMARY,
+            '{{PRIMARY_DARK}}': colors.PRIMARY_DARK,
+            '{{PRIMARY_LIGHT}}': colors.PRIMARY_LIGHT,
+            '{{ON_PRIMARY}}': colors.ON_PRIMARY,
+
+            # Secondary Colors
+            '{{SECONDARY}}': colors.SECONDARY,
+            '{{SECONDARY_DARK}}': colors.SECONDARY_DARK,
+            '{{ON_SECONDARY}}': colors.ON_SECONDARY,
+
+            # Success Colors
+            '{{SUCCESS}}': colors.SUCCESS,
+            '{{SUCCESS_DARK}}': colors.SUCCESS_DARK,
+
+            # Warning Colors
+            '{{WARNING}}': colors.WARNING,
+            '{{WARNING_DARK}}': colors.WARNING_DARK,
+            '{{WARNING_LIGHT}}': colors.WARNING_LIGHT,
+
+            # Error Colors
+            '{{ERROR}}': colors.ERROR,
+            '{{ERROR_DARK}}': colors.ERROR_DARK,
+            '{{ERROR_LIGHT}}': colors.ERROR_LIGHT,
+
+            # Text Colors
+            '{{TEXT_PRIMARY}}': colors.TEXT_PRIMARY,
+            '{{TEXT_SECONDARY}}': colors.TEXT_SECONDARY,
+            '{{TEXT_DISABLED}}': colors.TEXT_DISABLED,
+            '{{TEXT_HINT}}': colors.TEXT_HINT,
+
+            # Background & Surface
+            '{{BACKGROUND}}': colors.BACKGROUND,
+            '{{SURFACE}}': colors.SURFACE,
+            '{{SURFACE_VARIANT}}': colors.SURFACE_VARIANT,
+
+            # Border Colors
+            '{{BORDER}}': colors.BORDER,
+            '{{BORDER_DARK}}': colors.BORDER_DARK,
+            '{{BORDER_FOCUS}}': colors.BORDER_FOCUS,
+
+            # Divider
+            '{{DIVIDER}}': colors.DIVIDER,
+        }
+
+        # Aplicar substituições
+        stylesheet = template
+        for placeholder, value in replacements.items():
+            stylesheet = stylesheet.replace(placeholder, value)
+
+        return stylesheet
 
     def set_theme(self, theme_name: str):
         """

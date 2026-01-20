@@ -46,6 +46,9 @@ class LightThemePalette:
     ON_PRIMARY: str = "#FFFFFF"  # White
     """Cor de texto/símbolos sobre cor primária"""
 
+    ON_PRIMARY_DARK: str = "#E0E0E0"  # Gray 200
+    """Variação escura de ON_PRIMARY"""
+
     # =========================================================================
     # SECONDARY COLORS (Azul - Information)
     # =========================================================================
@@ -124,6 +127,12 @@ class LightThemePalette:
     TEXT_PRIMARY: str = "#212121"  # Almost black
     """Cor de texto principal (alto contraste)"""
 
+    TEXT_PRIMARY_DARK: str = "#424242"  # Gray 800
+    """Variação escura de TEXT_PRIMARY"""
+
+    TEXT_PRIMARY_VARIANT: str = "#757575"  # Gray 600
+    """Variação de TEXT_PRIMARY"""
+
     TEXT_SECONDARY: str = "#757575"  # Medium gray
     """Cor de texto secundário (menos proeminente)"""
 
@@ -151,6 +160,9 @@ class LightThemePalette:
 
     BORDER_DARK: str = "#BDBDBD"  # Gray 400
     """Cor de bordas escuras"""
+
+    BORDER_VARIANT: str = "#EEEEEE"  # Gray 200
+    """Variação de borda (mais clara que BORDER)"""
 
     BORDER_FOCUS: str = "#2196F3"  # Blue
     """Cor de borda em estado de focus"""
@@ -229,6 +241,9 @@ class DarkThemePalette:
 
     ON_PRIMARY: str = "#121212"  # Almost black
     """Cor de texto/símbolos sobre cor primária (invertido no dark)"""
+
+    ON_PRIMARY_DARK: str = "#000000"  # Black
+    """Variação escura de ON_PRIMARY (no dark theme)"""
 
     # =========================================================================
     # SECONDARY COLORS (Azul - Information)
@@ -309,6 +324,12 @@ class DarkThemePalette:
     TEXT_PRIMARY: str = "#E0E0E0"  # Gray 300 (quase branco)
     """Cor de texto principal (alto contraste em fundo escuro)"""
 
+    TEXT_PRIMARY_DARK: str = "#BDBDBD"  # Gray 200
+    """Variação escura de TEXT_PRIMARY (no dark theme)"""
+
+    TEXT_PRIMARY_VARIANT: str = "#9E9E9E"  # Gray 500
+    """Variação de TEXT_PRIMARY"""
+
     TEXT_SECONDARY: str = "#B0BEC5"  # Blue Gray 200
     """Cor de texto secundário (menos proeminente)"""
 
@@ -336,6 +357,9 @@ class DarkThemePalette:
 
     BORDER_DARK: str = "#616161"  # Gray 700
     """Cor de bordas escuras"""
+
+    BORDER_VARIANT: str = "#616161"  # Gray 700
+    """Variação de borda (igual ao BORDER_DARK no dark theme)"""
 
     BORDER_FOCUS: str = "#42A5F5"  # Blue 400
     """Cor de borda em estado de focus"""
