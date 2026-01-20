@@ -4,6 +4,59 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+## 🔄 Track: Design System Alignment (ACTIVE) <!-- 2026-01-20 -->
+*Link: [./conductor/tracks/design_system_alignment_20260120/](./conductor/tracks/design_system_alignment_20260120/)*
+- **Track ID:** design_system_alignment_20260120
+- **Status:** 🔄 Pending (aguardando início)
+- **Priority:** 🔴 HIGH
+- **Type:** Refactoring
+- **Created:** 2026-01-20
+- **Estimated Duration:** 6-13 dias
+- **Phases:** 5 fases planejadas
+- **Plan:** ./tracks/design_system_alignment_20260120/plan.md
+- **Spec:** ./tracks/design_system_alignment_20260120/spec.md
+- **Metadata:** ./tracks/design_system_alignment_20260120/metadata.json
+- **Description:**
+  - Alinhar implementação do Design System aos guias (TYPOGRAPHY_GUIDE.md e BUTTON_GUIDE.md)
+  - Conformidade atual: 60% → Alvo: 100%
+  - 5 Fases: Nomenclatura (1-2 dias), Botões (2-3 dias), Font Weights (1-2 dias), Pequenas Correções (1 dia), Documentação (1 dia)
+  - 30 tarefas distribuídas em 5 fases
+  - 197 instâncias de StandardButton para revisar
+- **Objectives:**
+  - Decisão: MD3 vs Semântico (Fase 1)
+  - Implementar 5 variantes de botão: primary-green, primary-blue, primary-orange, secondary (outline), emergency
+  - Sistema de font weights: 5 níveis (300, 400, 500, 600, 700)
+  - Font family: Segoe UI como primeira opção
+  - Tamanhos de botão: Larguras e alturas definidas
+  - Atualizar todos os guias
+- **Current State:**
+  - ⏳ Aguardando início
+  - Conformidade atual: 60%
+  - Nomenclatura de tipografia incompatível (MD3 vs Semântico)
+  - Variantes de botão incompletas (3/5 implementadas)
+  - Font weights limitados (2/5 níveis)
+- **Target State:**
+  - 100% de conformidade com guias
+  - 5 variantes de botão funcionais
+  - 5 níveis de peso de fonte
+  - Guias atualizados e consistentes
+- **Deliverables:**
+  - design_tokens.py refatorado (Typography, Dimensions)
+  - widget_standards.py atualizado (5 variantes, size parameter)
+  - 75+ testes unitários
+  - MIGRATION_GUIDE.md
+  - CHANGELOG.md atualizado
+- **Risks:**
+  - Escolha errada de nomenclatura (MD3 vs Semântico)
+  - Migração de variantes quebrar aplicação
+  - Degradação de performance
+  - Time rejeitar mudanças
+- **Related:**
+  - Relatório completo: DESIGN_SYSTEM_COMPARISON_REPORT.md
+  - Track anterior: design_system_migration_20260119 (completada)
+
+---
+
 ## ✅ Track: Design System Migration (COMPLETED) <!-- 2026-01-20 -->
 *Link: [./conductor/tracks/design_system_migration_20260119/](./conductor/tracks/design_system_migration_20260119/)*
 - **Track ID:** design_system_migration_20260119

@@ -1,0 +1,198 @@
+{
+  "track_id": "design_system_alignment_20260120",
+  "title": "Design System Alignment - Conformidade com Guias TYPOGRAPHY e BUTTON",
+  "type": "refactoring",
+  "status": "pending",
+  "priority": "high",
+  "created_at": "2026-01-20T10:00:00Z",
+  "updated_at": "2026-01-20T10:00:00Z",
+  "estimated_duration_days": 9,
+  "actual_duration_days": null,
+  "completion_percentage": 0,
+  "description": "Alinhar completamente a implementação atual do Design System (design_tokens.py e widget_standards.py) com os guias estabelecidos (TYPOGRAPHY_GUIDE.md e BUTTON_GUIDE.md). Atualmente 60% de conformidade, objetivo 100%.",
+  "objectives": [
+    "Unificar nomenclatura de tipografia (escolher MD3 ou Semântico)",
+    "Implementar todas as 5 variantes de botão conforme guia",
+    "Suportar 5 níveis de peso de fonte (300, 400, 500, 600, 700)",
+    "Incluir Segoe UI como primeira opção de font family",
+    "Definir larguras e alturas para todos os tamanhos de botão",
+    "Atualizar documentação para refletir implementação final"
+  ],
+  "current_phase": "Phase 1: Nomenclatura Decision",
+  "current_phase_index": 0,
+  "total_phases": 5,
+  "phases": [
+    {
+      "phase_number": 1,
+      "name": "Nomenclatura Decision",
+      "status": "pending",
+      "estimated_days": 2,
+      "tasks": [
+        "1.1 Decision Meeting (4 hours)",
+        "1.2 Implement Decision (Option A: 4 hours OR Option B: 2 days)",
+        "1.3 Verify Implementation (2 hours)"
+      ],
+      "acceptance_criteria": [
+        "Decisão documentada e aprovada",
+        "Implementação completa (guia OU código)",
+        "100% de conformidade na nomenclatura",
+        "0 erros de validação",
+        "Aplicação abre sem erros"
+      ]
+    },
+    {
+      "phase_number": 2,
+      "name": "Button Variants",
+      "status": "pending",
+      "estimated_days": 3,
+      "tasks": [
+        "2.1 Implement New Variants (1 day)",
+        "2.2 Refactor Secondary Variant (4 hours)",
+        "2.3 Rename danger to emergency (2 hours)",
+        "2.4 Add Outline Variant optional (2 hours)",
+        "2.5 Update All 197 Button Instances (1 day)"
+      ],
+      "acceptance_criteria": [
+        "5 variantes implementadas",
+        "197 instâncias atualizadas",
+        "0 warnings de deprecation em código novo",
+        "Testes visuais passam",
+        "Aplicação funciona sem erros"
+      ]
+    },
+    {
+      "phase_number": 3,
+      "name": "Font Weights System",
+      "status": "pending",
+      "estimated_days": 2,
+      "tasks": [
+        "3.1 Add FontWeight Enum (2 hours)",
+        "3.2 Update get_font() Method (2 hours)",
+        "3.3 Add Convenience Methods (2 hours)",
+        "3.4 Write Unit Tests (4 hours)"
+      ],
+      "acceptance_criteria": [
+        "5 níveis de peso implementados",
+        "15+ testes unitários passando",
+        "Cobertura ≥ 80%",
+        "Backward compatibility mantida",
+        "0 breaking changes não documentados"
+      ]
+    },
+    {
+      "phase_number": 4,
+      "name": "Small Corrections",
+      "status": "pending",
+      "estimated_days": 1,
+      "tasks": [
+        "4.1 Update Font Family (1 hour)",
+        "4.2 Add ButtonSizes Class (2 hours)",
+        "4.3 Update StandardButton for Size Parameter (3 hours)"
+      ],
+      "acceptance_criteria": [
+        "Segoe UI funcionando em Windows",
+        "ButtonSizes implementada",
+        "size parameter funcionando",
+        "Testes passando",
+        "Aplicação valida sem erros"
+      ]
+    },
+    {
+      "phase_number": 5,
+      "name": "Documentation Update",
+      "status": "pending",
+      "estimated_days": 1,
+      "tasks": [
+        "5.1 Update TYPOGRAPHY_GUIDE.md (2 hours)",
+        "5.2 Update BUTTON_GUIDE.md (2 hours)",
+        "5.3 Create Migration Guide (2 hours)",
+        "5.4 Update CLAUDE.md (1 hour)",
+        "5.5 Update CHANGELOG (1 hour)"
+      ],
+      "acceptance_criteria": [
+        "Todos os guias atualizados",
+        "Guia de migração criado",
+        "CLAUDE.md atualizado",
+        "CHANGELOG.md atualizado",
+        "0 inconsistências entre guia e código"
+      ]
+    }
+  ],
+  "metrics": {
+    "conformity_current": 60,
+    "conformity_target": 100,
+    "test_coverage_current": null,
+    "test_coverage_target": 80,
+    "unit_tests_count": 0,
+    "unit_tests_target": 75,
+    "integration_tests_count": 0,
+    "integration_tests_target": 20
+  },
+  "deliverables": [
+    "TYPOGRAPHY_GUIDE.md atualizado (nomenclatura unificada)",
+    "BUTTON_GUIDE.md atualizado (StandardButton)",
+    "design_tokens.py modificado (Typography, Dimensions)",
+    "widget_standards.py modificado (5 variantes, size parameter)",
+    "test_font_weight.py (15+ testes)",
+    "test_button_variants.py (20+ testes)",
+    "MIGRATION_GUIDE.md",
+    "CHANGELOG.md atualizado",
+    "DECISION_LOG.md (escolha MD3 vs Semântico)"
+  ],
+  "risks": [
+    {
+      "risk": "Choice Between MD3 vs Semantic is Wrong",
+      "probability": "Medium (30%)",
+      "impact": "High (rework required)",
+      "mitigation": "Protótipo rápido antes de decisão, reversão fácil"
+    },
+    {
+      "risk": "Button Variant Migration Breaks Application",
+      "probability": "Low (10%)",
+      "impact": "High (application won't start)",
+      "mitigation": "Backward compatibility, testes exhaustivos, rollback plan"
+    },
+    {
+      "risk": "Performance Degradation",
+      "probability": "Very Low (5%)",
+      "impact": "Medium (slower application)",
+      "mitigation": "Benchmarks antes/depois, cache de QFont"
+    },
+    {
+      "risk": "Team Rejects Changes",
+      "probability": "Low (10%)",
+      "impact": "High (rework required)",
+      "mitigation": "Early involvement, protótipos visuais, documentação clara"
+    }
+  ],
+  "dependencies": {
+    "internal": [
+      "consumo_lib/ui/design_tokens.py",
+      "consumo_lib/ui/widget_standards.py",
+      "TYPOGRAPHY_GUIDE.md",
+      "BUTTON_GUIDE.md"
+    ],
+    "external": [
+      "PyQt6 >= 6.0.0",
+      "Python >= 3.10"
+    ]
+  },
+  "references": [
+    "DESIGN_SYSTEM_COMPARISON_REPORT.md",
+    "TYPOGRAPHY_GUIDE.md",
+    "BUTTON_GUIDE.md",
+    "consumo_lib/ui/design_tokens.py",
+    "consumo_lib/ui/widget_standards.py"
+  ],
+  "rollback_plan": {
+    "phase_1": "Restaurar TYPOPHONY_GUIDE.md do backup, reverter design_tokens.py se aplicável",
+    "phase_2": "Restaurar widget_standards.py do backup, reverter 197 instâncias",
+    "phase_3": "Restaurar design_tokens.py do backup, remover test_font_weight.py",
+    "phase_4": "Restaurar design_tokens.py e widget_standards.py",
+    "phase_5": "Restaurar guias do backup"
+  },
+  "commits": [],
+  "tags": [],
+  "related_issues": [],
+  "notes": "Backward compatibility é crítico. Manter aliases para nomes antigos. Emitir deprecation warnings. Período de transição de 2 meses. Testes são obrigatórios. Documentação é parte da implementação."
+}
