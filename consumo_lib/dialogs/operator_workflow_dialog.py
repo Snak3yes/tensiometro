@@ -17,11 +17,11 @@ from PyQt6.QtWidgets import (
     QPushButton, QGroupBox, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from consumo_lib.widgets import (
     StencilSelector, ProgramSelector, InspectionResultsWidget
 )
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.coordinators import OperatorInspectionCoordinator
 
 logger = logging.getLogger(__name__)
@@ -99,19 +99,14 @@ class OperatorWorkflowDialog(QDialog):
     def _setup_header(self, layout: QVBoxLayout):
         """Configura header do dialog."""
         title = QLabel("Workflow de Inspeção")
-        title_font = QFont()
-        title_font.setPointSize(18)
-        title_font.setBold(True)
-        title.setFont(title_font)
-        title.setStyleSheet("color: #111827;")
+        title.setFont(TYPO.get_font(TYPO.HEADLINE_SMALL, bold=True))
+        title.setStyleSheet(f"color: {COLORS.ON_BACKGROUND};")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title)
 
         subtitle = QLabel(f"Operador: {self.operator_id}")
-        subtitle_font = QFont()
-        subtitle_font.setPointSize(11)
-        subtitle.setFont(subtitle_font)
-        subtitle.setStyleSheet("color: #6B7280;")
+        subtitle.setFont(TYPO.get_font(TYPO.BODY_SMALL))
+        subtitle.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitle)
 
@@ -120,21 +115,21 @@ class OperatorWorkflowDialog(QDialog):
     def _setup_selection_section(self, layout: QVBoxLayout):
         """Configura seção de seleção (stencil + programa)."""
         selection_group = QGroupBox("1. Selecione os Parâmetros")
-        selection_group.setStyleSheet("""
-            QGroupBox {
-                font-size: 13px;
+        selection_group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
-                color: #374151;
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 15px;
-            }
-            QGroupBox::title {
+                color: {COLORS.ON_BACKGROUND};
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                margin-top: {SPACE.SM}px;
+                padding-top: {SPACE.MD}px;
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 5px;
-            }
+                left: {SPACE.MD}px;
+                padding: 0 {SPACE.SM}px;
+            }}
         """)
         selection_layout = QVBoxLayout()
         selection_layout.setSpacing(15)
@@ -167,23 +162,23 @@ class OperatorWorkflowDialog(QDialog):
         self.start_button = QPushButton("▶ Iniciar Inspeção")
         self.start_button.setMinimumHeight(50)
         self.start_button.setMinimumWidth(200)
-        self.start_button.setStyleSheet("""
-            QPushButton {
-                background-color: #3B82F6;
+        self.start_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.PRIMARY};
                 color: white;
-                font-size: 14px;
+                font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 700;
                 border: none;
-                border-radius: 8px;
-                padding: 12px 24px;
-            }
-            QPushButton:hover {
-                background-color: #2563EB;
-            }
-            QPushButton:disabled {
-                background-color: #D1D5DB;
-                color: #9CA3AF;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.MD}px {SPACE.LG}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.PRIMARY_DARK};
+            }}
+            QPushButton:disabled {{
+                background-color: {COLORS.OUTLINE};
+                color: {COLORS.ON_SURFACE};
+            }}
         """)
         self.start_button.clicked.connect(self._on_start_inspection)
         button_layout.addWidget(self.start_button)
@@ -194,21 +189,21 @@ class OperatorWorkflowDialog(QDialog):
     def _setup_result_section(self, layout: QVBoxLayout):
         """Configura seção de resultado."""
         result_group = QGroupBox("2. Resultado da Inspeção")
-        result_group.setStyleSheet("""
-            QGroupBox {
-                font-size: 13px;
+        result_group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
-                color: #374151;
-                border: 2px solid #E5E7EB;
-                border-radius: 8px;
-                margin-top: 10px;
-                padding-top: 15px;
-            }
-            QGroupBox::title {
+                color: {COLORS.ON_BACKGROUND};
+                border: 2px solid {COLORS.OUTLINE};
+                border-radius: {DIM.RADIUS_MD}px;
+                margin-top: {SPACE.SM}px;
+                padding-top: {SPACE.MD}px;
+            }}
+            QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 15px;
-                padding: 0 5px;
-            }
+                left: {SPACE.MD}px;
+                padding: 0 {SPACE.SM}px;
+            }}
         """)
         result_layout = QVBoxLayout()
 
@@ -226,19 +221,19 @@ class OperatorWorkflowDialog(QDialog):
         close_button = QPushButton("Fechar")
         close_button.setMinimumWidth(120)
         close_button.setMinimumHeight(40)
-        close_button.setStyleSheet("""
-            QPushButton {
-                background-color: #6B7280;
+        close_button.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {COLORS.ON_SURFACE};
                 color: white;
-                font-size: 13px;
+                font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
                 border: none;
-                border-radius: 6px;
-                padding: 10px 20px;
-            }
-            QPushButton:hover {
-                background-color: #4B5563;
-            }
+                border-radius: {DIM.RADIUS_MD}px;
+                padding: {SPACE.SM}px {SPACE.MD}px;
+            }}
+            QPushButton:hover {{
+                background-color: {COLORS.ON_SURFACE};
+            }}
         """)
         close_button.clicked.connect(self.accept)
         footer_layout.addWidget(close_button)
