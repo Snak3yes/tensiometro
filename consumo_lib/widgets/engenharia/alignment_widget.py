@@ -69,7 +69,7 @@ class AlignmentImageView(QLabel):
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setStyleSheet(f"""
             QLabel {{
-                background-color: #1e1e1e;
+                background-color: {COLORS.SURFACE};
                 border: 2px solid {COLORS.OUTLINE};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
@@ -180,7 +180,7 @@ class AlignmentImageView(QLabel):
         # Cria pixmap final
         view_w, view_h = self.width(), self.height()
         result = QPixmap(view_w, view_h)
-        result.fill(QColor("#1e1e1e"))
+        result.fill(COLORS.to_qcolor(COLORS.SURFACE))
 
         painter = QPainter(result)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
@@ -222,7 +222,7 @@ class AlignmentImageView(QLabel):
             vx = x + fx * self._zoom
             vy = y + fy * self._zoom
 
-            color = QColor("#00ff00") if found else QColor("#ff0000")
+            color = COLORS.to_qcolor(COLORS.SUCCESS) if found else COLORS.to_qcolor(COLORS.ERROR)
 
             # Cruz
             pen = QPen(color, 2)
