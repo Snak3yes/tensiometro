@@ -10,12 +10,13 @@ from typing import Optional
 
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QLineEdit, QPushButton, QGroupBox, QFrame, QMessageBox
+    QLabel, QLineEdit, QPushButton, QGroupBox, QFrame, QMessageBox, QDialog
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 from aoi_lib.stencil_tracker import StencilTracker, Stencil
+from consumo_lib.ui import COLORS, TYPO, SPACE
 
 log = logging.getLogger(__name__)
 
@@ -80,16 +81,16 @@ class StencilIdentificationWidget(QWidget):
 
         # Status indicator
         self.status_label = QLabel("●")
-        self.status_label.setFont(QFont("Arial", 16))
+        self.status_label.setFont(TYPO.get_font(16))
         info_layout.addWidget(self.status_label, 0, 0)
 
         # Código e descrição
         self.lbl_code = QLabel()
-        self.lbl_code.setFont(QFont("Arial", 12, QFont.Weight.Bold))
+        self.lbl_code.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         info_layout.addWidget(self.lbl_code, 0, 1)
 
         self.lbl_description = QLabel()
-        self.lbl_description.setStyleSheet("color: #666;")
+        self.lbl_description.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         info_layout.addWidget(self.lbl_description, 0, 2)
 
         # Receita
@@ -104,22 +105,22 @@ class StencilIdentificationWidget(QWidget):
         info_layout.addWidget(self.lbl_last_inspection, 2, 1)
 
         self.lbl_inspection_count = QLabel()
-        self.lbl_inspection_count.setStyleSheet("color: #888;")
+        self.lbl_inspection_count.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         info_layout.addWidget(self.lbl_inspection_count, 2, 2)
 
         # Alerta de tendência
         self.alert_frame = QFrame()
         self.alert_frame.setVisible(False)
-        self.alert_frame.setStyleSheet("""
-            QFrame {
-                background-color: #FFF3CD;
-                border: 1px solid #FFECB5;
+        self.alert_frame.setStyleSheet(f"""
+            QFrame {{
+                background-color: {COLORS.WARNING_CONTAINER};
+                border: 1px solid {COLORS.WARNING};
                 border-radius: 5px;
                 padding: 5px;
-            }
+            }}
         """)
         alert_layout = QHBoxLayout(self.alert_frame)
-        alert_layout.setContentsMargins(10, 5, 10, 5)
+        alert_layout.setContentsMargins(SPACE.MD, SPACE.SM, SPACE.MD, SPACE.SM)
 
         self.lbl_alert = QLabel()
         self.lbl_alert.setWordWrap(True)
@@ -150,7 +151,7 @@ class StencilIdentificationWidget(QWidget):
             "Escaneie ou digite o código de barras para iniciar."
         )
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.empty_label.setStyleSheet("color: #888; font-style: italic;")
+        self.empty_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-style: italic;")
         layout.addWidget(self.empty_label)
 
         layout.addStretch()
@@ -197,11 +198,11 @@ class StencilIdentificationWidget(QWidget):
 
         # Status com cor
         status_colors = {
-            "active": ("🟢", "#28a745"),
-            "warning": ("🟡", "#ffc107"),
-            "retired": ("🔴", "#dc3545"),
+            "active": ("🟢", COLORS.SUCCESS),
+            "warning": ("🟡", COLORS.WARNING),
+            "retired": ("🔴", COLORS.ERROR),
         }
-        icon, color = status_colors.get(stencil.status, ("⚪", "#888"))
+        icon, color = status_colors.get(stencil.status, ("⚪", COLORS.ON_SURFACE))
         self.status_label.setText(icon)
 
         # Informações
