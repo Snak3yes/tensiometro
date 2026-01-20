@@ -16,6 +16,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
 
 from aoi_lib.stencil_tracker import StencilTracker
+from consumo_lib.ui import COLORS, TYPO, SPACE
 
 log = logging.getLogger(__name__)
 
@@ -70,7 +71,7 @@ class StencilHistoryDialog(QDialog):
 
         trend_layout.addWidget(QLabel("Tendência:"), 2, 2)
         self.lbl_trend = QLabel()
-        self.lbl_trend.setFont(QFont("Arial", 10, QFont.Weight.Bold))
+        self.lbl_trend.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         trend_layout.addWidget(self.lbl_trend, 2, 3)
 
         layout.addWidget(trend_group)
@@ -125,22 +126,22 @@ class StencilHistoryDialog(QDialog):
         var_text = f"{analysis.variation_percent:+.1f}%"
         if analysis.variation_percent < -5:
             var_text = f"📉 {var_text}"
-            self.lbl_variation.setStyleSheet("color: #dc3545;")
+            self.lbl_variation.setStyleSheet(f"color: {COLORS.ERROR};")
         elif analysis.variation_percent > 5:
             var_text = f"📈 {var_text}"
-            self.lbl_variation.setStyleSheet("color: #28a745;")
+            self.lbl_variation.setStyleSheet(f"color: {COLORS.SUCCESS};")
         else:
-            self.lbl_variation.setStyleSheet("color: #888;")
+            self.lbl_variation.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
         self.lbl_variation.setText(var_text)
 
         # Tendência com cor
         trend_map = {
-            "stable": ("Estável", "#888"),
-            "degrading": ("Em Degradação ⚠️", "#dc3545"),
-            "improving": ("Melhorando ✓", "#28a745"),
+            "stable": ("Estável", COLORS.ON_SURFACE),
+            "degrading": ("Em Degradação ⚠️", COLORS.ERROR),
+            "improving": ("Melhorando ✓", COLORS.SUCCESS),
         }
         trend_text, trend_color = trend_map.get(
-            analysis.trend, ("Desconhecida", "#888")
+            analysis.trend, ("Desconhecida", COLORS.ON_SURFACE)
         )
         self.lbl_trend.setText(trend_text)
         self.lbl_trend.setStyleSheet(f"color: {trend_color};")
@@ -168,11 +169,11 @@ class StencilHistoryDialog(QDialog):
             # Resultado com cor
             result_item = QTableWidgetItem(record.result)
             if record.result == "OK":
-                result_item.setBackground(QColor("#d4edda"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS_CONTAINER))
             elif record.result == "WARNING":
-                result_item.setBackground(QColor("#fff3cd"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.WARNING_CONTAINER))
             else:
-                result_item.setBackground(QColor("#f8d7da"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR_CONTAINER))
             self.table.setItem(row, 6, result_item)
 
     def _export_csv(self):
