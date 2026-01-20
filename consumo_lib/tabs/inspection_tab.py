@@ -60,7 +60,7 @@ class InspectionTab(BaseTab):
         from PyQt6.QtWidgets import QLabel
         info_label = QLabel(info_text)
         info_label.setWordWrap(True)
-        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: 20px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; padding: 20px;")
         info_layout.addWidget(info_label)
 
         # Botões placeholder

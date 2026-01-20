@@ -68,7 +68,7 @@ class InspectionProgressDialog(QDialog):
         # Subtítulo
         subtitle_label = QLabel(f"Stencil: {self.stencil_code}")
         subtitle_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
-        subtitle_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        subtitle_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(subtitle_label)
 
         layout.addSpacing(10)
@@ -93,7 +93,7 @@ class InspectionProgressDialog(QDialog):
 
         # Label de status
         self.status_label = QLabel("Preparando execução...")
-        self.status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_MEDIUM}; font-weight: 500;")
+        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_MEDIUM}; font-weight: 500;")
         layout.addWidget(self.status_label)
 
         layout.addSpacing(10)
@@ -101,7 +101,7 @@ class InspectionProgressDialog(QDialog):
         # Área de log
         log_group = QLabel("Log de Operações")
         log_group.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        log_group.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        log_group.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(log_group)
 
         self.log_text = QTextEdit()
@@ -115,7 +115,7 @@ class InspectionProgressDialog(QDialog):
                 padding: {SPACE.MD}px;
                 font-family: 'Consolas', 'Monaco', monospace;
                 font-size: 11px;
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         layout.addWidget(self.log_text)

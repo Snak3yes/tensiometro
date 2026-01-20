@@ -273,7 +273,7 @@ class RecipeEditorDialog(QDialog):
             "⚠️ WARNING: Fora do range de warning mas dentro do aceitável\n"
             "❌ NOK: Fora do range mín/máx"
         )
-        legend.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: 10px;")
+        legend.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 10px;")
         acc_layout.addWidget(legend, 2, 0, 1, 4)
 
         layout.addWidget(acc_group)
@@ -373,7 +373,7 @@ class RecipeEditorDialog(QDialog):
                 border: 1px solid {COLORS.OUTLINE};
                 border-radius: 5px;
                 padding: {SPACE.LG}px;
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         info_label.setWordWrap(True)

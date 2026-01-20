@@ -106,7 +106,7 @@ class OperatorWorkflowDialog(QDialog):
 
         subtitle = QLabel(f"Operador: {self.operator_id}")
         subtitle.setFont(TYPO.get_font(TYPO.BODY_SMALL))
-        subtitle.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        subtitle.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         subtitle.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitle)
 
@@ -177,7 +177,7 @@ class OperatorWorkflowDialog(QDialog):
             }}
             QPushButton:disabled {{
                 background-color: {COLORS.OUTLINE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         self.start_button.clicked.connect(self._on_start_inspection)
@@ -223,7 +223,7 @@ class OperatorWorkflowDialog(QDialog):
         close_button.setMinimumHeight(40)
         close_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.ON_SURFACE};
+                background-color: {COLORS.TEXT_HINT};
                 color: white;
                 font-size: {TYPO.BODY_MEDIUM}px;
                 font-weight: 600;
@@ -232,7 +232,7 @@ class OperatorWorkflowDialog(QDialog):
                 padding: {SPACE.SM}px {SPACE.MD}px;
             }}
             QPushButton:hover {{
-                background-color: {COLORS.ON_SURFACE};
+                background-color: {COLORS.TEXT_HINT};
             }}
         """)
         close_button.clicked.connect(self.accept)

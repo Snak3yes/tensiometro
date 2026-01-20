@@ -97,7 +97,7 @@ class FinalDecisionDialog(QDialog):
         )
         instruction_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
         instruction_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        instruction_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        instruction_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(instruction_label)
 
         layout.addSpacing(20)
@@ -129,7 +129,7 @@ class FinalDecisionDialog(QDialog):
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SURFACE_DARK};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
                 font-size: 13px;
                 font-weight: 600;
                 border: 2px solid {COLORS.OUTLINE};

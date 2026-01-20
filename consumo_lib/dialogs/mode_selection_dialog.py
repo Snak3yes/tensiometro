@@ -89,7 +89,7 @@ class ModeCard(QWidget):
         # Descrição
         desc_label = QLabel(description)
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        desc_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         content_layout.addWidget(desc_label)
 
         # Tempo estimado
@@ -243,7 +243,7 @@ class ModeSelectionDialog(QDialog):
         # Subtítulo com código do stencil
         subtitle_label = QLabel(f"Stencil: {self.stencil_code}")
         subtitle_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM))
-        subtitle_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        subtitle_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(subtitle_label)
 
@@ -262,7 +262,7 @@ class ModeSelectionDialog(QDialog):
             QGroupBox {{
                 font-size: 14px;
                 font-weight: 600;
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
                 border: 2px solid {COLORS.OUTLINE};
                 border-radius: 12px;
                 margin-top: 12px;
@@ -313,7 +313,7 @@ class ModeSelectionDialog(QDialog):
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.BACKGROUND};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
                 font-size: 13px;
                 font-weight: 600;
                 border: 2px solid {COLORS.OUTLINE};
@@ -323,7 +323,7 @@ class ModeSelectionDialog(QDialog):
             QPushButton:hover {{
                 background-color: {COLORS.SURFACE};
                 border: 2px solid {COLORS.ON_OUTLINE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
             QPushButton:pressed {{
                 background-color: {COLORS.SURFACE_DARK};

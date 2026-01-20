@@ -53,7 +53,7 @@ class FOVCalibrationDialog(QDialog):
             "o campo de visão é constante (não varia com a altura)."
         )
         info.setWordWrap(True)
-        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
+        info.setStyleSheet(f"color: {COLORS.TEXT_HINT}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         # Grupo de calibração
@@ -86,7 +86,7 @@ class FOVCalibrationDialog(QDialog):
             "conhecidas no plano focal e meça a largura/altura visível no vídeo."
         )
         tip.setWordWrap(True)
-        tip.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
+        tip.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
         layout.addWidget(tip)
 
         # Botões

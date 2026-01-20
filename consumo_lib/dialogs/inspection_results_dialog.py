@@ -106,7 +106,7 @@ class InspectionResultsDialog(QDialog):
             f"Modo: {self._get_mode_title()}   |   "
             f"Data: {timestamp}"
         )
-        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(info_label)
 
         return widget
@@ -129,7 +129,7 @@ class InspectionResultsDialog(QDialog):
         # Título do resumo
         resumo_title = QLabel("RESUMO")
         resumo_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        resumo_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        resumo_title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(resumo_title)
 
         # Conteúdo baseado no modo
@@ -154,7 +154,7 @@ class InspectionResultsDialog(QDialog):
             # Pontos medidos
             points = self.results.get("points_measured", 0)
             points_label = QLabel(f"Pontos Medidos: {points}")
-            points_label.setStyleSheet(f"{TYPO.BODY_LARGE}; color: {COLORS.ON_SURFACE};")
+            points_label.setStyleSheet(f"{TYPO.BODY_LARGE}; color: {COLORS.TEXT_HINT};")
             layout.addWidget(points_label)
 
             # Classificação
@@ -176,7 +176,7 @@ class InspectionResultsDialog(QDialog):
             blocked = self.results.get("blocked_count", 0)
 
             dist_label = QLabel(f"OK: {ok}  |  Parciais: {partial}  |  Bloqueadas: {blocked}")
-            dist_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.ON_SURFACE};")
+            dist_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.TEXT_HINT};")
             layout.addWidget(dist_label)
 
             # Classificação
@@ -204,7 +204,7 @@ class InspectionResultsDialog(QDialog):
         # Título
         title = QLabel("DADOS DETALHADOS")
         title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(title)
 
         # Estatísticas
@@ -216,7 +216,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         stats_label = QLabel(stats_text)
-        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; {TYPO.BODY_SMALL}; color: {COLORS.ON_SURFACE};")
+        stats_label.setStyleSheet(f"font-family: 'Consolas', monospace; {TYPO.BODY_SMALL}; color: {COLORS.TEXT_HINT};")
         layout.addWidget(stats_label)
 
         # Placeholder para heatmap (FUTURO)
@@ -244,7 +244,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         # Título
         title = QLabel("DADOS DETALHADOS")
         title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(title)
 
         # Lista de aberturas parciais/bloqueadas
@@ -291,7 +291,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         # Título
         title = QLabel("MODO COMPLETO: TENSÃO + INSPEÇÃO")
         title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(title)
 
         # Resumo dos dois modos
@@ -305,7 +305,7 @@ Desvio Padrão: {self.results.get('tension_std', 'N/A')} N/cm
         """.strip()
 
         resumo_label = QLabel(resumo_text)
-        resumo_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.ON_SURFACE};")
+        resumo_label.setStyleSheet(f"{TYPO.BODY_MEDIUM}; color: {COLORS.TEXT_HINT};")
         layout.addWidget(resumo_label)
 
         return frame

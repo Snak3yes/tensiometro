@@ -97,7 +97,7 @@ class LoginDialog(QDialog):
         # Versão e informação
         version_label = QLabel("Versão 0.4.0")
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px;")
+        version_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;")
         layout.addWidget(version_label)
 
         info_label = QLabel(
@@ -107,7 +107,7 @@ class LoginDialog(QDialog):
             "admin / admin123"
         )
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: 10px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 10px;")
         layout.addWidget(info_label)
 
         # Conexões

@@ -61,7 +61,7 @@ class WindowPreviewWidget(QWidget):
 
         # Title
         title = QLabel("Preview Visual (3 exemplos)")
-        title.setStyleSheet(f"font-weight: bold; color: {COLORS.ON_SURFACE};")
+        title.setStyleSheet(f"font-weight: bold; color: {COLORS.TEXT_HINT};")
         layout.addWidget(title)
 
         # Preview area
@@ -81,7 +81,7 @@ class WindowPreviewWidget(QWidget):
 
         # Status label
         self.status_label = QLabel("Nenhum grupo selecionado")
-        self.status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        self.status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.status_label)
 
     def set_windows(self, windows: List[InspectionWindow]) -> None:
@@ -144,7 +144,7 @@ class WindowPreviewWidget(QWidget):
 
         # Window info
         info_label = QLabel(f"ID: {window.id}\n{window.kind}")
-        info_label.setStyleSheet(f"{TYPO.BODY_SMALL}; color: {COLORS.ON_SURFACE};")
+        info_label.setStyleSheet(f"{TYPO.BODY_SMALL}; color: {COLORS.TEXT_HINT};")
         info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(info_label)
 
@@ -245,7 +245,7 @@ class GroupConfigPanel(QWidget):
         # Apply checkbox
         self.apply_all_checkbox = QCheckBox("Aplicar a todas do grupo")
         self.apply_all_checkbox.setChecked(True)
-        self.apply_all_checkbox.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: {SPACE.XS}px;")
+        self.apply_all_checkbox.setStyleSheet(f"color: {COLORS.TEXT_HINT}; padding: {SPACE.XS}px;")
         layout.addWidget(self.apply_all_checkbox)
 
         # Buttons
@@ -468,7 +468,7 @@ class LibraryPanel(QWidget):
             "automaticamente baseadas no nome\n"
             "do grupo (dimensão + forma)."
         )
-        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
         layout.addWidget(info_label)
 
         # Update display

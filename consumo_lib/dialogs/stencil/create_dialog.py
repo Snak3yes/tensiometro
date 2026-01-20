@@ -46,7 +46,7 @@ class StencilCreateDialog(QDialog):
             "O código é o identificador único (código de barras)."
         )
         info.setWordWrap(True)
-        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
+        info.setStyleSheet(f"color: {COLORS.TEXT_HINT}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         form = QFormLayout()

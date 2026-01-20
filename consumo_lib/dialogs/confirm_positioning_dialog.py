@@ -152,7 +152,7 @@ class ConfirmPositioningDialog(QDialog):
         self.cancel_button.setStyleSheet(f"""
             QPushButton {{
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
                 font-size: 14px;
                 font-weight: bold;
                 border-radius: {DIM.RADIUS_SM}px;

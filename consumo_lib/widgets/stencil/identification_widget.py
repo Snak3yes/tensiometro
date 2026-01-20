@@ -90,7 +90,7 @@ class StencilIdentificationWidget(QWidget):
         info_layout.addWidget(self.lbl_code, 0, 1)
 
         self.lbl_description = QLabel()
-        self.lbl_description.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        self.lbl_description.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         info_layout.addWidget(self.lbl_description, 0, 2)
 
         # Receita
@@ -105,7 +105,7 @@ class StencilIdentificationWidget(QWidget):
         info_layout.addWidget(self.lbl_last_inspection, 2, 1)
 
         self.lbl_inspection_count = QLabel()
-        self.lbl_inspection_count.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        self.lbl_inspection_count.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         info_layout.addWidget(self.lbl_inspection_count, 2, 2)
 
         # Alerta de tendência
@@ -113,7 +113,7 @@ class StencilIdentificationWidget(QWidget):
         self.alert_frame.setVisible(False)
         self.alert_frame.setStyleSheet(f"""
             QFrame {{
-                background-color: {COLORS.WARNING_CONTAINER};
+                background-color: {COLORS.WARNING_LIGHT};
                 border: 1px solid {COLORS.WARNING};
                 border-radius: 5px;
                 padding: 5px;
@@ -151,7 +151,7 @@ class StencilIdentificationWidget(QWidget):
             "Escaneie ou digite o código de barras para iniciar."
         )
         self.empty_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.empty_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-style: italic;")
+        self.empty_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-style: italic;")
         layout.addWidget(self.empty_label)
 
         layout.addStretch()
@@ -202,7 +202,7 @@ class StencilIdentificationWidget(QWidget):
             "warning": ("🟡", COLORS.WARNING),
             "retired": ("🔴", COLORS.ERROR),
         }
-        icon, color = status_colors.get(stencil.status, ("⚪", COLORS.ON_SURFACE))
+        icon, color = status_colors.get(stencil.status, ("⚪", COLORS.TEXT_HINT))
         self.status_label.setText(icon)
 
         # Informações

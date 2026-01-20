@@ -248,7 +248,7 @@ class ConfirmSaveWidget(QWidget):
             }}
             QPushButton:disabled {{
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         self.save_button.clicked.connect(self._on_save_clicked)

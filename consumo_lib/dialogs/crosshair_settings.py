@@ -35,7 +35,7 @@ class CrosshairSettingsDialog(QDialog):
             "Use uma linha mais longa para facilitar as calibrações."
         )
         info.setWordWrap(True)
-        info.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
+        info.setStyleSheet(f"color: {COLORS.TEXT_HINT}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(info)
 
         # Grupo de configurações
@@ -78,7 +78,7 @@ class CrosshairSettingsDialog(QDialog):
             "para facilitar a calibração FOV com régua."
         )
         tip.setWordWrap(True)
-        tip.setStyleSheet(f"color: {COLORS.ON_SURFACE}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
+        tip.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px; margin-top: {SPACE.SM}px;")
         layout.addWidget(tip)
 
         # Botões

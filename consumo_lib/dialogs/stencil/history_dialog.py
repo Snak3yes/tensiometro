@@ -131,17 +131,17 @@ class StencilHistoryDialog(QDialog):
             var_text = f"📈 {var_text}"
             self.lbl_variation.setStyleSheet(f"color: {COLORS.SUCCESS};")
         else:
-            self.lbl_variation.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+            self.lbl_variation.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         self.lbl_variation.setText(var_text)
 
         # Tendência com cor
         trend_map = {
-            "stable": ("Estável", COLORS.ON_SURFACE),
+            "stable": ("Estável", COLORS.TEXT_HINT),
             "degrading": ("Em Degradação ⚠️", COLORS.ERROR),
             "improving": ("Melhorando ✓", COLORS.SUCCESS),
         }
         trend_text, trend_color = trend_map.get(
-            analysis.trend, ("Desconhecida", COLORS.ON_SURFACE)
+            analysis.trend, ("Desconhecida", COLORS.TEXT_HINT)
         )
         self.lbl_trend.setText(trend_text)
         self.lbl_trend.setStyleSheet(f"color: {trend_color};")
@@ -169,11 +169,11 @@ class StencilHistoryDialog(QDialog):
             # Resultado com cor
             result_item = QTableWidgetItem(record.result)
             if record.result == "OK":
-                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS_CONTAINER))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS))
             elif record.result == "WARNING":
-                result_item.setBackground(COLORS.to_qcolor(COLORS.WARNING_CONTAINER))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.WARNING_LIGHT))
             else:
-                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR_CONTAINER))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR))
             self.table.setItem(row, 6, result_item)
 
     def _export_csv(self):

@@ -323,7 +323,7 @@ class InspectionResultsWidget(QWidget):
         """Define estilo neutro (sem resultado)."""
         self._classification_label.setText("---")
         self._classification_label.setStyleSheet(
-            f"background-color: {COLORS.SURFACE}; color: {COLORS.ON_SURFACE}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
+            f"background-color: {COLORS.SURFACE}; color: {COLORS.TEXT_HINT}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
         self._metrics_label.setText("Aguardando inspeção...")
 

@@ -158,7 +158,7 @@ class DefectJudgmentDialog(QDialog):
         info_text = f"Stencil: {self.session_data.get('stencil_code')}   |   " \
                     f"Operador: {self.session_data.get('operator')}"
         info_label = QLabel(info_text)
-        info_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(info_label)
 
         # Barra de progresso
@@ -207,7 +207,7 @@ class DefectJudgmentDialog(QDialog):
         # Label "Imagem do Defeito"
         image_title = QLabel("Imagem do Defeito")
         image_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        image_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        image_title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         image_layout.addWidget(image_title)
 
         # Widget de imagem com zoom
@@ -224,7 +224,7 @@ class DefectJudgmentDialog(QDialog):
         zoom_layout.addWidget(zoom_out_btn)
 
         zoom_label = QLabel("Zoom:")
-        zoom_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        zoom_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         zoom_layout.addWidget(zoom_label)
 
         zoom_in_btn = QPushButton("🔍+")
@@ -267,19 +267,19 @@ class DefectJudgmentDialog(QDialog):
 
         # Campos de informação (serão preenchidos dinamicamente)
         self.info_position = QLabel("Posição: --")
-        self.info_position.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        self.info_position.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_position)
 
         self.info_type = QLabel("Tipo: --")
-        self.info_type.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        self.info_type.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_type)
 
         self.info_status = QLabel("Status: --")
-        self.info_status.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        self.info_status.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_status)
 
         self.info_percentage = QLabel("Abertura: --")
-        self.info_percentage.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}")
+        self.info_percentage.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}")
         layout.addWidget(self.info_percentage)
 
         return frame
@@ -333,7 +333,7 @@ class DefectJudgmentDialog(QDialog):
 
         type_label = QLabel("Classificação do Defeito:")
         type_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
-        type_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        type_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         type_layout.addWidget(type_label)
 
         self.defect_type_combo = QComboBox()
@@ -365,7 +365,7 @@ class DefectJudgmentDialog(QDialog):
 
         notes_label = QLabel("Anotações (opcional):")
         notes_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
-        notes_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        notes_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         notes_layout.addWidget(notes_label)
 
         self.notes_input = QLineEdit()

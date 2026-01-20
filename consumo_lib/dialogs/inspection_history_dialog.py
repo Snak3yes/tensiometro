@@ -66,7 +66,7 @@ class InspectionHistoryDialog(QDialog):
         # Tabela
         table_label = QLabel("Inspeções")
         table_label.setFont(TYPO.get_font(TYPO.HEADING_MEDIUM, bold=True))
-        table_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        table_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(table_label)
 
         self.table = QTableWidget()
@@ -85,7 +85,7 @@ class InspectionHistoryDialog(QDialog):
             }}
             QHeaderView::section {{
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
                 font-weight: bold;
                 border: none;
                 border-bottom: 2px solid {COLORS.OUTLINE};
@@ -125,7 +125,7 @@ class InspectionHistoryDialog(QDialog):
         close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
         close_button.setStyleSheet(f"""
             QPushButton {{
-                background-color: {COLORS.ON_SURFACE};
+                background-color: {COLORS.TEXT_HINT};
                 color: white;
                 font-size: 13px;
                 font-weight: 600;
@@ -160,7 +160,7 @@ class InspectionHistoryDialog(QDialog):
         # Título
         filters_title = QLabel("FILTROS")
         filters_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        filters_title.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        filters_title.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(filters_title)
 
         # Linha 1: Tipo e Classificação

@@ -486,7 +486,7 @@ class AlignmentWidget(QWidget):
             "Use os controles manuais para ajustes finos."
         )
         instruction.setWordWrap(True)
-        instruction.setStyleSheet(f"color: {COLORS.ON_SURFACE}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
+        instruction.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
         left_panel.addWidget(instruction)
 
         # Preview image

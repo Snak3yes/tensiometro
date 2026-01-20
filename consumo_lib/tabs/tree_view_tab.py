@@ -160,7 +160,7 @@ class TreeViewTab(QWidget):
             "Clique em um item na lista para exibir informações completas."
         )
         self.details_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.details_placeholder.setStyleSheet(f"color: {COLORS.ON_SURFACE}; padding: {SPACE.XL * 2}px; font-size: {TYPO.BODY_SMALL}px;")
+        self.details_placeholder.setStyleSheet(f"color: {COLORS.TEXT_HINT}; padding: {SPACE.XL * 2}px; font-size: {TYPO.BODY_SMALL}px;")
         details_layout.addWidget(self.details_placeholder)
 
         scroll.setWidget(self.details_content)
@@ -183,11 +183,11 @@ class TreeViewTab(QWidget):
                 background-color: {COLORS.PRIMARY_DARK};
             }}
             QPushButton:pressed {{
-                background-color: {COLORS.PRIMARY_DARKER};
+                background-color: {COLORS.PRIMARY_DARK};
             }}
             QPushButton:disabled {{
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         self.inspect_button.clicked.connect(self.on_inspect_clicked)
@@ -209,11 +209,11 @@ class TreeViewTab(QWidget):
                 background-color: {COLORS.SECONDARY_DARK};
             }}
             QPushButton:pressed {{
-                background-color: {COLORS.SECONDARY_DARKER};
+                background-color: {COLORS.SECONDARY_DARK};
             }}
             QPushButton:disabled {{
                 background-color: {COLORS.SURFACE};
-                color: {COLORS.ON_SURFACE};
+                color: {COLORS.TEXT_HINT};
             }}
         """)
         self.history_button.clicked.connect(self.show_history)
@@ -364,7 +364,7 @@ class TreeViewTab(QWidget):
         # Descrição
         desc_label = QLabel(stencil['description'])
         desc_label.setWordWrap(True)
-        desc_label.setStyleSheet(f"color: {COLORS.ON_SURFACE}; margin-bottom: {SPACE.SM}px;")
+        desc_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; margin-bottom: {SPACE.SM}px;")
         layout.addWidget(desc_label)
 
         # Linha separadora
@@ -375,7 +375,7 @@ class TreeViewTab(QWidget):
         # Detalhes principais
         details_html = f"""
         <style>
-            .label {{ color: {COLORS.ON_SURFACE}; font-weight: bold; }}
+            .label {{ color: {COLORS.TEXT_HINT}; font-weight: bold; }}
             .value {{ color: {COLORS.ON_BACKGROUND}; }}
         </style>
         <table cellpadding="5" cellspacing="0">

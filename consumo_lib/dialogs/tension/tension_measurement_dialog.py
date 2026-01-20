@@ -109,7 +109,7 @@ class TensionMeasurementDialog(QDialog):
 
         # Status label
         self.conn_status_label = QLabel("Status: Desconectado")
-        self.conn_status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+        self.conn_status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         conn_layout.addWidget(self.conn_status_label, 1, 0, 1, 5)
 
         # Test button
@@ -264,7 +264,7 @@ class TensionMeasurementDialog(QDialog):
         else:
             self.connect_btn.setText("🔗 Conectar")
             self.conn_status_label.setText("Status: Desconectado")
-            self.conn_status_label.setStyleSheet(f"color: {COLORS.ON_SURFACE};")
+            self.conn_status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
             self.test_btn.setEnabled(False)
             self.start_btn.setEnabled(False)
 
