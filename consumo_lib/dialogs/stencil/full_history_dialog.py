@@ -229,21 +229,21 @@ class StencilFullHistoryDialog(QDialog):
             # Tipo
             if record_type == "tension":
                 type_item = QTableWidgetItem("📐 Tensão")
-                type_item.setBackground(QColor("#e3f2fd"))
+                type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
             else:
                 type_item = QTableWidgetItem("🔍 Inspeção")
-                type_item.setBackground(QColor("#f3e5f5"))
+                type_item.setBackground(COLORS.to_qcolor(COLORS.SECONDARY_LIGHT))
             self.combined_table.setItem(row, 1, type_item)
 
             # Resultado
             result = record.result
             result_item = QTableWidgetItem(result)
             if result in ["OK", "PASS"]:
-                result_item.setBackground(QColor("#d4edda"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS))
             elif result in ["WARNING"]:
-                result_item.setBackground(QColor("#fff3cd"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.WARNING_LIGHT))
             else:
-                result_item.setBackground(QColor("#f8d7da"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR_LIGHT))
             self.combined_table.setItem(row, 2, result_item)
 
             # Detalhes
@@ -306,11 +306,11 @@ class StencilFullHistoryDialog(QDialog):
 
             result_item = QTableWidgetItem(record.result)
             if record.result == "OK":
-                result_item.setBackground(QColor("#d4edda"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS))
             elif record.result == "WARNING":
-                result_item.setBackground(QColor("#fff3cd"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.WARNING_LIGHT))
             else:
-                result_item.setBackground(QColor("#f8d7da"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR_LIGHT))
             self.tension_table.setItem(row, 6, result_item)
 
     def _load_inspection_history(self):
@@ -359,9 +359,9 @@ class StencilFullHistoryDialog(QDialog):
 
             result_item = QTableWidgetItem(record.result)
             if record.result == "PASS":
-                result_item.setBackground(QColor("#d4edda"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.SUCCESS))
             else:
-                result_item.setBackground(QColor("#f8d7da"))
+                result_item.setBackground(COLORS.to_qcolor(COLORS.ERROR_LIGHT))
             self.inspection_table.setItem(row, 6, result_item)
 
             # Botão para abrir relatório
