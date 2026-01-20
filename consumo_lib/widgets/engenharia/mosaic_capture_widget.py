@@ -549,7 +549,7 @@ class MosaicCaptureWidget(QWidget):
         # Info
         controls_layout.addStretch()
         self.lbl_info = QLabel("Configure o grid e clique em Capturar")
-        self.lbl_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; padding: {SPACE.XXS}px;")
+        self.lbl_info.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; padding: {SPACE.XS}px;")
         self.lbl_info.setWordWrap(True)
         controls_layout.addWidget(self.lbl_info)
 

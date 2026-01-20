@@ -98,7 +98,7 @@ class ModeCard(QWidget):
         time_label.setStyleSheet(f"""
             color: {COLORS.SUCCESS_DARK};
             background-color: {COLORS.SUCCESS};
-            padding: {SPACE.XXS}px {SPACE.SM}px;
+            padding: {SPACE.XS}px {SPACE.SM}px;
             border-radius: {DIM.RADIUS_SM}px;
             font-weight: 600;
         """)

@@ -486,7 +486,7 @@ class AlignmentWidget(QWidget):
             "Use os controles manuais para ajustes finos."
         )
         instruction.setWordWrap(True)
-        instruction.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
+        instruction.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XS}px;")
         left_panel.addWidget(instruction)
 
         # Preview image
@@ -522,7 +522,7 @@ class AlignmentWidget(QWidget):
             QLabel {{
                 font-size: 14px;
                 font-weight: bold;
-                padding: {SPACE.XXS}px {SPACE.SM}px;
+                padding: {SPACE.XS}px {SPACE.SM}px;
                 background: {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
             }}
@@ -561,7 +561,7 @@ class AlignmentWidget(QWidget):
             QGroupBox::title {{
                 subcontrol-origin: margin;
                 left: {SPACE.SM}px;
-                padding: 0 {SPACE.XXS}px;
+                padding: 0 {SPACE.XS}px;
             }}
         """)
         transform_layout = QFormLayout(group_transform)
@@ -1000,7 +1000,7 @@ class AlignmentWidget(QWidget):
             QLabel {{
                 font-size: 14px;
                 font-weight: bold;
-                padding: {SPACE.XXS}px {SPACE.SM}px;
+                padding: {SPACE.XS}px {SPACE.SM}px;
                 background: {bg};
                 color: {color};
                 border-radius: {DIM.RADIUS_SM}px;

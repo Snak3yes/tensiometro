@@ -163,7 +163,7 @@ class ProgramDataWidget(QWidget):
             QGroupBox::title {{
                 subcontrol-origin: margin;
                 left: {SPACE.SM}px;
-                padding: 0 {SPACE.XXS}px;
+                padding: 0 {SPACE.XS}px;
             }}
         """)
 
@@ -218,7 +218,7 @@ class ProgramDataWidget(QWidget):
                 border: 1px solid {COLORS.TEXT_DISABLED};
                 background-color: {COLORS.SURFACE};
                 color: {COLORS.TEXT_PRIMARY};
-                padding: {SPACE.XXS}px;
+                padding: {SPACE.XS}px;
                 border-radius: {DIM.RADIUS_XS}px;
             }}
         """)

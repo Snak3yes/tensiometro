@@ -438,7 +438,7 @@ class LibraryPanel(QWidget):
 
         # Title
         title = QLabel("📚 Biblioteca de Configs")
-        title.setStyleSheet(f"font-weight: bold; color: {COLORS.PRIMARY}; padding: {SPACE.XXS}px;")
+        title.setStyleSheet(f"font-weight: bold; color: {COLORS.PRIMARY}; padding: {SPACE.XS}px;")
         layout.addWidget(title)
 
         # Library list
@@ -468,7 +468,7 @@ class LibraryPanel(QWidget):
             "automaticamente baseadas no nome\n"
             "do grupo (dimensão + forma)."
         )
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XXS}px;")
+        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; {TYPO.BODY_SMALL}; padding: {SPACE.XS}px;")
         layout.addWidget(info_label)
 
         # Update display
