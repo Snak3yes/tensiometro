@@ -5,17 +5,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 ## 🔄 Track: Design System Alignment (ACTIVE) <!-- 2026-01-20 -->
-*Link: [./conductor/tracks/design_system_alignment_20260120/](./conductor/tracks/design_system_alignment_20260120/)*
-- **Track ID:** design_system_alignment_20260120
 - **Status:** 🔄 Pending (aguardando início)
 - **Priority:** 🔴 HIGH
 - **Type:** Refactoring
 - **Created:** 2026-01-20
 - **Estimated Duration:** 6-13 dias
 - **Phases:** 5 fases planejadas
-- **Plan:** ./tracks/design_system_alignment_20260120/plan.md
-- **Spec:** ./tracks/design_system_alignment_20260120/spec.md
-- **Metadata:** ./tracks/design_system_alignment_20260120/metadata.json
 - **Description:**
   - Alinhar implementação do Design System aos guias (TYPOGRAPHY_GUIDE.md e BUTTON_GUIDE.md)
   - Conformidade atual: 60% → Alvo: 100%
@@ -577,3 +572,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 *Last updated: 2026-01-18 (Engineering Free Navigation archived as complete, SOLID Phase 2 moved to archive - 4/9 phases done)*
+
+## Completed Tracks
+
+- [x] **design_system_alignment_20260120** - Design System Alignment (60% → 100%) - Completed 2026-01-20
