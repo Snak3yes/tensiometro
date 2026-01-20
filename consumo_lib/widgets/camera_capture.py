@@ -90,15 +90,16 @@ class CameraCaptureWidget(QWidget):
         """Inicializa o conversor de coordenadas pixel→pulsos"""
         self.fov_converter = CameraFOVConverter()
 
-        # Carrega calibração salva se existir
-        fov_data = self.cfg.get("camera", "fov_calibration", default={})
-        if fov_data:
-            self.fov_converter.set_fov_calibration(FOVCalibration.from_dict(fov_data))
+        # Carrega calibração salva se existir e cfg foi fornecido
+        if self.cfg is not None:
+            fov_data = self.cfg.get("camera", "fov_calibration", default={})
+            if fov_data:
+                self.fov_converter.set_fov_calibration(FOVCalibration.from_dict(fov_data))
 
-        # Carrega calibração de eixos
-        pulses_per_mm = self.cfg.get("movement", "pulses_per_mm", default=100.0)
-        self.fov_converter.set_axis_calibration("X", pulses_per_mm)
-        self.fov_converter.set_axis_calibration("Y", pulses_per_mm)
+            # Carrega calibração de eixos
+            pulses_per_mm = self.cfg.get("movement", "pulses_per_mm", default=100.0)
+            self.fov_converter.set_axis_calibration("X", pulses_per_mm)
+            self.fov_converter.set_axis_calibration("Y", pulses_per_mm)
 
     def setup_ui(self):
         """Configura interface do usuário."""
