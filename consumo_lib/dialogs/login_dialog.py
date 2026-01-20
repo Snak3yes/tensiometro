@@ -83,13 +83,21 @@ class LoginDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
 
-        self.login_button = StandardButton("Entrar")
-        self.login_button.setMinimumHeight(45)
+        # Botão primário (Entrar) - dialog-primary (48×120px)
+        self.login_button = StandardButton(
+            "Entrar",
+            variant="primary-green",
+            semantic_size="dialog-primary"
+        )
         self.login_button.clicked.connect(self.on_login_clicked)
         buttons_layout.addWidget(self.login_button)
 
-        self.cancel_button = StandardButton("Cancelar")
-        self.cancel_button.setMinimumHeight(45)
+        # Botão secundário (Cancelar) - dialog-secondary (40×100px)
+        self.cancel_button = StandardButton(
+            "Cancelar",
+            variant="secondary",
+            semantic_size="dialog-secondary"
+        )
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 

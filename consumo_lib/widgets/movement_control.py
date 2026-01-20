@@ -69,14 +69,17 @@ class MovementControlWidget(QWidget):
         movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         movement_layout = QGridLayout()
         
-        # Directional control buttons
+        # Directional control buttons (50×50px - BUTTON_DIRECTIONAL_SIZE)
         self.up_button = QPushButton("↑")
         self.down_button = QPushButton("↓")
         self.left_button = QPushButton("←")
         self.right_button = QPushButton("→")
 
         for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
-            btn.setMinimumSize(50, 50)
+            btn.setMinimumSize(
+                DIM.BUTTON_DIRECTIONAL_SIZE,  # 50px
+                DIM.BUTTON_DIRECTIONAL_SIZE   # 50px
+            )
             font = TYPO.get_font(16, bold=True)
             btn.setFont(font)
         
@@ -91,8 +94,13 @@ class MovementControlWidget(QWidget):
 
         self.z_up_button   = QPushButton("Z+")
         self.z_down_button = QPushButton("Z-")
+
+        # Z-axis buttons (50×35px - BUTTON_Z_AXIS_WIDTH/HEIGHT)
         for zbtn in (self.z_up_button, self.z_down_button):
-            zbtn.setMinimumSize(50, 30)
+            zbtn.setMinimumSize(
+                DIM.BUTTON_Z_AXIS_WIDTH,   # 50px
+                DIM.BUTTON_Z_AXIS_HEIGHT   # 35px
+            )
         self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  -1))
         self.z_up_button.released.connect(self._on_direction_release)
         self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", 1))
