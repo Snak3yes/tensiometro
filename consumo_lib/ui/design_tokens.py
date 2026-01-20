@@ -512,6 +512,47 @@ Theme Management:
 # TYPE SYSTEMS
 # =============================================================================
 
+class FontWeight(int):
+    """
+    Pesos de fonte conforme TYPOGRAPHY_GUIDE.md
+
+    Segue especificação Material Design 3 para pesos de fonte.
+
+    Usage Frequencies:
+        LIGHT (300): 5% - Raramente usado
+        NORMAL (400): 70% - Texto padrão, labels, instruções
+        MEDIUM (500): 20% - Títulos de seção, botões, headings
+        SEMIBOLD (600): 4% - Títulos principais, dialogs
+        BOLD (700): 1% - Emergências, alertas críticos
+
+    Usage:
+        >>> from consumo_lib.ui.design_tokens import FontWeight
+        >>> TYPO.get_font(14, weight=FontWeight.MEDIUM)
+        PyQt6.QtGui.QFont('Arial', 14, weight=500)
+
+    Migration from bold boolean:
+        >>> # Old way (deprecated but still works)
+        >>> TYPO.get_font(14, bold=True)  # weight=700
+        >>> # New way (recommended)
+        >>> TYPO.get_font(14, weight=FontWeight.BOLD)
+    """
+
+    LIGHT: int = 300
+    """Light (300) - Uso raro (5%)"""
+
+    NORMAL: int = 400
+    """Normal (400) - Texto padrão (70%)"""
+
+    MEDIUM: int = 500
+    """Medium (500) - Títulos de seção, botões (20%)"""
+
+    SEMIBOLD: int = 600
+    """Semibold (600) - Títulos principais (4%)"""
+
+    BOLD: int = 700
+    """Bold (700) - Emergências, alertas críticos (1%)"""
+
+
 @dataclass(frozen=True)
 class Typography:
     """
@@ -592,26 +633,59 @@ class Typography:
     # FACTORY METHODS
     # =========================================================================
 
-    def get_font(self, size: int, bold: bool = False, italic: bool = False) -> QFont:
+    def get_font(
+        self,
+        size: int,
+        weight: int | None = None,
+        bold: bool | None = None,
+        italic: bool = False
+    ) -> QFont:
         """
         Cria QFont com parâmetros padronizados
 
         Args:
             size: Tamanho da fonte em pontos
-            bold: Se True, aplica negrito
+            weight: Peso da fonte (FontWeight.LIGHT=300, NORMAL=400, MEDIUM=500, SEMIBOLD=600, BOLD=700)
+            bold: [DEPRECATED] Se True, aplica negrito (weight=700). Use weight parameter instead.
             italic: Se True, aplica itálico
 
         Returns:
             QFont configurada
 
-        Exemplo:
-            >>> TYPO.get_font(14, bold=True)
-            PyQt6.QtGui.QFont('Arial', 14, weight=75)
-        """
-        font = QFont(self.FONT_FAMILY, size)
+        Examples:
+            >>> # New way (recommended)
+            >>> from consumo_lib.ui.design_tokens import FontWeight
+            >>> TYPO.get_font(14, weight=FontWeight.MEDIUM)
+            PyQt6.QtGui.QFont('Arial', 14, weight=500)
 
-        if bold:
-            font.setBold(True)
+            >>> # Old way (deprecated but still works)
+            >>> TYPO.get_font(14, bold=True)  # weight=700
+
+            >>> # With italic
+            >>> TYPO.get_font(14, weight=FontWeight.SEMIBOLD, italic=True)
+
+        Migration Notes:
+            - bold=True → weight=FontWeight.BOLD (700)
+            - bold=False → weight=None (usa default 400)
+        """
+        # Backward compatibility: migrar bold → weight
+        if bold is not None:
+            import warnings
+            warnings.warn(
+                'bold parameter is deprecated. Use weight=FontWeight.BOLD instead. '
+                'Will be removed in v0.6.0',
+                DeprecationWarning,
+                stacklevel=2
+            )
+            if bold and weight is None:
+                weight = FontWeight.BOLD
+
+        # Default weight se não especificado
+        if weight is None:
+            weight = FontWeight.NORMAL
+
+        font = QFont(self.FONT_FAMILY, size)
+        font.setWeight(weight)
 
         if italic:
             font.setItalic(True)
@@ -682,6 +756,90 @@ class Typography:
         """Font label small (11pt)"""
         return self.get_font(self.LABEL_SMALL, bold)
 
+    # =========================================================================
+    # FONT WEIGHT CONVENIENCE METHODS
+    # =========================================================================
+
+    def light(self, size: int) -> QFont:
+        """
+        Font com peso LIGHT (300)
+
+        Args:
+            size: Tamanho da fonte em pontos
+
+        Returns:
+            QFont com peso 300
+
+        Usage:
+            >>> TYPO.light(14)
+            PyQt6.QtGui.QFont('Arial', 14, weight=300)
+        """
+        return self.get_font(size, weight=FontWeight.LIGHT)
+
+    def normal(self, size: int) -> QFont:
+        """
+        Font com peso NORMAL (400) - peso padrão
+
+        Args:
+            size: Tamanho da fonte em pontos
+
+        Returns:
+            QFont com peso 400
+
+        Usage:
+            >>> TYPO.normal(14)
+            PyQt6.QtGui.QFont('Arial', 14, weight=400)
+        """
+        return self.get_font(size, weight=FontWeight.NORMAL)
+
+    def medium(self, size: int) -> QFont:
+        """
+        Font com peso MEDIUM (500) - para títulos de seção, botões
+
+        Args:
+            size: Tamanho da fonte em pontos
+
+        Returns:
+            QFont com peso 500
+
+        Usage:
+            >>> TYPO.medium(14)
+            PyQt6.QtGui.QFont('Arial', 14, weight=500)
+        """
+        return self.get_font(size, weight=FontWeight.MEDIUM)
+
+    def semibold(self, size: int) -> QFont:
+        """
+        Font com peso SEMIBOLD (600) - para títulos principais, dialogs
+
+        Args:
+            size: Tamanho da fonte em pontos
+
+        Returns:
+            QFont com peso 600
+
+        Usage:
+            >>> TYPO.semibold(14)
+            PyQt6.QtGui.QFont('Arial', 14, weight=600)
+        """
+        return self.get_font(size, weight=FontWeight.SEMIBOLD)
+
+    def bold(self, size: int) -> QFont:
+        """
+        Font com peso BOLD (700) - para emergências, alertas críticos
+
+        Args:
+            size: Tamanho da fonte em pontos
+
+        Returns:
+            QFont com peso 700
+
+        Usage:
+            >>> TYPO.bold(14)
+            PyQt6.QtGui.QFont('Arial', 14, weight=700)
+        """
+        return self.get_font(size, weight=FontWeight.BOLD)
+
 
 # Instância singleton
 TYPO = Typography()
@@ -700,6 +858,7 @@ Uso:
 __all__ = [
     "ColorPalette",
     "COLORS",
+    "FontWeight",
     "Typography",
     "TYPO",
     "Spacing",
