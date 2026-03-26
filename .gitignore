@@ -367,3 +367,11 @@ claude-conductor/
 tmpclaude-*
 
 nul
+
+# =============================================================================
+# TEMPORARY TEST FILES
+# =============================================================================
+smoke_test*.log
+test_results*.txt
+all_tests.txt
+*.log
