@@ -24,7 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | Remote | URL | Tipo |
 |--------|-----|------|
-| **origin** (push 1) | `git@github.com:RONALDBUZAGLO/tensiometro.git` | GitHub (SSH) |
+| **origin** (push 1) | `https://github.com/RONALDBUZAGLO/tensiometro.git` | GitHub (HTTPS) |
 | **origin** (push 2) | `https://gitlab.com/visao-computacional/DGB-Visao-Computacional.git` | GitLab (HTTPS) |
 | **gitlab** | `https://gitlab.com/visao-computacional/DGB-Visao-Computacional.git` | GitLab (alternativo) |
 
