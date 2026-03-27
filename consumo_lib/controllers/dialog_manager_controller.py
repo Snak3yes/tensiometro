@@ -145,22 +145,21 @@ class DialogManagerController(QObject):
         """
         Abre diálogo simples de medição de tensão (sem salvar no histórico).
 
-        Valida pré-condições:
-        - CNC deve estar conectada
+        Exibe aviso se CNC não estiver conectada, mas permite abrir o diálogo
+        para configurações e visualização.
 
         Emits:
             dialog_closed signal quando diálogo fechar
         """
-        # Validar conexão CNC
+        # Aviso se CNC não está conectada (mas não bloqueia)
         if not self.controller.cnc.is_connected:
             QMessageBox.warning(
                 self.parent_window,
                 "Aviso",
-                "Conecte a CNC antes de medir a tensão do stencil."
+                "CNC não conectada. Algumas funcionalidades estarão limitadas.\n\n"
+                "Conecte a CNC para realizar medições."
             )
-            logger.warning("Tentativa de abrir diálogo de tensão sem CNC conectada")
-            self.dialog_closed.emit("tension_dialog")
-            return
+            logger.warning("Diálogo de tensão aberto sem CNC conectada - funcionalidades limitadas")
 
         # Importar diálogo aqui para evitar import circular
         from consumo_lib.dialogs.tension import TensionMeasurementDialog

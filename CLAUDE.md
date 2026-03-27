@@ -73,13 +73,28 @@ tensiometro/
 │   ├── plc/           # Controle PLC (interfaces + controllers)
 │   ├── gerber_core/   # Parser Gerber RS-274X (MVC)
 │   ├── auth/          # Autenticação
-│   └── database/      # Persistência SQLite
+│   ├── database/      # Persistência SQLite
+│   ├── report/        # Geração de relatórios PDF
+│   ├── reports/       # Configurações de relatórios
+│   └── utils/         # Utilitários compartilhados
 │
 ├── consumo_lib/       # GUI PyQt6 (~166 files, ~48k lines)
 │   ├── tabs/          # Abas principais
 │   ├── widgets/       # Componentes UI
 │   ├── dialogs/       # Diálogos
-│   └── ui/            # Design System
+│   ├── ui/            # Design System
+│   ├── controllers/   # Controladores MVC
+│   ├── coordinators/  # Orquestradores de fluxo
+│   ├── facades/       # Fachadas de acesso
+│   ├── factories/     # Fábricas de objetos
+│   ├── handlers/      # Manipuladores de eventos
+│   ├── interfaces/    # Interfaces/contratos
+│   ├── managers/      # Gerenciadores de estado
+│   ├── models/        # Modelos de dados
+│   ├── services/      # Serviços de aplicação
+│   ├── threads/       # Workers QThread
+│   ├── ui_builders/   # Construtores de UI
+│   └── utils/         # Utilitários GUI
 │
 └── main.py            # Entry point
 ```
@@ -254,7 +269,9 @@ tensio.is_connected
 
 **Documentação:**
 - `docs/design_system/` - Design System completo
-- `docs/features/` - Features documentadas
+- `docs/architecture/` - Análises de arquitetura
+- `docs/guides/` - Guias de desenvolvimento
+- `docs/reports/` - Relatórios de progresso
 - `conductor/workflow.md` - Protocolo de desenvolvimento
 - `README.md` - Visão geral do projeto
 
@@ -263,4 +280,4 @@ tensio.is_connected
 
 ---
 
-**Last Updated:** 2026-03-26 | **Version:** 0.4.0
+**Last Updated:** 2026-03-27 | **Version:** 0.4.0

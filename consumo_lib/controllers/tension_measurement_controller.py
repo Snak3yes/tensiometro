@@ -77,7 +77,8 @@ class TensionMeasurementController(QObject):
 
         Valida pré-condições:
         - Stencil deve estar selecionado
-        - CNC deve estar conectada
+
+        Exibe aviso se CNC não conectada, mas permite abrir o diálogo.
 
         Args:
             current_stencil: Stencil selecionado (ou None)
@@ -99,17 +100,15 @@ class TensionMeasurementController(QObject):
             self.measurement_failed.emit(error_msg)
             return
 
-        # Validar conexão CNC
+        # Aviso se CNC não está conectada (mas não bloqueia)
         if not self.controller.cnc.is_connected:
-            error_msg = "Conecte o CLP antes de medir a tensão."
             QMessageBox.warning(
                 self.parent_window,
-                "CLP Não Conectado",
-                error_msg
+                "Aviso",
+                "CNC não conectada. Algumas funcionalidades estarão limitadas.\n\n"
+                "Conecte a CNC para realizar medições."
             )
-            logger.warning("Tentativa de medição sem CNC conectada")
-            self.measurement_failed.emit(error_msg)
-            return
+            logger.warning("Diálogo de tensão aberto sem CNC conectada - funcionalidades limitadas")
 
         # Importar diálogo aqui para evitar import circular
         from consumo_lib.dialogs.tension import TensionMeasurementDialog
@@ -205,17 +204,18 @@ class TensionMeasurementController(QObject):
         """
         Abre diálogo simples de medição de tensão (sem salvar no histórico).
 
-        Este método apenas abre o diálogo para medição manual,
-        sem associar a um stencil específico.
+        Exibe aviso se CNC não conectada, mas permite abrir o diálogo
+        para configurações e visualização.
         """
-        # Validar conexão CNC
+        # Aviso se CNC não está conectada (mas não bloqueia)
         if not self.controller.cnc.is_connected:
             QMessageBox.warning(
                 self.parent_window,
                 "Aviso",
-                "Conecte a CNC antes de medir a tensão do stencil."
+                "CNC não conectada. Algumas funcionalidades estarão limitadas.\n\n"
+                "Conecte a CNC para realizar medições."
             )
-            return
+            logger.warning("Diálogo de tensão aberto sem CNC conectada - funcionalidades limitadas")
 
         # Importar diálogo aqui para evitar import circular
         from consumo_lib.dialogs.tension import TensionMeasurementDialog
