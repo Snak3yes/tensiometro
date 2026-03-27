@@ -16,10 +16,8 @@ Signals Emitidos:
 - report_error(error: str) - Erro na geração de relatório
 """
 
-import json
 import logging
 import subprocess
-from pathlib import Path
 from typing import Optional
 
 from PyQt6.QtWidgets import (
@@ -29,6 +27,10 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QObject, pyqtSignal, QDate
 
+from consumo_lib.utils.tension_measurement_data import (
+    find_latest_tension_measurement_file,
+    load_tension_measurement_data,
+)
 from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger("consumo_lib")
@@ -73,10 +75,9 @@ class ReportDialogController(QObject):
 
     def show_tension_report_dialog(self):
         """Gera relatório de tensão da última medição."""
-        # Tentar carregar última medição
-        tension_file = Path("stencil_tension_measurements.json")
+        tension_file = find_latest_tension_measurement_file()
 
-        if not tension_file.exists():
+        if tension_file is None:
             QMessageBox.warning(
                 self.parent_window, "Sem Dados",
                 "Nenhuma medição de tensão disponível.\n\n"
@@ -85,8 +86,7 @@ class ReportDialogController(QObject):
             return
 
         try:
-            with open(tension_file, 'r', encoding='utf-8') as f:
-                tension_data = json.load(f)
+            tension_data = load_tension_measurement_data()
 
             # Obter informações do stencil atual
             # Nota: O parent_window deve fornecer current_stencil

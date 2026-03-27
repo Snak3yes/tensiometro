@@ -21,15 +21,14 @@ Signals Emitidos:
 - measurement_saved(stencil_code, record) - Medição salva no histórico
 """
 
-import json
 import logging
-import os
 from typing import Optional
 
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtWidgets import QMessageBox, QDialog
 
 from aoi_lib.stencil_tracker import Stencil, TensionRecord
+from consumo_lib.utils.tension_measurement_data import load_tension_measurement_data
 
 logger = logging.getLogger("consumo_lib")
 
@@ -151,17 +150,7 @@ class TensionMeasurementController(QObject):
             return
 
         try:
-            # Tenta obter dados da medição do diálogo ou do último arquivo salvo
-            measurements_file = "stencil_tension_measurements.json"
-
-            if not os.path.exists(measurements_file):
-                logger.warning("Arquivo de medições não encontrado")
-                self.measurement_failed.emit("Arquivo de medições não encontrado")
-                return
-
-            # Lê arquivo de medições
-            with open(measurements_file, "r", encoding="utf-8") as f:
-                tension_data = json.load(f)
+            tension_data = load_tension_measurement_data(tension_dialog)
 
             # Cria registro de tensão
             record = TensionRecord.from_tension_data(
