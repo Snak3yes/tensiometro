@@ -1,0 +1,54 @@
+# CODEOWNERS - Tensiometro Project
+# Reviewers são automaticamente solicitados em PRs que modificam estes arquivos
+
+# ============================================
+# DEFAULT - Snak3yes revisa tudo por padrão
+# ============================================
+* @Snak3yes
+
+# ============================================
+# CORE BUSINESS LOGIC (aoi_lib)
+# ============================================
+/aoi_lib/ @Snak3yes
+/aoi_lib/tensiometer/ @Snak3yes
+/aoi_lib/plc/ @Snak3yes
+/aoi_lib/gerber_core/ @Snak3yes
+/aoi_lib/database/ @Snak3yes
+/aoi_lib/auth/ @Snak3yes
+/aoi_lib/report/ @Snak3yes
+
+# ============================================
+# GUI (consumo_lib)
+# ============================================
+/consumo_lib/ @Snak3yes
+/consumo_lib/tabs/ @Snak3yes
+/consumo_lib/dialogs/ @Snak3yes
+/consumo_lib/widgets/ @Snak3yes
+/consumo_lib/ui/ @Snak3yes
+
+# ============================================
+# TESTS
+# ============================================
+/tests/ @Snak3yes
+
+# ============================================
+# DOCUMENTATION (opcional - owner pode revisar)
+# ============================================
+/docs/ @RONALDBUZAGLO @Snak3yes
+/README.md @RONALDBUZAGLO @Snak3yes
+/CLAUDE.md @RONALDBUZAGLO @Snak3yes
+
+# ============================================
+# CONFIGURATION
+# ============================================
+/config/ @Snak3yes
+*.json @Snak3yes
+*.yaml @Snak3yes
+*.yml @Snak3yes
+
+# ============================================
+# ROOT FILES
+# ============================================
+/main.py @Snak3yes
+/requirements.txt @Snak3yes
+/pyproject.toml @Snak3yes
