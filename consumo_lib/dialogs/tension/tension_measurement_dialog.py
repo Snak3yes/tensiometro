@@ -14,13 +14,12 @@ from typing import Optional
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QLabel, QLineEdit, QPushButton, QComboBox, QGroupBox,
-    QProgressBar, QMessageBox, QWidget
+    QLabel, QLineEdit, QComboBox, QGroupBox,
+    QProgressBar, QMessageBox
 )
-from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
-from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
+from consumo_lib.ui import COLORS, TYPO
 from consumo_lib.ui.widget_standards import StandardButton
 
 # Import refactored modules
@@ -202,19 +201,17 @@ class TensionMeasurementDialog(QDialog):
         # ==================== CONTROL BUTTONS ====================
         btn_layout = QHBoxLayout()
 
-        self.start_btn = StandardButton("▶ Iniciar Medição")
+        self.start_btn = StandardButton("▶ Iniciar Medição", variant="primary-green", semantic_size="dialog-primary")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._on_start)
-        self.start_btn.setStyleSheet(f"background-color: {COLORS.PRIMARY}; color: {COLORS.ON_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.start_btn)
 
-        self.stop_btn = StandardButton("⏹ Parar")
+        self.stop_btn = StandardButton("⏹ Parar", variant="emergency", semantic_size="dialog-secondary")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
-        self.stop_btn.setStyleSheet(f"background-color: {COLORS.ERROR}; color: {COLORS.TEXT_PRIMARY}; font-weight: bold; padding: {SPACE.MD}px;")
         btn_layout.addWidget(self.stop_btn)
 
-        self.close_btn = StandardButton("Fechar")
+        self.close_btn = StandardButton("Fechar", variant="secondary", semantic_size="dialog-secondary")
         self.close_btn.clicked.connect(self.close)
         btn_layout.addWidget(self.close_btn)
 

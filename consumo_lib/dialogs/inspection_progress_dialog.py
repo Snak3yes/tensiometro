@@ -9,7 +9,7 @@ import logging
 from datetime import datetime
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QProgressBar, QTextEdit
+    QProgressBar, QTextEdit
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QThread
 
@@ -126,48 +126,12 @@ class InspectionProgressDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.cancel_button = StandardButton("Cancelar Execução")
-        self.cancel_button.setMinimumWidth(160)
-        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        self.cancel_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.ERROR};
-                color: {COLORS.TEXT_PRIMARY};
-                font-size: 13px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.ERROR_DARK};
-            }}
-            QPushButton:disabled {{
-                background-color: {COLORS.BORDER};
-                color: {COLORS.TEXT_PRIMARY};
-            }}
-        """)
+        self.cancel_button = StandardButton("Cancelar Execução", variant="emergency", semantic_size="dialog-primary")
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         buttons_layout.addWidget(self.cancel_button)
 
-        self.close_button = StandardButton("Fechar")
-        self.close_button.setMinimumWidth(120)
-        self.close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.close_button = StandardButton("Fechar", variant="primary-green", semantic_size="dialog-secondary")
         self.close_button.hide()  # Inicialmente oculto
-        self.close_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.PRIMARY};
-                color: {COLORS.ON_PRIMARY};
-                font-size: 13px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.PRIMARY_DARK};
-            }}
-        """)
         self.close_button.clicked.connect(self.accept)
         buttons_layout.addWidget(self.close_button)
 

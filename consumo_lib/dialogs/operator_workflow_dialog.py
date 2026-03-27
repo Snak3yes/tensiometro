@@ -14,7 +14,7 @@ from datetime import datetime
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QGroupBox, QMessageBox
+    QGroupBox, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -160,27 +160,7 @@ class OperatorWorkflowDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.start_button = StandardButton("▶ Iniciar Inspeção")
-        self.start_button.setMinimumHeight(50)
-        self.start_button.setMinimumWidth(200)
-        self.start_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.PRIMARY};
-                color: white;
-                font-size: {TYPO.BODY_MEDIUM}px;
-                font-weight: 700;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.MD}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.PRIMARY_DARK};
-            }}
-            QPushButton:disabled {{
-                background-color: {COLORS.BORDER};
-                color: {COLORS.TEXT_HINT};
-            }}
-        """)
+        self.start_button = StandardButton("▶ Iniciar Inspeção", variant="primary-green", semantic_size="dialog-primary")
         self.start_button.clicked.connect(self._on_start_inspection)
         button_layout.addWidget(self.start_button)
         button_layout.addStretch()
@@ -219,23 +199,7 @@ class OperatorWorkflowDialog(QDialog):
         footer_layout = QHBoxLayout()
         footer_layout.addStretch()
 
-        close_button = StandardButton("Fechar")
-        close_button.setMinimumWidth(120)
-        close_button.setMinimumHeight(40)
-        close_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.TEXT_HINT};
-                color: white;
-                font-size: {TYPO.BODY_MEDIUM}px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.TEXT_HINT};
-            }}
-        """)
+        close_button = StandardButton("Fechar", variant="secondary", semantic_size="dialog-secondary")
         close_button.clicked.connect(self.accept)
         footer_layout.addWidget(close_button)
 

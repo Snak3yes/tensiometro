@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Controle CNC via Delta PLC (Modbus TCP)
 - Rastreabilidade com SQLite e relatórios PDF
 
-**Status:** ~99% completo | **Versão:** 0.4.0 | **Tech:** Python 3.x + PyQt6 + OpenCV + SQLite
+**Status:** ~99% completo | **Versão:** 0.4.1 | **Tech:** Python 3.x + PyQt6 + OpenCV + SQLite
 
 **Filosofia:** SOLID, TDD, documentação como fonte de verdade.
 
@@ -183,23 +183,49 @@ Click → Pixel → mm (FOV) → pulsos → PLC move_absolute
 
 ### Regra Zero Tolerância
 
-❌ **PROIBIDO:** `.setStyleSheet()`, valores hardcoded (`#4CAF50`, `45px`), `QFont()` manual
+❌ **PROIBIDO:** `.setStyleSheet()` em botões, valores hardcoded (`#4CAF50`, `45px`), `QFont()` manual
 
 ✅ **OBRIGATÓRIO:** Tokens (`COLORS.*`, `TYPO.*`, `DIM.*`, `SPACE.*`) e componentes padrão (`StandardButton`, etc.)
 
-### Exemplos
+### StandardButton - Uso Correto (v4.0 Microsoft Style)
 
 ```python
-# ❌ ERRADO
-btn.setStyleSheet("background-color: #4CAF50;")
-btn.setMinimumHeight(45)
-
-# ✅ CORRETO
-from consumo_lib.ui import COLORS, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 
-btn = StandardButton("Salvar", variant="primary-green")
+# Botões de diálogo
+btn_confirm = StandardButton("Confirmar", variant="primary-green", semantic_size="dialog-primary")
+btn_cancel = StandardButton("Cancelar", variant="secondary", semantic_size="dialog-secondary")
+
+# Botões de ação emergência
+btn_stop = StandardButton("Parar", variant="emergency", semantic_size="dialog-primary")
+
+# Botões de movimento
+btn_up = StandardButton("↑", semantic_size="directional")
+btn_z = StandardButton("Z+", semantic_size="z-axis")
+
+# Botões inline
+btn_action = StandardButton("Aplicar", variant="primary-blue", semantic_size="inline-primary")
 ```
+
+### Variantes de Botão
+
+| Variante | Uso |
+|----------|-----|
+| `primary-green` | Confirmação, ações principais |
+| `primary-blue` | Ações genéricas/secundárias |
+| `secondary` | Cancelamento, ações alternativas |
+| `emergency` | Stop, emergência, ações destrutivas |
+
+### Semantic Sizes (v4.0 - Microsoft Style Compact)
+
+| Size | Dimensões | Uso |
+|------|-----------|-----|
+| `dialog-primary` | 28×90px | Botões principais de diálogo |
+| `dialog-secondary` | 24×80px | Botões secundários de diálogo |
+| `directional` | 32×32px | Botões direcionais (↑↓←→) |
+| `z-axis` | 24×32px | Botões eixo Z (Z+, Z-) |
+| `inline-primary` | 24×60px | Botões inline |
+| `inline-secondary` | 22×55px | Botões inline menores |
 
 ### Tokens Principais
 ```python
@@ -280,4 +306,4 @@ tensio.is_connected
 
 ---
 
-**Last Updated:** 2026-03-27 | **Version:** 0.4.0
+**Last Updated:** 2026-03-27 | **Version:** 0.4.1 | **Button Standard:** v4.0 (Microsoft Style)

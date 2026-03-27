@@ -8,7 +8,7 @@ Usuário escolhe entre descartar (não salva) ou reprovar (salva).
 import logging
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QWidget, QFrame, QMessageBox
+    QWidget, QFrame, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -124,24 +124,7 @@ class FinalDecisionDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.cancel_button = StandardButton("Cancelar")
-        self.cancel_button.setMinimumWidth(120)
-        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        self.cancel_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SURFACE};
-                color: {COLORS.TEXT_HINT};
-                font-size: 13px;
-                font-weight: 600;
-                border: 2px solid {COLORS.BORDER};
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.SM}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.BORDER};
-                border: 2px solid {COLORS.TEXT_PRIMARY};
-            }}
-        """)
+        self.cancel_button = StandardButton("Cancelar", variant="secondary", semantic_size="dialog-secondary")
         self.cancel_button.clicked.connect(self.on_cancel_clicked)
         buttons_layout.addWidget(self.cancel_button)
 
@@ -232,25 +215,7 @@ class FinalDecisionDialog(QDialog):
         layout.addStretch()
 
         # Botão
-        discard_btn = StandardButton("Descartar Inspeção")
-        discard_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        discard_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.ERROR};
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.ERROR_DARK};
-            }}
-            QPushButton:pressed {{
-                background-color: {COLORS.ERROR_DARK};
-            }}
-        """)
+        discard_btn = StandardButton("Descartar Inspeção", variant="emergency", semantic_size="dialog-primary")
         discard_btn.clicked.connect(self.on_discard_clicked)
         layout.addWidget(discard_btn)
 
@@ -302,25 +267,7 @@ class FinalDecisionDialog(QDialog):
         layout.addStretch()
 
         # Botão
-        reject_btn = StandardButton("Reprovar Sessão")
-        reject_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        reject_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.ERROR_DARK};
-                color: white;
-                font-size: 14px;
-                font-weight: bold;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.ERROR};
-            }}
-            QPushButton:pressed {{
-                background-color: {COLORS.ERROR_DARK};
-            }}
-        """)
+        reject_btn = StandardButton("Reprovar Sessão", variant="emergency", semantic_size="dialog-primary")
         reject_btn.clicked.connect(self.on_reject_clicked)
         layout.addWidget(reject_btn)
 

@@ -7,7 +7,7 @@ Exibe checklist de segurança antes de iniciar medição/inspeção.
 import logging
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QCheckBox
+    QCheckBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -130,39 +130,11 @@ class ConfirmPositioningDialog(QDialog):
         # Botões
         buttons_layout = QHBoxLayout()
 
-        self.confirm_button = StandardButton("✓ Confirmar", variant="primary")
-        self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        self.confirm_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SUCCESS};
-                color: {COLORS.TEXT_PRIMARY};
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.XS}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.SUCCESS_DARK};
-            }}
-        """)
+        self.confirm_button = StandardButton("✓ Confirmar", variant="primary-green", semantic_size="dialog-primary")
         self.confirm_button.clicked.connect(self.on_confirm_clicked)
         buttons_layout.addWidget(self.confirm_button)
 
-        self.cancel_button = StandardButton("✗ Cancelar")
-        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        self.cancel_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SURFACE};
-                color: {COLORS.TEXT_HINT};
-                font-size: 14px;
-                font-weight: bold;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.XS}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.BORDER};
-            }}
-        """)
+        self.cancel_button = StandardButton("✗ Cancelar", variant="secondary", semantic_size="dialog-secondary")
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 

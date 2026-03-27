@@ -69,18 +69,14 @@ class MovementControlWidget(QWidget):
         movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
         movement_layout = QGridLayout()
         
-        # Directional control buttons (50×50px - BUTTON_DIRECTIONAL_SIZE)
-        self.up_button = QPushButton("↑")
-        self.down_button = QPushButton("↓")
-        self.left_button = QPushButton("←")
-        self.right_button = QPushButton("→")
+        # Directional control buttons (32×32px - Microsoft Style)
+        self.up_button = StandardButton("↑", semantic_size="directional")
+        self.down_button = StandardButton("↓", semantic_size="directional")
+        self.left_button = StandardButton("←", semantic_size="directional")
+        self.right_button = StandardButton("→", semantic_size="directional")
 
         for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
-            btn.setMinimumSize(
-                DIM.BUTTON_DIRECTIONAL_SIZE,  # 50px
-                DIM.BUTTON_DIRECTIONAL_SIZE   # 50px
-            )
-            font = TYPO.get_font(16, bold=True)
+            font = TYPO.get_font(14, bold=True)
             btn.setFont(font)
         
         self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  -1))
@@ -92,15 +88,9 @@ class MovementControlWidget(QWidget):
         self.right_button.pressed.connect(lambda: self._on_direction_press("X", 1))
         self.right_button.released.connect(self._on_direction_release)
 
-        self.z_up_button   = QPushButton("Z+")
-        self.z_down_button = QPushButton("Z-")
-
-        # Z-axis buttons (50×35px - BUTTON_Z_AXIS_WIDTH/HEIGHT)
-        for zbtn in (self.z_up_button, self.z_down_button):
-            zbtn.setMinimumSize(
-                DIM.BUTTON_Z_AXIS_WIDTH,   # 50px
-                DIM.BUTTON_Z_AXIS_HEIGHT   # 35px
-            )
+        # Z-axis buttons (32×24px - Microsoft Style)
+        self.z_up_button = StandardButton("Z+", semantic_size="z-axis")
+        self.z_down_button = StandardButton("Z-", semantic_size="z-axis")
         self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  -1))
         self.z_up_button.released.connect(self._on_direction_release)
         self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", 1))
@@ -114,9 +104,8 @@ class MovementControlWidget(QWidget):
         movement_layout.addWidget(self.z_down_button, 2, 3, 1, 2)
 
         # Botão de Emergency Stop / Reset
-        self.emergency_stop_button = StandardButton("STOP", variant="danger")
+        self.emergency_stop_button = StandardButton("STOP", variant="emergency", semantic_size="emergency")
         self.emergency_stop_button.setCheckable(True)
-        self.emergency_stop_button.setMinimumSize(100, DIM.BUTTON_HEIGHT_MD)
         self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle)
         movement_layout.addWidget(self.emergency_stop_button, 1, 1, Qt.AlignmentFlag.AlignCenter)
         
@@ -165,13 +154,8 @@ class MovementControlWidget(QWidget):
         movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
         
         # Backlight
-        self.backlight_button = QPushButton("💡 Backlight OFF")
+        self.backlight_button = StandardButton("💡 Backlight OFF", variant="secondary", semantic_size="function-secondary")
         self.backlight_button.setCheckable(True)
-        self.backlight_button.setMinimumHeight(DIM.BUTTON_HEIGHT_SM)
-        self.backlight_button.setStyleSheet(f"""
-            QPushButton {{ background-color: {COLORS.TEXT_HINT}; color: {COLORS.BACKGROUND}; border-radius: {DIM.RADIUS_SM}px; }}
-            QPushButton:checked {{ background-color: {COLORS.WARNING}; color: {COLORS.ON_PRIMARY}; font-weight: bold; }}
-        """)
         self.backlight_button.toggled.connect(self._on_backlight_toggle)
         movement_layout.addWidget(self.backlight_button, 9, 0, 1, 5)
         

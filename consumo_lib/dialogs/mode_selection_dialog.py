@@ -8,7 +8,7 @@ ou modo completo (ambos).
 import logging
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QWidget, QGroupBox, QButtonGroup
+    QWidget, QGroupBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -308,56 +308,12 @@ class ModeSelectionDialog(QDialog):
         buttons_layout.setSpacing(12)
         buttons_layout.addStretch()
 
-        self.cancel_button = StandardButton("Cancelar")
-        self.cancel_button.setMinimumWidth(140)
-        self.cancel_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        self.cancel_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.BACKGROUND};
-                color: {COLORS.TEXT_HINT};
-                font-size: 13px;
-                font-weight: 600;
-                border: 2px solid {COLORS.BORDER};
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.SURFACE};
-                border: 2px solid {COLORS.TEXT_PRIMARY};
-                color: {COLORS.TEXT_HINT};
-            }}
-            QPushButton:pressed {{
-                background-color: {COLORS.SURFACE};
-            }}
-        """)
+        self.cancel_button = StandardButton("Cancelar", variant="secondary", semantic_size="dialog-secondary")
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 
-        self.confirm_button = StandardButton("Confirmar Seleção", variant="primary")
-        self.confirm_button.setMinimumWidth(160)
-        self.confirm_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
+        self.confirm_button = StandardButton("Confirmar Seleção", variant="primary-green", semantic_size="dialog-primary")
         self.confirm_button.setEnabled(False)  # Desabilitado até selecionar
-        self.confirm_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.PRIMARY};
-                color: white;
-                font-size: 13px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.PRIMARY_DARK};
-            }}
-            QPushButton:pressed {{
-                background-color: {COLORS.PRIMARY_DARK};
-            }}
-            QPushButton:disabled {{
-                background-color: {COLORS.BORDER};
-                color: {COLORS.TEXT_PRIMARY};
-            }}
-        """)
         self.confirm_button.clicked.connect(self.on_confirm_clicked)
         buttons_layout.addWidget(self.confirm_button)
 

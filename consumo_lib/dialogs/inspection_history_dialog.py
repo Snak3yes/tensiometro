@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QTableWidget, QTableWidgetItem,
+    QTableWidget, QTableWidgetItem,
     QComboBox, QDateEdit, QLineEdit, QHeaderView,
     QFileDialog, QMessageBox, QFrame, QWidget
 )
@@ -103,41 +103,11 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        self.export_button = StandardButton("📄 Exportar CSV")
-        self.export_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        self.export_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SECONDARY};
-                color: white;
-                font-size: 13px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.SM}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.SECONDARY_DARK};
-            }}
-        """)
+        self.export_button = StandardButton("📄 Exportar CSV", variant="primary-blue", semantic_size="dialog-secondary")
         self.export_button.clicked.connect(self.export_to_csv)
         buttons_layout.addWidget(self.export_button)
 
-        close_button = StandardButton("Fechar")
-        close_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        close_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.TEXT_HINT};
-                color: white;
-                font-size: 13px;
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.SM}px {SPACE.MD}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.BORDER};
-            }}
-        """)
+        close_button = StandardButton("Fechar", variant="secondary", semantic_size="dialog-secondary")
         close_button.clicked.connect(self.accept)
         buttons_layout.addWidget(close_button)
 
@@ -223,39 +193,11 @@ class InspectionHistoryDialog(QDialog):
         buttons_layout = QHBoxLayout()
         buttons_layout.addStretch()
 
-        apply_button = StandardButton("Aplicar Filtros", variant="primary")
-        apply_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SECONDARY};
-                color: {COLORS.ON_SECONDARY};
-                {TYPO.BODY_SMALL};
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.XS}px {SPACE.SM}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.SECONDARY_DARK};
-            }}
-        """)
+        apply_button = StandardButton("Aplicar Filtros", variant="primary-blue", semantic_size="inline-primary")
         apply_button.clicked.connect(self.apply_filters)
         buttons_layout.addWidget(apply_button)
 
-        clear_button = StandardButton("Limpar Filtros")
-        clear_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.TEXT_SECONDARY};
-                color: {COLORS.TEXT_PRIMARY};
-                {TYPO.BODY_SMALL};
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.XS}px {SPACE.SM}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.TEXT_HINT};
-            }}
-        """)
+        clear_button = StandardButton("Limpar Filtros", variant="secondary", semantic_size="inline-secondary")
         clear_button.clicked.connect(self.clear_filters)
         buttons_layout.addWidget(clear_button)
 

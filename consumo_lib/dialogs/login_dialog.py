@@ -7,10 +7,9 @@ Implementa interface de autenticação com validação de campos.
 import logging
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QMessageBox
+    QLineEdit, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
-from PyQt6.QtGui import QFont
 
 from aoi_lib.auth.auth_service import AuthService
 from consumo_lib.ui import COLORS, TYPO
@@ -104,7 +103,7 @@ class LoginDialog(QDialog):
         layout.addLayout(buttons_layout)
 
         # Versão e informação
-        version_label = QLabel("Versão 0.4.0")
+        version_label = QLabel("Versão 0.4.1")
         version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         version_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;")
         layout.addWidget(version_label)

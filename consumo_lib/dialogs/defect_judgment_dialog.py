@@ -8,7 +8,7 @@ Percorre lista de defeitos, aprova (falha falsa) ou confirma como real.
 import logging
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QWidget, QScrollArea, QFrame,
+    QWidget, QScrollArea, QFrame,
     QComboBox, QLineEdit, QSlider, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -411,41 +411,11 @@ class DefectJudgmentDialog(QDialog):
         judgment_layout.addWidget(judgment_subtitle)
 
         # Botões de julgamento
-        approve_btn = StandardButton("✓ APROVAR (Falha Falsa)")
-        approve_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        approve_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.SUCCESS};
-                color: {COLORS.TEXT_PRIMARY};
-                {TYPO.BODY_MEDIUM}
-                font-weight: bold;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.MD}px {SPACE.XL}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.SUCCESS_DARK};
-            }}
-        """)
+        approve_btn = StandardButton("✓ APROVAR (Falha Falsa)", variant="primary-green", semantic_size="dialog-primary")
         approve_btn.clicked.connect(self.on_approve_clicked)
         judgment_layout.addWidget(approve_btn)
 
-        confirm_btn = StandardButton("✓ CONFIRMAR como Defeito Real", variant="primary")
-        confirm_btn.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        confirm_btn.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.ERROR};
-                color: {COLORS.TEXT_PRIMARY};
-                {TYPO.BODY_MEDIUM}
-                font-weight: bold;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.MD}px {SPACE.XL}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.ERROR_DARK};
-            }}
-        """)
+        confirm_btn = StandardButton("✓ CONFIRMAR como Defeito Real", variant="emergency", semantic_size="dialog-primary")
         confirm_btn.clicked.connect(self.on_confirm_clicked)
         judgment_layout.addWidget(confirm_btn)
 
@@ -461,78 +431,22 @@ class DefectJudgmentDialog(QDialog):
         layout.setSpacing(15)
 
         # Botão Anterior
-        self.prev_button = StandardButton("◀ Anterior")
-        self.prev_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        self.prev_button.setMinimumWidth(120)
+        self.prev_button = StandardButton("◀ Anterior", variant="secondary", semantic_size="toolbar-text")
         self.prev_button.setEnabled(False)  # Desabilitado no primeiro
-        self.prev_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.BORDER_VARIANT};
-                color: {COLORS.TEXT_PRIMARY_VARIANT};
-                {TYPO.BODY_MEDIUM}
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.BORDER};
-            }}
-            QPushButton:disabled {{
-                background-color: {COLORS.BORDER};
-                color: {COLORS.TEXT_PRIMARY};
-            }}
-        """)
         self.prev_button.clicked.connect(self.on_previous_clicked)
         layout.addWidget(self.prev_button)
 
         layout.addStretch()
 
         # Botão Finalizar Análise
-        self.finish_button = StandardButton("📋 Finalizar Análise")
-        self.finish_button.setMinimumHeight(DIM.BUTTON_HEIGHT_LG)
-        self.finish_button.setMinimumWidth(180)
-        self.finish_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.PRIMARY};
-                color: {COLORS.ON_PRIMARY};
-                {TYPO.BODY_MEDIUM}
-                font-weight: bold;
-                border: none;
-                border-radius: {DIM.RADIUS_MD}px;
-                padding: {SPACE.MD}px {SPACE.XL}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.PRIMARY_DARK};
-            }}
-        """)
+        self.finish_button = StandardButton("📋 Finalizar Análise", variant="primary-green", semantic_size="dialog-primary")
         self.finish_button.clicked.connect(self.on_finish_clicked)
         layout.addWidget(self.finish_button)
 
         layout.addStretch()
 
         # Botão Próximo
-        self.next_button = StandardButton("Próximo ▶")
-        self.next_button.setMinimumHeight(DIM.BUTTON_HEIGHT_MD)
-        self.next_button.setMinimumWidth(120)
-        self.next_button.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLORS.BORDER_VARIANT};
-                color: {COLORS.TEXT_PRIMARY_VARIANT};
-                {TYPO.BODY_MEDIUM}
-                font-weight: 600;
-                border: none;
-                border-radius: {DIM.RADIUS_SM}px;
-                padding: {SPACE.SM}px {SPACE.LG}px;
-            }}
-            QPushButton:hover {{
-                background-color: {COLORS.BORDER};
-            }}
-            QPushButton:disabled {{
-                background-color: {COLORS.BORDER};
-                color: {COLORS.TEXT_PRIMARY};
-            }}
-        """)
+        self.next_button = StandardButton("Próximo ▶", variant="secondary", semantic_size="toolbar-text")
         self.next_button.clicked.connect(self.on_next_clicked)
         layout.addWidget(self.next_button)
 
