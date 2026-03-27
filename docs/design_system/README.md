@@ -2,7 +2,7 @@
 
 Sistema de design unificado para garantir consistência visual e facilitar manutenção da interface do Tensiometro.
 
-**Versão 3.0 - Paleta Neutra Industrial (Tons de Cinza)**
+**Versão 4.0 - Microsoft Style (Compact & Clean)**
 
 ## 📋 Índice
 
@@ -26,7 +26,7 @@ O Design System do Tensiometro é uma coleção centralizada de:
 
 Baseado em **Material Design 3** com adaptações para o domínio industrial do Tensiometro.
 
-**v3.0 - Paleta Neutra**: Interface industrial limpa com tons de cinza para botões e elementos UI. Status são indicados por texto/ícones, não por cores vibrantes.
+**v4.0 - Microsoft Style**: Interface compacta e limpa com dimensões menores, similar às ferramentas Microsoft. Botões ~35% menores que a versão anterior.
 
 ---
 
@@ -253,7 +253,8 @@ btn.setStyleSheet(f"""
 - **Fase 1**: ✅ Fundação (design tokens, stylesheet, componentes)
 - **Fase 2**: ✅ Theme Manager (integração com main.py)
 - **Fase 3**: ✅ Migração Parcial (status_badge, movement_control)
-- **Fase 4**: 🔄 Documentação (este arquivo)
+- **Fase 4**: ✅ Documentação (este arquivo)
+- **Fase 5**: ✅ Microsoft Style (dimensões compactas v4.0)
 
 ### Arquivos Migrados
 
@@ -287,5 +288,5 @@ Parte do projeto Tensiometro.
 ---
 
 **Última atualização**: 2026-03-27
-**Versão**: 3.0.0 - Paleta Neutra Industrial
+**Versão**: 4.0.0 - Microsoft Style (Compact & Clean)
 **Autor**: RONALDBUZAGLO

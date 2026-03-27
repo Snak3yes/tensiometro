@@ -57,11 +57,11 @@ QPushButton {
     background-color: {{PRIMARY}};
     color: white;
     border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
-    font-size: 14px;
+    border-radius: 3px;
+    padding: 4px 12px;
+    font-size: 12px;
     font-weight: bold;
-    min-height: 40px;
+    min-height: 26px;
 }
 
 QPushButton:hover {
@@ -83,9 +83,9 @@ QPushButton:disabled {
 QPushButton[variant="primary-green"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                 stop:0 #546E7A, stop:1 #37474F);  /* Blue Grey 600-800 */
-    border: 2px solid #37474F;
+    border: 1px solid #37474F;
     color: white;
-    border-radius: 10px;
+    border-radius: 4px;
     font-weight: 500;
 }
 
@@ -98,9 +98,9 @@ QPushButton[variant="primary-green"]:hover {
 QPushButton[variant="primary-blue"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                 stop:0 #607D8B, stop:1 #455A64);  /* Blue Grey 500-700 */
-    border: 2px solid #455A64;
+    border: 1px solid #455A64;
     color: white;
-    border-radius: 10px;
+    border-radius: 4px;
     font-weight: 500;
 }
 
@@ -113,9 +113,9 @@ QPushButton[variant="primary-blue"]:hover {
 QPushButton[variant="primary-orange"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                 stop:0 #455A64, stop:1 #37474F);  /* Blue Grey 700-800 */
-    border: 2px solid #37474F;
+    border: 1px solid #37474F;
     color: white;
-    border-radius: 10px;
+    border-radius: 4px;
     font-weight: 500;
 }
 
@@ -127,9 +127,9 @@ QPushButton[variant="primary-orange"]:hover {
 /* Secondary (outline - ações alternativas/cancelamento) */
 QPushButton[variant="secondary"] {
     background-color: transparent;
-    border: 2px solid #607D8B;  /* Blue Grey 500 */
+    border: 1px solid #607D8B;  /* Blue Grey 500 */
     color: #455A64;
-    border-radius: 5px;
+    border-radius: 4px;
     font-weight: 500;
 }
 
@@ -149,12 +149,12 @@ QPushButton[variant="secondary"]:disabled {
 QPushButton[variant="emergency"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
                                 stop:0 #37474F, stop:1 #263238);  /* Blue Grey 800-900 */
-    border: 3px solid #263238;
+    border: 2px solid #263238;
     color: white;
-    border-radius: 25px;
-    padding: 15px 40px;
+    border-radius: 16px;
+    padding: 8px 24px;
     font-weight: 700;
-    font-size: 16px;
+    font-size: 13px;
 }
 
 QPushButton[variant="emergency"]:hover {
@@ -225,11 +225,11 @@ QLabel[caption="true"] {
 
 QLineEdit, QTextEdit, QPlainTextEdit {
     background-color: {{BACKGROUND}};
-    border: 2px solid {{BORDER}};
-    border-radius: 4px;
-    padding: 8px;
+    border: 1px solid {{BORDER}};
+    border-radius: 3px;
+    padding: 4px 8px;
     color: {{TEXT_PRIMARY}};
-    min-height: 40px;
+    min-height: 26px;
 }
 
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus {
@@ -251,10 +251,10 @@ QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover {
 
 QComboBox {
     background-color: {{BACKGROUND}};
-    border: 2px solid {{BORDER}};
-    border-radius: 4px;
-    padding: 8px;
-    min-height: 40px;
+    border: 1px solid {{BORDER}};
+    border-radius: 3px;
+    padding: 4px 8px;
+    min-height: 26px;
 }
 
 QComboBox:hover {
@@ -272,10 +272,10 @@ QComboBox::down-arrow {
 
 QComboBox QAbstractItemView {
     background-color: {{BACKGROUND}};
-    border: 2px solid {{BORDER}};
+    border: 1px solid {{BORDER}};
     selection-background-color: {{SECONDARY}};
     selection-color: {{TEXT_PRIMARY}};
-    padding: 4px;
+    padding: 2px;
 }
 
 /* =============================================================================
@@ -284,10 +284,10 @@ QComboBox QAbstractItemView {
 
 QSpinBox, QDoubleSpinBox {
     background-color: {{BACKGROUND}};
-    border: 2px solid {{BORDER}};
-    border-radius: 4px;
-    padding: 8px;
-    min-height: 40px;
+    border: 1px solid {{BORDER}};
+    border-radius: 3px;
+    padding: 4px 8px;
+    min-height: 26px;
 }
 
 QSpinBox:focus, QDoubleSpinBox:focus {

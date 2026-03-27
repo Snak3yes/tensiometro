@@ -81,34 +81,34 @@ from consumo_lib.ui.widget_standards import StandardButton
 
 **Nota**: Todas as variantes usam tons de cinza para uma interface industrial limpa e profissional. Status são indicados por texto/ícones, não por cores vibrantes.
 
-### Tamanhos Semânticos (NOVO v1.1)
+### Tamanhos Semânticos (v4.0 - Microsoft Style)
 
 #### Quando usar cada `semantic_size`:
 
 | semantic_size | Dimensões | Uso Típico |
 |---------------|-----------|-------------|
 | **Dialog Buttons** |||
-| `dialog-primary` | 48×120px | Salvar, Confirmar, OK (ação principal) |
-| `dialog-secondary` | 40×100px | Cancelar, Fechar (ação secundária) |
-| `dialog-tertiary` | 36×90px | Apply, Reset (ação terciária) |
-| `emergency` | 56×140px | STOP, Emergency (prominente) |
+| `dialog-primary` | 28×90px | Salvar, Confirmar, OK (ação principal) |
+| `dialog-secondary` | 24×80px | Cancelar, Fechar (ação secundária) |
+| `dialog-tertiary` | 22×70px | Apply, Reset (ação terciária) |
+| `emergency` | 32×100px | STOP, Emergency (prominente) |
 | **Movement Buttons** |||
-| `directional` | 50×50px (quadrado) | ↑, ↓, ←, → (controles direcionais) |
-| `z-axis` | 50×35px (retangular) | Z+, Z- (eixo Z) |
-| `function-primary` | 40×100px | Home, Zero, Go To (funções críticas) |
-| `function-secondary` | 40×90px | Step/Continuous, Toggle (funções auxiliares) |
-| `toggle-status` | 44×44px (quadrado) | Backlight, Mode (toggle de estado) |
+| `directional` | 32×32px (quadrado) | ↑, ↓, ←, → (controles direcionais) |
+| `z-axis` | 32×24px (retangular) | Z+, Z- (eixo Z) |
+| `function-primary` | 26×80px | Home, Zero, Go To (funções críticas) |
+| `function-secondary` | 24×70px | Step/Continuous, Toggle (funções auxiliares) |
+| `toggle-status` | 28×28px (quadrado) | Backlight, Mode (toggle de estado) |
 | **Toolbar Buttons** |||
-| `toolbar-text` | 36×120px | Anterior, Próximo (texto + ícone opcional) |
-| `toolbar-icon` | 40×40px (quadrado) | Refresh, Clear (ícone apenas) |
-| `toolbar-icon-large` | 48×48px (quadrado) | New, Open, Save (ícone grande) |
+| `toolbar-text` | 24×80px | Anterior, Próximo (texto + ícone opcional) |
+| `toolbar-icon` | 28×28px (quadrado) | Refresh, Clear (ícone apenas) |
+| `toolbar-icon-large` | 32×32px (quadrado) | New, Open, Save (ícone grande) |
 | **Inline Buttons** |||
-| `inline-primary` | 36px altura | Capturar, Calcular (ação em formulário) |
-| `inline-secondary` | 32px altura | Limpar, Reset (ação auxiliar) |
-| `inline-compact` | 28px altura `[CUIDADO]` | Edit, Delete em tabelas (uso moderado) |
+| `inline-primary` | 24px altura | Capturar, Calcular (ação em formulário) |
+| `inline-secondary` | 22px altura | Limpar, Reset (ação auxiliar) |
+| `inline-compact` | 20px altura `[CUIDADO]` | Edit, Delete em tabelas (uso moderado) |
 | **Grid Buttons** |||
-| `grid-action` | 44×80px | Edit, Delete, View (WCAG 2.5.5 compliant) |
-| `grid-status` | 24px altura | Badges clicáveis de status |
+| `grid-action` | 28×60px | Edit, Delete, View |
+| `grid-status` | 20px altura | Badges clicáveis de status |
 
 ### API
 
@@ -194,7 +194,7 @@ new_btn.setMinimumHeight(DIM.BUTTON_TOOLBAR_TEXT_HEIGHT)
 new_btn.setMinimumWidth(DIM.BUTTON_TOOLBAR_TEXT_MIN_WIDTH)
 layout.addWidget(new_btn)
 
-# Botão ícone (40×40px - quadrado)
+# Botão ícone (28×28px - quadrado)
 refresh_btn = QPushButton("🔄")
 refresh_btn.setFixedSize(
     DIM.BUTTON_TOOLBAR_ICON_SIZE,
@@ -207,8 +207,8 @@ layout.addWidget(refresh_btn)
 
 ```python
 # Botões de Confirmar/Cancelar (com size legado)
-btn_confirm = StandardButton("Confirmar", size="lg")    # 160×48px
-btn_cancel = StandardButton("Cancelar", size="md")     # 120×40px
+btn_confirm = StandardButton("Confirmar", size="lg")    # 100×32px
+btn_cancel = StandardButton("Cancelar", size="md")     # 80×26px
 
 btn_confirm.clicked.connect(dialog.accept)
 btn_cancel.clicked.connect(dialog.reject)
@@ -371,9 +371,9 @@ StandardInput(placeholder: str = "", parent=None)
 
 ### Estilo Aplicado Automaticamente
 
-- Altura mínima: `DIM.INPUT_HEIGHT_MD` (40px)
+- Altura mínima: `DIM.INPUT_HEIGHT_MD` (26px)
 - Padding: `SPACE.SM` (8px) vertical, `SPACE.MD` (16px) horizontal
-- Border radius: `DIM.RADIUS_MD` (8px)
+- Border radius: `DIM.RADIUS_SM` (4px)
 - Font: `TYPO.BODY_MEDIUM` (14px)
 - Cor de borda: `COLORS.OUTLINE` (#E0E0E0)
 - Cor de foco: `COLORS.PRIMARY` (#4CAF50)
@@ -476,7 +476,7 @@ StandardSpinBox(parent=None)
 
 ### Estilo Aplicado Automaticamente
 
-- Altura mínima: `DIM.INPUT_HEIGHT_MD` (40px)
+- Altura mínima: `DIM.INPUT_HEIGHT_MD` (26px)
 - Mesmo estilo que StandardInput
 - Setas de incremento/decremento estilizadas
 
@@ -594,7 +594,7 @@ StandardDoubleSpinBox(parent=None)
 
 ### Estilo Aplicado Automaticamente
 
-- Altura mínima: `DIM.INPUT_HEIGHT_MD` (40px)
+- Altura mínima: `DIM.INPUT_HEIGHT_MD` (26px)
 - Mesmo estilo que StandardSpinBox
 - Suporte a casas decimais
 
@@ -689,7 +689,7 @@ StandardComboBox(parent=None)
 
 ### Estilo Aplicado Automaticamente
 
-- Altura mínima: `DIM.INPUT_HEIGHT_MD` (40px)
+- Altura mínima: `DIM.INPUT_HEIGHT_MD` (26px)
 - Mesmo estilo que StandardInput
 - Setas dropdown estilizadas
 

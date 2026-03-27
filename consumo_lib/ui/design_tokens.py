@@ -1029,139 +1029,140 @@ class Dimensions:
     # BUTTON HEIGHTS (Genéricos - BACKWARD COMPAT)
     # =========================================================================
 
-    BUTTON_HEIGHT_SM: int = 32
+    BUTTON_HEIGHT_SM: int = 22
     """Altura de botão pequeno"""
 
-    BUTTON_HEIGHT_MD: int = 40
+    BUTTON_HEIGHT_MD: int = 26
     """Altura de botão médio (padrão)"""
 
-    BUTTON_HEIGHT_LG: int = 48
+    BUTTON_HEIGHT_LG: int = 32
     """Altura de botão grande"""
 
     # =========================================================================
     # BUTTON SIZES (width, height tuples)
     # =========================================================================
 
-    BUTTON_SIZE_SM: tuple = (80, 32)
+    BUTTON_SIZE_SM: tuple = (60, 22)
     """Tamanho de botão pequeno (largura, altura)"""
 
-    BUTTON_SIZE_MD: tuple = (120, 40)
+    BUTTON_SIZE_MD: tuple = (80, 26)
     """Tamanho de botão médio (largura, altura) - padrão"""
 
-    BUTTON_SIZE_LG: tuple = (160, 48)
+    BUTTON_SIZE_LG: tuple = (100, 32)
     """Tamanho de botão grande (largura, altura)"""
 
     # =========================================================================
-    # SEMANTIC BUTTON SIZES (NOVO v1.1 - Baseado em contexto de uso)
+    # SEMANTIC BUTTON SIZES (v4.0 - Microsoft Style - Compact & Clean)
     # =========================================================================
+    # Nota: Dimensões otimizadas para visual profissional estilo Microsoft.
+    # Abandona WCAG 44px mínimo em favor de estética mais limpa.
 
     # --------------------------------------------------------------------------
     # DIALOG BUTTONS (Botões de caixas de diálogo)
     # --------------------------------------------------------------------------
 
-    BUTTON_DIALOG_PRIMARY_HEIGHT: int = 48
+    BUTTON_DIALOG_PRIMARY_HEIGHT: int = 28
     """Altura de botão primário em dialogs (Salvar, Confirmar, OK)"""
-    BUTTON_DIALOG_PRIMARY_MIN_WIDTH: int = 120
+    BUTTON_DIALOG_PRIMARY_MIN_WIDTH: int = 90
     """Largura mínima de botão primário em dialogs"""
 
-    BUTTON_DIALOG_SECONDARY_HEIGHT: int = 40
+    BUTTON_DIALOG_SECONDARY_HEIGHT: int = 24
     """Altura de botão secundário em dialogs (Cancelar, Fechar)"""
-    BUTTON_DIALOG_SECONDARY_MIN_WIDTH: int = 100
+    BUTTON_DIALOG_SECONDARY_MIN_WIDTH: int = 80
     """Largura mínima de botão secundário em dialogs"""
 
-    BUTTON_DIALOG_TERTIARY_HEIGHT: int = 36
+    BUTTON_DIALOG_TERTIARY_HEIGHT: int = 22
     """Altura de botão terciário em dialogs (Apply, Reset)"""
-    BUTTON_DIALOG_TERTIARY_MIN_WIDTH: int = 90
+    BUTTON_DIALOG_TERTIARY_MIN_WIDTH: int = 70
     """Largura mínima de botão terciário em dialogs"""
 
-    BUTTON_EMERGENCY_HEIGHT: int = 56
+    BUTTON_EMERGENCY_HEIGHT: int = 32
     """Altura de botão de emergência (prominente)"""
-    BUTTON_EMERGENCY_MIN_WIDTH: int = 140
+    BUTTON_EMERGENCY_MIN_WIDTH: int = 100
     """Largura mínima de botão de emergência"""
-    BUTTON_EMERGENCY_PADDING: tuple = (15, 40)
+    BUTTON_EMERGENCY_PADDING: tuple = (8, 24)
     """Padding vertical/horizontal de botão de emergência"""
 
     # --------------------------------------------------------------------------
     # MOVEMENT CONTROL BUTTONS (Botões de controle de movimento CNC)
     # --------------------------------------------------------------------------
 
-    BUTTON_DIRECTIONAL_SIZE: int = 50
+    BUTTON_DIRECTIONAL_SIZE: int = 32
     """Tamanho de botão direcional (quadrado - ↑↓←→)"""
 
-    BUTTON_Z_AXIS_WIDTH: int = 50
+    BUTTON_Z_AXIS_WIDTH: int = 32
     """Largura de botão de eixo Z"""
-    BUTTON_Z_AXIS_HEIGHT: int = 35
+    BUTTON_Z_AXIS_HEIGHT: int = 24
     """Altura de botão de eixo Z"""
 
-    BUTTON_FUNCTION_PRIMARY_HEIGHT: int = 40
+    BUTTON_FUNCTION_PRIMARY_HEIGHT: int = 26
     """Altura de botão de função primária (Home, Zero, Go To)"""
-    BUTTON_FUNCTION_PRIMARY_MIN_WIDTH: int = 100
+    BUTTON_FUNCTION_PRIMARY_MIN_WIDTH: int = 80
     """Largura mínima de botão de função primária"""
 
-    BUTTON_FUNCTION_SECONDARY_HEIGHT: int = 40
+    BUTTON_FUNCTION_SECONDARY_HEIGHT: int = 24
     """Altura de botão de função secundária (Step/Continuous, Toggle)"""
-    BUTTON_FUNCTION_SECONDARY_MIN_WIDTH: int = 90
+    BUTTON_FUNCTION_SECONDARY_MIN_WIDTH: int = 70
     """Largura mínima de botão de função secundária"""
 
-    BUTTON_TOGGLE_STATUS_SIZE: int = 44
-    """Tamanho de botão toggle de status (quadrado, acessível)"""
+    BUTTON_TOGGLE_STATUS_SIZE: int = 28
+    """Tamanho de botão toggle de status (quadrado)"""
 
     # --------------------------------------------------------------------------
     # TOOLBAR BUTTONS (Botões de barras de ferramentas)
     # --------------------------------------------------------------------------
 
-    BUTTON_TOOLBAR_TEXT_HEIGHT: int = 36
+    BUTTON_TOOLBAR_TEXT_HEIGHT: int = 24
     """Altura de botão de toolbar com texto (Anterior, Próximo)"""
-    BUTTON_TOOLBAR_TEXT_MIN_WIDTH: int = 120
+    BUTTON_TOOLBAR_TEXT_MIN_WIDTH: int = 80
     """Largura mínima de botão de toolbar com texto"""
 
-    BUTTON_TOOLBAR_ICON_SIZE: int = 40
+    BUTTON_TOOLBAR_ICON_SIZE: int = 28
     """Tamanho de botão de toolbar com ícone (quadrado - Refresh, Clear)"""
-    BUTTON_TOOLBAR_ICON_LARGE_SIZE: int = 48
+    BUTTON_TOOLBAR_ICON_LARGE_SIZE: int = 32
     """Tamanho de botão de toolbar com ícone grande (quadrado)"""
 
     # --------------------------------------------------------------------------
     # INLINE ACTION BUTTONS (Botões de ação em linha/formulário)
     # --------------------------------------------------------------------------
 
-    BUTTON_INLINE_PRIMARY_HEIGHT: int = 36
+    BUTTON_INLINE_PRIMARY_HEIGHT: int = 24
     """Altura de botão inline primário (Capturar, Calcular)"""
-    BUTTON_INLINE_PRIMARY_MIN_WIDTH: int = 80
-    """Largura mínima de botão inline primário"""
+    BUTTON_INLINE_PRIMARY_MIN_WIDTH: int = 60
 
-    BUTTON_INLINE_SECONDARY_HEIGHT: int = 32
+    BUTTON_INLINE_SECONDARY_HEIGHT: int = 22
     """Altura de botão inline secundário (Limpar, Reset)"""
-    BUTTON_INLINE_SECONDARY_MIN_WIDTH: int = 70
+    BUTTON_INLINE_SECONDARY_MIN_WIDTH: int = 55
     """Largura mínima de botão inline secundário"""
 
-    BUTTON_INLINE_COMPACT_HEIGHT: int = 28
+    BUTTON_INLINE_COMPACT_HEIGHT: int = 20
     """Altura de botão inline compacto [CUIDADO: usar com moderação]"""
-    BUTTON_INLINE_COMPACT_MIN_WIDTH: int = 60
+    BUTTON_INLINE_COMPACT_MIN_WIDTH: int = 50
     """Largura mínima de botão inline compacto"""
 
     # --------------------------------------------------------------------------
     # GRID/TABLE ACTION BUTTONS (Botões de ação em tabelas)
     # --------------------------------------------------------------------------
 
-    BUTTON_GRID_ACTION_HEIGHT: int = 44  # WCAG 2.5.5 compliant
-    """Altura de botão de ação em grid (mínimo acessível)"""
-    BUTTON_GRID_ACTION_MIN_WIDTH: int = 80
+    BUTTON_GRID_ACTION_HEIGHT: int = 28
+    """Altura de botão de ação em grid"""
+    BUTTON_GRID_ACTION_MIN_WIDTH: int = 60
     """Largura mínima de botão de ação em grid"""
 
-    BUTTON_GRID_STATUS_HEIGHT: int = 24
+    BUTTON_GRID_STATUS_HEIGHT: int = 20
     """Altura de badge clicável de status"""
 
     # =========================================================================
-    # INPUT HEIGHTS
+    # INPUT HEIGHTS (Microsoft Style)
     # =========================================================================
 
-    INPUT_HEIGHT_SM: int = 32
+    INPUT_HEIGHT_SM: int = 22
     """Altura de input pequeno"""
 
-    INPUT_HEIGHT_MD: int = 40
+    INPUT_HEIGHT_MD: int = 26
     """Altura de input médio (padrão)"""
 
-    INPUT_HEIGHT_LG: int = 48
+    INPUT_HEIGHT_LG: int = 32
     """Altura de input grande"""
 
     # =========================================================================

@@ -95,33 +95,34 @@ class StandardButton(QPushButton):
     """
 
     # Mapeamento de tamanhos semânticos para (altura, largura_min)
+    # v4.0 - Microsoft Style - Compact & Clean
     SEMANTIC_SIZES = {
         # Dialog Buttons
-        "dialog-primary": (48, 120),
-        "dialog-secondary": (40, 100),
-        "dialog-tertiary": (36, 90),
-        "emergency": (56, 140),
+        "dialog-primary": (28, 90),
+        "dialog-secondary": (24, 80),
+        "dialog-tertiary": (22, 70),
+        "emergency": (32, 100),
 
         # Movement Buttons
-        "directional": (50, 50),
-        "z-axis": (35, 50),
-        "function-primary": (40, 100),
-        "function-secondary": (40, 90),
-        "toggle-status": (44, 44),
+        "directional": (32, 32),
+        "z-axis": (24, 32),
+        "function-primary": (26, 80),
+        "function-secondary": (24, 70),
+        "toggle-status": (28, 28),
 
         # Toolbar Buttons
-        "toolbar-text": (36, 120),
-        "toolbar-icon": (40, 40),
-        "toolbar-icon-large": (48, 48),
+        "toolbar-text": (24, 80),
+        "toolbar-icon": (28, 28),
+        "toolbar-icon-large": (32, 32),
 
         # Inline Buttons
-        "inline-primary": (36, 80),
-        "inline-secondary": (32, 70),
-        "inline-compact": (28, 60),
+        "inline-primary": (24, 60),
+        "inline-secondary": (22, 55),
+        "inline-compact": (20, 50),
 
         # Grid Buttons
-        "grid-action": (44, 80),
-        "grid-status": (24, 0),  # 0 = auto (largura ajusta ao conteúdo)
+        "grid-action": (28, 60),
+        "grid-status": (20, 0),  # 0 = auto (largura ajusta ao conteúdo)
     }
 
     def __init__(self, text: str, variant: str = "primary-green", size: str = "md", semantic_size: str | None = None, parent=None):
