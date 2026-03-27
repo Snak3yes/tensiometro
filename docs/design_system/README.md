@@ -2,6 +2,8 @@
 
 Sistema de design unificado para garantir consistência visual e facilitar manutenção da interface do Tensiometro.
 
+**Versão 3.0 - Paleta Neutra Industrial (Tons de Cinza)**
+
 ## 📋 Índice
 
 - [O que é](#o-que-é)
@@ -23,6 +25,8 @@ O Design System do Tensiometro é uma coleção centralizada de:
 - **Helpers**: Funções utilitárias para layouts
 
 Baseado em **Material Design 3** com adaptações para o domínio industrial do Tensiometro.
+
+**v3.0 - Paleta Neutra**: Interface industrial limpa com tons de cinza para botões e elementos UI. Status são indicados por texto/ícones, não por cores vibrantes.
 
 ---
 
@@ -282,6 +286,6 @@ Parte do projeto Tensiometro.
 
 ---
 
-**Última atualização**: 2026-01-19
-**Versão**: 1.0.0
+**Última atualização**: 2026-03-27
+**Versão**: 3.0.0 - Paleta Neutra Industrial
 **Autor**: RONALDBUZAGLO

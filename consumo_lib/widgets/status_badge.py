@@ -14,12 +14,15 @@ class StatusBadge(QLabel):
     """
     Badge colorido para status de inspeção
 
-    Cores por status:
-        - approved_auto: Verde vibrante (#4CAF50)
-        - approved_user: Verde-amarelo (#CDDC39)
-        - rejected: Vermelho (#F44336)
-        - pending: Cinza (#9E9E9E)
-        - in_progress: Azul (#2196F3)
+    Cores por status (v3.0 - Paleta Neutra - Tons de Cinza):
+        - approved_auto: Cinza escuro
+        - approved_user: Cinza médio
+        - rejected: Cinza mais escuro
+        - pending: Cinza claro
+        - in_progress: Cinza médio
+
+    Note:
+        Status é indicado por texto/ícones, não por cores vibrantes.
     """
 
     # Cores por status (usando design tokens)

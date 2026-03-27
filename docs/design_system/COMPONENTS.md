@@ -67,17 +67,19 @@ Botão padrão com variantes de estilo e **tamanhos semânticos** (v1.1).
 from consumo_lib.ui.widget_standards import StandardButton
 ```
 
-### Variantes de Cor Disponíveis
+### Variantes de Cor Disponíveis (v3.0 - Paleta Neutra)
 
-| Variante | Cor Hex | Uso |
-|----------|---------|-----|
-| `primary-green` | `#43A047` (verde) | Ações principais de confirmação/início |
-| `primary-blue` | `#455A64` (azul petróleo) | Ações padrão/genéricas |
-| `primary-orange` | `#E65100` (laranja) | Ações de parada/atenção |
-| `secondary` | Transparente + borda azul | Ações alternativas/cancelamento |
-| `emergency` | `#C62828` (vermelho) | Emergências físicas (uso raro 1%) |
+| Variante | Tons de Cinza | Uso |
+|----------|---------------|-----|
+| `primary-green` | Cinza escuro (#546E7A → #37474F) | Ações principais de confirmação/início |
+| `primary-blue` | Cinza médio (#607D8B → #455A64) | Ações padrão/genéricas |
+| `primary-orange` | Cinza mais escuro (#455A64 → #37474F) | Ações de parada/atenção |
+| `secondary` | Transparente + borda cinza | Ações alternativas/cancelamento |
+| `emergency` | Cinza muito escuro (#37474F → #263238) | Emergências físicas (uso raro 1%) |
 | `danger` | `[DEPRECATED]` | Use `emergency` instead |
-| `outline` | Borda verde `[LEGADO]` | Use `secondary` no futuro |
+| `outline` | Borda cinza `[LEGADO]` | Use `secondary` no futuro |
+
+**Nota**: Todas as variantes usam tons de cinza para uma interface industrial limpa e profissional. Status são indicados por texto/ícones, não por cores vibrantes.
 
 ### Tamanhos Semânticos (NOVO v1.1)
 
@@ -1217,5 +1219,5 @@ label = StandardLabel("Texto", variant="heading")
 
 ---
 
-**Última atualização**: 2026-01-20
-**Versão**: 1.1.0 - Semantic Button Sizes
+**Última atualização**: 2026-03-27
+**Versão**: 3.0.0 - Paleta Neutra Industrial (Tons de Cinza)

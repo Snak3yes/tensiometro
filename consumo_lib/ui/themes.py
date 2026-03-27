@@ -21,13 +21,14 @@ Este arquivo DEFINE as paletas de cores (LIGHT, DARK, SYSTEM).
 ⚠️⚠️⚠️ FIM DA REGRA CRÍTICA ⚠️⚠️⚠️
 
 Sistema de Temas - Tensiometro
+Paleta NEUTRA - Tons de Cinza Industrial
 
-Define paletas de cores para diferentes temas (Light, Dark, System).
-Baseado no Material Design 3: https://m3.material.io/styles/color/the-color-system/tokens
+Baseado no projeto ADESIVADORA_DOUBLE_TABLE para interface industrial limpa.
+Foco em: clareza, legibilidade, baixo contraste visual, profissionalismo.
 
 Este arquivo fornece:
-- LightThemePalette: Cores para tema claro
-- DarkThemePalette: Cores para tema escuro
+- LightThemePalette: Cores neutras para tema claro
+- DarkThemePalette: Cores neutras para tema escuro
 - ThemePaletteFactory: Factory pattern para criar paletas dinamicamente
 """
 
@@ -45,446 +46,468 @@ ThemeType = Literal["light", "dark", "system"]
 @dataclass(frozen=True)
 class LightThemePalette:
     """
-    Paleta de cores para o tema Light (claro)
+    Paleta de cores NEUTRAS para o tema Light (claro)
 
-    Atualizado para v2.1: Foco em contraste WCAG AA e minimalismo industrial.
+    v3.0 - Paleta Neutra Industrial:
+    - Todos os botões e elementos em tons de cinza
+    - Alto contraste para texto, baixo contraste para elementos
+    - Aparência limpa e profissional
+    - Status indicados por ícones/texto, não por cores vibrantes
 
-    Principais mudanças:
-    - PRIMARY: Verde escuro para melhor contraste (#43A047)
-    - SECONDARY: Azul petróleo sóbrio (#455A64)
-    - WARNING: Ocre para contraste adequado (#F57F17)
-    - ERROR: Vermelho escuro menos agressivo (#C62828)
-    - STATUS_APPROVED_USER: Oliva para legibilidade (#558B2F)
+    Referência: ADESIVADORA_DOUBLE_TABLE
     """
 
     # =========================================================================
-    # PRIMARY COLORS (Verde - Success/Confirmation)
+    # PRIMARY COLORS (Cinza Escuro - Ações Principais)
     # =========================================================================
 
-    PRIMARY: str = "#43A047"  # Green 700 (era #4CAF50 v2.0)
-    """Verde escuro para máximo contraste (11.2:1)"""
+    PRIMARY: str = "#37474F"
+    """Cinza escuro para botões primários e ações principais"""
 
-    PRIMARY_DARK: str = "#2E7D32"  # Green 800 (era #388E3C)
-    """Versão escura para hover (ainda maior contraste)"""
+    PRIMARY_DARK: str = "#263238"
+    """Versão mais escura para hover"""
 
-    PRIMARY_LIGHT: str = "#66BB6A"  # Green 400
-    """Versão clara para estados especiais"""
+    PRIMARY_LIGHT: str = "#455A64"
+    """Versão clara para elementos secundários"""
 
-    ON_PRIMARY: str = "#FFFFFF"  # White
-    """Texto branco sobre verde"""
+    ON_PRIMARY: str = "#FFFFFF"
+    """Texto branco sobre cinza escuro"""
 
-    ON_PRIMARY_DARK: str = "#E0E0E0"  # Gray 200
-    """Texto cinza claro sobre verde escuro"""
+    ON_PRIMARY_DARK: str = "#E0E0E0"
+    """Texto cinza claro sobre muito escuro"""
 
     # =========================================================================
-    # SECONDARY COLORS (Azul Petróleo - Information/Neutral)
+    # SECONDARY COLORS (Cinza Médio - Ações Secundárias)
     # =========================================================================
 
-    SECONDARY: str = "#455A64"  # Blue Grey 700 (era #2196F3 v2.0)
-    """Azul petróleo sóbrio, profissional (8.9:1)"""
+    SECONDARY: str = "#607D8B"
+    """Cinza médio para informações e ações secundárias"""
 
-    SECONDARY_DARK: str = "#37474F"  # Blue Grey 800
+    SECONDARY_DARK: str = "#455A64"
     """Versão escura para hover"""
 
-    SECONDARY_LIGHT: str = "#607D8B"  # Blue Grey 500
+    SECONDARY_LIGHT: str = "#78909C"
     """Versão clara"""
 
-    ON_SECONDARY: str = "#FFFFFF"  # White
-    """Texto branco sobre azul petróleo"""
+    ON_SECONDARY: str = "#FFFFFF"
+    """Texto branco sobre cinza médio"""
 
     # =========================================================================
-    # SUCCESS COLORS
+    # SUCCESS COLORS (Cinza Esverdeado Sutil - Sucesso)
     # =========================================================================
 
-    SUCCESS: str = "#2E7D32"  # Green 800 (era #2ecc71 v2.0)
-    """Verde escuro vibrante (11.2:1)"""
+    SUCCESS: str = "#546E7A"
+    """Cinza azulado para sucesso (sutil, não verde vibrante)"""
 
-    SUCCESS_DARK: str = "#1B5E20"  # Green 900 (era #27ae60)
+    SUCCESS_DARK: str = "#37474F"
     """Versão escura"""
 
     # =========================================================================
-    # WARNING COLORS
+    # WARNING COLORS (Cinza Amarelado Sutil - Atenção)
     # =========================================================================
 
-    WARNING: str = "#F57F17"  # Ocre (era #f1c40f v2.0)
-    """Ocre escuro - CORRIGIDO: Agora 7.1:1 (era 3.3:1)"""
+    WARNING: str = "#78909C"
+    """Cinza médio para avisos (sutil)"""
 
-    WARNING_DARK: str = "#FF8F00"  # Amber 800 (era #f39c12)
-    """Versão escura (mais urgente)"""
-
-    WARNING_LIGHT: str = "#FFB300"  # Amber 600
-    """Versão clara para backgrounds"""
-
-    # =========================================================================
-    # ERROR COLORS
-    # =========================================================================
-
-    ERROR: str = "#C62828"  # Red 800 (era #e74c3c v2.0)
-    """Vermelho escuro - menos agressivo (9.8:1)"""
-
-    ERROR_DARK: str = "#B71C1C"  # Red 900
+    WARNING_DARK: str = "#607D8B"
     """Versão escura"""
 
-    ERROR_LIGHT: str = "#E57373"  # Red 300
+    WARNING_LIGHT: str = "#90A4AE"
     """Versão clara para backgrounds"""
 
     # =========================================================================
-    # STATUS COLORS (Domínio Específico - Inspeção)
+    # ERROR COLORS (Cinza Avermelhado Sutil - Erro)
     # =========================================================================
 
-    STATUS_APPROVED_AUTO: str = "#2E7D32"  # Verde escuro
-    """Status: aprovado automaticamente (algoritmo)"""
+    ERROR: str = "#546E7A"
+    """Cinza para erros (sutil, indicado por ícone/texto)"""
 
-    STATUS_APPROVED_USER: str = "#558B2F"  # Oliva (era #CDDC39 v2.0)
-    """Status: aprovado manualmente - CORRIGIDO: Agora 7.8:1 (era 2.8:1)"""
+    ERROR_DARK: str = "#37474F"
+    """Versão escura"""
 
-    STATUS_REJECTED: str = "#C62828"  # Vermelho escuro (era #F44336)
-    """Status: reprovado/falha na inspeção"""
+    ERROR_LIGHT: str = "#78909C"
+    """Versão clara"""
 
-    STATUS_PENDING: str = "#757575"  # Cinza médio
-    """Status: pendente (ainda não inspecionado)"""
+    # =========================================================================
+    # STATUS COLORS (Domínio Específico - Tons Neutros)
+    # =========================================================================
 
-    STATUS_IN_PROGRESS: str = "#455A64"  # Azul petróleo (era #2196F3)
-    """Status: em andamento (inspeção em curso)"""
+    STATUS_APPROVED_AUTO: str = "#546E7A"
+    """Status: aprovado automaticamente"""
+
+    STATUS_APPROVED_USER: str = "#607D8B"
+    """Status: aprovado manualmente"""
+
+    STATUS_REJECTED: str = "#455A64"
+    """Status: reprovado/falha"""
+
+    STATUS_PENDING: str = "#90A4AE"
+    """Status: pendente"""
+
+    STATUS_IN_PROGRESS: str = "#78909C"
+    """Status: em andamento"""
 
     # =========================================================================
     # NEUTRAL COLORS (Texto, Background, Surface)
     # =========================================================================
-    # Mantidos iguais - já tinham bom contraste
 
-    TEXT_PRIMARY: str = "#212121"  # Almost black
-    """Cor de texto principal (alto contraste)"""
+    TEXT_PRIMARY: str = "#111827"
+    """Texto principal - quase preto para máxima legibilidade"""
 
-    TEXT_PRIMARY_DARK: str = "#424242"  # Gray 800
-    """Variação escura de TEXT_PRIMARY"""
+    TEXT_PRIMARY_DARK: str = "#1F2937"
+    """Variação escura"""
 
-    TEXT_PRIMARY_VARIANT: str = "#757575"  # Gray 600
-    """Variação de TEXT_PRIMARY"""
+    TEXT_PRIMARY_VARIANT: str = "#374151"
+    """Variação de texto"""
 
-    TEXT_SECONDARY: str = "#616161"  # Gray 700 (era #757575)
-    """Cor de texto secundário - ajustado para melhor contraste"""
+    TEXT_SECONDARY: str = "#6B7280"
+    """Texto secundário - cinza médio"""
 
-    TEXT_DISABLED: str = "#9E9E9E"  # Gray 500 (era #BDBDBD)
-    """Cor de texto desabilitado"""
+    TEXT_DISABLED: str = "#9CA3AF"
+    """Texto desabilitado"""
 
-    TEXT_HINT: str = "#757575"  # Gray 600
-    """Cor de hint/placeholder text"""
+    TEXT_HINT: str = "#9CA3AF"
+    """Hint/placeholder"""
 
-    BACKGROUND: str = "#FFFFFF"  # White
-    """Cor de fundo principal da aplicação"""
+    BACKGROUND: str = "#F2F4F7"
+    """Fundo principal - cinza muito claro"""
 
-    SURFACE: str = "#FAFAFA"  # Gray 50 (era #F5F5F5)
-    """Cor de superfície (cards, panels)"""
+    SURFACE: str = "#FFFFFF"
+    """Superfície (cards, panels) - branco"""
 
-    SURFACE_VARIANT: str = "#EEEEEE"  # Gray 100
-    """Variante de cor de superfície"""
+    SURFACE_VARIANT: str = "#E6EAEE"
+    """Variante de superfície - cinza claro"""
 
     # =========================================================================
     # BORDER COLORS
     # =========================================================================
 
-    BORDER: str = "#E0E0E0"  # Gray 300
-    """Cor de bordas padrão"""
+    BORDER: str = "#D1D5DB"
+    """Bordas padrão"""
 
-    BORDER_DARK: str = "#BDBDBD"  # Gray 400
-    """Cor de bordas escuras"""
+    BORDER_DARK: str = "#9CA3AF"
+    """Bordas escuras"""
 
-    BORDER_VARIANT: str = "#EEEEEE"  # Gray 200
-    """Variação de borda (mais clara que BORDER)"""
+    BORDER_VARIANT: str = "#E5E7EB"
+    """Variante de borda"""
 
-    BORDER_FOCUS: str = "#455A64"  # Blue Grey 700 (era #2196F3)
-    """Cor de borda em estado de focus - atualizado para consistência"""
+    BORDER_FOCUS: str = "#607D8B"
+    """Borda em focus"""
 
     # =========================================================================
     # OVERLAY & SPECIAL COLORS
     # =========================================================================
 
-    OVERLAY: str = "rgba(0, 0, 0, 0.5)"
-    """Cor de overlay (semi-transparente)"""
+    OVERLAY: str = "rgba(0, 0, 0, 0.4)"
+    """Overlay semi-transparente"""
 
-    OVERLAY_DARK: str = "rgba(0, 0, 0, 0.7)"
-    """Cor de overlay escura (mais opaca)"""
+    OVERLAY_DARK: str = "rgba(0, 0, 0, 0.6)"
+    """Overlay mais opaco"""
 
-    SHADOW: str = "rgba(0, 0, 0, 0.1)"
-    """Cor de sombra"""
+    SHADOW: str = "rgba(0, 0, 0, 0.08)"
+    """Sombra suave"""
 
     # =========================================================================
     # ENGINEERING-SPECIFIC COLORS (Visão Computacional)
+    # Mantidas cores vivas para alta visibilidade em imagens
     # =========================================================================
 
-    OVERLAY_IMAGE: str = "#1e1e1e"  # Dark gray
-    """Cor de overlay para imagens de visão computacional"""
+    OVERLAY_IMAGE: str = "#1e1e1e"
+    """Overlay para imagens"""
 
-    FIDUCIAL_FOUND: str = "#00ff00"  # Verde neon
-    """Cor para marcar fiduciais encontrados (alta visibilidade)"""
+    FIDUCIAL_FOUND: str = "#22C55E"
+    """Fiducial encontrado - verde para visibilidade"""
 
-    FIDUCIAL_NOT_FOUND: str = "#ff0000"  # Vermelho neon
-    """Cor para marcar fiduciais não encontrados (alta visibilidade)"""
+    FIDUCIAL_NOT_FOUND: str = "#EF4444"
+    """Fiducial não encontrado - vermelho para visibilidade"""
 
-    GRID_LINES: str = "#E0E0E0"  # Gray 300
-    """Cor de linhas de grade em visualizações"""
+    GRID_LINES: str = "#D1D5DB"
+    """Linhas de grade"""
 
     # =========================================================================
     # ADDITIONAL UI COLORS
     # =========================================================================
 
-    DIVIDER: str = "#E0E0E0"  # Gray 300
-    """Cor de divisores/separadores"""
+    DIVIDER: str = "#E5E7EB"
+    """Divisores/separadores"""
 
-    ICON: str = "#757575"  # Medium gray
-    """Cor padrão para ícones"""
+    ICON: str = "#6B7280"
+    """Ícones padrão"""
 
-    ICON_ACTIVE: str = "#212121"  # Almost black
-    """Cor para ícones ativos/selecionados"""
+    ICON_ACTIVE: str = "#374151"
+    """Ícones ativos"""
 
-    LINK: str = "#2196F3"  # Blue
-    """Cor para links e texto clicável"""
+    LINK: str = "#4B5563"
+    """Links - cinza escuro"""
 
-    LINK_VISITED: str = "#9C27B0"  # Purple
-    """Cor para links visitados"""
+    LINK_VISITED: str = "#6B7280"
+    """Links visitados"""
+
+    # =========================================================================
+    # BUTTON STATES (Neutros)
+    # =========================================================================
+
+    BUTTON_DEFAULT: str = "#F2F4F7"
+    """Botão padrão - cinza claro"""
+
+    BUTTON_DEFAULT_HOVER: str = "#E6EAEE"
+    """Botão padrão hover"""
+
+    BUTTON_DEFAULT_PRESSED: str = "#D9DEE3"
+    """Botão padrão pressionado"""
+
+    BUTTON_PRIMARY: str = "#455A64"
+    """Botão primário - cinza escuro"""
+
+    BUTTON_PRIMARY_HOVER: str = "#37474F"
+    """Botão primário hover"""
+
+    BUTTON_PRIMARY_PRESSED: str = "#263238"
+    """Botão primário pressionado"""
+
+    BUTTON_DANGER: str = "#78909C"
+    """Botão de perigo - cinza"""
+
+    BUTTON_DANGER_HOVER: str = "#607D8B"
+    """Botão de perigo hover"""
 
 
 @dataclass(frozen=True)
 class DarkThemePalette:
     """
-    Paleta de cores para o tema Dark (escuro)
+    Paleta de cores NEUTRAS para o tema Dark (escuro)
 
-    Atualizado para v2.1: Consistência com light theme.
-
-    Principais mudanças:
-    - SECONDARY: Azul acinzentado consistente (#607D8B)
-    - SUCCESS: Verde vibrante para bom contraste (#4CAF50)
-    - WARNING: Âmbar escuro para visibilidade (#FF8F00)
-    - ERROR: Vermelho suave mantido (#EF5350)
-    - STATUS_APPROVED_USER: Oliva claro (#7CB342)
+    v3.0 - Paleta Neutra Industrial (Dark):
+    - Tons de cinza escuro para fundos
+    - Texto claro para contraste
+    - Mesma filosofia neutra do light theme
     """
 
     # =========================================================================
-    # PRIMARY COLORS (Verde - Success/Confirmation)
+    # PRIMARY COLORS (Cinza Claro - Ações Principais)
     # =========================================================================
 
-    PRIMARY: str = "#66BB6A"  # Green 400
-    """Verde suave para dark theme (7.2:1)"""
+    PRIMARY: str = "#90A4AE"
+    """Cinza claro para botões primários"""
 
-    PRIMARY_DARK: str = "#43A047"  # Green 700
-    """Versão escura para hover"""
+    PRIMARY_DARK: str = "#78909C"
+    """Versão mais escura para hover"""
 
-    PRIMARY_LIGHT: str = "#81C784"  # Green 300
+    PRIMARY_LIGHT: str = "#B0BEC5"
     """Versão clara"""
 
-    ON_PRIMARY: str = "#121212"  # Almost black
-    """Texto escuro sobre verde"""
+    ON_PRIMARY: str = "#111827"
+    """Texto escuro sobre cinza claro"""
 
-    ON_PRIMARY_DARK: str = "#000000"  # Black
-    """Texto preto sobre verde claro"""
+    ON_PRIMARY_DARK: str = "#1F2937"
+    """Texto escuro"""
 
     # =========================================================================
-    # SECONDARY COLORS (Azul Acinzentado - Information/Neutral)
+    # SECONDARY COLORS (Cinza Médio)
     # =========================================================================
 
-    SECONDARY: str = "#607D8B"  # Blue Grey 500 (era #42A5F5 v2.0)
-    """Azul acinzentado suave (6.8:1)"""
+    SECONDARY: str = "#78909C"
+    """Cinza médio"""
 
-    SECONDARY_DARK: str = "#455A64"  # Blue Grey 700
-    """Versão escura para hover"""
+    SECONDARY_DARK: str = "#607D8B"
+    """Versão escura"""
 
-    SECONDARY_LIGHT: str = "#78909C"  # Blue Grey 400
+    SECONDARY_LIGHT: str = "#90A4AE"
     """Versão clara"""
 
-    ON_SECONDARY: str = "#121212"  # Almost black
-    """Texto escuro sobre azul"""
+    ON_SECONDARY: str = "#111827"
+    """Texto escuro"""
 
     # =========================================================================
-    # SUCCESS COLORS
+    # SUCCESS COLORS (Cinza Esverdeado Sutil)
     # =========================================================================
 
-    SUCCESS: str = "#4CAF50"  # Green 500
-    """Verde vibrante para bom contraste (5.8:1)"""
+    SUCCESS: str = "#90A4AE"
+    """Cinza para sucesso"""
 
-    SUCCESS_DARK: str = "#388E3C"  # Green 700
+    SUCCESS_DARK: str = "#78909C"
     """Versão escura"""
 
     # =========================================================================
-    # WARNING COLORS
+    # WARNING COLORS (Cinza Amarelado Sutil)
     # =========================================================================
 
-    WARNING: str = "#FF8F00"  # Amber 600 (era #FFD54F v2.0)
-    """Âmbar escuro para good contraste (5.4:1)"""
+    WARNING: str = "#B0BEC5"
+    """Cinza para avisos"""
 
-    WARNING_DARK: str = "#FF6F00"  # Amber 700
+    WARNING_DARK: str = "#90A4AE"
     """Versão escura"""
 
-    WARNING_LIGHT: str = "#FFA000"  # Amber 500
+    WARNING_LIGHT: str = "#CFD8DC"
     """Versão clara"""
 
     # =========================================================================
-    # ERROR COLORS
+    # ERROR COLORS (Cinza Avermelhado Sutil)
     # =========================================================================
 
-    ERROR: str = "#EF5350"  # Red 400
-    """Vermelho suave (5.1:1)"""
+    ERROR: str = "#90A4AE"
+    """Cinza para erros"""
 
-    ERROR_DARK: str = "#E53935"  # Red 700
+    ERROR_DARK: str = "#78909C"
     """Versão escura"""
 
-    ERROR_LIGHT: str = "#EF9A9A"  # Red 200
-    """Versão clara para backgrounds"""
+    ERROR_LIGHT: str = "#B0BEC5"
+    """Versão clara"""
 
     # =========================================================================
-    # STATUS COLORS (Domínio Específico - Inspeção)
+    # STATUS COLORS
     # =========================================================================
 
-    STATUS_APPROVED_AUTO: str = "#66BB6A"  # Verde suave
-    """Status: aprovado automaticamente (algoritmo)"""
+    STATUS_APPROVED_AUTO: str = "#90A4AE"
+    """Status: aprovado automaticamente"""
 
-    STATUS_APPROVED_USER: str = "#7CB342"  # Oliva claro (era #D4E157)
-    """Status: aprovado manualmente (usuário)"""
+    STATUS_APPROVED_USER: str = "#A3B8C6"
+    """Status: aprovado manualmente"""
 
-    STATUS_REJECTED: str = "#EF5350"  # Vermelho suave
-    """Status: reprovado/falha na inspeção"""
+    STATUS_REJECTED: str = "#78909C"
+    """Status: reprovado"""
 
-    STATUS_PENDING: str = "#757575"  # Cinza médio
-    """Status: pendente (ainda não inspecionado)"""
+    STATUS_PENDING: str = "#607D8B"
+    """Status: pendente"""
 
-    STATUS_IN_PROGRESS: str = "#607D8B"  # Azul acinzentado (era #42A5F5)
-    """Status: em andamento (inspeção em curso)"""
+    STATUS_IN_PROGRESS: str = "#90A4AE"
+    """Status: em andamento"""
 
     # =========================================================================
     # NEUTRAL COLORS (Texto, Background, Surface)
     # =========================================================================
-    # No dark mode, invertemos: background escuro, texto claro
 
-    TEXT_PRIMARY: str = "#E0E0E0"  # Gray 300 (quase branco)
-    """Cor de texto principal (alto contraste em fundo escuro)"""
+    TEXT_PRIMARY: str = "#F2F4F7"
+    """Texto principal - cinza claro"""
 
-    TEXT_PRIMARY_DARK: str = "#BDBDBD"  # Gray 200
-    """Variação escura de TEXT_PRIMARY (no dark theme)"""
+    TEXT_PRIMARY_DARK: str = "#E6EAEE"
+    """Variação"""
 
-    TEXT_PRIMARY_VARIANT: str = "#9E9E9E"  # Gray 500
-    """Variação de TEXT_PRIMARY"""
+    TEXT_PRIMARY_VARIANT: str = "#D1D5DB"
+    """Variação"""
 
-    TEXT_SECONDARY: str = "#B0BEC5"  # Blue Gray 200
-    """Cor de texto secundário (menos proeminente)"""
+    TEXT_SECONDARY: str = "#9CA3AF"
+    """Texto secundário"""
 
-    TEXT_DISABLED: str = "#616161"  # Gray 700
-    """Cor de texto desabilitado"""
+    TEXT_DISABLED: str = "#6B7280"
+    """Texto desabilitado"""
 
-    TEXT_HINT: str = "#757575"  # Gray 600
-    """Cor de hint/placeholder text"""
+    TEXT_HINT: str = "#6B7280"
+    """Hint/placeholder"""
 
-    BACKGROUND: str = "#121212"  # Almost black (Material Design dark baseline)
-    """Cor de fundo principal da aplicação"""
+    BACKGROUND: str = "#1F2937"
+    """Fundo principal - cinza escuro"""
 
-    SURFACE: str = "#1E1E1E"  # Dark gray (elevated surface)
-    """Cor de superfície (cards, panels)"""
+    SURFACE: str = "#374151"
+    """Superfície"""
 
-    SURFACE_VARIANT: str = "#2C2C2C"  # Gray 800
-    """Variante de cor de superfície"""
+    SURFACE_VARIANT: str = "#4B5563"
+    """Variante de superfície"""
 
     # =========================================================================
     # BORDER COLORS
     # =========================================================================
 
-    BORDER: str = "#424242"  # Gray 800
-    """Cor de bordas padrão (mais visível em fundo escuro)"""
+    BORDER: str = "#4B5563"
+    """Bordas padrão"""
 
-    BORDER_DARK: str = "#616161"  # Gray 700
-    """Cor de bordas escuras"""
+    BORDER_DARK: str = "#6B7280"
+    """Bordas escuras"""
 
-    BORDER_VARIANT: str = "#616161"  # Gray 700
-    """Variação de borda (igual ao BORDER_DARK no dark theme)"""
+    BORDER_VARIANT: str = "#374151"
+    """Variante de borda"""
 
-    BORDER_FOCUS: str = "#607D8B"  # Blue Grey 500 (era #42A5F5)
-    """Cor de borda em estado de focus - atualizado para consistência"""
+    BORDER_FOCUS: str = "#90A4AE"
+    """Borda em focus"""
 
     # =========================================================================
     # OVERLAY & SPECIAL COLORS
     # =========================================================================
 
-    OVERLAY: str = "rgba(0, 0, 0, 0.7)"
-    """Cor de overlay (mais opaca no dark mode)"""
+    OVERLAY: str = "rgba(0, 0, 0, 0.6)"
+    """Overlay"""
 
-    OVERLAY_DARK: str = "rgba(0, 0, 0, 0.85)"
-    """Cor de overlay escura (mais opaca)"""
+    OVERLAY_DARK: str = "rgba(0, 0, 0, 0.8)"
+    """Overlay opaco"""
 
     SHADOW: str = "rgba(0, 0, 0, 0.3)"
-    """Cor de sombra (mais opaca no dark)"""
+    """Sombra"""
 
     # =========================================================================
-    # ENGINEERING-SPECIFIC COLORS (Visão Computacional)
+    # ENGINEERING-SPECIFIC COLORS
     # =========================================================================
 
-    OVERLAY_IMAGE: str = "#2C2C2C"  # Dark gray ajustado
-    """Cor de overlay para imagens de visão computacional"""
+    OVERLAY_IMAGE: str = "#2C2C2C"
+    """Overlay para imagens"""
 
-    FIDUCIAL_FOUND: str = "#00FF00"  # Verde neon (mesmo, alta visibilidade)
-    """Cor para marcar fiduciais encontrados (alta visibilidade)"""
+    FIDUCIAL_FOUND: str = "#22C55E"
+    """Fiducial encontrado"""
 
-    FIDUCIAL_NOT_FOUND: str = "#FF0000"  # Vermelho neon (mesmo)
-    """Cor para marcar fiduciais não encontrados (alta visibilidade)"""
+    FIDUCIAL_NOT_FOUND: str = "#EF4444"
+    """Fiducial não encontrado"""
 
-    GRID_LINES: str = "#424242"  # Gray 800 (mais visível em fundo escuro)
-    """Cor de linhas de grade em visualizações"""
+    GRID_LINES: str = "#4B5563"
+    """Linhas de grade"""
 
     # =========================================================================
     # ADDITIONAL UI COLORS
     # =========================================================================
 
-    DIVIDER: str = "#424242"  # Gray 800
-    """Cor de divisores/separadores"""
+    DIVIDER: str = "#374151"
+    """Divisores"""
 
-    ICON: str = "#B0BEC5"  # Blue Gray 200
-    """Cor padrão para ícones"""
+    ICON: str = "#9CA3AF"
+    """Ícones padrão"""
 
-    ICON_ACTIVE: str = "#E0E0E0"  # Gray 300
-    """Cor para ícones ativos/selecionados"""
+    ICON_ACTIVE: str = "#F2F4F7"
+    """Ícones ativos"""
 
-    LINK: str = "#607D8B"  # Blue Grey 500 (era #42A5F5)
-    """Cor para links e texto clicável - atualizado para consistência"""
+    LINK: str = "#D1D5DB"
+    """Links"""
 
-    LINK_VISITED: str = "#AB47BC"  # Purple 400
-    """Cor para links visitados"""
+    LINK_VISITED: str = "#9CA3AF"
+    """Links visitados"""
+
+    # =========================================================================
+    # BUTTON STATES (Neutros)
+    # =========================================================================
+
+    BUTTON_DEFAULT: str = "#374151"
+    """Botão padrão"""
+
+    BUTTON_DEFAULT_HOVER: str = "#4B5563"
+    """Botão padrão hover"""
+
+    BUTTON_DEFAULT_PRESSED: str = "#6B7280"
+    """Botão padrão pressionado"""
+
+    BUTTON_PRIMARY: str = "#607D8B"
+    """Botão primário"""
+
+    BUTTON_PRIMARY_HOVER: str = "#78909C"
+    """Botão primário hover"""
+
+    BUTTON_PRIMARY_PRESSED: str = "#90A4AE"
+    """Botão primário pressionado"""
+
+    BUTTON_DANGER: str = "#6B7280"
+    """Botão de perigo"""
+
+    BUTTON_DANGER_HOVER: str = "#78909C"
+    """Botão de perigo hover"""
 
 
 class ThemePaletteFactory:
     """
     Factory para criar paletas de cores baseadas no tema
-
-    Este factory permite alternar dinamicamente entre temas
-    sem alterar o código que consome as cores.
-
-    Usage:
-        >>> from consumo_lib.ui.themes import ThemePaletteFactory
-        >>> palette = ThemePaletteFactory.create_palette("light")
-        >>> palette.PRIMARY
-        '#4CAF50'
-        >>>
-        >>> # Mudar para dark
-        >>> palette_dark = ThemePaletteFactory.create_palette("dark")
-        >>> palette_dark.BACKGROUND
-        '#121212'
     """
 
     @staticmethod
     def create_palette(theme: ThemeType = "light") -> "LightThemePalette | DarkThemePalette":
         """
         Cria paleta de cores para o tema especificado
-
-        Args:
-            theme: Nome do tema ("light" | "dark" | "system")
-
-        Returns:
-            Instância de LightThemePalette ou DarkThemePalette
-
-        Raises:
-            ValueError: Se tema for desconhecido
-
-        Note:
-            Para "system", detecta automaticamente o tema do OS.
-            Se detecção falhar, fallback para "light".
         """
         if theme == "system":
-            # Detectar tema do sistema operacional
             detected_theme = ThemePaletteFactory._detect_system_theme()
             logger.debug(f"Tema 'system' detectado como: {detected_theme}")
             theme = detected_theme
@@ -503,18 +526,7 @@ class ThemePaletteFactory:
 
     @staticmethod
     def _detect_system_theme() -> ThemeType:
-        """
-        Detecta tema do sistema operacional (light/dark)
-
-        Returns:
-            "light" ou "dark" baseado na configuração do OS
-
-        Note:
-            - Windows: Lê registro do Windows
-            - macOS: Lê defaults do sistema
-            - Linux: Lê settings do Desktop Environment
-            - Fallback: "light" se não conseguir detectar
-        """
+        """Detecta tema do sistema operacional"""
         import platform
 
         system = platform.system()
@@ -523,7 +535,7 @@ class ThemePaletteFactory:
             if system == "Windows":
                 return ThemePaletteFactory._detect_windows_theme()
 
-            elif system == "Darwin":  # macOS
+            elif system == "Darwin":
                 return ThemePaletteFactory._detect_macos_theme()
 
             elif system == "Linux":
@@ -539,27 +551,18 @@ class ThemePaletteFactory:
 
     @staticmethod
     def _detect_windows_theme() -> ThemeType:
-        """
-        Detecta tema do Windows via registro
-
-        Returns:
-            "light" ou "dark"
-        """
+        """Detecta tema do Windows via registro"""
         try:
             import winreg
 
-            # Windows 10+: AppsUseLightTheme
-            # 0 = Dark, 1 = Light
             registry_key = winreg.OpenKey(
                 winreg.HKEY_CURRENT_USER,
                 r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
             )
 
-            # AppsUseLightTheme: 0=dark, 1=light
             value, _ = winreg.QueryValueEx(registry_key, "AppsUseLightTheme")
             winreg.CloseKey(registry_key)
 
-            # 0 = dark mode, 1 = light mode
             if value == 0:
                 logger.debug("Windows: Dark theme detectado")
                 return "dark"
@@ -568,7 +571,6 @@ class ThemePaletteFactory:
                 return "light"
 
         except FileNotFoundError:
-            # Registro não existe (Windows < 10), fallback para light
             logger.debug("Windows < 10 não suporta dark theme nativo, usando light")
             return "light"
 
@@ -578,17 +580,10 @@ class ThemePaletteFactory:
 
     @staticmethod
     def _detect_macos_theme() -> ThemeType:
-        """
-        Detecta tema do macOS via defaults
-
-        Returns:
-            "light" ou "dark"
-        """
+        """Detecta tema do macOS"""
         import subprocess
 
         try:
-            # macOS: defaults read -g AppleInterfaceStyle
-            # Retorna "Dark" se dark mode, senão vazio (light)
             result = subprocess.run(
                 ["defaults", "read", "-g", "AppleInterfaceStyle"],
                 capture_output=True,
@@ -613,20 +608,10 @@ class ThemePaletteFactory:
 
     @staticmethod
     def _detect_linux_theme() -> ThemeType:
-        """
-        Detecta tema do Linux via Desktop Environment
-
-        Returns:
-            "light" ou "dark"
-        """
+        """Detecta tema do Linux"""
         import subprocess
 
         try:
-            # Tentar várias maneiras de detectar no Linux
-            # GNOME: gsettings get org.gnome.desktop.interface gtk-theme
-            # KDE: смотрит на configurações do Plasma
-
-            # GNOME via gsettings
             result = subprocess.run(
                 ["gsettings", "get", "org.gnome.desktop.interface", "gtk-theme"],
                 capture_output=True,
@@ -636,7 +621,6 @@ class ThemePaletteFactory:
 
             theme_name = result.stdout.strip().lower()
 
-            # Hint: "-dark" no nome do tema geralmente indica dark theme
             if "dark" in theme_name:
                 logger.debug(f"Linux GNOME: Dark theme detectado ({theme_name})")
                 return "dark"
@@ -645,8 +629,6 @@ class ThemePaletteFactory:
                 return "light"
 
         except FileNotFoundError:
-            # gsettings não existe, tentar outros métodos
-            # Fallback para light
             logger.debug("Linux: gsettings não disponível, usando light theme")
             return "light"
 
@@ -656,33 +638,16 @@ class ThemePaletteFactory:
 
 
 # =============================================================================
-# MÉTODOS UTILITÁRIOS (compatibilidade com código legado)
+# MÉTODOS UTILITÁRIOS
 # =============================================================================
 
 def to_qcolor(color_hex: str) -> QColor:
-    """
-    Converte string hexadecimal para QColor
-
-    Args:
-        color_hex: Cor em formato hexadecimal (ex: "#4CAF50")
-
-    Returns:
-        Instância de QColor
-
-    Raises:
-        ValueError: Se formato for inválido
-
-    Exemplo:
-        >>> to_qcolor("#4CAF50")
-        PyQt6.QtGui.QColor('#4CAF50')
-    """
+    """Converte string hexadecimal para QColor"""
     if not color_hex.startswith("#"):
         raise ValueError(f"Cor deve começar com '#': {color_hex}")
 
-    # Remover o '#' se presente
     hex_value = color_hex.lstrip("#")
 
-    # Validar tamanho
     if len(hex_value) not in [6, 8]:
         raise ValueError(f"Cor HEX deve ter 6 ou 8 caracteres: {color_hex}")
 
@@ -690,24 +655,7 @@ def to_qcolor(color_hex: str) -> QColor:
 
 
 def get_status_color(palette: "LightThemePalette | DarkThemePalette", status: str) -> str:
-    """
-    Retorna cor para um status específico da paleta
-
-    Args:
-        palette: Instância de paleta (LightThemePalette ou DarkThemePalette)
-        status: Código do status (approved_auto, approved_user, rejected, etc.)
-
-    Returns:
-        Cor hexadecimal correspondente ao status
-
-    Raises:
-        ValueError: Se status for desconhecido
-
-    Exemplo:
-        >>> palette = ThemePaletteFactory.create_palette("light")
-        >>> get_status_color(palette, "approved_auto")
-        '#4CAF50'
-    """
+    """Retorna cor para um status específico"""
     status_map = {
         "approved_auto": palette.STATUS_APPROVED_AUTO,
         "approved_user": palette.STATUS_APPROVED_USER,

@@ -26,7 +26,7 @@ from .design_tokens import ColorPalette, Typography, Dimensions, Spacing, FontWe
 
 class StandardButton(QPushButton):
     """
-    Botão padrão com estilo consistente
+    Botão padrão com estilo consistente - Paleta Neutra v3.0
 
     Usage:
         >>> # NOVO (Recomendado - v1.1)
@@ -46,14 +46,14 @@ class StandardButton(QPushButton):
         semantic_size: Tamanho semântico baseado em contexto (NOVO v1.1)
         parent: Widget pai
 
-    Variants:
-        primary-green: Gradiente verde - ações de confirmação/início
-        primary-blue: Gradiente azul - ações padrão/genéricas
-        primary-orange: Gradiente laranja - ações de parada/atenção
-        secondary: Outline transparente com borda azul - ações alternativas/cancelamento
-        emergency: Gradiente vermelho (uso raro 1%) - emergências físicas
+    Variants (v3.0 - Paleta Neutra - Tons de Cinza):
+        primary-green: Gradiente cinza escuro - ações de confirmação/início
+        primary-blue: Gradiente cinza médio - ações padrão/genéricas
+        primary-orange: Gradiente cinza mais escuro - ações de parada/atenção
+        secondary: Outline transparente com borda cinza - ações alternativas/cancelamento
+        emergency: Gradiente cinza muito escuro (uso raro 1%) - emergências físicas
         danger: [DEPRECATED] Use emergency instead
-        outline: Borda verde, fundo transparente [LEGADO - use secondary]
+        outline: Borda cinza, fundo transparente [LEGADO - use secondary]
 
     Semantic Sizes (NOVO v1.1):
         Dialog Buttons:
