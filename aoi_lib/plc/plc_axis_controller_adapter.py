@@ -28,38 +28,39 @@ class PLCAxisControllerAdapter:
     """
 
     # Mapeamento de memórias (coils) e registradores (holding)
+    HOME_ALL_COIL = 1350
     ADDRESSES = {
         'X': {
-            'zero': 1000,      # M1000_X
+            'zero': 1500,      # M1500 - confirmacao homing X
             'move_abs': 1050,   # M1050 - Interpolação X/Y
             'pos_input': 1100,  # D1100_X
-            'speed': 21000,     # D21000_X
-            'jog_plus': 1070,   # M1070_X
-            'jog_minus': 1080,  # M1080_X
+            'speed': 20500,     # D20500 - velocidade compartilhada X/Y
+            'jog_plus': 570,    # M570_X
+            'jog_minus': 580,   # M580_X
             'jog_stop_plus': 1010,   # M1010_X
             'jog_stop_minus': 1011,  # M1011_X
             'pos_reg': 3000     # D3000_X
         },
         'Y': {
-            'zero': 500,       # M500_Y
+            'zero': 1000,      # M1000 - confirmacao homing Y
             'move_abs': 1050,   # M1050 - Interpolação X/Y
             'pos_input': 600,   # D600_Y
             'speed': 20500,     # D20500_Y
-            'jog_plus': 570,    # M570_Y
-            'jog_minus': 580,   # M580_Y
-            'jog_stop_plus': 510,    # M510_Y
-            'jog_stop_minus': 511,    # M511_Y
+            'jog_plus': 670,    # M670_Y
+            'jog_minus': 680,   # M680_Y
+            'jog_stop_plus': 1020,   # M1020_Y
+            'jog_stop_minus': 1021,  # M1021_Y
             'pos_reg': 3200     # D3200_Y
         },
         'Z': {
-            'zero': 1500,      # M1500_Z
+            'zero': 500,       # M500 - confirmacao homing Z
             'move_abs': 1600,   # M1600_Z
             'pos_input': 1600,  # D1600_Z
             'speed': 21500,     # D21500_Z
-            'jog_plus': 1570,   # M1570_Z
-            'jog_minus': 1580,  # M1580_Z
-            'jog_stop_plus': 1510,   # M1510_Z
-            'jog_stop_minus': 1511,   # M1511_Z
+            'jog_plus': 770,    # M770_Z
+            'jog_minus': 780,   # M780_Z
+            'jog_stop_plus': 1030,   # M1030_Z
+            'jog_stop_minus': 1031,  # M1031_Z
             'pos_reg': 3400     # D3400_Z
         }
     }
@@ -130,7 +131,7 @@ class PLCAxisControllerAdapter:
         self.max_feed = {'x': float('inf'), 'y': float('inf'), 'z': float('inf')}
         self.pulses_per_mm = 1.0
         self.backlight_on = False
-        self.backlight_coil_address = 1
+        self.backlight_coil_address = 5
 
         # Conecta automaticamente se solicitado
         if auto_connect:
@@ -229,7 +230,7 @@ class PLCAxisControllerAdapter:
     # Absolute Movement (4 métodos) - delega para PLCAbsoluteMovementController
     # =========================================================================
 
-    def set_zero(self, axis: str):
+    def _legacy_set_zero_unused(self, axis: str):
         """Zera a posição atual do eixo (memória de zero)."""
         self.absolute_controller.set_zero()
 
@@ -343,7 +344,7 @@ class PLCAxisControllerAdapter:
     # Jog Movement (3 métodos) - delega para PLCJogMovementController
     # =========================================================================
 
-    def jog_start(self, axis: str, direction: int, feed_rate: float = None):
+    def _legacy_jog_start_unused(self, axis: str, direction: int, feed_rate: float = None):
         """
         Inicia jog contínuo no eixo.
 
@@ -656,3 +657,10 @@ class PLCAxisControllerAdapter:
         except Exception as e:
             logger.error(f"Falha ao executar soft reset: {e}")
             return False
+
+    def set_zero(self, axis: str):
+        return self.absolute_controller.set_zero()
+
+    def jog_start(self, axis: str, direction: int, feed_rate: float = None):
+        speed = feed_rate if feed_rate else 1000.0
+        self.jog_controller.jog_start(axis, speed, direction=1 if direction > 0 else -1)

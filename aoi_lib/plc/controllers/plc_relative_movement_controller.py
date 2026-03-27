@@ -25,7 +25,7 @@ class PLCRelativeMovementController:
         'X': {
             'move_abs': 1050,   # M1050 - Interpolação X/Y
             'pos_input': 1100,  # D1100_X
-            'speed': 21000,     # D21000_X
+            'speed': 20500,     # D20500 - velocidade compartilhada X/Y
             'pos_reg': 3000     # D3000_X
         },
         'Y': {

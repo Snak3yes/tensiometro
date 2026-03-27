@@ -22,37 +22,37 @@ class PLCRegistersController:
     # Mapeamento de endereços para monitoramento
     ADDRESSES = {
         'X': {
-            'zero': 1000,
+            'zero': 1500,
             'move_abs': 1050,
             'pos_input': 1100,
-            'speed': 21000,
+            'speed': 20500,
             'pos_reg': 3000,
-            'jog_plus': 1070,
-            'jog_minus': 1080,
+            'jog_plus': 570,
+            'jog_minus': 580,
             'jog_stop_plus': 1010,
             'jog_stop_minus': 1011
         },
         'Y': {
-            'zero': 500,
+            'zero': 1000,
             'move_abs': 1050,
             'pos_input': 600,
             'speed': 20500,
             'pos_reg': 3200,
-            'jog_plus': 570,
-            'jog_minus': 580,
-            'jog_stop_plus': 510,
-            'jog_stop_minus': 511
+            'jog_plus': 670,
+            'jog_minus': 680,
+            'jog_stop_plus': 1020,
+            'jog_stop_minus': 1021
         },
         'Z': {
-            'zero': 1500,
+            'zero': 500,
             'move_abs': 1600,
             'pos_input': 1600,
             'speed': 21500,
             'pos_reg': 3400,
-            'jog_plus': 1570,
-            'jog_minus': 1580,
-            'jog_stop_plus': 1510,
-            'jog_stop_minus': 1511
+            'jog_plus': 770,
+            'jog_minus': 780,
+            'jog_stop_plus': 1030,
+            'jog_stop_minus': 1031
         }
     }
 
@@ -71,7 +71,7 @@ class PLCRegistersController:
 
         # Estado do backlight
         self.backlight_on = False
-        self.backlight_coil_address = 1  # Y0.7
+        self.backlight_coil_address = 5  # Y0.7
 
         logger.debug(f"PLCRegistersController criado: pulses_per_mm={pulses_per_mm}")
 

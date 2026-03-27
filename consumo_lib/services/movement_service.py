@@ -255,7 +255,7 @@ class MovementService:
 
     # ==================== MOVIMENTO ESPECIAL ====================
 
-    def go_to_zero(self) -> MovementResult:
+    def _legacy_go_to_zero_unused(self) -> MovementResult:
         """
         Executa homing ou movimento para zero.
 
@@ -287,7 +287,7 @@ class MovementService:
                 error_message=f"Erro ao executar homing: {e}"
             )
 
-    def _plc_homing(self) -> MovementResult:
+    def _legacy_plc_homing_unused(self) -> MovementResult:
         """
         Executa homing via coils Modbus (PLC).
 
@@ -540,3 +540,42 @@ class MovementService:
         except Exception as e:
             logger.error(f"Erro ao aguardar idle: {e}")
             return False
+
+    def go_to_zero(self) -> MovementResult:
+        conn_result = self.validate_connection()
+        if not conn_result.success:
+            return conn_result
+
+        try:
+            if hasattr(self.cnc, "home_all"):
+                return self._plc_homing()
+            return self._grbl_go_to_zero()
+        except Exception as e:
+            logger.error(f"Erro ao ir para zero: {e}")
+            return MovementResult(
+                success=False,
+                error_message=f"Erro ao executar homing: {e}"
+            )
+
+    def _plc_homing(self) -> MovementResult:
+        try:
+            machine_status = self.cnc.machine_status
+
+            if machine_status in ["Alarm", "Disconnected"]:
+                return MovementResult(
+                    success=False,
+                    error_message=f"MÃ¡quina em estado inadequado para homing: {machine_status}. " +
+                                 ("Reset o alarme antes de prosseguir." if machine_status == "Alarm" else
+                                  "Conecte o PLC primeiro.")
+                )
+
+            logger.debug(f"Iniciando homing PLC com status: {machine_status}")
+            self.cnc.home_all()
+            logger.info("Homing PLC concluÃ­do")
+            return MovementResult(success=True)
+        except Exception as e:
+            logger.error(f"Erro ao executar homing PLC: {e}")
+            return MovementResult(
+                success=False,
+                error_message=f"Erro no homing: {e}"
+            )

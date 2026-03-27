@@ -23,21 +23,21 @@ class PLCAbsoluteMovementController:
     # Mapeamento de endereços para movimento absoluto
     ADDRESSES = {
         'X': {
-            'zero': 1000,      # M1000_X
+            'zero': 1500,      # M1500 - confirmacao homing X
             'move_abs': 1050,  # M1050 - Interpolação X/Y
             'pos_input': 1100, # D1100_X
-            'speed': 21000,    # D21000_X
+            'speed': 20500,    # D20500 - velocidade compartilhada X/Y
             'pos_reg': 3000    # D3000_X
         },
         'Y': {
-            'zero': 500,       # M500_Y
+            'zero': 1000,      # M1000 - confirmacao homing Y
             'move_abs': 1050,  # M1050 - Interpolação X/Y
             'pos_input': 600,  # D600_Y
             'speed': 20500,    # D20500_Y
             'pos_reg': 3200    # D3200_Y
         },
         'Z': {
-            'zero': 1500,      # M1500_Z
+            'zero': 500,       # M500 - confirmacao homing Z
             'move_abs': 1600,  # M1600_Z
             'pos_input': 1600, # D1600_Z
             'speed': 21500,    # D21500_Z
@@ -259,7 +259,7 @@ class PLCAbsoluteMovementController:
 
         return self.apply_motion_pulses(targets, feed_rate)
 
-    def set_zero(self) -> None:
+    def _legacy_set_zero_unused(self) -> None:
         """
         Define posição atual da máquina como zero (zero absoluto).
 
@@ -289,6 +289,10 @@ class PLCAbsoluteMovementController:
             Dicionário {eixo: alvo em pulsos}
         """
         return self._targets.copy()
+
+    def set_zero(self) -> None:
+        logger.warning("set_zero() ignorado: mapa atual do PLC nao expoe comando dedicado de zero")
+        return False
 
 
 # Import correto para a interface

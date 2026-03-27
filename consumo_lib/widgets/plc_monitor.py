@@ -78,7 +78,7 @@ class PLCMonitorWidget(QWidget):
                 {"name": f"{axis} Jog + (M{cfg['jog_plus']})", "type": "coil", "address": cfg["jog_plus"]},
                 {"name": f"{axis} Jog - (M{cfg['jog_minus']})", "type": "coil", "address": cfg["jog_minus"]},
                 {"name": f"{axis} Move abs (M{cfg['move_abs']})", "type": "coil", "address": cfg["move_abs"]},
-                {"name": f"{axis} Zero (M{cfg['zero']})", "type": "coil", "address": cfg["zero"]},
+                {"name": f"{axis} Home confirmado (M{cfg['zero']})", "type": "coil", "address": cfg["zero"]},
                 {"name": f"{axis} Jog stop + (M{cfg['jog_stop_plus']})", "type": "coil", "address": cfg["jog_stop_plus"]},
                 {"name": f"{axis} Jog stop - (M{cfg['jog_stop_minus']})", "type": "coil", "address": cfg["jog_stop_minus"]},
             ])

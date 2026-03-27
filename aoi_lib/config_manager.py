@@ -316,7 +316,7 @@ class AOIConfigManager:
             cnc.pulses_per_mm = ppr / pitch
         
         # Aplica endereço do backlight
-        bl_addr = self.get("connections", "backlight_coil", default=1)
+        bl_addr = self.get("connections", "backlight_coil", default=5)
         if hasattr(cnc, 'backlight_coil_address'):
             cnc.backlight_coil_address = bl_addr
         
@@ -363,7 +363,7 @@ class SettingsDialog(QDialog):
         
         self.spin_bl_coil = QSpinBox()
         self.spin_bl_coil.setRange(0, 65535)
-        self.spin_bl_coil.setValue(cfg.get("connections", "backlight_coil", default=1))
+        self.spin_bl_coil.setValue(cfg.get("connections", "backlight_coil", default=5))
         self.spin_bl_coil.setToolTip("Endereço Modbus do Coil de Backlight (Padrão: 1 para M1 -> Y0.7)")
         plc_layout.addRow("Endereço Coil Backlight:", self.spin_bl_coil)
         
