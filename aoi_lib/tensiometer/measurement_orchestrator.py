@@ -277,11 +277,18 @@ class MeasurementOrchestrator:
         if self.session:
             # Reconstruct measurement object from dict
             from .models import GridPoint, TensionMeasurement
+            grid_position = measurement_dict.get('grid_position', (0, 0))
+            if isinstance(grid_position, dict):
+                grid_position = (
+                    grid_position.get('row', 0),
+                    grid_position.get('col', 0)
+                )
+
             point = GridPoint(
                 x=measurement_dict['x'],
                 y=measurement_dict['y'],
-                index=0,  # Will be updated
-                grid_position=(0, 0)
+                index=measurement_dict.get('index', len(self.session.measurements)),
+                grid_position=grid_position
             )
             measurement = TensionMeasurement(
                 point=point,

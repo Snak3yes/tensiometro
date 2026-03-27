@@ -31,6 +31,11 @@ from aoi_lib.tensiometer import (
 
 logger = logging.getLogger(__name__)
 
+TENSIOMETER_ENABLE_COIL = 20
+TENSIOMETER_DISABLE_COIL = 22
+TENSIOMETER_CALIBRATE_COIL = 23
+TENSIOMETER_ZERO_COIL = 24
+
 
 class TensionMeasurementDialog(QDialog):
     """
@@ -117,6 +122,26 @@ class TensionMeasurementDialog(QDialog):
         self.test_btn.clicked.connect(self._test_reading)
         self.test_btn.setEnabled(False)
         conn_layout.addWidget(self.test_btn, 2, 0, 1, 5)
+
+        self.turn_on_btn = StandardButton("Ligar")
+        self.turn_on_btn.clicked.connect(self._turn_on_tensiometer)
+        self.turn_on_btn.setEnabled(False)
+        conn_layout.addWidget(self.turn_on_btn, 3, 0)
+
+        self.turn_off_btn = StandardButton("Desligar")
+        self.turn_off_btn.clicked.connect(self._turn_off_tensiometer)
+        self.turn_off_btn.setEnabled(False)
+        conn_layout.addWidget(self.turn_off_btn, 3, 1)
+
+        self.calibrate_btn = StandardButton("Calibrar")
+        self.calibrate_btn.clicked.connect(self._calibrate_tensiometer)
+        self.calibrate_btn.setEnabled(False)
+        conn_layout.addWidget(self.calibrate_btn, 3, 2)
+
+        self.zero_btn = StandardButton("Zerar")
+        self.zero_btn.clicked.connect(self._zero_tensiometer)
+        self.zero_btn.setEnabled(False)
+        conn_layout.addWidget(self.zero_btn, 3, 3, 1, 2)
 
         main_layout.addWidget(conn_group)
 
@@ -259,12 +284,21 @@ class TensionMeasurementDialog(QDialog):
             self.conn_status_label.setStyleSheet(f"color: {COLORS.SUCCESS};")
             self.test_btn.setEnabled(True)
             self.start_btn.setEnabled(True)
+            plc_ready = self._can_control_tensiometer_hardware(show_message=False)
+            self.turn_on_btn.setEnabled(plc_ready)
+            self.turn_off_btn.setEnabled(plc_ready)
+            self.calibrate_btn.setEnabled(plc_ready)
+            self.zero_btn.setEnabled(plc_ready)
         else:
             self.connect_btn.setText("🔗 Conectar")
             self.conn_status_label.setText("Status: Desconectado")
             self.conn_status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
             self.test_btn.setEnabled(False)
             self.start_btn.setEnabled(False)
+            self.turn_on_btn.setEnabled(False)
+            self.turn_off_btn.setEnabled(False)
+            self.calibrate_btn.setEnabled(False)
+            self.zero_btn.setEnabled(False)
 
     def _test_reading(self):
         """Test tensiometer reading."""
@@ -279,6 +313,72 @@ class TensionMeasurementDialog(QDialog):
             f"Valor lido: {value} N/cm²"
         )
         logger.info(f"Leitura teste: {value} N/cm²")
+
+    def _can_control_tensiometer_hardware(self, show_message: bool = True) -> bool:
+        """Check whether PLC control for the tensiometer is available."""
+        if self.cnc is None:
+            if show_message:
+                QMessageBox.warning(self, "Aviso", "Controller CNC nÃ£o disponÃ­vel.")
+            return False
+
+        if not getattr(self.cnc, "is_connected", False):
+            if show_message:
+                QMessageBox.warning(self, "Aviso", "Conecte o CLP antes de acionar o tenciÃ´metro.")
+            return False
+
+        if not hasattr(self.cnc, "pulse_coil") and not hasattr(self.cnc, "_pulse_coil"):
+            if show_message:
+                QMessageBox.warning(
+                    self,
+                    "Aviso",
+                    "O controlador atual nÃ£o expÃµe pulso de coil para o tenciÃ´metro."
+                )
+            return False
+
+        return True
+
+    def _pulse_tensiometer_coil(self, coil: int, action_name: str) -> bool:
+        """Send a PLC pulse command to the tensiometer."""
+        if not self._can_control_tensiometer_hardware():
+            return False
+
+        try:
+            if hasattr(self.cnc, "pulse_coil"):
+                self.cnc.pulse_coil(coil, 100)
+            else:
+                self.cnc._pulse_coil(coil, 100)
+
+            self.progress_label.setText(f"{action_name} enviado ao tenciÃ´metro")
+            logger.info(f"Comando enviado ao tenciÃ´metro: {action_name} (M{coil})")
+            return True
+        except Exception as e:
+            logger.exception(f"Erro ao executar comando {action_name} no tenciÃ´metro")
+            QMessageBox.critical(
+                self,
+                "Erro no TenciÃ´metro",
+                f"Falha ao executar '{action_name}':\n{e}"
+            )
+            return False
+
+    def _turn_on_tensiometer(self):
+        """Turn on tensiometer via PLC."""
+        if self._pulse_tensiometer_coil(TENSIOMETER_ENABLE_COIL, "Ligar"):
+            QMessageBox.information(self, "TenciÃ´metro", "Comando de ligar enviado.")
+
+    def _turn_off_tensiometer(self):
+        """Turn off tensiometer via PLC."""
+        if self._pulse_tensiometer_coil(TENSIOMETER_DISABLE_COIL, "Desligar"):
+            QMessageBox.information(self, "TenciÃ´metro", "Comando de desligar enviado.")
+
+    def _calibrate_tensiometer(self):
+        """Send calibration command to tensiometer via PLC."""
+        if self._pulse_tensiometer_coil(TENSIOMETER_CALIBRATE_COIL, "Calibrar"):
+            QMessageBox.information(self, "TenciÃ´metro", "Comando de calibraÃ§Ã£o enviado.")
+
+    def _zero_tensiometer(self):
+        """Send zero command to tensiometer via PLC."""
+        if self._pulse_tensiometer_coil(TENSIOMETER_ZERO_COIL, "Zerar"):
+            QMessageBox.information(self, "TenciÃ´metro", "Comando de zerar enviado.")
 
     # ==================== POSITION CAPTURE ====================
 

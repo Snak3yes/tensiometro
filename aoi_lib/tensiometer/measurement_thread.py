@@ -13,6 +13,7 @@ from .models import GridPoint, TensionMeasurement, MeasurementSession
 
 logger = logging.getLogger(__name__)
 
+TENSIOMETER_ENABLE_COIL = 20
 TENSIOMETER_DISABLE_COIL = 22
 
 
@@ -60,6 +61,7 @@ class TensionMeasurementThread(QThread):
         try:
             logger.info(f"Iniciando medicao de {len(self.points)} pontos")
             self._setup_absolute_mode()
+            self._enable_tension_sensor()
             self._move_abs(z=self.z_move, feed=self.user_feed)
 
             total_points = len(self.points)
@@ -95,12 +97,13 @@ class TensionMeasurementThread(QThread):
 
             logger.info("Medicao concluida com sucesso")
             logger.info(f"Total medido: {len(self.session.measurements)} pontos")
-            self._disable_tension_sensor()
             self.finished.emit([m.to_dict() for m in self.session.measurements])
 
         except Exception as e:
             logger.error(f"Erro durante medicao: {e}", exc_info=True)
             self.error_occurred.emit(f"Erro durante medicao: {str(e)}")
+        finally:
+            self._disable_tension_sensor()
 
     def _setup_absolute_mode(self) -> None:
         try:
@@ -133,6 +136,19 @@ class TensionMeasurementThread(QThread):
         self.cnc.move_to_absolute_position(**kwargs)
         self.cnc.wait_for_idle()
 
+    def _enable_tension_sensor(self) -> None:
+        try:
+            if hasattr(self.cnc, "pulse_coil"):
+                self.cnc.pulse_coil(TENSIOMETER_ENABLE_COIL, 100)
+                logger.debug("Tenciometro ligado via M20")
+            elif hasattr(self.cnc, "_pulse_coil"):
+                self.cnc._pulse_coil(TENSIOMETER_ENABLE_COIL, 100)
+                logger.debug("Tenciometro ligado via M20")
+            else:
+                logger.warning("Controlador CNC nao expoe interface para ligar o tenciometro")
+        except Exception as e:
+            logger.error(f"Erro ao ligar sensor: {e}")
+
     def _disable_tension_sensor(self) -> None:
         try:
             if hasattr(self.cnc, "pulse_coil"):
@@ -141,6 +157,8 @@ class TensionMeasurementThread(QThread):
             elif hasattr(self.cnc, "_pulse_coil"):
                 self.cnc._pulse_coil(TENSIOMETER_DISABLE_COIL, 100)
                 logger.debug("Tenciometro desligado via M22")
+            else:
+                logger.warning("Controlador CNC nao expoe interface para desligar o tenciometro")
         except Exception as e:
             logger.error(f"Erro ao desligar sensor: {e}")
 

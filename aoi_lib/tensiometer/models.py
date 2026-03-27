@@ -89,6 +89,11 @@ class TensionMeasurement:
     def to_dict(self) -> Dict:
         """Convert to dictionary for JSON serialization"""
         return {
+            "index": self.point.index,
+            "grid_position": {
+                "row": self.point.grid_position[0],
+                "col": self.point.grid_position[1]
+            },
             "x": self.point.x,
             "y": self.point.y,
             "z": self.z_height,
