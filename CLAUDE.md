@@ -106,6 +106,19 @@ tensiometro/
 | **Separação** | Business logic → `aoi_lib/`, UI → `consumo_lib/` |
 | **Main Window** | É ORQUESTRADOR apenas - NUNCA adicionar lógica de negócio |
 | **Design System** | PROIBIDO estilo inline/hardcoded - usar tokens |
+| **Window Size** | Tamanho FIXO 1200×800px - monitor predefinido da máquina |
+
+### Main Window Dimensions
+
+**REGRA FIXA:** A janela principal deve ter tamanho **1200×800 pixels**.
+
+| Restrição | Valor | Motivo |
+|-----------|-------|--------|
+| Largura | 1200px (fixo) | Monitor industrial predefinido |
+| Altura | 800px (fixo) | Monitor industrial predefinido |
+| Redimensionamento | **Desabilitado** | Máquina dedicada |
+
+**⚠️ NÃO adicionar `setMinimumSize()` menor que 1200×800 ou permitir resize.**
 
 ---
 

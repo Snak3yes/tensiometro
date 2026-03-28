@@ -86,9 +86,15 @@ class SetupCoordinator:
         Configuração básica da janela (usa config criado pela factory).
 
         Nota: config já foi criado pela factory, apenas configura a janela.
+
+        IMPORTANTE: Tamanho FIXO 1200×800px - monitor industrial predefinido da máquina.
+        Ver documentação em CLAUDE.md → Main Window Dimensions
         """
         self.window.setWindowTitle("Controle de Tensão e Rastreabilidade")
+
+        # Tamanho fixo para monitor industrial predefinido
         self.window.setGeometry(100, 100, 1200, 800)
+        self.window.setFixedSize(1200, 800)  # Impede redimensionamento
 
         logger.debug("Configuração básica concluída (config via factory)")
 
