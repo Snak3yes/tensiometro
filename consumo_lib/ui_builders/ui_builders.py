@@ -280,8 +280,10 @@ class MainUIBuilder:
         right_panel = QTabWidget()
         self.window.right_panel = right_panel
 
-        # Aba 1: Movimento
-        self._build_movement_tab(right_panel)
+        # REMOVIDO (release/v0.5-tension): Aba "Movimento"
+        # O controle de movimento agora está em um diálogo acessível via menu
+        # Ferramentas → Controle de Movimento (Ctrl+M)
+        # self._build_movement_tab(right_panel)
 
         # Criar ConnectionManagerController (preview de câmera é opcional)
         self._create_connection_manager_controller()

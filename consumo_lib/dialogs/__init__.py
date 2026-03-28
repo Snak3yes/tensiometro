@@ -61,3 +61,7 @@ __all__.append('AuthenticationSettingsDialog')
 from .theme_settings import ThemeSettingsDialog, show_theme_settings_dialog
 __all__.append('ThemeSettingsDialog')
 __all__.append('show_theme_settings_dialog')
+
+# Movement dialog (NOVO - release/v0.5-tension)
+from .movement_dialog import MovementDialog
+__all__.append('MovementDialog')

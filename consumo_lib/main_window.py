@@ -883,6 +883,29 @@ class AOIControllerApp(QMainWindow):
             dlg = TensionMeasurementDialog(self, self.controller.cnc)
             dlg.exec()
 
+    def open_movement_dialog(self):
+        """
+        Abre diálogo de controle de movimento CNC.
+
+        O diálogo é não-modal e permanece acima da janela principal,
+        mas não bloqueia a interação com ela.
+        """
+        from consumo_lib.dialogs import MovementDialog
+
+        # Cria ou reutiliza o diálogo
+        if not hasattr(self, '_movement_dialog') or self._movement_dialog is None:
+            self._movement_dialog = MovementDialog(
+                self.controller.cnc,
+                self.config,
+                parent=self
+            )
+
+        # Mostra o diálogo
+        self._movement_dialog.show()
+        self._movement_dialog.raise_()
+        self._movement_dialog.activateWindow()
+        logger.debug("MovementDialog aberto")
+
     def _cleanup_resources(self):
         """Para tudo que possa manter o Qt vivo após o fechamento (delega para ResourceManager)."""
         if self.resource_manager is None:

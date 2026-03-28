@@ -208,6 +208,16 @@ class MenuHandler(QObject):
         """Cria o menu Ferramentas."""
         menu = menubar.addMenu('&Ferramentas')
 
+        # Controle de Movimento (NOVO - release/v0.5-tension)
+        movement_action = QAction('🎮 Controle de Movimento', self.main_window)
+        movement_action.setShortcut('Ctrl+M')
+        movement_action.setToolTip('Abre diálogo de controle de movimento CNC (não-modal)')
+        movement_action.triggered.connect(self.main_window.open_movement_dialog)
+        menu.addAction(movement_action)
+        self._register_action('tools.movement', movement_action)
+
+        menu.addSeparator()
+
         # Calibração CNC
         calib_action = QAction('Calibração CNC', self.main_window)
         calib_action.triggered.connect(self._on_show_calibration_dialog)
