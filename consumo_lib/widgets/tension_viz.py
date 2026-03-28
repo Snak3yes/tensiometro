@@ -121,7 +121,7 @@ class TensionVisualizationWidget(QWidget):
         stats_layout.setContentsMargins(10, 5, 10, 5)
 
         self.stats_label = QLabel("Carregue um arquivo para ver estatísticas")
-        self.stats_label.setStyleSheet(f"{TYPO.BODY_SMALL}")
+        self.stats_label.setStyleSheet(f"font-size: {TYPO.BODY_SMALL}px;")
         stats_layout.addWidget(self.stats_label)
         
         stats_layout.addStretch()
@@ -129,7 +129,7 @@ class TensionVisualizationWidget(QWidget):
         # Indicador visual
         self.result_indicator = QLabel("---")
         self.result_indicator.setStyleSheet(f"""
-            {TYPO.BODY_LARGE};
+            font-size: {TYPO.BODY_LARGE}px;
             font-weight: bold;
             padding: {SPACE.XS}px {SPACE.SM}px;
             border-radius: {DIM.RADIUS_SM}px;

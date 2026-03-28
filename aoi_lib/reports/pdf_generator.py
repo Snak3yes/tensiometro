@@ -20,11 +20,8 @@ from reportlab.platypus import (
 )
 from reportlab.lib.enums import TA_CENTER
 
-# Import ReportConfig from parent module
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent))
-from report_generator import ReportConfig
+# Import ReportConfig using absolute import
+from aoi_lib.report_generator import ReportConfig
 
 log = logging.getLogger(__name__)
 

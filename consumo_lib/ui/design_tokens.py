@@ -460,8 +460,21 @@ def get_color_palette() -> ColorPalette:
     global _COLOR_PALETTE_INSTANCE
 
     if _COLOR_PALETTE_INSTANCE is None:
-        # Fallback: criar instância padrão com tema light
-        logger.warning("ColorPalette não foi inicializada pelo ThemeManager, usando light theme")
+        # Verificar se QApplication já foi criada
+        # Se não existe, estamos na fase de importação de módulos - não emitir warning
+        try:
+            from PyQt6.QtWidgets import QApplication
+            app_exists = QApplication.instance() is not None
+        except Exception:
+            app_exists = False
+
+        if app_exists:
+            # QApplication existe mas ThemeManager não foi inicializado - emitir warning
+            logger.warning("ColorPalette não foi inicializada pelo ThemeManager, usando light theme")
+        else:
+            # Fase de importação - usar fallback silenciosamente
+            logger.debug("ColorPalette usando fallback light theme (QApplication não inicializada)")
+
         _COLOR_PALETTE_INSTANCE = ColorPalette(theme="light")
 
     return _COLOR_PALETTE_INSTANCE

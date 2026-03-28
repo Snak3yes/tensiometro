@@ -191,31 +191,33 @@ class MovementControlWidget(QWidget):
         self.pos_y_label = QLabel("0.000 mm")
         self.pos_z_label = QLabel("0.000 mm")
 
+        # Visores de posição: usar cores do Design System (Paleta Neutra Industrial)
         for label in (self.pos_x_label, self.pos_y_label, self.pos_z_label):
             label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-            label.setStyleSheet("""
-                QLabel {
-                    background-color: #333;
-                    color: #0f0;
+            label.setStyleSheet(f"""
+                QLabel {{
+                    background-color: {COLORS.SURFACE_VARIANT};
+                    color: {COLORS.TEXT_PRIMARY};
                     padding: 4px 8px;
                     font-size: 13px;
                     font-weight: bold;
                     border-radius: 3px;
-                }
+                }}
             """)
             label.setMinimumWidth(100)
 
+        # Status de conexão: cor secundária para indicar estado
         self.pos_status_label = QLabel("Desconectado")
         self.pos_status_label.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
-        self.pos_status_label.setStyleSheet("""
-            QLabel {
-                background-color: #333;
-                color: #fc0;
+        self.pos_status_label.setStyleSheet(f"""
+            QLabel {{
+                background-color: {COLORS.SURFACE_VARIANT};
+                color: {COLORS.TEXT_SECONDARY};
                 padding: 4px 8px;
                 font-size: 12px;
                 font-weight: bold;
                 border-radius: 3px;
-            }
+            }}
         """)
         self.pos_status_label.setMinimumWidth(100)
 

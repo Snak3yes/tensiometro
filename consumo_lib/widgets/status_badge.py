@@ -15,18 +15,6 @@ class StatusBadge(QLabel):
     Badge colorido para status do stencil.
     """
 
-    # Cores por status (usando design tokens)
-    STATUS_COLORS = {
-        "active": COLORS.SUCCESS,
-        "warning": COLORS.WARNING,
-        "retired": COLORS.ERROR,
-        "pending": COLORS.STATUS_PENDING,
-        "in_progress": COLORS.SECONDARY,
-        "approved_auto": COLORS.SUCCESS,
-        "approved_user": COLORS.SUCCESS,
-        "rejected": COLORS.ERROR,
-    }
-
     # Labels por status
     LABELS = {
         "active": "ATIVO",
@@ -50,6 +38,24 @@ class StatusBadge(QLabel):
         super().__init__(parent)
         self.set_status(status)
 
+    @staticmethod
+    def _get_status_colors():
+        """
+        Retorna dict de cores por status (lazy initialization).
+
+        Isso evita acessar COLORS durante o import do módulo.
+        """
+        return {
+            "active": COLORS.SUCCESS,
+            "warning": COLORS.WARNING,
+            "retired": COLORS.ERROR,
+            "approved_auto": COLORS.STATUS_APPROVED_AUTO,
+            "approved_user": COLORS.STATUS_APPROVED_USER,
+            "rejected": COLORS.STATUS_REJECTED,
+            "pending": COLORS.STATUS_PENDING,
+            "in_progress": COLORS.SECONDARY,
+        }
+
     def set_status(self, status: str):
         """
         Define status e atualiza aparência
@@ -62,7 +68,8 @@ class StatusBadge(QLabel):
         self.setText(text)
 
         # Aplica estilo com design tokens
-        color = self.STATUS_COLORS.get(status, COLORS.STATUS_PENDING)
+        status_colors = self._get_status_colors()
+        color = status_colors.get(status, COLORS.STATUS_PENDING)
         self.setStyleSheet(f"""
             QLabel {{
                 background-color: {color};
