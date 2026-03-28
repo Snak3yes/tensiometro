@@ -906,6 +906,28 @@ class AOIControllerApp(QMainWindow):
         self._movement_dialog.activateWindow()
         logger.debug("MovementDialog aberto")
 
+    def open_plc_monitor_dialog(self):
+        """
+        Abre diálogo de monitoramento do CLP.
+
+        O diálogo é não-modal e permanece acima da janela principal,
+        mas não bloqueia a interação com ela.
+        """
+        from consumo_lib.dialogs import PLCMonitorDialog
+
+        # Cria ou reutiliza o diálogo
+        if not hasattr(self, '_plc_monitor_dialog') or self._plc_monitor_dialog is None:
+            self._plc_monitor_dialog = PLCMonitorDialog(
+                self.controller,
+                parent=self
+            )
+
+        # Mostra o diálogo
+        self._plc_monitor_dialog.show()
+        self._plc_monitor_dialog.raise_()
+        self._plc_monitor_dialog.activateWindow()
+        logger.debug("PLCMonitorDialog aberto")
+
     def _cleanup_resources(self):
         """Para tudo que possa manter o Qt vivo após o fechamento (delega para ResourceManager)."""
         if self.resource_manager is None:

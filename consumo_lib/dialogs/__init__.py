@@ -65,3 +65,7 @@ __all__.append('show_theme_settings_dialog')
 # Movement dialog (NOVO - release/v0.5-tension)
 from .movement_dialog import MovementDialog
 __all__.append('MovementDialog')
+
+# PLC Monitor dialog (NOVO - release/v0.5-tension)
+from .plc_monitor_dialog import PLCMonitorDialog
+__all__.append('PLCMonitorDialog')

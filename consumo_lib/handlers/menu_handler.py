@@ -216,6 +216,14 @@ class MenuHandler(QObject):
         menu.addAction(movement_action)
         self._register_action('tools.movement', movement_action)
 
+        # Monitor CLP (NOVO - release/v0.5-tension)
+        plc_monitor_action = QAction('📊 Monitor CLP', self.main_window)
+        plc_monitor_action.setShortcut('Ctrl+L')
+        plc_monitor_action.setToolTip('Abre diálogo de monitoramento do CLP (não-modal)')
+        plc_monitor_action.triggered.connect(self.main_window.open_plc_monitor_dialog)
+        menu.addAction(plc_monitor_action)
+        self._register_action('tools.plc_monitor', plc_monitor_action)
+
         menu.addSeparator()
 
         # Calibração CNC

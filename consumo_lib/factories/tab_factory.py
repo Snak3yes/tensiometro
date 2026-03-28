@@ -124,12 +124,9 @@ class TabFactory:
         self.main_window.camera_preview = cnc_tab.camera_preview
         self.main_window.movement_widget = cnc_tab.movement_widget
 
-        # Aba 2: Monitor CLP (criada diretamente, não via factory ainda)
-        from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
-        plc_monitor = PLCMonitorWidget(self.controller)
-        tab_widget.addTab(plc_monitor, "Monitor CLP")
-        self.main_window.plc_monitor = plc_monitor
-        tabs.append(plc_monitor)
+        # REMOVIDO (release/v0.5-tension): Aba "Monitor CLP"
+        # O monitor CLP agora está em um diálogo acessível via menu
+        # Ferramentas → Monitor CLP (Ctrl+L)
 
         # Aba 3: Visualização de Tensão
         tension_tab = self.create_tension_tab()

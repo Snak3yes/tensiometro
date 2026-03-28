@@ -337,9 +337,11 @@ class MainUIBuilder:
         )
         parent.addTab(self.window.tree_view_tab, "📋 Stencils")
 
-        # Aba 2: Monitor CLP
-        self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
-        parent.addTab(self.window.plc_monitor, "Monitor CLP")
+        # REMOVIDO (release/v0.5-tension): Aba "Monitor CLP"
+        # O monitor CLP agora está em um diálogo acessível via menu
+        # Ferramentas → Monitor CLP (Ctrl+L)
+        # self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
+        # parent.addTab(self.window.plc_monitor, "Monitor CLP")
 
         # Aba 3: Visualização de Tensão
         self.window.tension_visualization = TensionTab(parent=self.window)
