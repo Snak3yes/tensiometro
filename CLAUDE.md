@@ -12,9 +12,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Controle CNC via Delta PLC (Modbus TCP)
 - Rastreabilidade com SQLite e relatórios PDF
 
-**Status:** ~99% completo | **Versão:** 0.4.1 | **Tech:** Python 3.x + PyQt6 + OpenCV + SQLite
+**Status:** ~99% completo | **Versão:** 0.5.0 (release/v0.5-tension) | **Tech:** Python 3.x + PyQt6 + OpenCV + SQLite
+
+**Branch atual:** `release/v0.5-tension` - Versão simplificada para cliente (apenas medição de tensão)
 
 **Filosofia:** SOLID, TDD, documentação como fonte de verdade.
+
+---
+
+## Release v0.5-tension (2026-03-28)
+
+**Objetivo:** Versão de entrega para cliente com funcionalidade de medição de tensão apenas.
+
+### Alterações Principais
+
+| Item | Status |
+|------|--------|
+| Aba "Posições e Rotinas" | REMOVIDA |
+| Groupbox "Ações Rápidas" | REMOVIDO |
+| Aba "Movimento" | Dialog não-modal (Ctrl+M) |
+| Aba "Monitor CLP" | Dialog não-modal (Ctrl+L) |
+| Emojis na UI | TODOS REMOVIDOS |
+
+### Novos Arquivos
+
+- `consumo_lib/dialogs/movement_dialog.py` - Diálogo de controle CNC
+- `consumo_lib/dialogs/plc_monitor_dialog.py` - Diálogo de monitoramento PLC
+
+### Branches
+
+| Branch | Propósito |
+|--------|-----------|
+| `main` | Desenvolvimento principal (com inspeção visual) |
+| `release/v0.5-tension` | Release para cliente (medição de tensão apenas) |
+
+**Ver detalhes:** `docs/reports/RELEASE_v0.5-tension.md`
 
 ---
 
@@ -319,4 +351,4 @@ tensio.is_connected
 
 ---
 
-**Last Updated:** 2026-03-27 | **Version:** 0.4.1 | **Button Standard:** v4.0 (Microsoft Style)
+**Last Updated:** 2026-03-28 | **Version:** 0.5.0 | **Release Branch:** v0.5-tension
