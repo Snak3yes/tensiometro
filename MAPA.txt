@@ -148,14 +148,14 @@ Y0.9 = tower red LED
 Y0.10 = TENCI calibrar
 Y0.11 = TENCI zerar
 
-M20 = liga tenciometro
-M22 = desliga tenciometro
+M20 = pulso de controle do tenciometro (pulso curto liga, pulso de 3 s desliga)
 M23 = calibra tenciometro
 M24 = zera tenciometro
 
 Rede observada no programa TENCIOMETRO
-- M20 seta Y0.6 = TENCI ON/OFF
-- M22 reseta Y0.6 = TENCI ON/OFF
+- M20 controla Y0.6 = TENCI ON/OFF
+- pulso curto em M20 liga o tenciometro
+- pulso de aproximadamente 3 s em M20 desliga o tenciometro
 - M23 aciona Y0.10 = TENCI CALIBRAR
 - M24 aciona Y0.11 = TENCI ZERAR
 

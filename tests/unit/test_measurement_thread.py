@@ -1,6 +1,7 @@
 from aoi_lib.tensiometer.measurement_thread import (
-    TENSIOMETER_DISABLE_COIL,
-    TENSIOMETER_ENABLE_COIL,
+    TENSIOMETER_POWER_COIL,
+    TENSIOMETER_POWER_OFF_PULSE_MS,
+    TENSIOMETER_POWER_ON_PULSE_MS,
     TensionMeasurementThread,
 )
 from aoi_lib.tensiometer.models import GridPoint
@@ -66,8 +67,8 @@ def test_run_measures_all_points_and_toggles_tensiometer(monkeypatch):
 
     assert cnc.absolute_mode_calls == 1
     assert cnc.coils == [
-        (TENSIOMETER_ENABLE_COIL, 100),
-        (TENSIOMETER_DISABLE_COIL, 100),
+        (TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS),
+        (TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_OFF_PULSE_MS),
     ]
     assert cnc.moves == [
         {"z": 8.0, "feed_rate": 900.0},
@@ -107,8 +108,8 @@ def test_run_disables_tensiometer_even_when_stop_is_requested(monkeypatch):
     thread.run()
 
     assert cnc.coils == [
-        (TENSIOMETER_ENABLE_COIL, 100),
-        (TENSIOMETER_DISABLE_COIL, 100),
+        (TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS),
+        (TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_OFF_PULSE_MS),
     ]
     assert errors == ["Medicao interrompida pelo usuario"]
     assert tensiometer.read_calls == 0

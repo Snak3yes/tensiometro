@@ -31,8 +31,9 @@ from aoi_lib.tensiometer import (
 
 logger = logging.getLogger(__name__)
 
-TENSIOMETER_ENABLE_COIL = 20
-TENSIOMETER_DISABLE_COIL = 22
+TENSIOMETER_POWER_COIL = 20
+TENSIOMETER_POWER_ON_PULSE_MS = 100
+TENSIOMETER_POWER_OFF_PULSE_MS = 3000
 TENSIOMETER_CALIBRATE_COIL = 23
 TENSIOMETER_ZERO_COIL = 24
 
@@ -337,16 +338,16 @@ class TensionMeasurementDialog(QDialog):
 
         return True
 
-    def _pulse_tensiometer_coil(self, coil: int, action_name: str) -> bool:
+    def _pulse_tensiometer_coil(self, coil: int, action_name: str, duration_ms: int = 100) -> bool:
         """Send a PLC pulse command to the tensiometer."""
         if not self._can_control_tensiometer_hardware():
             return False
 
         try:
             if hasattr(self.cnc, "pulse_coil"):
-                self.cnc.pulse_coil(coil, 100)
+                self.cnc.pulse_coil(coil, duration_ms)
             else:
-                self.cnc._pulse_coil(coil, 100)
+                self.cnc._pulse_coil(coil, duration_ms)
 
             self.progress_label.setText(f"{action_name} enviado ao tenciÃ´metro")
             logger.info(f"Comando enviado ao tenciÃ´metro: {action_name} (M{coil})")
@@ -362,12 +363,20 @@ class TensionMeasurementDialog(QDialog):
 
     def _turn_on_tensiometer(self):
         """Turn on tensiometer via PLC."""
-        if self._pulse_tensiometer_coil(TENSIOMETER_ENABLE_COIL, "Ligar"):
+        if self._pulse_tensiometer_coil(
+            TENSIOMETER_POWER_COIL,
+            "Ligar",
+            duration_ms=TENSIOMETER_POWER_ON_PULSE_MS,
+        ):
             QMessageBox.information(self, "TenciÃ´metro", "Comando de ligar enviado.")
 
     def _turn_off_tensiometer(self):
         """Turn off tensiometer via PLC."""
-        if self._pulse_tensiometer_coil(TENSIOMETER_DISABLE_COIL, "Desligar"):
+        if self._pulse_tensiometer_coil(
+            TENSIOMETER_POWER_COIL,
+            "Desligar",
+            duration_ms=TENSIOMETER_POWER_OFF_PULSE_MS,
+        ):
             QMessageBox.information(self, "TenciÃ´metro", "Comando de desligar enviado.")
 
     def _calibrate_tensiometer(self):
