@@ -42,7 +42,7 @@ class StencilCreateDialog(QDialog):
         layout = QVBoxLayout(self)
 
         info = QLabel(
-            "ℹ️ Cadastre um novo programa de stencil.\n"
+            "ℹ️ Cadastre um novo stencil.\n"
             "O código é o identificador único (código de barras)."
         )
         info.setWordWrap(True)

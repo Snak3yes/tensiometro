@@ -138,7 +138,7 @@ class MapSettingsDialog(QDialog):
         programs_layout = QVBoxLayout(programs_widget)
         programs_layout.setContentsMargins(0, 0, 0, 0)
 
-        programs_group = QGroupBox("📁 Programas Salvos")
+        programs_group = QGroupBox("📁 Mapas Salvos")
         programs_group_layout = QVBoxLayout(programs_group)
 
         # TreeView of programs

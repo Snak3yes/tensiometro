@@ -1,7 +1,7 @@
 """
 Widget de Badge de Status
 
-Exibe badge colorido para status de aprovação.
+Exibe badge colorido para status operacional.
 """
 
 from PyQt6.QtWidgets import QLabel
@@ -12,35 +12,31 @@ from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 
 class StatusBadge(QLabel):
     """
-    Badge colorido para status de inspeção
-
-    Cores por status (v3.0 - Paleta Neutra - Tons de Cinza):
-        - approved_auto: Cinza escuro
-        - approved_user: Cinza médio
-        - rejected: Cinza mais escuro
-        - pending: Cinza claro
-        - in_progress: Cinza médio
-
-    Note:
-        Status é indicado por texto/ícones, não por cores vibrantes.
+    Badge colorido para status do stencil.
     """
 
     # Cores por status (usando design tokens)
     STATUS_COLORS = {
-        "approved_auto": COLORS.STATUS_APPROVED_AUTO,    # Verde vibrante
-        "approved_user": COLORS.STATUS_APPROVED_USER,    # Verde-amarelo
-        "rejected": COLORS.STATUS_REJECTED,              # Vermelho
-        "pending": COLORS.STATUS_PENDING,                # Cinza
-        "in_progress": COLORS.SECONDARY,                 # Azul
+        "active": COLORS.SUCCESS,
+        "warning": COLORS.WARNING,
+        "retired": COLORS.ERROR,
+        "pending": COLORS.STATUS_PENDING,
+        "in_progress": COLORS.SECONDARY,
+        "approved_auto": COLORS.SUCCESS,
+        "approved_user": COLORS.SUCCESS,
+        "rejected": COLORS.ERROR,
     }
 
     # Labels por status
     LABELS = {
-        "approved_auto": "A-AUTO",
-        "approved_user": "A-USER",
-        "rejected": "REPROV",
+        "active": "ATIVO",
+        "warning": "ALERTA",
+        "retired": "RETIRADO",
         "pending": "PENDENTE",
         "in_progress": "EM ANDAMENTO",
+        "approved_auto": "ATIVO",
+        "approved_user": "ATIVO",
+        "rejected": "RETIRADO",
     }
 
     def __init__(self, status: str, parent=None):
@@ -83,7 +79,7 @@ class StatusBadge(QLabel):
     @classmethod
     def from_inspection_record(cls, record, parent=None):
         """
-        Cria badge a partir de registro de inspeção
+        Método legado de compatibilidade.
 
         Args:
             record: Dicionário com dados de inspeção

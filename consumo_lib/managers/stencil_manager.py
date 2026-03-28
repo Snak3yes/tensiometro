@@ -250,7 +250,7 @@ class StencilManagerWrapper(QObject):
             self.main_window.statusBar().showMessage(
                 f"Stencil selecionado: {stencil.code} | "
                 f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
-                f"Inspeções: {stencil.inspection_count}"
+                f"Medições: {stencil.inspection_count}"
             )
 
         # Atualiza menu
@@ -299,7 +299,7 @@ class StencilManagerWrapper(QObject):
             f"Média: {record.average_tension:.2f} N/cm²"
         )
 
-        # Atualiza widget de identificação para refletir nova inspeção
+        # Atualiza widget de identificação para refletir nova medição
         stencil = self.get_stencil(stencil_code)
         if stencil and hasattr(self.main_window, 'stencil_identification'):
             self.main_window.stencil_identification._select_stencil(stencil)

@@ -14,8 +14,6 @@ if TYPE_CHECKING:
         CNCControlTab,
         TensionTab,
         TrackingTab,
-        InspectionTab,
-        MapTab
     )
 
 logger = logging.getLogger(__name__)
@@ -101,34 +99,6 @@ class TabFactory:
         logger.debug("TrackingTab criada")
         return tab
 
-    def create_inspection_tab(self) -> 'InspectionTab':
-        """
-        Cria aba de inspeção visual.
-
-        Returns:
-            Instância de InspectionTab configurada
-        """
-        from consumo_lib.tabs import InspectionTab
-
-        tab = InspectionTab(parent=self.main_window)
-
-        logger.debug("InspectionTab criada")
-        return tab
-
-    def create_map_tab(self) -> 'MapTab':
-        """
-        Cria aba de programação de mapa.
-
-        Returns:
-            Instância de MapTab configurada
-        """
-        from consumo_lib.tabs import MapTab
-
-        tab = MapTab(parent=self.main_window)
-
-        logger.debug("MapTab criada")
-        return tab
-
     def create_all_tabs(self, tab_widget):
         """
         Cria e adiciona todas as abas ao QTabWidget.
@@ -183,30 +153,6 @@ class TabFactory:
         self.main_window.btn_run_tension = tracking_tab.btn_run_tension
         tab_widget.addTab(tracking_tab, "🏷️ Rastreabilidade")
         tabs.append(tracking_tab)
-
-        # Aba 5: Inspeção Visual
-        inspection_tab = self.create_inspection_tab()
-        inspection_tab.settings_requested.connect(
-            self.main_window.show_inspection_settings
-        )
-        tab_widget.addTab(inspection_tab, "🔍 Inspeção")
-        tabs.append(inspection_tab)
-
-        # Aba 6: Programação de Mapa
-        map_tab = self.create_map_tab()
-        map_tab.map_definition_requested.connect(
-            lambda: self.main_window.map_controller.show_dialog(
-                self.main_window,
-                self.main_window.cnc_control_tab.camera_preview if hasattr(
-                    self.main_window, 'cnc_control_tab'
-                ) else None
-            )
-        )
-        map_tab.mosaic_builder_requested.connect(
-            self.main_window.show_mosaic_builder
-        )
-        tab_widget.addTab(map_tab, "🗺️ Mapa")
-        tabs.append(map_tab)
 
         logger.info(f"{len(tabs)} abas criadas e adicionadas ao QTabWidget")
         return tabs

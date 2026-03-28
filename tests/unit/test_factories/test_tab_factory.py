@@ -5,7 +5,7 @@ Unit tests for TabFactory component.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 
 class TestTabFactory:
@@ -63,7 +63,6 @@ class TestTabFactory:
         tab = tab_factory.create_cnc_control_tab()
 
         assert tab is not None
-        # Verify tab has expected attributes
         assert hasattr(tab, 'camera_preview') or hasattr(tab, 'movement_widget')
 
     @pytest.mark.skip("Requer parent QWidget real, não Mock")
@@ -81,17 +80,3 @@ class TestTabFactory:
 
         assert tab is not None
         assert hasattr(tab, 'stencil_identification')
-
-    @pytest.mark.skip("Requer parent QWidget real, não Mock")
-    def test_create_inspection_tab(self, tab_factory):
-        """Test inspection tab creation."""
-        tab = tab_factory.create_inspection_tab()
-
-        assert tab is not None
-
-    @pytest.mark.skip("Requer parent QWidget real, não Mock")
-    def test_create_map_tab(self, tab_factory):
-        """Test map tab creation."""
-        tab = tab_factory.create_map_tab()
-
-        assert tab is not None

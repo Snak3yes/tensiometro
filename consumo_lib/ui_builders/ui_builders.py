@@ -14,12 +14,10 @@ from PyQt6.QtWidgets import (
 )
 from aoi_lib.plc_axis_controller import PLCAxisController
 from consumo_lib.tabs import (
-    CNCControlTab,
     TensionTab,
     TrackingTab,
-    InspectionTab,
-    MapTab
 )
+from consumo_lib.widgets.movement_control import MovementControlWidget
 from consumo_lib.widgets.position_list import PositionListWidget
 from consumo_lib.widgets.sequence_control import SequenceControlWidget
 from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
@@ -133,29 +131,10 @@ class MainUIBuilder:
         self.window.refresh_ports()
         connection_layout.addWidget(self.window.cnc_port_combo, 1, 1)
 
-        # Camera connection
-        connection_layout.addWidget(QLabel("Câmera ID/URL:"), 2, 0)
-        self.window.camera_id_combo = QComboBox()
-        self.window.camera_id_combo.setEditable(True)
-        self.window.camera_id_combo.setToolTip(
-            "Selecione ID (0,1...) ou digite URL (http://...)"
-        )
-        self.window.camera_id_combo.addItems(["0", "1", "2", "3"])
-        connection_layout.addWidget(self.window.camera_id_combo, 2, 1)
-
-        self.window.connect_camera_btn = StandardButton("Conectar Câmera")
-        self.window.connect_camera_btn.clicked.connect(self.window.connect_camera)
-        connection_layout.addWidget(self.window.connect_camera_btn, 2, 2)
-
         # Refresh ports button
         self.window.refresh_ports_btn = StandardButton("Atualizar Portas")
         self.window.refresh_ports_btn.clicked.connect(self.window.refresh_ports)
         connection_layout.addWidget(self.window.refresh_ports_btn, 1, 3)
-
-        # Test camera button
-        self.window.test_camera_btn = StandardButton("Testar Câmera")
-        self.window.test_camera_btn.clicked.connect(self.window.test_camera)
-        connection_layout.addWidget(self.window.test_camera_btn, 2, 3)
 
         self.window.connection_group.setLayout(connection_layout)
         main_layout.addWidget(self.window.connection_group)
@@ -286,7 +265,7 @@ class MainUIBuilder:
         self._build_results_table(tab_layout)
 
         # Adiciona a aba ao QTabWidget
-        parent.addTab(tab_widget, "📦 Backup de Controles")
+        parent.addTab(tab_widget, "📦 Posições e Rotinas")
 
         # Expose referências para compatibilidade
         self.window.backup_controls_tab = tab_widget
@@ -301,10 +280,10 @@ class MainUIBuilder:
         right_panel = QTabWidget()
         self.window.right_panel = right_panel
 
-        # Aba 1: Câmera & Movimento
-        self._build_cnc_control_tab(right_panel)
+        # Aba 1: Movimento
+        self._build_movement_tab(right_panel)
 
-        # Criar ConnectionManagerController (agora que camera_preview está disponível)
+        # Criar ConnectionManagerController (preview de câmera é opcional)
         self._create_connection_manager_controller()
 
         # Abas restantes (incluindo nova aba "Backup de Controles")
@@ -314,20 +293,21 @@ class MainUIBuilder:
         # O bloqueio agora é feito apenas nas ações que requerem movimento
         return right_panel
 
-    def _build_cnc_control_tab(self, parent):
-        """Cria aba de controle CNC e câmera."""
-        self.window.cnc_control_tab = CNCControlTab(
+    def _build_movement_tab(self, parent):
+        """Cria aba dedicada apenas ao controle de movimento."""
+        tab_widget = QWidget(parent)
+        tab_layout = QVBoxLayout(tab_widget)
+        tab_layout.setContentsMargins(8, 8, 8, 8)
+
+        self.window.movement_widget = MovementControlWidget(
             self.window.controller,
-            self.window.config,
-            parent=self.window
+            self.window.config
         )
-        self.window.cnc_control_tab.image_captured.connect(
-            self.window.on_image_captured
-        )
-        # Expose widgets internos para compatibilidade
-        self.window.camera_preview = self.window.cnc_control_tab.camera_preview
-        self.window.movement_widget = self.window.cnc_control_tab.movement_widget
-        parent.addTab(self.window.cnc_control_tab, "Câmera & Movimento")
+        tab_layout.addWidget(self.window.movement_widget)
+
+        self.window.movement_tab = tab_widget
+        self.window.camera_preview = None
+        parent.addTab(tab_widget, "Movimento")
 
     def _create_connection_manager_controller(self):
         """Cria ConnectionManagerController após UI estar montada."""
@@ -335,7 +315,7 @@ class MainUIBuilder:
             self.window.connection_manager_controller = ConnectionManagerController(
                 self.window.controller,
                 self.window.config,
-                self.window.camera_preview,
+                getattr(self.window, "camera_preview", None),
                 self.window
             )
             logger.debug("ConnectionManagerController criado com sucesso")
@@ -353,10 +333,7 @@ class MainUIBuilder:
             stencil_manager=self.window.stencil_tracker,
             parent=self.window
         )
-        self.window.tree_view_tab.inspect_requested.connect(
-            self.window._on_inspect_requested
-        )
-        parent.addTab(self.window.tree_view_tab, "📋 Programas")
+        parent.addTab(self.window.tree_view_tab, "📋 Stencils")
 
         # Aba 2: Monitor CLP
         self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
@@ -386,28 +363,6 @@ class MainUIBuilder:
         self.window.stencil_identification = self.window.tracking_tab.stencil_identification
         self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
         parent.addTab(self.window.tracking_tab, "🏷️ Rastreabilidade")
-
-        # Aba 5: Inspeção Visual
-        self.window.inspection_tab = InspectionTab(parent=self.window)
-        self.window.inspection_tab.settings_requested.connect(
-            self.window.show_inspection_settings
-        )
-        parent.addTab(self.window.inspection_tab, "🔍 Inspeção")
-
-        # Aba 6: Programação de Mapa
-        self.window.map_tab = MapTab(parent=self.window)
-        self.window.map_tab.map_definition_requested.connect(
-            lambda: self.window.map_controller.show_dialog(
-                self.window,
-                self.window.cnc_control_tab.camera_preview if hasattr(
-                    self.window, "cnc_control_tab"
-                ) else None
-            )
-        )
-        self.window.map_tab.mosaic_builder_requested.connect(
-            self.window.show_mosaic_builder
-        )
-        parent.addTab(self.window.map_tab, "🗺️ Mapa")
 
         # NOVO (2026-01-16): Aba "Backup de Controles"
         # Contém os widgets que estavam no painel esquerdo removido

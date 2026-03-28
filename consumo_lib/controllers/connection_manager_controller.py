@@ -188,8 +188,8 @@ class ConnectionManagerController(QObject):
             image = camera.capture()
 
             if image is not None:
-                # Exibe imagem no preview
-                self.camera_preview.display_image(image)
+                if self.camera_preview is not None:
+                    self.camera_preview.display_image(image)
                 self.parent_window.statusBar().showMessage(
                     "Imagem de teste capturada com sucesso"
                 )
@@ -274,7 +274,8 @@ class ConnectionManagerController(QObject):
             connect_button: QPushButton para atualizar texto
         """
         # Interrompe preview antes de liberar a câmera
-        self.camera_preview.stop_preview()
+        if self.camera_preview is not None:
+            self.camera_preview.stop_preview()
 
         # Desconectar
         self.controller.camera.disconnect()

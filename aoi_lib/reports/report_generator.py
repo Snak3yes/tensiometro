@@ -28,7 +28,6 @@ from .report_layout_manager import ReportLayoutManager
 from .builders import (
     TensionReportBuilder,
     StencilHistoryReportBuilder,
-    InspectionReportBuilder
 )
 
 log = logging.getLogger(__name__)
@@ -53,8 +52,6 @@ class ReportGenerator:
         # Relatório de histórico
         path = generator.generate_stencil_history_report(stencil, history)
 
-        # Relatório de inspeção
-        path = generator.generate_inspection_report(inspection_result)
     """
 
     def __init__(self, config: Optional[ReportConfig] = None):
@@ -132,45 +129,6 @@ class ReportGenerator:
         return builder.build(
             stencil=stencil,
             history=history,
-            output_path=output_path
-        )
-
-    def generate_inspection_report(
-        self,
-        inspection_result: Dict[str, Any],
-        overlay_image_path: Optional[str] = None,
-        stencil_code: Optional[str] = None,
-        operator: Optional[str] = None,
-        output_path: Optional[str] = None
-    ) -> str:
-        """
-        Gera relatório de inspeção visual.
-
-        Usa InspectionReportBuilder com 3 serviços compartilhados
-        (ChartGenerator não é necessário para relatórios de inspeção).
-
-        Args:
-            inspection_result: Resultado da inspeção (dict ou InspectionResult)
-            overlay_image_path: Caminho da imagem de overlay (PNG)
-            stencil_code: Código do stencil
-            operator: Nome do operador
-            output_path: Caminho de saída (opcional)
-
-        Returns:
-            Caminho do arquivo PDF gerado
-        """
-        builder = InspectionReportBuilder(
-            self.config,
-            pdf_generator=self.pdf,
-            stats_calculator=self.stats,
-            layout_manager=self.layout
-            # NOTA: chart_generator não é necessário para inspeção
-        )
-        return builder.build(
-            inspection_result=inspection_result,
-            overlay_image_path=overlay_image_path,
-            stencil_code=stencil_code,
-            operator=operator,
             output_path=output_path
         )
 

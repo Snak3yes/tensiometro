@@ -32,13 +32,11 @@ from PyQt6.QtGui import QPixmap, QImage, QPainter, QColor
 # AOI library
 from aoi_lib import (
     CNCAOIController, InspectionPosition,
-    StencilTracker, Stencil, TensionRecord, InspectionRecord
+    StencilTracker, Stencil, TensionRecord
 )
 from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from aoi_lib.fov_calibration import FOVCalibration, CameraFOVConverter, ClickableVideoLabel
-from aoi_lib.stencil_inspector import StencilInspector, InspectionThresholds, InspectionResult
-from aoi_lib.inspection_result_viewer import InspectionResultWidget
 
 # External
 try:
@@ -54,25 +52,24 @@ except ImportError:
 from consumo_lib.dialogs import (
     StencilManagerDialog, StencilCreateDialog,
     FOVCalibrationDialog, CrosshairSettingsDialog,
-    InspectionSettingsDialog, ReportSettingsDialog, AboutDialog,
+    ReportSettingsDialog, AboutDialog,
     LoginDialog,
-    EngineeringWizardDialog
 )
 from consumo_lib.tabs import (
-    CNCControlTab, TensionTab, TrackingTab, InspectionTab, MapTab
+    CNCControlTab, TensionTab, TrackingTab
 )
 from consumo_lib.controllers import (
     MapController, CameraSettingsController, CalibrationController,
-    InspectionUIController, ReportDialogController, SequenceController,
-    FiducialAlignmentController, ConnectionManagerController,
+    ReportDialogController, SequenceController,
+    ConnectionManagerController,
     TensionMeasurementController, DialogManagerController,
     FileIOController, PositionManagerController, RecipeManagerController
 )
-from consumo_lib.coordinators import SetupCoordinator, EngineeringHardwareCoordinator
+from consumo_lib.coordinators import SetupCoordinator
 from consumo_lib.handlers import KeyboardEventHandler, MenuHandler, DialogRouter
 from consumo_lib.ui_builders import MainUIBuilder
 from consumo_lib.services import SequenceExecutionService, ResourceManager
-from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, InspectionManager, ReportManagerWrapper
+from consumo_lib.managers import ConnectionManager, RecipeManagerWrapper, StencilManagerWrapper, ReportManagerWrapper
 from consumo_lib.widgets.tension_viz import TensionVisualizationWidget, TensionCanvas
 from consumo_lib.widgets.image_viewer import ImageViewerWidget
 from consumo_lib.widgets.position_list import PositionListWidget
@@ -90,8 +87,6 @@ from consumo_lib.utils.main_window import (
     MainWindowState,
     MainWindowInitializer,
     MainWindowEventHandlers,
-    MainWindowEngineeringWorkflow,
-    MainWindowInspectionWorkflow
 )
 
 # NOVO (Fase 4): Factories para injeção de dependência
@@ -215,11 +210,11 @@ class AOIControllerApp(QMainWindow):
         # Componente 3: Event handlers
         self._event_handlers = MainWindowEventHandlers(self, self._app_state)
 
-        # Componente 4: Workflow de engenharia
-        self._engineering_workflow = MainWindowEngineeringWorkflow(self)
+        # Componente 4: Workflow de engenharia descontinuado
+        self._engineering_workflow = None
 
-        # Componente 5: Workflow de inspeção
-        self._inspection_workflow = MainWindowInspectionWorkflow(self, self._app_state)
+        # Componente 5: Workflow de inspeção visual descontinuado
+        self._inspection_workflow = None
 
         # ─────────────────────────────────────────────────────────────────────
         # NOVO (Fase 4): Factories para criar componentes
@@ -437,45 +432,75 @@ class AOIControllerApp(QMainWindow):
 
     # Workflow de Inspeção
     def _on_inspect_requested(self, stencil: dict):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.execute_inspection_flow(stencil)
+        """Inspeção visual descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "A funcionalidade de inspeção visual foi descontinuada."
+        )
 
     def run_inspection(self, stencil: dict):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.run_inspection(stencil)
+        """Inspeção visual descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "A funcionalidade de inspeção visual foi descontinuada."
+        )
 
     def on_inspection_complete(self, success: bool, message: str, stencil: dict):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.on_inspection_complete(success, message, stencil)
+        """Inspeção visual descontinuada."""
+        logger.info("Callback de inspeção ignorado: fluxo descontinuado")
 
     def show_inspection_results(self, stencil: dict):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.show_inspection_results(stencil)
+        """Inspeção visual descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "A visualização de resultados de inspeção visual foi descontinuada."
+        )
 
     def save_inspection_to_history(self, stencil: dict, results: dict, mode: str) -> bool:
-        """Delegate para MainWindowInspectionWorkflow."""
-        return self._inspection_workflow.save_inspection_to_history(stencil, results, mode)
+        """Inspeção visual descontinuada."""
+        logger.info("Salvamento de histórico de inspeção ignorado: fluxo descontinuado")
+        return False
 
     def show_positioning_confirmation(self, stencil: dict) -> bool:
-        """Delegate para MainWindowInspectionWorkflow."""
-        return self._inspection_workflow.show_positioning_confirmation(stencil)
+        """Inspeção visual descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "A confirmação de posicionamento para inspeção visual foi descontinuada."
+        )
+        return False
 
     def show_mode_selection(self, stencil: dict) -> bool:
-        """Delegate para MainWindowInspectionWorkflow."""
-        return self._inspection_workflow.show_mode_selection(stencil)
+        """Inspeção visual descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "A seleção de modo de inspeção visual foi descontinuada."
+        )
+        return False
 
     def on_mode_selected(self, data: dict):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.on_mode_selected(data)
+        """Inspeção visual descontinuada."""
+        logger.info("Seleção de modo de inspeção ignorada: fluxo descontinuado")
 
     def show_inspection_history(self, stencil_code: str):
-        """Delegate para MainWindowInspectionWorkflow."""
-        self._inspection_workflow.show_inspection_history(stencil_code)
+        """Abre histórico de medições do stencil para compatibilidade."""
+        from consumo_lib.dialogs.stencil import StencilFullHistoryDialog
+
+        dialog = StencilFullHistoryDialog(self.stencil_tracker, stencil_code, self)
+        dialog.exec()
 
     # Workflow de Engenharia
     def open_engineering_wizard(self):
-        """Delegate para MainWindowEngineeringWorkflow."""
-        self._engineering_workflow.open_wizard()
+        """Engineering Wizard descontinuado."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "O Engineering Wizard foi descontinuado junto com a inspeção visual."
+        )
 
     def show_auth_settings(self):
         """
@@ -573,20 +598,24 @@ class AOIControllerApp(QMainWindow):
         # Por exemplo, atualizar label de usuário atual, etc.
 
     def _on_engineering_program_completed(self, program_data: dict):
-        """Delegate para MainWindowEngineeringWorkflow."""
-        self._engineering_workflow.on_program_completed(program_data)
+        """Engineering Wizard descontinuado."""
+        logger.info("Conclusão de programa de engenharia ignorada: fluxo descontinuado")
 
     def show_saved_programs(self):
-        """Delegate para MainWindowEngineeringWorkflow."""
-        self._engineering_workflow.show_saved_programs()
+        """Lista de programas de inspeção descontinuada."""
+        QMessageBox.information(
+            self,
+            "Indisponível",
+            "Os programas de inspeção visual foram descontinuados."
+        )
 
     def _load_selected_program(self, table, dialog):
-        """Delegate para MainWindowEngineeringWorkflow."""
-        self._engineering_workflow.load_selected_program(table, dialog)
+        """Carregamento de programa de inspeção descontinuado."""
+        logger.info("Carregamento de programa de engenharia ignorado: fluxo descontinuado")
 
     def _delete_selected_program(self, table, dialog):
-        """Delegate para MainWindowEngineeringWorkflow."""
-        self._engineering_workflow.delete_selected_program(table, dialog)
+        """Exclusão de programa de inspeção descontinuada."""
+        logger.info("Exclusão de programa de engenharia ignorada: fluxo descontinuado")
 
     # =========================================================================
     # EVENT HANDLERS (Delegação para MainWindowEventHandlers)
@@ -739,6 +768,13 @@ class AOIControllerApp(QMainWindow):
 
     def connect_camera(self):
         """Conecta à câmera (delega para ConnectionManagerController)."""
+        if not hasattr(self, 'camera_id_combo') or not hasattr(self, 'connect_camera_btn'):
+            QMessageBox.information(
+                self,
+                "Indisponível",
+                "Os controles de câmera foram removidos da interface."
+            )
+            return
         if self.connection_manager_controller is not None:
             self.connection_manager_controller.connect_camera(
                 self.camera_id_combo,
@@ -749,6 +785,13 @@ class AOIControllerApp(QMainWindow):
 
     def test_camera(self):
         """Testa a captura de imagem da câmera (delega para ConnectionManagerController)."""
+        if getattr(self, 'camera_preview', None) is None:
+            QMessageBox.information(
+                self,
+                "Indisponível",
+                "O preview de câmera foi removido da interface."
+            )
+            return
         if self.connection_manager_controller is not None:
             self.connection_manager_controller.test_camera()
         else:

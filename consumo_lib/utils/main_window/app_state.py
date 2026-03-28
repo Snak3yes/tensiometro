@@ -118,7 +118,7 @@ class MainWindowState:
         Aplica permissões de acesso baseadas no role do usuário.
 
         Regras:
-        - OPERATOR: Apenas aba "Programas" habilitada
+        - OPERATOR: Apenas aba "Stencils" habilitada
         - ENGINEERING: Todas as abas habilitadas
         - ADMIN: Todas as abas habilitadas
         """
@@ -155,19 +155,19 @@ class MainWindowState:
                 )
 
         if user.role == UserRole.OPERATOR:
-            # Operador: Apenas aba "Programas" (TreeViewTab)
+            # Operador: Apenas aba "Stencils" (TreeViewTab)
             logger.info(f"Aplicando permissões OPERATOR para {user.username}")
 
-            # Desabilita todas as abas exceto "Programas"
+            # Desabilita todas as abas exceto "Stencils"
             for i in range(self._main_window.right_panel.count()):
                 tab_text = self._main_window.right_panel.tabText(i)
-                if "Programas" not in tab_text:
+                if "Stencils" not in tab_text:
                     self._main_window.right_panel.setTabEnabled(i, False)
                     logger.debug(f"Aba desabilitada: {tab_text}")
 
-            # Garante que aba "Programas" esteja habilitada e selecionada
+            # Garante que aba "Stencils" esteja habilitada e selecionada
             for i in range(self._main_window.right_panel.count()):
-                if "Programas" in self._main_window.right_panel.tabText(i):
+                if "Stencils" in self._main_window.right_panel.tabText(i):
                     self._main_window.right_panel.setTabEnabled(i, True)
                     self._main_window.right_panel.setCurrentIndex(i)
                     logger.debug(f"Aba habilitada e selecionada: {self._main_window.right_panel.tabText(i)}")

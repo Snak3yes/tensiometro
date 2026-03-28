@@ -87,8 +87,12 @@ class MainWindowInitializer:
         """
         config = self.main_window.config
 
-        # Auto-connect câmera
-        if config.get("connections", "auto_connect_camera", default=False):
+        # Auto-connect de câmera só é mantido se a UI ainda expuser os widgets
+        if (
+            config.get("connections", "auto_connect_camera", default=False)
+            and hasattr(self.main_window, "camera_id_combo")
+            and hasattr(self.main_window, "connect_camera")
+        ):
             # Obtém ID salvo (pode ser int ou string URL)
             raw_id = config.get("connections", "last_camera_id", default=0)
 
@@ -119,7 +123,7 @@ class MainWindowInitializer:
 
     def _connect_camera_delayed(self):
         """Conecta a câmera após delay (chamado por QTimer)."""
-        if hasattr(self.main_window, 'connect_camera'):
+        if hasattr(self.main_window, 'connect_camera') and hasattr(self.main_window, 'camera_id_combo'):
             self.main_window.connect_camera()
             logger.info("Câmera conectada automaticamente")
 

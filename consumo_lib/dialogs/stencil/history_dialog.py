@@ -1,8 +1,4 @@
-"""
-dialogs/stencil/history_dialog.py
----------------------------------
-Diálogo para visualizar histórico de inspeções de um stencil.
-"""
+"""Diálogo para visualizar histórico de medições de um stencil."""
 
 import logging
 from datetime import datetime
@@ -24,7 +20,7 @@ log = logging.getLogger(__name__)
 
 class StencilHistoryDialog(QDialog):
     """
-    Diálogo para visualizar histórico de inspeções de um stencil.
+    Diálogo para visualizar histórico de medições de um stencil.
 
     Mostra:
     - Tabela com histórico de medições
@@ -50,7 +46,7 @@ class StencilHistoryDialog(QDialog):
         trend_group = QGroupBox("📈 Análise de Tendência")
         trend_layout = QGridLayout(trend_group)
 
-        trend_layout.addWidget(QLabel("Total de inspeções:"), 0, 0)
+        trend_layout.addWidget(QLabel("Total de medições:"), 0, 0)
         self.lbl_total = QLabel()
         trend_layout.addWidget(self.lbl_total, 0, 1)
 

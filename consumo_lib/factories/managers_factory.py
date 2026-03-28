@@ -4,8 +4,8 @@ managers_factory.py
 -------------------
 Factory para criar todos os managers da aplicação.
 
-Responsabilidade: Criar 11 managers (Connection, Role, Session, Recipe, Stencil,
-Report, Inspection e derivados).
+Responsabilidade: Criar managers ativos da aplicação, preservando receita,
+stencil, relatório, conexão e sessão.
 
 Autor: Sistema AOI Tensiometro
 Data: 2026-01-16 (SOLID Refactoring Phase 2)
@@ -66,7 +66,6 @@ class ManagersFactory:
             RecipeManagerWrapper,
             StencilManagerWrapper,
             ReportManagerWrapper,
-            InspectionManager,
         )
 
         managers = {}
@@ -131,16 +130,13 @@ class ManagersFactory:
         managers['report_generator'] = managers['report_manager_wrapper'].get_generator()
         logger.debug("ReportManagerWrapper criado via ManagersFactory")
 
-        # 9. Inspection Manager
-        managers['inspection_manager'] = InspectionManager(
-            config,
-            parent=window
-        )
-        managers['inspection_thresholds'] = managers['inspection_manager'].get_thresholds()
-        managers['stencil_inspector'] = managers['inspection_manager'].get_inspector()
+        # 9. Componentes legados de inspeção visual descontinuados
+        managers['inspection_manager'] = None
+        managers['inspection_thresholds'] = None
+        managers['stencil_inspector'] = None
         managers['_last_inspection_result'] = None
         managers['_last_inspection_overlay'] = None
-        logger.debug("InspectionManager criado via ManagersFactory")
+        logger.debug("Inspection visual descontinuada via ManagersFactory")
 
         logger.info("Todos os 11 managers criados via ManagersFactory")
 

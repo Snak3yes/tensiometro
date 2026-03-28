@@ -10,14 +10,10 @@ from consumo_lib.models.inspection_window import (
     WindowGroup,
     WindowLibrary
 )
-from consumo_lib.models.engineering import (
-    ProgramConfig
-)
 
 __all__ = [
     "InspectionWindow",
     "WindowConfig",
     "WindowGroup",
     "WindowLibrary",
-    "ProgramConfig",
 ]

@@ -108,25 +108,21 @@ class ReportManagerWrapper(QObject):
             self.report_failed.emit("tension", error_msg)
             return None
 
-    def generate_stencil_history_report(self, stencil_code: str,
-                                       include_tension: bool = True,
-                                       include_inspections: bool = True) -> Optional[str]:
+    def generate_stencil_history_report(self, stencil: dict, history: list) -> Optional[str]:
         """
-        Gera relatório de histórico de stencil.
+        Gera relatório de histórico de medições do stencil.
 
         Args:
-            stencil_code: Código do stencil
-            include_tension: Incluir histórico de tensão
-            include_inspections: Incluir histórico de inspeções
+            stencil: Dados do stencil
+            history: Histórico de medições de tensão
 
         Returns:
             Caminho do PDF gerado ou None se falhar
         """
         try:
             output_path = self.generator.generate_stencil_history_report(
-                stencil_code=stencil_code,
-                include_tension=include_tension,
-                include_inspections=include_inspections
+                stencil=stencil,
+                history=history,
             )
             logger.info(f"Relatório de histórico gerado: {output_path}")
             self.report_generated.emit("stencil_history", output_path)
@@ -135,34 +131,6 @@ class ReportManagerWrapper(QObject):
             error_msg = f"Erro ao gerar relatório de histórico: {e}"
             logger.error(error_msg)
             self.report_failed.emit("stencil_history", error_msg)
-            return None
-
-    def generate_inspection_report(self, inspection_result, image_path: str,
-                                  gerber_path: str = None) -> Optional[str]:
-        """
-        Gera relatório de inspeção visual.
-
-        Args:
-            inspection_result: Resultado da inspeção
-            image_path: Caminho da imagem inspecionada
-            gerber_path: Caminho do arquivo Gerber (opcional)
-
-        Returns:
-            Caminho do PDF gerado ou None se falhar
-        """
-        try:
-            output_path = self.generator.generate_inspection_report(
-                inspection_result=inspection_result,
-                image_path=image_path,
-                gerber_path=gerber_path
-            )
-            logger.info(f"Relatório de inspeção gerado: {output_path}")
-            self.report_generated.emit("inspection", output_path)
-            return output_path
-        except Exception as e:
-            error_msg = f"Erro ao gerar relatório de inspeção: {e}"
-            logger.error(error_msg)
-            self.report_failed.emit("inspection", error_msg)
             return None
 
     def get_generator(self) -> ReportGenerator:

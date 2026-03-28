@@ -4,9 +4,7 @@ controllers_factory.py
 -----------------------
 Factory para criar todos os controllers da aplicação.
 
-Responsabilidade: Criar 11 controllers (Map, CameraSettings, Calibration,
-InspectionUI, ReportDialog, Sequence, FiducialAlignment, TensionMeasurement,
-DialogManager, FileIO, PositionManager).
+Responsabilidade: Criar controllers ativos da aplicação.
 
 Autor: Sistema AOI Tensiometro
 Data: 2026-01-16 (SOLID Refactoring Phase 2)
@@ -28,7 +26,7 @@ class ControllersFactory:
     Factory para criar todos os controllers da aplicação.
 
     Responsabilidade:
-    - Criar controllers independentes de UI (Map, CameraSettings, Calibration, etc.)
+    - Criar controllers independentes de UI ativos (Map, CameraSettings, Calibration, etc.)
     - Criar controllers dependentes de UI (FileIO, PositionManager)
     - Tratamento robusto de erros (continua mesmo se um controller falhar)
 
@@ -61,10 +59,8 @@ class ControllersFactory:
             MapController,
             CameraSettingsController,
             CalibrationController,
-            InspectionUIController,
             ReportDialogController,
             SequenceController,
-            FiducialAlignmentController,
             TensionMeasurementController,
             DialogManagerController,
         )
@@ -110,20 +106,7 @@ class ControllersFactory:
             logger.error(f"Erro ao criar CalibrationController via ControllersFactory: {e}")
             controllers['calibration_controller'] = None
 
-        # 4. Inspection UI Controller
-        try:
-            controllers['inspection_ui_controller'] = InspectionUIController(
-                managers['inspection_manager'],
-                config,
-                window
-            )
-            controllers['inspection_ui_controller'].setup_ui_handlers()
-            logger.debug("InspectionUIController criado via ControllersFactory")
-        except Exception as e:
-            logger.error(f"Erro ao criar InspectionUIController via ControllersFactory: {e}")
-            controllers['inspection_ui_controller'] = None
-
-        # 5. Report Dialog Controller
+        # 4. Report Dialog Controller
         try:
             controllers['report_dialog_controller'] = ReportDialogController(
                 managers['report_manager_wrapper'],
@@ -137,7 +120,7 @@ class ControllersFactory:
             logger.error(f"Erro ao criar ReportDialogController via ControllersFactory: {e}")
             controllers['report_dialog_controller'] = None
 
-        # 6. Sequence Controller
+        # 5. Sequence Controller
         try:
             controllers['sequence_controller'] = SequenceController(
                 controller,
@@ -148,23 +131,10 @@ class ControllersFactory:
             logger.error(f"Erro ao criar SequenceController via ControllersFactory: {e}")
             controllers['sequence_controller'] = None
 
-        # 7. Fiducial Alignment Controller
-        try:
-            controllers['fiducial_alignment_controller'] = FiducialAlignmentController(
-                config,
-                controller.camera,
-                window
-            )
-            controllers['fiducial_alignment_controller'].setup_ui_handlers()
-            logger.debug("FiducialAlignmentController criado via ControllersFactory")
-        except Exception as e:
-            logger.error(f"Erro ao criar FiducialAlignmentController via ControllersFactory: {e}")
-            controllers['fiducial_alignment_controller'] = None
-
-        # 8. ConnectionManagerController será criado após setupUI()
+        # 6. ConnectionManagerController será criado após setupUI()
         controllers['connection_manager_controller'] = None
 
-        # 9. Tension Measurement Controller
+        # 7. Tension Measurement Controller
         try:
             controllers['tension_measurement_controller'] = TensionMeasurementController(
                 controller,
@@ -178,7 +148,7 @@ class ControllersFactory:
             logger.error(f"Erro ao criar TensionMeasurementController via ControllersFactory: {e}")
             controllers['tension_measurement_controller'] = None
 
-        # 10. Dialog Manager Controller
+        # 8. Dialog Manager Controller
         try:
             controllers['dialog_manager_controller'] = DialogManagerController(
                 managers['stencil_manager_wrapper'],

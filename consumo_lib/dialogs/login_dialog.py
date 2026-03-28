@@ -56,7 +56,7 @@ class LoginDialog(QDialog):
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
-        subtitle_label = QLabel("Sistema de Inspeção de Stencils")
+        subtitle_label = QLabel("Sistema de Tensão e Rastreabilidade")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(subtitle_label)
 

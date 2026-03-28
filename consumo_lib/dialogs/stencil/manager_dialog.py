@@ -73,7 +73,7 @@ class StencilManagerDialog(QDialog):
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            "Código", "Descrição", "Receita", "Última Inspeção", "Inspeções", "Status"
+            "Código", "Descrição", "Receita", "Última Medição", "Medições", "Status"
         ])
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
@@ -135,7 +135,7 @@ class StencilManagerDialog(QDialog):
             self.table.setItem(row, 1, QTableWidgetItem(stencil.description))
             self.table.setItem(row, 2, QTableWidgetItem(stencil.recipe_name or ""))
 
-            # Última inspeção
+            # Última medição
             if stencil.last_inspection:
                 try:
                     dt = datetime.fromisoformat(stencil.last_inspection)

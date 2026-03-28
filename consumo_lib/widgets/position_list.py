@@ -21,7 +21,7 @@ class PositionListWidget(QWidget):
         self.layout = QVBoxLayout(self)
         
         # Título
-        title_label = QLabel("Posições de Inspeção")
+        title_label = QLabel("Posições Salvas")
         title_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, bold=True))
         
         # Lista de posições

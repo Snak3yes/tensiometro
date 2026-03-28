@@ -167,7 +167,7 @@ class ProgramSelector(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Label
-        label = QLabel("Programa de Inspeção:")
+        label = QLabel("Rotina:")
         label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
 
         # Dropdown
@@ -186,7 +186,7 @@ class ProgramSelector(QWidget):
         self._combo.clear()
 
         if not self._programs:
-            self._combo.addItem("Nenhum programa disponível", None)
+            self._combo.addItem("Nenhuma rotina disponível", None)
             return
 
         # Adiciona programas
@@ -291,7 +291,7 @@ class InspectionResultsWidget(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         # GroupBox
-        self._group = QGroupBox("Resultado da Inspeção")
+        self._group = QGroupBox("Resultado")
         self._group.setFont(TYPO.get_font(TYPO.LABEL_LARGE, bold=True))
 
         group_layout = QVBoxLayout()
@@ -303,7 +303,7 @@ class InspectionResultsWidget(QWidget):
         self._classification_label.setAutoFillBackground(True)
 
         # Label de métricas
-        self._metrics_label = QLabel("Aguardando inspeção...")
+        self._metrics_label = QLabel("Aguardando processamento...")
         self._metrics_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._metrics_label.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
 
@@ -325,7 +325,7 @@ class InspectionResultsWidget(QWidget):
         self._classification_label.setStyleSheet(
             f"background-color: {COLORS.SURFACE}; color: {COLORS.TEXT_HINT}; padding: {SPACE.LG}px; border-radius: {SPACE.SM}px;"
         )
-        self._metrics_label.setText("Aguardando inspeção...")
+        self._metrics_label.setText("Aguardando processamento...")
 
     def _set_pass_style(self):
         """Define estilo para resultado APROVADO."""

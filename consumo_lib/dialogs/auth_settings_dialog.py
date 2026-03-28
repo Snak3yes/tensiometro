@@ -129,25 +129,23 @@ class AuthenticationSettingsDialog(QDialog):
 
         layout.addWidget(login_group)
 
-        # Grupo: Configurações do Engineering Wizard
-        engineering_group = QGroupBox("Configurações do Engineering Wizard")
+        # Grupo: Opções avançadas legadas
+        engineering_group = QGroupBox("Opções Avançadas")
         engineering_layout = QFormLayout(engineering_group)
 
         # Checkbox: Habilitar navegação livre
         self.chk_free_navigation = QCheckBox(
-            "Habilitar Navegação Livre (Testing/Debug)"
+            "Habilitar navegação livre legada"
         )
         self.chk_free_navigation.setToolTip(
-            "Permite navegar livremente entre todas as abas do Engineering Wizard "
-            "sem necessidade de completar validações sequencialmente."
+            "Mantém uma configuração legada de compatibilidade."
         )
         self.chk_free_navigation.stateChanged.connect(self.on_config_changed)
         engineering_layout.addRow("", self.chk_free_navigation)
 
         # Descrição
         free_nav_desc = QLabel(
-            "Quando habilitado, remove as travas de navegação sequencial, "
-            "permitindo acessar qualquer aba diretamente."
+            "Esta opção é mantida apenas por compatibilidade com configurações antigas."
         )
         free_nav_desc.setWordWrap(True)
         free_nav_desc.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY}; font-size: 11px; padding: {SPACE.XS}px;")
@@ -155,7 +153,7 @@ class AuthenticationSettingsDialog(QDialog):
 
         # Aviso
         free_nav_warning = QLabel(
-            "⚠️ Modo de desenvolvimento - permite ignorar validações"
+            "⚠️ Opção legada; não afeta o fluxo principal atual."
         )
         free_nav_warning.setWordWrap(True)
         free_nav_warning.setStyleSheet(

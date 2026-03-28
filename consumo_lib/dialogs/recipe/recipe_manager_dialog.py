@@ -117,7 +117,7 @@ class RecipeManagerDialog(QDialog):
         right_layout.setContentsMargins(10, 0, 0, 0)
 
         preview_title = QLabel("📄 Detalhes da Receita")
-        preview_title.setFont(title_font)
+        preview_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         right_layout.addWidget(preview_title)
 
         self.preview_label = QLabel("Selecione uma receita para ver os detalhes.")
@@ -203,13 +203,6 @@ Aceitação: {recipe.tension.acceptance.min_tension} - {recipe.tension.acceptanc
 Área: ({recipe.capture.origin.x}, {recipe.capture.origin.y}) até ({recipe.capture.end.x}, {recipe.capture.end.y})<br>
 Steps: {recipe.capture.step_x} x {recipe.capture.step_y} mm<br>
 Backlight: {'Sim' if recipe.capture.backlight_enabled else 'Não'}
-</p>
-
-<h4>🔍 Inspeção</h4>
-<p>
-Status: {'Habilitado' if recipe.inspection.enabled else 'Pendente (Gerber não carregado)'}<br>
-Threshold: {recipe.inspection.default_threshold}<br>
-% Mínimo: {recipe.inspection.default_min_percent}%
 </p>
 """
             self.preview_label.setText(preview_text)

@@ -1,7 +1,7 @@
 """
 dialogs/report_settings.py
 --------------------------
-Diálogo de configuração de relatórios para o sistema AOI.
+Diálogo de configuração de relatórios do sistema.
 
 Permite ao usuário configurar:
 - Logo e nome da empresa
@@ -120,7 +120,7 @@ class ReportSettingsDialog(QDialog):
         company_layout.addRow("Nome da Empresa:", self.edit_company_name)
 
         self.edit_subtitle = QLineEdit()
-        self.edit_subtitle.setPlaceholderText("Ex: Sistema de Inspeção de Stencils")
+        self.edit_subtitle.setPlaceholderText("Ex: Sistema de Tensão e Rastreabilidade")
         company_layout.addRow("Subtítulo:", self.edit_subtitle)
 
         identity_layout.addWidget(company_group)
@@ -412,7 +412,7 @@ class ReportSettingsDialog(QDialog):
 
         return ReportConfig(
             company_name=self.edit_company_name.text().strip() or "SeuStencil",
-            company_subtitle=self.edit_subtitle.text().strip() or "Sistema de Inspeção de Stencils",
+            company_subtitle=self.edit_subtitle.text().strip() or "Sistema de Tensão e Rastreabilidade",
             logo_path=logo_path,
             output_dir=self.edit_output_dir.text().strip() or "reports",
             include_charts=self.chk_include_charts.isChecked(),

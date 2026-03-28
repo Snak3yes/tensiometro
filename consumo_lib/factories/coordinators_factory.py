@@ -4,8 +4,7 @@ coordinators_factory.py
 -----------------------
 Factory para criar todos os coordinators da aplicação.
 
-Responsabilidade: Criar 4 coordinators (Connection, Inspection, Tension,
-OperatorInspection).
+Responsabilidade: Criar coordinators ativos da aplicação.
 
 Autor: Sistema AOI Tensiometro
 Data: 2026-01-16 (SOLID Refactoring Phase 2)
@@ -28,12 +27,10 @@ class CoordinatorsFactory:
 
     Responsabilidade:
     - Criar ConnectionCoordinator (gerencia estados de conexão)
-    - Criar InspectionCoordinator (gerencia inspeção visual)
     - Criar TensionCoordinator (gerencia medição de tensão)
-    - Criar OperatorInspectionCoordinator (gerencia workflow de operador)
 
     Methods:
-    - create_all_coordinators(): Cria todos os 4 coordinators
+    - create_all_coordinators(): Cria todos os coordinators ativos
     """
 
     def create_all_coordinators(
@@ -57,9 +54,7 @@ class CoordinatorsFactory:
         """
         from consumo_lib.coordinators import (
             ConnectionCoordinator,
-            InspectionCoordinator,
             TensionCoordinator,
-            OperatorInspectionCoordinator,
         )
 
         coordinators = {}
@@ -71,31 +66,13 @@ class CoordinatorsFactory:
         )
         logger.debug("ConnectionCoordinator criado via CoordinatorsFactory")
 
-        # 2. Inspection Coordinator
-        # Nota: inspection_manager está em managers
-        coordinators['inspection_coordinator'] = InspectionCoordinator(
-            controller,
-            config,
-            managers['inspection_manager']
-        )
-        logger.debug("InspectionCoordinator criado via CoordinatorsFactory")
-
-        # 3. Tension Coordinator
+        # 2. Tension Coordinator
         coordinators['tension_coordinator'] = TensionCoordinator(
             controller,
             config
         )
         logger.debug("TensionCoordinator criado via CoordinatorsFactory")
 
-        # 4. Operator Inspection Coordinator (NOVO - Operator Workflow Fase 2)
-        # Nota: role_manager e session_logger estão em managers
-        coordinators['operator_inspection_coordinator'] = OperatorInspectionCoordinator(
-            inspection_coordinator=coordinators['inspection_coordinator'],
-            role_manager=managers['role_manager'],
-            session_logger=managers['session_logger']
-        )
-        logger.debug("OperatorInspectionCoordinator criado via CoordinatorsFactory")
-
-        logger.info("Todos os 4 coordinators criados via CoordinatorsFactory")
+        logger.info("Todos os coordinators ativos criados via CoordinatorsFactory")
 
         return coordinators

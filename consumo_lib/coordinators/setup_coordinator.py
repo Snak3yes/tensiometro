@@ -18,8 +18,8 @@ class SetupCoordinator:
 
     Responsabilidades:
         - Inicializar configurações e controller principal
-        - Criar todos os managers (recipe, stencil, report, inspection)
-        - Criar todos os coordinators (connection, inspection, tension)
+        - Criar todos os managers ativos (recipe, stencil, report)
+        - Criar todos os coordinators ativos (connection, tension)
         - Criar todos os handlers (keyboard, menu, GRBL, dialogs)
         - Criar todos os controllers (map, camera, calibration, etc.)
         - Criar todos os services (sequence execution, resource)
@@ -87,7 +87,7 @@ class SetupCoordinator:
 
         Nota: config já foi criado pela factory, apenas configura a janela.
         """
-        self.window.setWindowTitle("Controle de Inspeção Óptica Automatizada")
+        self.window.setWindowTitle("Controle de Tensão e Rastreabilidade")
         self.window.setGeometry(100, 100, 1200, 800)
 
         logger.debug("Configuração básica concluída (config via factory)")
@@ -205,8 +205,7 @@ class SetupCoordinator:
         Refatoração Fases 1.2.1 a 1.2.6 (2026-01-14):
         - Recipe handlers → RecipeManagerController
         - Tension handlers → TensionMeasurementController
-        - Inspection handlers → InspectionUIController
-        - Camera/Calibration handlers → CameraController/CalibrationController/FiducialAlignmentController
+        - Camera/Calibration handlers → CameraController/CalibrationController
         - Map/Position handlers → MapController/PositionManagerController
         - Stencil/Report handlers → StencilManagerWrapper/ReportDialogController
 

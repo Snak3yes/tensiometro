@@ -100,8 +100,8 @@ class StencilIdentificationWidget(QWidget):
         self.lbl_recipe.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.lbl_recipe, 1, 1, 1, 2)
 
-        # Última inspeção
-        info_layout.addWidget(QLabel("Última inspeção:"), 2, 0)
+        # Última medição
+        info_layout.addWidget(QLabel("Última medição:"), 2, 0)
         self.lbl_last_inspection = QLabel()
         info_layout.addWidget(self.lbl_last_inspection, 2, 1)
 
@@ -178,9 +178,9 @@ class StencilIdentificationWidget(QWidget):
 
         if not stencil:
             QMessageBox.warning(
-                self, "Programa Não Existe",
-                f"O programa '{code}' não existe no sistema.\n\n"
-                "Verifique o código ou solicite à engenharia para cadastrar."
+                self, "Stencil Não Existe",
+                f"O stencil '{code}' não existe no sistema.\n\n"
+                "Verifique o código ou faça o cadastro antes de continuar."
             )
             self.code_input.selectAll()
             self.code_input.setFocus()
@@ -218,9 +218,9 @@ class StencilIdentificationWidget(QWidget):
             except:
                 self.lbl_last_inspection.setText(stencil.last_inspection)
         else:
-            self.lbl_last_inspection.setText("Nunca inspecionado")
+            self.lbl_last_inspection.setText("Nenhuma medição registrada")
 
-        self.lbl_inspection_count.setText(f"({stencil.inspection_count} inspeções)")
+        self.lbl_inspection_count.setText(f"({stencil.inspection_count} medições)")
 
         # Verifica alertas de tendência
         if stencil.recipe_name:

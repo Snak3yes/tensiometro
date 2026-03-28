@@ -4,7 +4,7 @@ recipe_edit_dialog.py
 ----------------------
 Diálogo para criar ou editar uma receita.
 
-Responsabilidade: Formulário com 5 tabs (Info, Stencil, Tensão, Captura, Inspeção)
+Responsabilidade: Formulário com 4 tabs (Info, Stencil, Tensão, Captura)
 para edição completa de uma receita.
 
 Autor: Sistema AOI Tensiometro
@@ -22,7 +22,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt
 from aoi_lib.recipe_manager import (
     Recipe, StencilInfo, TensionConfig,
-    TensionAcceptance, CaptureConfig, InspectionConfig,
+    TensionAcceptance, CaptureConfig,
     Point2D, MACHINE_LIMITS
 )
 from consumo_lib.ui import COLORS, SPACE
@@ -44,7 +44,6 @@ class RecipeEditorDialog(QDialog):
     2. Stencil (dimensões, material)
     3. Tensão (grid, critérios de aceitação)
     4. Captura (área, parâmetros)
-    5. Inspeção (threshold, parâmetros futuros)
     """
 
     def __init__(self, recipe: Recipe = None, parent=None):
@@ -83,9 +82,6 @@ class RecipeEditorDialog(QDialog):
 
         # Tab 4: Captura
         self.tabs.addTab(self._create_capture_tab(), "📷 Captura")
-
-        # Tab 5: Inspeção (placeholder)
-        self.tabs.addTab(self._create_inspection_tab(), "🔍 Inspeção")
 
         layout.addWidget(self.tabs)
 
@@ -353,58 +349,6 @@ class RecipeEditorDialog(QDialog):
 
         return widget
 
-    def _create_inspection_tab(self) -> QWidget:
-        """Cria tab de configuração de inspeção (placeholder)."""
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
-
-        # Placeholder para integração futura
-        info_label = QLabel(
-            "🔍 Inspeção Visual de Aberturas\n\n"
-            "Esta funcionalidade requer integração com arquivo Gerber.\n\n"
-            "📌 Próximos passos:\n"
-            "• Importar arquivo Gerber do stencil\n"
-            "• Gerar máscaras de inspeção\n"
-            "• Configurar threshold e critérios\n"
-        )
-        info_label.setStyleSheet(f"""
-            QLabel {{
-                background-color: {COLORS.SURFACE};
-                border: 1px solid {COLORS.BORDER};
-                border-radius: 5px;
-                padding: {SPACE.LG}px;
-                color: {COLORS.TEXT_HINT};
-            }}
-        """)
-        info_label.setWordWrap(True)
-        layout.addWidget(info_label)
-
-        # Parâmetros básicos (para uso futuro)
-        params_group = QGroupBox("Parâmetros Padrão (para uso futuro)")
-        params_layout = QGridLayout(params_group)
-
-        params_layout.addWidget(QLabel("Threshold:"), 0, 0)
-        self.spin_threshold = QSpinBox()
-        self.spin_threshold.setRange(0, 255)
-        self.spin_threshold.setValue(128)
-        params_layout.addWidget(self.spin_threshold, 0, 1)
-
-        params_layout.addWidget(QLabel("% Mínimo:"), 0, 2)
-        self.spin_min_percent = QDoubleSpinBox()
-        self.spin_min_percent.setRange(0, 100)
-        self.spin_min_percent.setValue(95)
-        params_layout.addWidget(self.spin_min_percent, 0, 3)
-
-        params_layout.addWidget(QLabel("Cor alvo:"), 1, 0)
-        self.combo_target_color = QComboBox()
-        self.combo_target_color.addItems(["Branco", "Preto"])
-        params_layout.addWidget(self.combo_target_color, 1, 1)
-
-        layout.addWidget(params_group)
-        layout.addStretch()
-
-        return widget
-
     def load_recipe_data(self):
         """Carrega dados da receita nos widgets."""
         r = self.recipe
@@ -444,13 +388,6 @@ class RecipeEditorDialog(QDialog):
         self.spin_feed_rate.setValue(r.capture.feed_rate)
         self.spin_delay.setValue(r.capture.capture_delay_ms)
         self.chk_backlight.setChecked(r.capture.backlight_enabled)
-
-        # Inspeção
-        self.spin_threshold.setValue(r.inspection.default_threshold)
-        self.spin_min_percent.setValue(r.inspection.default_min_percent)
-        self.combo_target_color.setCurrentIndex(
-            0 if r.inspection.target_color == "white" else 1
-        )
 
     def save_recipe_data(self) -> Recipe:
         """Salva dados dos widgets na receita."""
@@ -500,13 +437,6 @@ class RecipeEditorDialog(QDialog):
         r.capture.feed_rate = self.spin_feed_rate.value()
         r.capture.capture_delay_ms = self.spin_delay.value()
         r.capture.backlight_enabled = self.chk_backlight.isChecked()
-
-        # Inspeção
-        r.inspection.default_threshold = self.spin_threshold.value()
-        r.inspection.default_min_percent = self.spin_min_percent.value()
-        r.inspection.target_color = (
-            "white" if self.combo_target_color.currentIndex() == 0 else "black"
-        )
 
         return r
 

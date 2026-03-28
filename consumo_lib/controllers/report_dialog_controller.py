@@ -145,11 +145,28 @@ class ReportDialogController(QObject):
             return
 
         try:
+            stencil_data = (
+                current_stencil.to_dict()
+                if hasattr(current_stencil, "to_dict")
+                else {
+                    "code": current_stencil.code,
+                    "description": getattr(current_stencil, "description", ""),
+                    "recipe_name": getattr(current_stencil, "recipe_name", None),
+                    "created_at": getattr(current_stencil, "created_at", ""),
+                    "last_inspection": getattr(current_stencil, "last_inspection", None),
+                    "inspection_count": getattr(current_stencil, "inspection_count", 0),
+                    "status": getattr(current_stencil, "status", "active"),
+                }
+            )
+            history_data = [
+                record.to_dict() if hasattr(record, "to_dict") else record
+                for record in history
+            ]
+
             # Gerar relatório via manager
             output_path = self.report_manager.generate_stencil_history_report(
-                stencil_code=current_stencil.code,
-                include_tension=True,
-                include_inspections=True
+                stencil=stencil_data,
+                history=history_data,
             )
 
             if output_path:

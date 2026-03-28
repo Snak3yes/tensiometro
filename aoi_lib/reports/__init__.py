@@ -5,7 +5,7 @@ PDF report generation services for the AOI system.
 
 This package contains:
 - Specialized services: PDFGenerator, ChartGenerator, StatisticsCalculator, ReportLayoutManager
-- Report builders: TensionReportBuilder, StencilHistoryReportBuilder, InspectionReportBuilder
+- Report builders: TensionReportBuilder, StencilHistoryReportBuilder
 - Main facade: ReportGenerator (orchestrates all services and builders)
 
 Usage:
@@ -17,7 +17,6 @@ Usage:
     # Generate reports
     path = generator.generate_tension_report(tension_data)
     path = generator.generate_stencil_history_report(stencil, history)
-    path = generator.generate_inspection_report(inspection_result)
 """
 
 # Specialized services
@@ -30,7 +29,6 @@ from .report_layout_manager import ReportLayoutManager
 from .builders import (
     TensionReportBuilder,
     StencilHistoryReportBuilder,
-    InspectionReportBuilder
 )
 
 # Main facade
@@ -51,7 +49,6 @@ __all__ = [
     # Builders
     "TensionReportBuilder",
     "StencilHistoryReportBuilder",
-    "InspectionReportBuilder",
     # Facade
     "ReportGenerator",
     # Config

@@ -20,9 +20,9 @@ class AboutDialog:
         """
         QMessageBox.about(
             parent,
-            "Sobre Tensiômetro AOI",
-            "<h2>Sistema AOI Tensiômetro</h2>"
-            "<h3>Controle de Qualidade de Stencils SMT</h3>"
+            "Sobre o Tensiômetro",
+            "<h2>Sistema Tensiômetro</h2>"
+            "<h3>Controle de Tensão, Rastreabilidade e Movimento</h3>"
             "<p><b>Versão:</b> 0.4.0</p>"
             "<p><b>Desenvolvido por:</b> Ronald Buzaglo</p>"
             "<hr>"
@@ -33,7 +33,6 @@ class AboutDialog:
             "<p><b>Funcionalidades:</b></p>"
             "<ul>"
             "<li>✓ Medição de tensão superficial com AS-120N</li>"
-            "<li>✓ Inspeção visual de aberturas (Gerber RS-274X)</li>"
             "<li>✓ Controle CNC 3 eixos via PLC (Modbus TCP)</li>"
             "<li>✓ Geração de relatórios PDF com tendências</li>"
             "<li>✓ Rastreabilidade completa de stencils</li>"

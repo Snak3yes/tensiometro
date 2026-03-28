@@ -237,31 +237,6 @@ CREATE INDEX IF NOT EXISTS idx_tension_stencil ON tension_records(stencil_id);
 CREATE INDEX IF NOT EXISTS idx_tension_timestamp ON tension_records(timestamp);
 CREATE INDEX IF NOT EXISTS idx_tension_result ON tension_records(result);
 
--- Tabela de inspeções visuais
-CREATE TABLE IF NOT EXISTS inspection_records (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    stencil_id INTEGER NOT NULL,
-    timestamp TEXT NOT NULL,
-    total_apertures INTEGER DEFAULT 0,
-    ok_count INTEGER DEFAULT 0,
-    partial_count INTEGER DEFAULT 0,
-    blocked_count INTEGER DEFAULT 0,
-    result TEXT DEFAULT 'PASS',
-    pass_rate REAL DEFAULT 100.0,
-    gerber_file TEXT,
-    operator TEXT,
-    recipe_name TEXT,
-    report_path TEXT,
-    defects_json TEXT,
-    notes TEXT DEFAULT '',
-    FOREIGN KEY (stencil_id) REFERENCES stencils(id) ON DELETE CASCADE
-);
-
--- Índices para inspection_records
-CREATE INDEX IF NOT EXISTS idx_inspection_stencil ON inspection_records(stencil_id);
-CREATE INDEX IF NOT EXISTS idx_inspection_timestamp ON inspection_records(timestamp);
-CREATE INDEX IF NOT EXISTS idx_inspection_result ON inspection_records(result);
-
 -- Tabela de metadados do banco
 CREATE TABLE IF NOT EXISTS db_metadata (
     key TEXT PRIMARY KEY,

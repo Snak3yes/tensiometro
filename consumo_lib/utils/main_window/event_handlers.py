@@ -81,82 +81,63 @@ class MainWindowEventHandlers:
 
     def on_inspect_requested(self, stencil: Dict[str, Any]):
         """
-        Handler: Solicitação de inspeção da TreeView.
-
-        Fluxo: TreeView → Posicionamento → Modo → Execução
+        Handler legado para inspeção visual descontinuada.
 
         Args:
             stencil: Dicionário com dados do stencil
         """
-        logger.info(f"Solicitação de inspeção: {stencil.get('code', 'N/A')}")
-
-        # Importa workflow de inspeção
-        from consumo_lib.utils.main_window.inspection_workflow import MainWindowInspectionWorkflow
-
-        # Cria workflow e executa
-        workflow = MainWindowInspectionWorkflow(self.main_window, self.state)
-        workflow.execute_inspection_flow(stencil)
+        logger.info(
+            "Solicitação de inspeção ignorada: funcionalidade descontinuada (%s)",
+            stencil.get('code', 'N/A')
+        )
+        QMessageBox.information(
+            self.main_window,
+            "Indisponível",
+            "A inspeção visual foi descontinuada."
+        )
 
     def on_inspection_complete(self, success: bool, message: str, stencil: Dict[str, Any]):
         """
-        Handler: Inspeção completada.
+        Handler legado para inspeção visual descontinuada.
 
         Args:
             success: True se sucesso
             message: Mensagem de resultado
             stencil: Dados do stencil
         """
-        if success:
-            logger.info(f"Inspeção concluída: {stencil['code']} - {message}")
-
-            # FASE 6: Exibir resultados
-            self.show_inspection_results(stencil)
-        else:
-            logger.error(f"Inspeção falhou: {stencil['code']} - {message}")
-            QMessageBox.warning(
-                self.main_window,
-                "Erro na Inspeção",
-                f"A inspeção não pôde ser concluída:\n\n{message}"
-            )
+        logger.info(
+            "Conclusão de inspeção ignorada: funcionalidade descontinuada (%s)",
+            stencil.get('code', 'N/A')
+        )
 
     def show_inspection_results(self, stencil: Dict[str, Any]):
         """
-        Exibe dialog de resultados da inspeção.
+        Exibe aviso de funcionalidade descontinuada.
 
         Args:
             stencil: Dicionário com dados do stencil
         """
-        from consumo_lib.dialogs import InspectionResultsDialog
-
-        mode = getattr(self.main_window, 'selected_inspection_mode', 'tension')
-        results = getattr(self.main_window, 'inspection_results', {})
-
-        dialog = InspectionResultsDialog(
-            stencil['code'],
-            mode,
-            results,
-            self.main_window
+        logger.info(
+            "Visualização de resultados de inspeção ignorada: funcionalidade descontinuada (%s)",
+            stencil.get('code', 'N/A')
         )
-
-        dialog.exec()
+        QMessageBox.information(
+            self.main_window,
+            "Indisponível",
+            "Os resultados de inspeção visual foram descontinuados."
+        )
 
     def on_mode_selected(self, data: Dict[str, Any]):
         """
-        Handler: Modo de inspeção selecionado.
+        Handler legado para seleção de modo de inspeção descontinuada.
 
         Args:
             data: Dict com "mode" e "stencil_code"
         """
-        mode = data.get("mode")
-        stencil_code = data.get("stencil_code")
-
-        logger.info(f"Modo selecionado: {mode} para stencil {stencil_code}")
-
-        # Armazena modo selecionado para uso na execução
-        if self.state:
-            self.state.inspection_mode = mode
-        else:
-            self.main_window.selected_inspection_mode = mode
+        logger.info(
+            "Seleção de modo de inspeção ignorada: funcionalidade descontinuada (%s)",
+            data.get("stencil_code", "N/A")
+        )
 
     # =========================================================================
     # HANDLERS DE SEQUÊNCIA
@@ -200,8 +181,8 @@ class MainWindowEventHandlers:
         image = result["image"]
         timestamp = result["timestamp"]
 
-        # Display the image on the existing camera_preview widget
-        self.main_window.camera_preview.display_image(image)
+        if getattr(self.main_window, "camera_preview", None) is not None:
+            self.main_window.camera_preview.display_image(image)
 
         # Add to results table
         row = self.main_window.results_table.rowCount()

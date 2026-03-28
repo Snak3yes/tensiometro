@@ -29,16 +29,14 @@ class MenuHandler(QObject):
         - Gerenciar estado dinâmico de menus (enabled/disabled)
 
     Estrutura de Menus:
-        - Arquivo (1 action)
-        - Receitas (5 actions)
-        - Stencils (3 actions)
-        - Relatórios (4 actions)
-        - Ferramentas (11 actions)
-        - Engenharia (2 actions) - NOVO
-        - Tensão do Stencil (1 action)
-        - Inspeção Visual (3 actions)
-        - Operador (2 actions)
-        - Ajuda (1 action)
+        - Arquivo
+        - Receitas
+        - Stencils
+        - Relatórios
+        - Ferramentas
+        - Sistema
+        - Tensão do Stencil
+        - Ajuda
     """
 
     def __init__(self, main_window=None):
@@ -87,14 +85,8 @@ class MenuHandler(QObject):
         # Menu Tensão do Stencil
         self._create_tension_menu(menubar)
 
-        # Menu Inspeção Visual
-        self._create_inspection_menu(menubar)
-
-        # Menu Engenharia (NOVO - Engineering Wizard)
-        self._create_engineering_menu(menubar)
-
-        # Menu Operador (NOVO - FASE 3)
-        self._create_operator_menu(menubar)
+        # Menu Sistema
+        self._create_system_menu(menubar)
 
         # Menu Ajuda
         self._create_help_menu(menubar)
@@ -216,59 +208,11 @@ class MenuHandler(QObject):
         """Cria o menu Ferramentas."""
         menu = menubar.addMenu('&Ferramentas')
 
-        # Definir Mapa
-        mapa_action = QAction('Definir Mapa', self.main_window)
-        mapa_action.triggered.connect(self._on_show_map_dialog)
-        menu.addAction(mapa_action)
-        self._register_action('tools.mapa', mapa_action)
-
-        # Mosaic Builder
-        mosaic_action = QAction('Montar Mosaico de Imagens', self.main_window)
-        mosaic_action.triggered.connect(self.main_window.show_mosaic_builder)
-        menu.addAction(mosaic_action)
-        self._register_action('tools.mosaic', mosaic_action)
-
-        menu.addSeparator()
-
         # Calibração CNC
         calib_action = QAction('Calibração CNC', self.main_window)
         calib_action.triggered.connect(self._on_show_calibration_dialog)
         menu.addAction(calib_action)
         self._register_action('tools.calibration', calib_action)
-
-        # Calibração de Câmera
-        camera_calib_action = QAction('Calibração de Câmera (Distorção)', self.main_window)
-        camera_calib_action.triggered.connect(self.main_window.show_camera_calibration_dialog)
-        menu.addAction(camera_calib_action)
-        self._register_action('tools.camera_calibration', camera_calib_action)
-
-        # Configurações de Câmera
-        camera_settings_action = QAction('Configurações de Câmera', self.main_window)
-        camera_settings_action.triggered.connect(self._on_show_camera_settings_dialog)
-        menu.addAction(camera_settings_action)
-        self._register_action('tools.camera_settings', camera_settings_action)
-
-        # Calibração de FOV
-        fov_action = QAction('📐 Calibração de FOV (Campo de Visão)', self.main_window)
-        fov_action.setToolTip('Configura a relação pixel↔mm para movimento por clique no vídeo')
-        fov_action.triggered.connect(self.main_window.show_fov_calibration_dialog)
-        menu.addAction(fov_action)
-        self._register_action('tools.fov_calibration', fov_action)
-
-        # Configurar Cruz
-        crosshair_action = QAction('✛ Configurar Cruz de Centralização', self.main_window)
-        crosshair_action.setToolTip('Ajusta cor, espessura e comprimento da cruz central')
-        crosshair_action.triggered.connect(self.main_window.show_crosshair_settings_dialog)
-        menu.addAction(crosshair_action)
-        self._register_action('tools.crosshair', crosshair_action)
-
-        # Alinhamento de Fiduciais
-        fiducial_action = QAction('🎯 Alinhamento de Fiduciais', self.main_window)
-        fiducial_action.setToolTip('Abre ferramenta de alinhamento Gerber ↔ Imagem usando fiduciais')
-        fiducial_action.setShortcut('Ctrl+F')
-        fiducial_action.triggered.connect(self.main_window.show_fiducial_alignment_dialog)
-        menu.addAction(fiducial_action)
-        self._register_action('tools.fiducial_alignment', fiducial_action)
 
         menu.addSeparator()
 
@@ -298,49 +242,9 @@ class MenuHandler(QObject):
         menubar.addAction(tension_action)
         self._register_action('tension.dialog', tension_action)
 
-    def _create_inspection_menu(self, menubar: QMenuBar):
-        """Cria o menu Inspeção Visual."""
-        menu = menubar.addMenu('&Inspeção Visual')
-
-        # Executar Inspeção
-        run_action = QAction('🔬 Executar Inspeção...', self.main_window)
-        run_action.setShortcut('Ctrl+I')
-        run_action.setToolTip('Executa inspeção visual comparando mosaico com Gerber')
-        run_action.triggered.connect(self.main_window.show_inspection_dialog)
-        menu.addAction(run_action)
-        self._register_action('inspection.run', run_action)
-
-        # Visualizar Último Resultado
-        view_action = QAction('📊 Visualizar Último Resultado', self.main_window)
-        view_action.triggered.connect(self.main_window.show_last_inspection_result)
-        menu.addAction(view_action)
-        self._register_action('inspection.view_result', view_action)
-
-        menu.addSeparator()
-
-        # Parâmetros de Inspeção
-        settings_action = QAction('⚙️ Parâmetros de Inspeção...', self.main_window)
-        settings_action.triggered.connect(self.main_window.show_inspection_settings)
-        menu.addAction(settings_action)
-        self._register_action('inspection.settings', settings_action)
-
-    def _create_engineering_menu(self, menubar: QMenuBar):
-        """Cria o menu Engenharia (Engineering Wizard)."""
-        menu = menubar.addMenu('&Engenharia')
-
-        # Engineering Wizard
-        wizard_action = QAction('🔧 Engineering Wizard...', self.main_window)
-        wizard_action.setShortcut('Ctrl+Shift+E')
-        wizard_action.setToolTip(
-            'Abre assistente de criação de programas de inspeção.\n'
-            'Fluxo guiado em 7 etapas: Dados, Gerber, Fiduciais, '
-            'Mosaico, Alinhamento, Janelas e Configuração.'
-        )
-        wizard_action.triggered.connect(self.main_window.open_engineering_wizard)
-        menu.addAction(wizard_action)
-        self._register_action('engineering.wizard', wizard_action)
-
-        menu.addSeparator()
+    def _create_system_menu(self, menubar: QMenuBar):
+        """Cria o menu Sistema."""
+        menu = menubar.addMenu('&Sistema')
 
         # Configurações de Autenticação (NOVO - 2026-01-15)
         auth_settings_action = QAction('🔐 Configurações de Autenticação...', self.main_window)
@@ -350,11 +254,11 @@ class MenuHandler(QObject):
         )
         auth_settings_action.triggered.connect(self.main_window.show_auth_settings)
         menu.addAction(auth_settings_action)
-        self._register_action('engineering.auth_settings', auth_settings_action)
+        self._register_action('system.auth_settings', auth_settings_action)
 
         menu.addSeparator()
 
-        # Configurações de Tema (NOVO - 2026-01-20)
+        # Configurações de Tema
         theme_settings_action = QAction('🎨 Configurações de Tema...', self.main_window)
         theme_settings_action.setToolTip(
             'Alterne entre temas Claro, Escuro ou Automático (sistema operacional).\n'
@@ -362,28 +266,7 @@ class MenuHandler(QObject):
         )
         theme_settings_action.triggered.connect(self.main_window.show_theme_settings)
         menu.addAction(theme_settings_action)
-        self._register_action('engineering.theme_settings', theme_settings_action)
-
-        menu.addSeparator()
-
-        # Programas Salvos
-        saved_programs_action = QAction('📁 Programas Salvos...', self.main_window)
-        saved_programs_action.setToolTip('Gerencia programas de inspeção salvos')
-        saved_programs_action.triggered.connect(self.main_window.show_saved_programs)
-        menu.addAction(saved_programs_action)
-        self._register_action('engineering.saved_programs', saved_programs_action)
-
-    def _create_operator_menu(self, menubar: QMenuBar):
-        """Cria o menu Operador (NOVO - FASE 3)."""
-        menu = menubar.addMenu('&Operador')
-
-        # Workflow de Inspeção (One-Click)
-        workflow_action = QAction('▶ Workflow de Inspeção...', self.main_window)
-        workflow_action.setShortcut('Ctrl+Shift+I')
-        workflow_action.setToolTip('Interface simplificada para execução de inspeção one-click')
-        workflow_action.triggered.connect(self.main_window.show_operator_workflow)
-        menu.addAction(workflow_action)
-        self._register_action('operator.workflow', workflow_action)
+        self._register_action('system.theme_settings', theme_settings_action)
 
         menu.addSeparator()
 
@@ -392,7 +275,7 @@ class MenuHandler(QObject):
         permissions_action.setToolTip('Exibe as permissões do usuário atual')
         permissions_action.triggered.connect(self.main_window.show_permissions_info)
         menu.addAction(permissions_action)
-        self._register_action('operator.permissions', permissions_action)
+        self._register_action('system.permissions', permissions_action)
 
     def _create_help_menu(self, menubar: QMenuBar):
         """Cria o menu Ajuda."""
@@ -506,14 +389,6 @@ class MenuHandler(QObject):
             fuso_value = self.main_window.calib_fuso_pitch_edit.text()
 
         self.main_window.calibration_controller.show_dialog(self.main_window, pulses_value, fuso_value)
-
-    def _on_show_camera_settings_dialog(self):
-        """Handler para mostrar diálogo de configurações de câmera."""
-        if not self.main_window:
-            logger.error("main_window não definido")
-            return
-
-        self.main_window.camera_settings_controller.show_dialog(self.main_window)
 
     def get_all_actions(self) -> Dict[str, QAction]:
         """

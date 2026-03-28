@@ -119,11 +119,12 @@ class DialogRouter:
     # =========================================================================
 
     def show_mosaic_builder(self):
-        """Abre a janela do Mosaic Builder para montagem de imagens"""
-        from mosaic_builder import MosaicBuilder
-        self.main_window.mosaic_window = MosaicBuilder()
-        self.main_window.mosaic_window.resize(1200, 900)
-        self.main_window.mosaic_window.show()
+        """Mosaico visual descontinuado."""
+        QMessageBox.information(
+            self.window,
+            "Indisponível",
+            "A funcionalidade de mosaico foi descontinuada junto com a inspeção visual."
+        )
 
     def show_camera_calibration_dialog(self):
         """Abre diálogo para calibração de câmera (correção de distorção)"""
@@ -201,22 +202,6 @@ class DialogRouter:
                 "As mudanças serão aplicadas na próxima atualização do preview."
             )
 
-    def show_fiducial_alignment_dialog(self):
-        """
-        Abre diálogo para alinhamento de fiduciais.
-
-        Esta ferramenta permite:
-        - Carregar arquivo Gerber e detectar fiduciais automaticamente
-        - Capturar templates de fiduciais da câmera ou mosaico
-        - Calcular transformação (translação, rotação, escala) para alinhar
-        - Ajuste fino manual da transformação
-        """
-        if self.main_window.fiducial_alignment_controller is not None:
-            self.main_window.fiducial_alignment_controller.show_dialog()
-        else:
-            logger.error("FiducialAlignmentController não está disponível")
-            QMessageBox.warning(self.window, "Erro", "FiducialAlignmentController não está disponível")
-
     # =========================================================================
     # SISTEMA DE RELATÓRIOS
     # =========================================================================
@@ -271,131 +256,28 @@ class DialogRouter:
     # =========================================================================
 
     def show_inspection_settings(self):
-        """Abre diálogo de configuração dos parâmetros de inspeção."""
-        if self.main_window.inspection_ui_controller is not None:
-            self.main_window.inspection_ui_controller.show_settings_dialog(
-                self.main_window.inspection_thresholds
-            )
-        else:
-            # Fallback para comportamento antigo se controller não existir
-            from aoi_lib.inspection_settings_dialog import InspectionSettingsDialog
-            dialog = InspectionSettingsDialog(self.main_window.inspection_thresholds, self.window)
-
-            if dialog.exec() == QDialog.DialogCode.Accepted:
-                new_thresholds = dialog.get_thresholds()
-                self.main_window.inspection_manager.update_thresholds(new_thresholds, save=True)
-                self.main_window.inspection_thresholds = new_thresholds  # Atualiza referência local
-
-                logger.info("Parâmetros de inspeção atualizados e salvos")
-                self.window.statusBar().showMessage("Parâmetros de inspeção salvos", 3000)
+        """Configuração de inspeção visual descontinuada."""
+        QMessageBox.information(
+            self.window,
+            "Indisponível",
+            "A configuração de inspeção visual foi descontinuada."
+        )
 
     def show_inspection_dialog(self):
-        """Abre diálogo para executar inspeção visual."""
-        if self.main_window.inspection_ui_controller is not None:
-            self.main_window.inspection_ui_controller.show_dialog(
-                current_stencil=self.main_window.current_stencil,
-                inspection_thresholds=self.main_window.inspection_thresholds
-            )
-        else:
-            logger.error("InspectionUIController não está disponível")
-            QMessageBox.warning(self.window, "Erro", "InspectionUIController não está disponível")
+        """Execução de inspeção visual descontinuada."""
+        QMessageBox.information(
+            self.window,
+            "Indisponível",
+            "A execução de inspeção visual foi descontinuada."
+        )
 
     def show_last_inspection_result(self):
         """Mostra o último resultado de inspeção."""
-        if self.main_window.inspection_ui_controller is not None:
-            self.main_window.inspection_ui_controller.show_last_result()
-        else:
-            # Fallback para comportamento antigo
-            from aoi_lib.inspection_result_viewer import InspectionResultWidget
-
-            if not hasattr(self.main_window, '_last_inspection_result') or \
-               self.main_window._last_inspection_result is None:
-                QMessageBox.information(
-                    self.window, "Sem Resultado",
-                    "Nenhuma inspeção foi executada ainda.\n\n"
-                    "Use 'Inspeção Visual' → 'Executar Inspeção' para realizar uma inspeção."
-                )
-                return
-
-            # Método antigo de exibir resultado (será removido em futura refatoração)
-            dialog = QDialog(self.window)
-            dialog.setWindowTitle(f"📊 Resultado da Inspeção - {self.main_window._last_inspection_result.overall_status}")
-            dialog.resize(1200, 800)
-
-            layout = QVBoxLayout(dialog)
-
-            # Widget de resultado
-            result_widget = InspectionResultWidget()
-            result_widget.set_result(
-                self.main_window._last_inspection_result,
-                self.main_window._last_inspection_overlay
-            )
-
-            # Conectar exportação
-            def export_pdf():
-                try:
-                    import tempfile
-                    from pathlib import Path
-
-                    # Salvar overlay em arquivo temporário
-                    temp_dir = Path(tempfile.gettempdir())
-                    overlay_path = str(temp_dir / "inspection_overlay_temp.png")
-                    cv2.imwrite(overlay_path, self.main_window._last_inspection_overlay)
-
-                    # Preparar dados da inspeção
-                    result_dict = self.main_window._last_inspection_result.to_dict() if \
-                        hasattr(self.main_window._last_inspection_result, 'to_dict') else {
-                            'total_apertures': self.main_window._last_inspection_result.total_apertures,
-                            'ok_count': self.main_window._last_inspection_result.ok_count,
-                            'partial_count': self.main_window._last_inspection_result.partial_count,
-                            'blocked_count': self.main_window._last_inspection_result.blocked_count,
-                            'overall_status': self.main_window._last_inspection_result.overall_status,
-                            'approval_rate': self.main_window._last_inspection_result.approval_rate,
-                            'defects': [d.to_dict() if hasattr(d, 'to_dict') else d
-                                       for d in self.main_window._last_inspection_result.defects]
-                        }
-
-                    stencil_code = self.main_window.current_stencil.code if \
-                        self.main_window.current_stencil else None
-
-                    # Gerar PDF
-                    pdf_path = self.main_window.report_generator.generate_inspection_report(
-                        inspection_result=result_dict,
-                        overlay_image_path=overlay_path,
-                        stencil_code=stencil_code,
-                        operator=self.main_window.config.get("user", "name", default="Operador")
-                    )
-
-                    QMessageBox.information(
-                        dialog, "Relatório Gerado",
-                        f"Relatório de inspeção visual salvo em:\n\n{pdf_path}"
-                    )
-
-                    # Abrir PDF
-                    os.startfile(pdf_path)
-
-                except Exception as e:
-                    logger.exception("Erro ao gerar relatório de inspeção")
-                    QMessageBox.critical(
-                        dialog, "Erro",
-                        f"Erro ao gerar relatório:\n{str(e)}"
-                    )
-
-            result_widget.exportRequested.connect(export_pdf)
-
-            layout.addWidget(result_widget)
-
-            # Botões
-            btn_layout = QHBoxLayout()
-            btn_layout.addStretch()
-
-            btn_close = StandardButton("Fechar")
-            btn_close.clicked.connect(dialog.accept)
-            btn_layout.addWidget(btn_close)
-
-            layout.addLayout(btn_layout)
-
-            dialog.exec()
+        QMessageBox.information(
+            self.window,
+            "Indisponível",
+            "A visualização do último resultado de inspeção visual foi descontinuada."
+        )
 
     # =========================================================================
     # DIÁLOGOS GERAIS
@@ -440,40 +322,13 @@ class DialogRouter:
 
     def show_operator_workflow(self):
         """
-        Abre diálogo de workflow simplificado para operadores.
-
-        Interface one-click para execução de inspeções.
+        Workflow de operador da inspeção visual descontinuado.
         """
-        from consumo_lib.dialogs import OperatorWorkflowDialog
-
-        # Obtém usuário atual
-        user = self.main_window.auth_service.get_current_user()
-        operator_id = user.username if user else "OPERADOR"
-
-        # Obtém lista de stencils
-        stencils_list = []
-        if hasattr(self.main_window.stencil_tracker, 'stencils'):
-            for code, stencil in self.main_window.stencil_tracker.stencils.items():
-                stencils_list.append({
-                    "code": code,
-                    "description": getattr(stencil, 'description', code)
-                })
-
-        # Cria dialog
-        dialog = OperatorWorkflowDialog(
-            coordinator=self.main_window.operator_inspection_coordinator,
-            stencils=stencils_list,
-            operator_id=operator_id,
-            parent=self.window
+        QMessageBox.information(
+            self.window,
+            "Indisponível",
+            "O workflow de operador da inspeção visual foi descontinuado."
         )
-
-        # Executa dialog
-        result = dialog.exec()
-
-        if result == QDialog.DialogCode.Accepted:
-            last_result = dialog.get_last_result()
-            if last_result:
-                logger.info(f"Workflow finalizado: {last_result.get('classification', 'UNKNOWN')}")
 
     def show_permissions_info(self):
         """
