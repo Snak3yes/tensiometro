@@ -364,6 +364,7 @@ class MainUIBuilder:
         self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
         parent.addTab(self.window.tracking_tab, "🏷️ Rastreabilidade")
 
-        # NOVO (2026-01-16): Aba "Backup de Controles"
-        # Contém os widgets que estavam no painel esquerdo removido
-        self._build_backup_controls_tab(parent)
+        # REMOVIDO (release/v0.5-tension): Aba "Posições e Rotinas"
+        # Esta aba é útil apenas para inspeção visual (main branch)
+        # Para medição de tensão, usar TensionMeasurementDialog
+        # self._build_backup_controls_tab(parent)
