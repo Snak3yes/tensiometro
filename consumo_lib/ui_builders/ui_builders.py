@@ -361,7 +361,8 @@ class MainUIBuilder:
         )
         # Expose widget interno para compatibilidade
         self.window.stencil_identification = self.window.tracking_tab.stencil_identification
-        self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
+        # REMOVIDO (release/v0.5-tension): btn_run_tension removido da aba Rastreabilidade
+        # self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
         parent.addTab(self.window.tracking_tab, "🏷️ Rastreabilidade")
 
         # REMOVIDO (release/v0.5-tension): Aba "Posições e Rotinas"

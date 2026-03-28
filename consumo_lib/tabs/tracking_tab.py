@@ -7,14 +7,8 @@ Aba de rastreabilidade de stencils.
 from __future__ import annotations
 
 import logging
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QGroupBox, QHBoxLayout,
-    QPushButton
-)
+from PyQt6.QtWidgets import QWidget
 from PyQt6.QtCore import pyqtSignal
-
-# Design System
-from consumo_lib.ui.widget_standards import StandardButton
 
 from .base_tab import BaseTab
 
@@ -68,25 +62,9 @@ class TrackingTab(BaseTab):
 
         self.layout.addWidget(self.stencil_identification)
 
-        # Botões de ação rápida
-        action_group = QGroupBox("⚡ Ações Rápidas")
-        action_layout = QHBoxLayout(action_group)
-
-        self.btn_run_tension = StandardButton("📐 Medir Tensão")
-        self.btn_run_tension.setEnabled(False)
-        self.btn_run_tension.setToolTip("Executa medição de tensão e salva no histórico do stencil")
-        self.btn_run_tension.clicked.connect(self._on_run_tension)
-        action_layout.addWidget(self.btn_run_tension)
-
-        self.btn_manage_stencils = StandardButton("📋 Gerenciar Stencils")
-        self.btn_manage_stencils.clicked.connect(self._on_manage_stencils)
-        action_layout.addWidget(self.btn_manage_stencils)
-
-        self.btn_new_stencil = StandardButton("➕ Novo Stencil")
-        self.btn_new_stencil.clicked.connect(self._on_new_stencil)
-        action_layout.addWidget(self.btn_new_stencil)
-
-        self.layout.addWidget(action_group)
+        # REMOVIDO (release/v0.5-tension): GroupBox "Ações Rápidas"
+        # Botões removidos: Medir Tensão, Gerenciar Stencils, Novo Stencil
+        # A funcionalidade de medição está disponível via menu/toolbar
 
         # Espaço para futuras expansões
         self.layout.addStretch()
@@ -98,16 +76,16 @@ class TrackingTab(BaseTab):
         Args:
             stencil: Stencil selecionado
         """
-        # Habilita botão de medição de tensão
-        self.btn_run_tension.setEnabled(True)
+        # REMOVIDO (release/v0.5-tension): btn_run_tension removido
+        # self.btn_run_tension.setEnabled(True)
         # Repassa o sinal
         self.stencil_selected.emit(stencil)
         self.show_status(f"Stencil selecionado: {stencil.code}")
 
     def _on_stencil_cleared(self):
         """Handler quando seleção de stencil é limpa."""
-        # Desabilita botão de medição de tensão
-        self.btn_run_tension.setEnabled(False)
+        # REMOVIDO (release/v0.5-tension): btn_run_tension removido
+        # self.btn_run_tension.setEnabled(False)
         # Repassa o sinal
         self.stencil_cleared.emit()
         self.show_status("Stencil desmarcado")
