@@ -49,7 +49,7 @@ class StencilFullHistoryDialog(QDialog):
         # ================== INFORMAÇÕES DO STENCIL ==================
         stencil = self.tracker.get_stencil(self.code)
         if stencil:
-            info_group = QGroupBox("🏷️ Stencil")
+            info_group = QGroupBox("Stencil")
             info_layout = QHBoxLayout(info_group)
 
             info_layout.addWidget(QLabel(f"<b>{stencil.code}</b>"))
@@ -66,7 +66,7 @@ class StencilFullHistoryDialog(QDialog):
         # Aba de tensão
         self.tension_tab = QWidget()
         self._setup_tension_tab()
-        self.tabs.addTab(self.tension_tab, "📐 Medições de Tensão")
+        self.tabs.addTab(self.tension_tab, "Medições de Tensão")
 
         layout.addWidget(self.tabs, 1)
 
@@ -90,7 +90,7 @@ class StencilFullHistoryDialog(QDialog):
         layout = QVBoxLayout(self.tension_tab)
 
         # Resumo de tendência
-        trend_group = QGroupBox("📈 Análise de Tendência")
+        trend_group = QGroupBox("Análise de Tendência")
         trend_layout = QGridLayout(trend_group)
 
         self.lbl_tension_total = QLabel()
@@ -148,7 +148,7 @@ class StencilFullHistoryDialog(QDialog):
             var_text = f"📉 {var_text}"
         elif analysis.variation_percent > 5:
             self.lbl_tension_variation.setStyleSheet(f"color: {COLORS.SUCCESS}; font-weight: bold;")
-            var_text = f"📈 {var_text}"
+            var_text = f"{var_text}"
         else:
             self.lbl_tension_variation.setStyleSheet(f"color: {COLORS.TEXT_DISABLED};")
         self.lbl_tension_variation.setText(var_text)

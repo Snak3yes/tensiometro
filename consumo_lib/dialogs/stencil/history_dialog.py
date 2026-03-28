@@ -43,7 +43,7 @@ class StencilHistoryDialog(QDialog):
         layout = QVBoxLayout(self)
 
         # ================== RESUMO DE TENDÊNCIA ==================
-        trend_group = QGroupBox("📈 Análise de Tendência")
+        trend_group = QGroupBox("Análise de Tendência")
         trend_layout = QGridLayout(trend_group)
 
         trend_layout.addWidget(QLabel("Total de medições:"), 0, 0)
@@ -74,7 +74,7 @@ class StencilHistoryDialog(QDialog):
         layout.addWidget(trend_group)
 
         # ================== TABELA DE HISTÓRICO ==================
-        table_group = QGroupBox("📋 Histórico de Medições")
+        table_group = QGroupBox("Histórico de Medições")
         table_layout = QVBoxLayout(table_group)
 
         self.table = QTableWidget()
@@ -125,7 +125,7 @@ class StencilHistoryDialog(QDialog):
             var_text = f"📉 {var_text}"
             self.lbl_variation.setStyleSheet(f"color: {COLORS.ERROR};")
         elif analysis.variation_percent > 5:
-            var_text = f"📈 {var_text}"
+            var_text = f"{var_text}"
             self.lbl_variation.setStyleSheet(f"color: {COLORS.SUCCESS};")
         else:
             self.lbl_variation.setStyleSheet(f"color: {COLORS.TEXT_HINT};")

@@ -236,7 +236,7 @@ class ReportDialogController(QObject):
         # Botões
         btn_layout = QHBoxLayout()
 
-        btn_search = StandardButton("🔍 Buscar")
+        btn_search = StandardButton("Buscar")
 
         def do_search():
             # Converter datas

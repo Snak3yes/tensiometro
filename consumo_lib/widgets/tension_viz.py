@@ -45,11 +45,11 @@ class TensionVisualizationWidget(QWidget):
         title_label.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         
         # Botão para carregar arquivo
-        self.load_file_btn = StandardButton("📂 Carregar JSON")
+        self.load_file_btn = StandardButton("Carregar JSON")
         self.load_file_btn.clicked.connect(self.load_tension_file)
         
         # Botão para recarregar último arquivo
-        self.reload_btn = StandardButton("🔄 Recarregar")
+        self.reload_btn = StandardButton("Recarregar")
         self.reload_btn.clicked.connect(self.reload_last_file)
         self.reload_btn.setEnabled(False)
         
@@ -61,7 +61,7 @@ class TensionVisualizationWidget(QWidget):
         layout.addLayout(title_layout)
         
         # ============ CRITÉRIOS DE ACEITAÇÃO ============
-        criteria_group = QGroupBox("📊 Critérios de Aceitação (N/cm²)")
+        criteria_group = QGroupBox("Critérios de Aceitação (N/cm²)")
         criteria_layout = QGridLayout(criteria_group)
         
         # Tensão mínima
@@ -97,7 +97,7 @@ class TensionVisualizationWidget(QWidget):
         criteria_layout.addWidget(self.spin_max, 0, 7)
         
         # Carregar da receita
-        self.btn_load_recipe = StandardButton("📋 Usar Receita")
+        self.btn_load_recipe = StandardButton("Usar Receita")
         self.btn_load_recipe.setToolTip("Carrega critérios da receita atual")
         self.btn_load_recipe.clicked.connect(self.load_criteria_from_recipe)
         criteria_layout.addWidget(self.btn_load_recipe, 0, 8)

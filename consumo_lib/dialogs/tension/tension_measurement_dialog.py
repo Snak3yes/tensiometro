@@ -92,7 +92,7 @@ class TensionMeasurementDialog(QDialog):
         main_layout.setSpacing(15)
 
         # ==================== TENSIONOMETER CONNECTION ====================
-        conn_group = QGroupBox("🔌 Conexão do Tensiômetro")
+        conn_group = QGroupBox("Conexão do Tensiômetro")
         conn_layout = QGridLayout(conn_group)
         conn_layout.setSpacing(8)
 
@@ -103,13 +103,13 @@ class TensionMeasurementDialog(QDialog):
         conn_layout.addWidget(self.port_combo, 0, 1)
 
         # Refresh ports button
-        self.refresh_ports_btn = StandardButton("🔄")
+        self.refresh_ports_btn = StandardButton("Atualizar")
         self.refresh_ports_btn.setMaximumWidth(40)
         self.refresh_ports_btn.clicked.connect(self._refresh_ports)
         conn_layout.addWidget(self.refresh_ports_btn, 0, 2)
 
         # Connect/Disconnect button
-        self.connect_btn = StandardButton("🔗 Conectar")
+        self.connect_btn = StandardButton("Conectar")
         self.connect_btn.clicked.connect(self._toggle_connection)
         conn_layout.addWidget(self.connect_btn, 0, 3, 1, 2)
 
@@ -119,7 +119,7 @@ class TensionMeasurementDialog(QDialog):
         conn_layout.addWidget(self.conn_status_label, 1, 0, 1, 5)
 
         # Test button
-        self.test_btn = StandardButton("🧪 Testar Leitura")
+        self.test_btn = StandardButton("Testar Leitura")
         self.test_btn.clicked.connect(self._test_reading)
         self.test_btn.setEnabled(False)
         conn_layout.addWidget(self.test_btn, 2, 0, 1, 5)
@@ -147,7 +147,7 @@ class TensionMeasurementDialog(QDialog):
         main_layout.addWidget(conn_group)
 
         # ==================== GRID CONFIGURATION ====================
-        grid_group = QGroupBox("📐 Configuração do Grid")
+        grid_group = QGroupBox("Configuração do Grid")
         grid_layout = QGridLayout(grid_group)
         grid_layout.setSpacing(8)
 
@@ -163,7 +163,7 @@ class TensionMeasurementDialog(QDialog):
         self.start_y_input.setMaximumWidth(80)
         grid_layout.addWidget(self.start_y_input, 0, 2)
 
-        self.capture_start_btn = StandardButton("📍 Capturar")
+        self.capture_start_btn = StandardButton("Capturar")
         self.capture_start_btn.clicked.connect(self._capture_start_position)
         grid_layout.addWidget(self.capture_start_btn, 0, 3)
 
@@ -179,7 +179,7 @@ class TensionMeasurementDialog(QDialog):
         self.end_y_input.setMaximumWidth(80)
         grid_layout.addWidget(self.end_y_input, 1, 2)
 
-        self.capture_end_btn = StandardButton("📍 Capturar")
+        self.capture_end_btn = StandardButton("Capturar")
         self.capture_end_btn.clicked.connect(self._capture_end_position)
         grid_layout.addWidget(self.capture_end_btn, 1, 3)
 
@@ -207,7 +207,7 @@ class TensionMeasurementDialog(QDialog):
         main_layout.addWidget(grid_group)
 
         # ==================== PROGRESS DISPLAY ====================
-        progress_group = QGroupBox("📊 Progresso da Medição")
+        progress_group = QGroupBox("Progresso da Medição")
         progress_layout = QVBoxLayout(progress_group)
 
         self.progress_bar = QProgressBar()
@@ -280,7 +280,7 @@ class TensionMeasurementDialog(QDialog):
     def _update_connection_ui(self, connected: bool):
         """Update UI based on connection state."""
         if connected:
-            self.connect_btn.setText("🔌 Desconectar")
+            self.connect_btn.setText("Desconectar")
             self.conn_status_label.setText("Status: ✅ Conectado")
             self.conn_status_label.setStyleSheet(f"color: {COLORS.SUCCESS};")
             self.test_btn.setEnabled(True)
@@ -291,7 +291,7 @@ class TensionMeasurementDialog(QDialog):
             self.calibrate_btn.setEnabled(plc_ready)
             self.zero_btn.setEnabled(plc_ready)
         else:
-            self.connect_btn.setText("🔗 Conectar")
+            self.connect_btn.setText("Conectar")
             self.conn_status_label.setText("Status: Desconectado")
             self.conn_status_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
             self.test_btn.setEnabled(False)
@@ -535,7 +535,7 @@ class TensionMeasurementDialog(QDialog):
 
             saved_path = results.get('saved_to')
             if saved_path:
-                msg += f"\n\n💾 Salvo em:\n{saved_path}"
+                msg += f"\n\nSalvo em:\n{saved_path}"
 
             QMessageBox.information(self, "Medição Concluída", msg)
 

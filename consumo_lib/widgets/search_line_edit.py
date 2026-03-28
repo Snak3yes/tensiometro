@@ -35,7 +35,7 @@ class SearchLineEdit(QLineEdit):
         self.debounce_time_ms = 300
 
         # Configura aparência
-        self.setPlaceholderText("🔍 Buscar programas...")
+        self.setPlaceholderText("Buscar programas...")
         self.setMinimumWidth(300)
 
         # Timer para debounce

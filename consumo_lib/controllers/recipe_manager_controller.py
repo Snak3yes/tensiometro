@@ -191,7 +191,7 @@ class RecipeManagerController(QObject):
         """
         # Atualiza menu se fornecido
         if current_recipe_action is not None:
-            current_recipe_action.setText(f"📋 {recipe.name}")
+            current_recipe_action.setText(f"{recipe.name}")
             current_recipe_action.setEnabled(True)
 
         # Mostra na barra de status
@@ -253,15 +253,15 @@ class RecipeManagerController(QObject):
             self.parent_window,
             "Receita de Tensão",
             f"Configurações de tensão da receita '{current_recipe.name}':\n\n"
-            f"📐 Grid: {settings['grid_rows']} x {settings['grid_cols']}\n"
-            f"📍 Área: ({settings['start_point']['x']}, {settings['start_point']['y']}) → "
+            f"Grid: {settings['grid_rows']} x {settings['grid_cols']}\n"
+            f"Área: ({settings['start_point']['x']}, {settings['start_point']['y']}) → "
             f"({settings['end_point']['x']}, {settings['end_point']['y']})\n\n"
-            f"📊 Critérios de Aceitação:\n"
+            f"Critérios de Aceitação:\n"
             f"  • Mínimo: {acc['min_tension']} N/cm²\n"
             f"  • Máximo: {acc['max_tension']} N/cm²\n"
             f"  • Warning baixo: {acc['warning_low']} N/cm²\n"
             f"  • Warning alto: {acc['warning_high']} N/cm²\n\n"
-            "ℹ️ Estes critérios serão usados para classificar as medições."
+            "Estes critérios serão usados para classificar as medições."
         )
 
         logger.info(f"Configurações de tensão aplicadas da receita '{current_recipe.name}'")
@@ -318,7 +318,7 @@ class RecipeManagerController(QObject):
 
         # Atualiza o menu
         if hasattr(self.parent_window, 'current_recipe_action'):
-            self.parent_window.current_recipe_action.setText(f"📋 {recipe.name}")
+            self.parent_window.current_recipe_action.setText(f"{recipe.name}")
             self.parent_window.current_recipe_action.setEnabled(True)
 
         # Mostra na barra de status

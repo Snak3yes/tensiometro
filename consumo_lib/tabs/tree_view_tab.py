@@ -129,7 +129,7 @@ class TreeViewTab(QWidget):
         details_layout = QVBoxLayout(self.details_content)
 
         self.details_placeholder = QLabel(
-            "📋 Selecione um stencil para ver detalhes\n\n"
+            "Selecione um stencil para ver detalhes\n\n"
             "Clique em um item na lista para exibir informações completas."
         )
         self.details_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -141,7 +141,7 @@ class TreeViewTab(QWidget):
         scroll.setWidget(self.details_content)
         layout.addWidget(scroll, 1)
 
-        self.history_button = StandardButton("📋 Histórico")
+        self.history_button = StandardButton("Histórico")
         self.history_button.setMinimumHeight(45)
         self.history_button.setEnabled(False)
         self.history_button.setStyleSheet(f"""

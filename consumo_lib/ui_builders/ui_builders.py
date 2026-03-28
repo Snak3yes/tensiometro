@@ -265,7 +265,7 @@ class MainUIBuilder:
         self._build_results_table(tab_layout)
 
         # Adiciona a aba ao QTabWidget
-        parent.addTab(tab_widget, "📦 Posições e Rotinas")
+        parent.addTab(tab_widget, "Posições e Rotinas")
 
         # Expose referências para compatibilidade
         self.window.backup_controls_tab = tab_widget
@@ -335,7 +335,7 @@ class MainUIBuilder:
             stencil_manager=self.window.stencil_tracker,
             parent=self.window
         )
-        parent.addTab(self.window.tree_view_tab, "📋 Stencils")
+        parent.addTab(self.window.tree_view_tab, "Stencils")
 
         # REMOVIDO (release/v0.5-tension): Aba "Monitor CLP"
         # O monitor CLP agora está em um diálogo acessível via menu
@@ -367,7 +367,7 @@ class MainUIBuilder:
         self.window.stencil_identification = self.window.tracking_tab.stencil_identification
         # REMOVIDO (release/v0.5-tension): btn_run_tension removido da aba Rastreabilidade
         # self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
-        parent.addTab(self.window.tracking_tab, "🏷️ Rastreabilidade")
+        parent.addTab(self.window.tracking_tab, "Rastreabilidade")
 
         # REMOVIDO (release/v0.5-tension): Aba "Posições e Rotinas"
         # Esta aba é útil apenas para inspeção visual (main branch)

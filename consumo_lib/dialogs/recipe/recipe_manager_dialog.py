@@ -75,7 +75,7 @@ class RecipeManagerDialog(QDialog):
         left_layout.setContentsMargins(0, 0, 0, 0)
 
         # Título
-        title = QLabel("📋 Receitas Disponíveis")
+        title = QLabel("Receitas Disponíveis")
         title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
         left_layout.addWidget(title)
 
@@ -88,16 +88,16 @@ class RecipeManagerDialog(QDialog):
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        self.btn_new = StandardButton("➕ Nova")
+        self.btn_new = StandardButton("Nova")
         self.btn_new.clicked.connect(self._on_new_recipe)
         btn_layout.addWidget(self.btn_new)
 
-        self.btn_edit = StandardButton("✏️ Editar")
+        self.btn_edit = StandardButton("Editar")
         self.btn_edit.clicked.connect(self._on_edit_recipe)
         self.btn_edit.setEnabled(False)
         btn_layout.addWidget(self.btn_edit)
 
-        self.btn_delete = StandardButton("🗑️ Excluir", variant="danger")
+        self.btn_delete = StandardButton("Excluir", variant="danger")
         self.btn_delete.clicked.connect(self._on_delete_recipe)
         self.btn_delete.setEnabled(False)
         btn_layout.addWidget(self.btn_delete)
@@ -184,21 +184,21 @@ class RecipeManagerDialog(QDialog):
 
 <hr>
 
-<h4>📐 Stencil</h4>
+<h4>Stencil</h4>
 <p>
 Dimensões: {recipe.stencil.width_mm} x {recipe.stencil.height_mm} mm<br>
 Espessura: {recipe.stencil.thickness_mm} mm<br>
 Material: {recipe.stencil.material}
 </p>
 
-<h4>🎯 Tensão</h4>
+<h4>Tensão</h4>
 <p>
 Status: {'Habilitado' if recipe.tension.enabled else 'Desabilitado'}<br>
 Grid: {recipe.tension.grid_rows} x {recipe.tension.grid_cols}<br>
 Aceitação: {recipe.tension.acceptance.min_tension} - {recipe.tension.acceptance.max_tension} N/cm²
 </p>
 
-<h4>📷 Captura</h4>
+<h4>Captura</h4>
 <p>
 Área: ({recipe.capture.origin.x}, {recipe.capture.origin.y}) até ({recipe.capture.end.x}, {recipe.capture.end.y})<br>
 Steps: {recipe.capture.step_x} x {recipe.capture.step_y} mm<br>

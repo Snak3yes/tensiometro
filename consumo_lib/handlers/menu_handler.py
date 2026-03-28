@@ -112,14 +112,14 @@ class MenuHandler(QObject):
         menu = menubar.addMenu('&Receitas')
 
         # Gerenciar Receitas
-        manage_action = QAction('📋 Gerenciar Receitas...', self.main_window)
+        manage_action = QAction('Gerenciar Receitas...', self.main_window)
         manage_action.setShortcut('Ctrl+R')
         manage_action.triggered.connect(self.main_window.show_recipe_manager)
         menu.addAction(manage_action)
         self._register_action('recipes.manage', manage_action)
 
         # Nova Receita
-        new_action = QAction('➕ Nova Receita...', self.main_window)
+        new_action = QAction('Nova Receita...', self.main_window)
         new_action.triggered.connect(self.main_window.show_new_recipe_dialog)
         menu.addAction(new_action)
         self._register_action('recipes.new', new_action)
@@ -133,13 +133,13 @@ class MenuHandler(QObject):
         self._register_action('recipes.current', self.current_recipe_action)
 
         # Aplicar à Captura
-        apply_capture_action = QAction('🔄 Aplicar Receita à Captura', self.main_window)
+        apply_capture_action = QAction('Aplicar Receita à Captura', self.main_window)
         apply_capture_action.triggered.connect(self.main_window.apply_recipe_to_capture)
         menu.addAction(apply_capture_action)
         self._register_action('recipes.apply_capture', apply_capture_action)
 
         # Aplicar à Tensão
-        apply_tension_action = QAction('🔄 Aplicar Receita à Tensão', self.main_window)
+        apply_tension_action = QAction('Aplicar Receita à Tensão', self.main_window)
         apply_tension_action.triggered.connect(self.main_window.apply_recipe_to_tension)
         menu.addAction(apply_tension_action)
         self._register_action('recipes.apply_tension', apply_tension_action)
@@ -149,14 +149,14 @@ class MenuHandler(QObject):
         menu = menubar.addMenu('&Stencils')
 
         # Gerenciar Stencils
-        manage_action = QAction('📋 Gerenciar Stencils...', self.main_window)
+        manage_action = QAction('Gerenciar Stencils...', self.main_window)
         manage_action.setShortcut('Ctrl+T')
         manage_action.triggered.connect(self.main_window.show_stencil_manager)
         menu.addAction(manage_action)
         self._register_action('stencils.manage', manage_action)
 
         # Novo Stencil
-        new_action = QAction('➕ Novo Stencil...', self.main_window)
+        new_action = QAction('Novo Stencil...', self.main_window)
         new_action.triggered.connect(self.main_window.show_new_stencil_dialog)
         menu.addAction(new_action)
         self._register_action('stencils.new', new_action)
@@ -174,7 +174,7 @@ class MenuHandler(QObject):
         menu = menubar.addMenu('&Relatórios')
 
         # Relatório de Tensão
-        tension_action = QAction('📄 Relatório de Tensão...', self.main_window)
+        tension_action = QAction('Relatório de Tensão...', self.main_window)
         tension_action.setShortcut('Ctrl+P')
         tension_action.setToolTip('Gera relatório PDF da última medição de tensão')
         tension_action.triggered.connect(self.main_window.show_tension_report_dialog)
@@ -182,7 +182,7 @@ class MenuHandler(QObject):
         self._register_action('reports.tension', tension_action)
 
         # Relatório do Stencil
-        stencil_action = QAction('📋 Relatório do Stencil...', self.main_window)
+        stencil_action = QAction('Relatório do Stencil...', self.main_window)
         stencil_action.setToolTip('Gera relatório PDF do histórico do stencil selecionado')
         stencil_action.triggered.connect(self.main_window.show_stencil_report_dialog)
         menu.addAction(stencil_action)
@@ -191,7 +191,7 @@ class MenuHandler(QObject):
         menu.addSeparator()
 
         # Consultar por Período
-        period_action = QAction('📅 Consultar por Período...', self.main_window)
+        period_action = QAction('Consultar por Período...', self.main_window)
         period_action.triggered.connect(self.main_window.show_period_query_dialog)
         menu.addAction(period_action)
         self._register_action('reports.period', period_action)
@@ -199,7 +199,7 @@ class MenuHandler(QObject):
         menu.addSeparator()
 
         # Configurações de Relatório
-        settings_action = QAction('⚙️ Configurações de Relatório...', self.main_window)
+        settings_action = QAction('Configurações de Relatório...', self.main_window)
         settings_action.triggered.connect(self.main_window.show_report_settings)
         menu.addAction(settings_action)
         self._register_action('reports.settings', settings_action)
@@ -209,7 +209,7 @@ class MenuHandler(QObject):
         menu = menubar.addMenu('&Ferramentas')
 
         # Controle de Movimento (NOVO - release/v0.5-tension)
-        movement_action = QAction('🎮 Controle de Movimento', self.main_window)
+        movement_action = QAction('Controle de Movimento', self.main_window)
         movement_action.setShortcut('Ctrl+M')
         movement_action.setToolTip('Abre diálogo de controle de movimento CNC (não-modal)')
         movement_action.triggered.connect(self.main_window.open_movement_dialog)
@@ -217,7 +217,7 @@ class MenuHandler(QObject):
         self._register_action('tools.movement', movement_action)
 
         # Monitor CLP (NOVO - release/v0.5-tension)
-        plc_monitor_action = QAction('📊 Monitor CLP', self.main_window)
+        plc_monitor_action = QAction('Monitor CLP', self.main_window)
         plc_monitor_action.setShortcut('Ctrl+L')
         plc_monitor_action.setToolTip('Abre diálogo de monitoramento do CLP (não-modal)')
         plc_monitor_action.triggered.connect(self.main_window.open_plc_monitor_dialog)
@@ -265,7 +265,7 @@ class MenuHandler(QObject):
         menu = menubar.addMenu('&Sistema')
 
         # Configurações de Autenticação (NOVO - 2026-01-15)
-        auth_settings_action = QAction('🔐 Configurações de Autenticação...', self.main_window)
+        auth_settings_action = QAction('Configurações de Autenticação...', self.main_window)
         auth_settings_action.setToolTip(
             'Configura exigência de login ao iniciar e papel padrão para auto-login.\n'
             'Requer privilégios de Engenharia ou superior.'
@@ -277,7 +277,7 @@ class MenuHandler(QObject):
         menu.addSeparator()
 
         # Configurações de Tema
-        theme_settings_action = QAction('🎨 Configurações de Tema...', self.main_window)
+        theme_settings_action = QAction('Configurações de Tema...', self.main_window)
         theme_settings_action.setToolTip(
             'Alterne entre temas Claro, Escuro ou Automático (sistema operacional).\n'
             'A escolha é salva e aplicada em todos os componentes da aplicação.'
@@ -289,7 +289,7 @@ class MenuHandler(QObject):
         menu.addSeparator()
 
         # Verificar Permissões
-        permissions_action = QAction('🔐 Verificar Permissões', self.main_window)
+        permissions_action = QAction('Verificar Permissões', self.main_window)
         permissions_action.setToolTip('Exibe as permissões do usuário atual')
         permissions_action.triggered.connect(self.main_window.show_permissions_info)
         menu.addAction(permissions_action)

@@ -151,15 +151,15 @@ class MapSettingsDialog(QDialog):
         # Management buttons
         btn_programs_layout = QHBoxLayout()
 
-        btn_load_program = StandardButton("📂 Carregar")
+        btn_load_program = StandardButton("Carregar")
         btn_load_program.clicked.connect(self._on_load_clicked)
         btn_programs_layout.addWidget(btn_load_program)
 
-        btn_delete_program = StandardButton("🗑️ Excluir", variant="danger")
+        btn_delete_program = StandardButton("Excluir", variant="danger")
         btn_delete_program.clicked.connect(self._on_delete_clicked)
         btn_programs_layout.addWidget(btn_delete_program)
 
-        btn_refresh_programs = StandardButton("🔄")
+        btn_refresh_programs = StandardButton("Atualizar")
         btn_refresh_programs.setMaximumWidth(40)
         btn_refresh_programs.clicked.connect(self._on_refresh_clicked)
         btn_programs_layout.addWidget(btn_refresh_programs)
@@ -187,7 +187,7 @@ class MapSettingsDialog(QDialog):
         h1.addWidget(self.map_program_name_edit)
 
         # Save program button
-        btn_save_program = StandardButton("💾 Salvar", variant="primary")
+        btn_save_program = StandardButton("Salvar", variant="primary")
         btn_save_program.clicked.connect(self.save_requested.emit)
         h1.addWidget(btn_save_program)
         layout.addLayout(h1)
@@ -241,7 +241,7 @@ class MapSettingsDialog(QDialog):
         layout.addWidget(btn_end)
 
         # Generate map button
-        btn_generate = StandardButton("🔧 Gerar Mapa de Imagens")
+        btn_generate = StandardButton("Gerar Mapa de Imagens")
         btn_generate.setMinimumHeight(40)
         btn_generate.clicked.connect(self.generate_requested.emit)
         layout.addWidget(btn_generate)
@@ -255,7 +255,7 @@ class MapSettingsDialog(QDialog):
         Returns:
             QGroupBox with grid calculation info
         """
-        info_group = QGroupBox("📊 Cálculo da Grade (ajuste automático)")
+        info_group = QGroupBox("Cálculo da Grade (ajuste automático)")
         info_layout = QVBoxLayout()
 
         info_grid = QHBoxLayout()
@@ -405,7 +405,7 @@ class MapSettingsDialog(QDialog):
             messages.append(f"Passo Y ajustado de {step_y:.3f} → {adjusted['step_y']:.3f} mm ({'+' if delta_y > 0 else ''}{delta_y:.3f})")
 
         if messages:
-            self.lbl_adjustment_status.setText("ℹ️ " + " | ".join(messages))
+            self.lbl_adjustment_status.setText(" | ".join(messages))
             self.lbl_adjustment_status.setStyleSheet(f"color: {COLORS.WARNING}; font-style: italic;")
         else:
             self.lbl_adjustment_status.setText("✅ Os passos dividem a área uniformemente.")

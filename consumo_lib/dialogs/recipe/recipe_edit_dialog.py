@@ -72,16 +72,16 @@ class RecipeEditorDialog(QDialog):
         self.tabs = QTabWidget()
 
         # Tab 1: Informações Básicas
-        self.tabs.addTab(self._create_info_tab(), "📋 Informações")
+        self.tabs.addTab(self._create_info_tab(), "Informações")
 
         # Tab 2: Stencil
-        self.tabs.addTab(self._create_stencil_tab(), "📐 Stencil")
+        self.tabs.addTab(self._create_stencil_tab(), "Stencil")
 
         # Tab 3: Tensão
-        self.tabs.addTab(self._create_tension_tab(), "🎯 Tensão")
+        self.tabs.addTab(self._create_tension_tab(), "Tensão")
 
         # Tab 4: Captura
-        self.tabs.addTab(self._create_capture_tab(), "📷 Captura")
+        self.tabs.addTab(self._create_capture_tab(), "Captura")
 
         layout.addWidget(self.tabs)
 

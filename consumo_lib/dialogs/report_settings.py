@@ -94,7 +94,7 @@ class ReportSettingsDialog(QDialog):
 
     def __init__(self, config: Optional[ReportConfig] = None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("⚙️ Configurações de Relatórios")
+        self.setWindowTitle("Configurações de Relatórios")
         self.setMinimumWidth(500)
 
         self.config = config or ReportConfig()
@@ -159,7 +159,7 @@ class ReportSettingsDialog(QDialog):
         btn_browse_logo.clicked.connect(self._browse_logo)
         logo_path_layout.addWidget(btn_browse_logo)
 
-        btn_clear_logo = StandardButton("🗑️ Limpar")
+        btn_clear_logo = StandardButton("Limpar")
         btn_clear_logo.clicked.connect(self._clear_logo)
         logo_path_layout.addWidget(btn_clear_logo)
 
@@ -223,7 +223,7 @@ class ReportSettingsDialog(QDialog):
         options_layout.addWidget(format_group)
 
         options_layout.addStretch()
-        tabs.addTab(tab_options, "⚙️ Opções")
+        tabs.addTab(tab_options, "Opções")
 
         # Tab 3: Cores
         tab_colors = QWidget()
@@ -247,19 +247,19 @@ class ReportSettingsDialog(QDialog):
         colors_layout.addWidget(colors_group)
 
         # Botão para restaurar cores padrão
-        btn_reset_colors = StandardButton("🔄 Restaurar Cores Padrão")
+        btn_reset_colors = StandardButton("Restaurar Cores Padrão")
         btn_reset_colors.clicked.connect(self._reset_colors)
         colors_layout.addWidget(btn_reset_colors)
 
         colors_layout.addStretch()
-        tabs.addTab(tab_colors, "🎨 Cores")
+        tabs.addTab(tab_colors, "Cores")
 
         layout.addWidget(tabs)
 
         # Botões de ação
         btn_layout = QHBoxLayout()
 
-        btn_preview = StandardButton("👁️ Visualizar Exemplo")
+        btn_preview = StandardButton("Visualizar Exemplo")
         btn_preview.clicked.connect(self._preview_report)
         btn_layout.addWidget(btn_preview)
 
@@ -269,7 +269,7 @@ class ReportSettingsDialog(QDialog):
         btn_cancel.clicked.connect(self.reject)
         btn_layout.addWidget(btn_cancel)
 
-        btn_save = StandardButton("💾 Salvar", variant="primary")
+        btn_save = StandardButton("Salvar", variant="primary")
         btn_save.setStyleSheet(f"background-color: {COLORS.SUCCESS}; color: white; font-weight: bold;")
         btn_save.clicked.connect(self._save_config)
         btn_layout.addWidget(btn_save)

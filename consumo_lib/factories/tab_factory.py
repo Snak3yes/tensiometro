@@ -149,7 +149,7 @@ class TabFactory:
         self.main_window.stencil_identification = tracking_tab.stencil_identification
         # REMOVIDO (release/v0.5-tension): btn_run_tension removido da aba Rastreabilidade
         # self.main_window.btn_run_tension = tracking_tab.btn_run_tension
-        tab_widget.addTab(tracking_tab, "🏷️ Rastreabilidade")
+        tab_widget.addTab(tracking_tab, "Rastreabilidade")
         tabs.append(tracking_tab)
 
         logger.info(f"{len(tabs)} abas criadas e adicionadas ao QTabWidget")
