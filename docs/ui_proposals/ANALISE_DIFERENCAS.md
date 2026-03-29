@@ -1,8 +1,8 @@
 # Análise de Diferenças - Implementação vs Proposta 70/30
 
 **Data:** 2026-03-29
-**Branch:** fix/tension-measurement-ui
-**Status:** EM PROGRESSO
+**Branch:** test/ui-adjustments-70-30
+**Status:** AJUSTE DE ESPAÇO REAL CONCLUÍDO
 
 ---
 
@@ -14,7 +14,9 @@
 |----------|--------------|---------------------|--------|
 | **Botões Superiores** | 75x28px e 65x28px, lado a lado | 75x28px e 65x28px, lado a lado | ✅ IMPLEMENTADO |
 | **Critérios** | Labels 9px, spinboxes 45x18px, "Usar Receita" ao lado | Spinboxes 45x18px, labels 9px, botão 70x22px | ✅ IMPLEMENTADO |
-| **Heatmap** | 310x280px, grid 4x4 com círculos r=14px | 310x280px fixo | ✅ IMPLEMENTADO |
+| **Heatmap** | 310x280px, grid 4x4 com círculos r=14px | 310x220px (ajustado para ~677px de altura útil) | ✅ IMPLEMENTADO* |
+
+> *Nota: Heatmap reduzido de 280px para 220px para considerar espaço real dentro da aba (1200x740px útil menos menus/status bar = ~677px)
 | **Resultado** | 310x40px, badge verde "APROVADO" | Badge 310x40px centralizado | ✅ IMPLEMENTADO |
 | **Estatísticas** | Box com 3 linhas: OK/WARN/NOK, Min/Máx/Média, Total | 3 linhas organizadas em GroupBox | ✅ IMPLEMENTADO |
 | **Legenda** | Box com título + 3 itens horizontais | Título + 3 itens horizontais, 310x50px | ✅ IMPLEMENTADO |
@@ -134,7 +136,7 @@ Legenda:        10px bold
 - ✅ Critérios: Spinboxes 45x18px, labels 9px, botão Receita 70x22px
 - ✅ Heatmap: 310x280px fixo, grid 4x4
 - ✅ Resultado: Badge 310x40px centralizado
-- ✅ Estatísticas: GroupBox 310x90px com 3 linhas organizadas
+- ✅ Estatísticas: GroupBox 310x85px com 3 linhas organizadas (ajustado de 90px)
 - ✅ Legenda: Box 310x50px com título e items horizontais
 - ✅ Botão Histórico: 310x35px full width
 - ✅ Info Arquivo: GroupBox 310x60px
@@ -154,10 +156,32 @@ Legenda:        10px bold
 - ✅ Cores: Contraste melhorado, badges com cores semânticas
 
 ### Branch
-- **Branch:** `fix/tension-measurement-ui`
-- **Último commit:** `fcb3b28` - fix(ui): Reorganizar detalhes em layout horizontal grid
+- **Branch:** `test/ui-adjustments-70-30`
+- **Último commit:** `d60ddd7` - fix(ui): Ajustar dimensões do painel direito para espaço real (~677px)
+
+### ⚠️ Nota Técnica: Ajuste de Espaço Real
+
+A proposta SVG original considerava tela cheia (1200x800px), mas a aba ocupa espaço menor:
+
+| Item | Altura |
+|------|--------|
+| Barra de menus | ~25px |
+| Status bar hardware | ~30px |
+| Bordas QTabWidget | ~8px |
+| **Altura útil real** | **~677px** (não 740px) |
+
+**Solução:** Heatmap reduzido de 280px → 220px (-60px) + ajustes de margins/spacings
 
 ### Próximos Passos (Opcional)
 - [ ] Validação visual com usuário
 - [ ] Ajustes finos de espaçamento se necessário
 - [ ] Merge para `release/v0.5-tension`
+
+---
+
+## 🔄 Histórico de Ajustes
+
+### 2026-03-29 - Ajuste de Espaço Real
+- **Problema:** Proposta SVG considerava 1200x800px (tela cheia), mas aba tem ~677px de altura útil
+- **Solução:** Heatmap 280px → 220px, Estatísticas 90px → 85px
+- **Commit:** `d60ddd7` - fix(ui): Ajustar dimensões do painel direito para espaço real (~677px)
