@@ -118,16 +118,16 @@ class MainWindowState:
         Aplica permissões de acesso baseadas no role do usuário.
 
         Regras:
-        - OPERATOR: Apenas aba "Stencils" habilitada
-        - ENGINEERING: Todas as abas habilitadas
-        - ADMIN: Todas as abas habilitadas
+        - OPERATOR: Apenas medição de tensão (sem restrições específicas)
+        - ENGINEERING: Acesso completo
+        - ADMIN: Acesso completo
+
+        NOTA (2026-03-29): QTabWidget removido. Como há apenas uma aba
+        (TensionMeasurementTab), não há abas para habilitar/desabilitar.
+        RoleManager controla permissões de ações específicas.
         """
         if not self._main_window:
             logger.warning("MainWindow não disponível, não aplicando permissões")
-            return
-
-        if not hasattr(self._main_window, 'right_panel') or not self._main_window.right_panel:
-            logger.warning("right_panel ainda não criado, permissões serão aplicadas depois")
             return
 
         user = self.get_current_user()
@@ -155,23 +155,11 @@ class MainWindowState:
                 )
 
         if user.role == UserRole.OPERATOR:
-            # Operador: Apenas aba "Stencils" (TreeViewTab)
+            # Operador: Apenas medição de tensão
             logger.info(f"Aplicando permissões OPERATOR para {user.username}")
 
-            # Desabilita todas as abas exceto "Stencils"
-            for i in range(self._main_window.right_panel.count()):
-                tab_text = self._main_window.right_panel.tabText(i)
-                if "Stencils" not in tab_text:
-                    self._main_window.right_panel.setTabEnabled(i, False)
-                    logger.debug(f"Aba desabilitada: {tab_text}")
-
-            # Garante que aba "Stencils" esteja habilitada e selecionada
-            for i in range(self._main_window.right_panel.count()):
-                if "Stencils" in self._main_window.right_panel.tabText(i):
-                    self._main_window.right_panel.setTabEnabled(i, True)
-                    self._main_window.right_panel.setCurrentIndex(i)
-                    logger.debug(f"Aba habilitada e selecionada: {self._main_window.right_panel.tabText(i)}")
-                    break
+            # REMOVIDO (2026-03-29): Iteração sobre abas - não há QTabWidget
+            # RoleManager controla permissões de ações específicas
 
             # REMOVIDO (release/v0.5-tension): connection_group removido da UI principal
             # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
@@ -179,13 +167,10 @@ class MainWindowState:
                 self._main_window.calibration_group.setEnabled(False)
 
         elif user.role in [UserRole.ENGINEERING, UserRole.ADMIN]:
-            # Engineering/Admin: Todas as abas habilitadas
+            # Engineering/Admin: Acesso completo
             logger.info(f"Aplicando permissões {user.role.value.upper()} para {user.username}")
 
-            # Habilita todas as abas
-            for i in range(self._main_window.right_panel.count()):
-                self._main_window.right_panel.setTabEnabled(i, True)
-                logger.debug(f"Aba habilitada: {self._main_window.right_panel.tabText(i)}")
+            # REMOVIDO (2026-03-29): Iteração sobre abas - não há QTabWidget
 
             # REMOVIDO (release/v0.5-tension): connection_group removido da UI principal
             # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)

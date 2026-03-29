@@ -156,11 +156,31 @@ class MenuHandler(QObject):
         """Cria o menu Ferramentas (inclui Nova Medição de Tensão)."""
         menu = menubar.addMenu('&Ferramentas')
 
+        # Rastreabilidade (NOVO - 2026-03-29 - substitui aba)
+        tracking_action = QAction('Rastreabilidade...', self.main_window)
+        tracking_action.setShortcut('Ctrl+R')
+        tracking_action.setToolTip(
+            'Abre diálogo de identificação de stencil (não-modal)\n'
+            'Substitui a aba "Rastreabilidade" removida.'
+        )
+        tracking_action.triggered.connect(self.main_window.open_tracking_dialog)
+        menu.addAction(tracking_action)
+        self._register_action('tools.tracking', tracking_action)
+
+        menu.addSeparator()
+
         # Nova Medição de Tensão (movido de menu dedicado)
         tension_action = QAction('Nova Medição de Tensão', self.main_window)
         tension_action.triggered.connect(self.main_window.open_stencil_tension_dialog)
         menu.addAction(tension_action)
         self._register_action('tools.tension_new', tension_action)
+
+        # Critérios de Tensão (NOVO - 2026-03-29)
+        criteria_action = QAction('Critérios de Tensão...', self.main_window)
+        criteria_action.setToolTip('Configura critérios globais de aceitação de tensão (aplicado a todos os stencils)')
+        criteria_action.triggered.connect(self.main_window.show_tension_criteria_dialog)
+        menu.addAction(criteria_action)
+        self._register_action('tools.tension_criteria', criteria_action)
 
         menu.addSeparator()
 

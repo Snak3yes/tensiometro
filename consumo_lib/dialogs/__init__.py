@@ -73,3 +73,11 @@ __all__.append('PLCMonitorDialog')
 # Connection dialog (NOVO - release/v0.5-tension)
 from .connection_dialog import ConnectionDialog
 __all__.append('ConnectionDialog')
+
+# Tension Criteria dialog (NOVO - 2026-03-29)
+from .tension_criteria_dialog import TensionCriteriaDialog
+__all__.append('TensionCriteriaDialog')
+
+# Tracking dialog (NOVO - 2026-03-29 - substitui aba Rastreabilidade)
+from .tracking_dialog import TrackingDialog
+__all__.append('TrackingDialog')

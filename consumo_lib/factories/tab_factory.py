@@ -142,43 +142,19 @@ class TabFactory:
         )
         self.main_window.movement_widget.hide()  # Oculto - acessível via diálogo
 
-        # Aba 1: Stencils (Lista de Programas)
-        from consumo_lib.tabs import TreeViewTab
-        tree_view_tab = TreeViewTab(
-            stencil_manager=self.stencil_tracker,
-            parent=self.main_window
-        )
-        self.main_window.tree_view_tab = tree_view_tab
-        tab_widget.addTab(tree_view_tab, "Stencils")
-        tabs.append(tree_view_tab)
+        # REMOVIDO (2026-03-29): Abas "Stencils" e "Visualização de Tensão"
+        # Substituídas pela aba unificada "Medição de Tensão"
+        # As classes TreeViewTab e TensionTab são mantidas por compatibilidade
 
-        # Aba 2: Visualização de Tensão
-        tension_tab = self.create_tension_tab()
-        self.main_window.tension_visualization = tension_tab
-        self.main_window.tension_viz_widget = tension_tab.visualization
-        tab_widget.addTab(tension_tab, "Visualização de Tensão")
-        tabs.append(tension_tab)
+        # REMOVIDO (2026-03-29): Aba "Rastreabilidade"
+        # Substituída por diálogo acessível via menu Ferramentas → Rastreabilidade (Ctrl+R)
+        # stencil_identification agora é definido em MainWindow.open_tracking_dialog()
 
-        # Aba 3: Medição de Tensão (Unificada) - NOVA v0.5
+        # Aba 1: Medição de Tensão (Unificada)
         tension_measurement_tab = self.create_tension_measurement_tab()
         self.main_window.tension_measurement_tab = tension_measurement_tab
         tab_widget.addTab(tension_measurement_tab, "Medição de Tensão")
         tabs.append(tension_measurement_tab)
 
-        # Aba 4: Rastreabilidade
-        tracking_tab = self.create_tracking_tab()
-        tracking_tab.tension_measurement_requested.connect(
-            self.main_window._run_tension_measurement
-        )
-        tracking_tab.stencil_management_requested.connect(
-            self.main_window.show_stencil_manager
-        )
-        tracking_tab.new_stencil_requested.connect(
-            self.main_window.show_new_stencil_dialog
-        )
-        self.main_window.stencil_identification = tracking_tab.stencil_identification
-        tab_widget.addTab(tracking_tab, "Rastreabilidade")
-        tabs.append(tracking_tab)
-
-        logger.info(f"{len(tabs)} abas criadas e adicionadas ao QTabWidget")
+        logger.info(f"{len(tabs)} aba criada e adicionada ao QTabWidget")
         return tabs

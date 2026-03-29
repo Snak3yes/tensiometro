@@ -90,7 +90,7 @@ from consumo_lib.utils.main_window import (
 )
 
 # NOVO (Fase 4): Factories para injeção de dependência
-from consumo_lib.factories import TabFactory, ControllerFactory, HardwareFactory
+from consumo_lib.factories import ControllerFactory, HardwareFactory
 
 # NOVO (Fase 4): Facades para interfaces simplificadas
 from consumo_lib.facades import (
@@ -165,6 +165,11 @@ class AOIControllerApp(QMainWindow):
         # Componente 1: Estado da aplicação (PRECISA SER PRIMEIRO)
         self._app_state = MainWindowState()
 
+        # Inicializa stencil_identification como None
+        # Será definido quando TrackingDialog for aberto ou pelo TabFactory (legado)
+        self.stencil_identification = None
+        self._tracking_dialog = None
+
         # Componente 2: Initializer (PRECISA SER ANTES do SetupCoordinator.setup)
         # Criamos o initializer, mas NÃO chamamos initialize_all() ainda
         # O SetupCoordinator vai chamar setup_ui(), setup_menu(), etc. individualmente
@@ -224,15 +229,9 @@ class AOIControllerApp(QMainWindow):
         controller = self.controller
         config = self.config
 
-        # Factory 1: TabFactory - cria abas da aplicação
-        self._tab_factory = TabFactory(
-            controller,
-            config,
-            self.stencil_tracker,
-            self
-        )
+        # REMOVIDO (2026-03-29): TabFactory - MainUIBuilder cria TensionMeasurementTab diretamente
 
-        # Factory 2: ControllerFactory - cria controllers
+        # Factory 1: ControllerFactory - cria controllers
         self._controller_factory = ControllerFactory(
             controller,
             config,
@@ -585,6 +584,46 @@ class AOIControllerApp(QMainWindow):
         if selected_theme:
             logger.info(f"Tema alterado via diálogo: {selected_theme}")
 
+    def show_tension_criteria_dialog(self):
+        """
+        Exibe diálogo de configuração de critérios de tensão.
+
+        Permite configurar:
+        - Tensão mínima/máxima aceitável
+        - Limites de warning (alerta)
+
+        Critérios são globais e aplicados a todos os stencils.
+        """
+        from consumo_lib.dialogs.tension_criteria_dialog import TensionCriteriaDialog
+        from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
+
+        # Cria gerenciador de critérios
+        criteria_mgr = TensionCriteriaManager(self.config_manager)
+
+        # Cria e executa diálogo
+        dialog = TensionCriteriaDialog(
+            criteria_manager=criteria_mgr,
+            parent=self
+        )
+
+        # Conecta sinal para atualizar aba de medição quando critérios mudam
+        dialog.criteria_changed.connect(self._on_tension_criteria_changed)
+
+        dialog.exec()
+
+    def _on_tension_criteria_changed(self, criteria):
+        """
+        Handler quando critérios de tensão são alterados.
+
+        Args:
+            criteria: TensionCriteriaConfig com novos valores
+        """
+        logger.info(f"Critérios de tensão atualizados: min={criteria.min_tension}, max={criteria.max_tension}")
+
+        # Atualiza aba de medição de tensão se existir
+        if hasattr(self, 'tension_measurement_tab') and self.tension_measurement_tab:
+            self.tension_measurement_tab.update_criteria(criteria)
+
     def open_connection_dialog(self):
         """
         Abre o diálogo de conexão com o PLC.
@@ -921,6 +960,42 @@ class AOIControllerApp(QMainWindow):
         self._plc_monitor_dialog.raise_()
         self._plc_monitor_dialog.activateWindow()
         logger.debug("PLCMonitorDialog aberto")
+
+    def open_tracking_dialog(self):
+        """
+        Abre diálogo de rastreabilidade (identificação de stencil).
+
+        O diálogo é não-modal e permanece acima da janela principal,
+        mas não bloqueia a interação com ela.
+
+        Substitui a aba "Rastreabilidade" removida da interface.
+        """
+        from consumo_lib.dialogs import TrackingDialog
+
+        # Cria ou reutiliza o diálogo
+        if not hasattr(self, '_tracking_dialog') or self._tracking_dialog is None:
+            self._tracking_dialog = TrackingDialog(
+                self.stencil_tracker,
+                parent=self
+            )
+
+            # Conecta sinais do diálogo ao StencilManagerWrapper
+            self._tracking_dialog.stencil_selected.connect(
+                self.stencil_manager_wrapper.select_stencil
+            )
+            self._tracking_dialog.stencil_cleared.connect(
+                self.stencil_manager_wrapper.clear_selection
+            )
+
+            # Mantém referência global para stencil_identification
+            # (usado por controllers que precisam atualizar o widget)
+            self.stencil_identification = self._tracking_dialog.stencil_identification
+
+        # Mostra o diálogo
+        self._tracking_dialog.show()
+        self._tracking_dialog.raise_()
+        self._tracking_dialog.activateWindow()
+        logger.debug("TrackingDialog aberto")
 
     def _cleanup_resources(self):
         """Para tudo que possa manter o Qt vivo após o fechamento (delega para ResourceManager)."""

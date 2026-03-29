@@ -34,10 +34,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Aba "Movimento" | Dialog não-modal (Ctrl+M) |
 | Aba "Monitor CLP" | Dialog não-modal (Ctrl+L) |
 | Aba "Conexões" (em Preferências) | REMOVIDA |
+| **Aba "Rastreabilidade"** | **REMOVIDA → Dialog não-modal (Ctrl+R)** |
+| **QTabWidget** | **REMOVIDO - TensionMeasurementTab diretamente na janela** |
 | Menu Receitas | REMOVIDO (funcionalidade não implementada) |
 | Campo "Stencil Atual" (menu Cadastros) | REMOVIDO |
 | Emojis na UI | TODOS REMOVIDOS |
 | Diálogo "Preferências" | Renomeado para "Preferências do Sistema" |
+| TabFactory | REMOVIDO da inicialização (MainUIBuilder cria tab diretamente) |
 
 ### UI Adjustments - Aba "Medição de Tensão" (2026-03-29)
 
@@ -64,6 +67,9 @@ Ajustes para matching com proposta SVG (`docs/ui_proposals/proposta_1_revisada_7
 - `consumo_lib/dialogs/movement_dialog.py` - Diálogo de controle CNC (não-modal, Ctrl+M)
 - `consumo_lib/dialogs/plc_monitor_dialog.py` - Diálogo de monitoramento PLC (não-modal, Ctrl+L)
 - `consumo_lib/dialogs/connection_dialog.py` - Diálogo de conexão PLC (não-modal)
+- `consumo_lib/dialogs/tracking_dialog.py` - Diálogo de rastreabilidade (não-modal, Ctrl+R)
+- `consumo_lib/dialogs/tension_criteria_dialog.py` - Diálogo de critérios de tensão globais
+- `consumo_lib/managers/tension_criteria_manager.py` - Gerenciador de critérios globais
 - `tools/populate_test_stencils.py` - Script para popular stencils de teste no banco
 
 ### Menu Consolidado (5 menus)
@@ -73,7 +79,7 @@ Ajustes para matching com proposta SVG (`docs/ui_proposals/proposta_1_revisada_7
 | **Arquivo** | Sair |
 | **Cadastros** | Gerenciar Stencils, Novo Stencil |
 | **Relatórios** | Tensão, Stencil, Período, Configurações |
-| **Ferramentas** | Nova Medição de Tensão, Controle de Movimento (Ctrl+M), Monitor CLP (Ctrl+L), Calibração CNC, Conexões, Preferências (Ctrl+,) |
+| **Ferramentas** | Rastreabilidade (Ctrl+R), Nova Medição de Tensão, Critérios de Tensão, Controle de Movimento (Ctrl+M), Monitor CLP (Ctrl+L), Calibração CNC, Conexões, Preferências (Ctrl+,) |
 | **Sistema** | Configurações de Autenticação, Configurações de Tema, Verificar Permissões, Sobre |
 
 ### Conexão PLC
@@ -242,10 +248,17 @@ mm_per_pixel_x = 34.0 / 640  # ≈ 0.053
 
 | Módulo | Propósito |
 |--------|-----------|
-| `tabs/` | 8 abas principais (Câmera, Tensão, Inspeção, etc.) |
-| `dialogs/` | Diálogos modais, Engineering Wizard |
+| `tabs/` | TensionMeasurementTab (única aba, colocada diretamente na janela) |
+| `dialogs/` | Diálogos modais e não-modais (Tracking, Movement, PLC Monitor, etc.) |
 | `widgets/` | Componentes reutilizáveis |
 | `ui/` | **Design System** (tokens, componentes padrão) |
+
+### Interface Principal (v0.5-tension)
+
+**Janela principal sem QTabWidget:**
+- `TensionMeasurementTab` colocada diretamente no layout
+- `StencilIdentificationWidget` acessível via `TrackingDialog` (Ctrl+R)
+- `MovementControlWidget` oculto, acessível via `MovementDialog` (Ctrl+M)
 
 ---
 

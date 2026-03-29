@@ -10,10 +10,9 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter,
+    QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QGroupBox, QLabel, QLineEdit, QComboBox,
     QTreeWidget, QTreeWidgetItem,
-    QDoubleSpinBox,
     QFileDialog, QMessageBox
 )
 from PyQt6.QtCore import Qt, pyqtSignal
@@ -21,7 +20,6 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.mini_tension_heatmap import MiniTensionHeatmapWidget
-from consumo_lib.widgets.hardware_status_bar import HardwareStatusBar
 
 from aoi_lib.recipe_manager import TensionAcceptance
 
@@ -45,6 +43,12 @@ class TensionMeasurementTab(QWidget):
         self.last_file_path: Optional[str] = None
         self.measurements_data: Optional[Dict] = None
         self.acceptance_criteria: Optional[TensionAcceptance] = None
+
+        # Critérios globais (valores padrão, serão atualizados pelo manager)
+        self.criteria_min = 25.0
+        self.criteria_max = 45.0
+        self.criteria_warn_low = 28.0
+        self.criteria_warn_high = 42.0
 
         self.setup_ui()
         self.load_stencils()
@@ -76,10 +80,6 @@ class TensionMeasurementTab(QWidget):
         splitter.setHandleWidth(4)
 
         layout.addWidget(splitter, 1)
-
-        # Hardware status bar
-        self.hw_status_bar = HardwareStatusBar()
-        layout.addWidget(self.hw_status_bar)
 
     def create_left_panel(self) -> QWidget:
         """Cria painel esquerdo com lista de stencils."""
@@ -386,10 +386,6 @@ class TensionMeasurementTab(QWidget):
         header_layout.addLayout(btn_layout)
         layout.addLayout(header_layout)
 
-        # CRITÉRIOS: Layout horizontal compacto (spinboxes 45x18px, labels 9px) - 60px
-        criteria_group = self.create_criteria_group()
-        layout.addWidget(criteria_group)
-
         # HEATMAP: 310x220px fixo (ajustado para caber em ~677px)
         self.heatmap = MiniTensionHeatmapWidget()
         self.heatmap.setMinimumSize(310, 220)
@@ -474,150 +470,6 @@ class TensionMeasurementTab(QWidget):
 
         return widget
 
-    def create_criteria_group(self) -> QGroupBox:
-        """
-        Cria grupo de critérios de aceitação usando QGridLayout.
-
-        Layout (grid 3x5):
-        - Row 0: Mín(label) + Mín(spin) + Warn↓(label) + Warn↓(spin) + stretch
-        - Row 1: Warn↑(label) + Warn↑(spin) + Máx(label) + Máx(spin) + stretch
-        - Row 2: Botão Receita (coluna 3-4, alinhado à direita)
-        """
-        group = QGroupBox("Critérios")
-        group.setFixedHeight(100)
-        group.setFixedWidth(310)
-        group.setStyleSheet(f"""
-            QGroupBox {{
-                font-size: 10px;
-                font-weight: bold;
-                background-color: {COLORS.SURFACE};
-                border-radius: 6px;
-                border: 1px solid {COLORS.BORDER};
-                padding-top: 2px;
-            }}
-            QGroupBox::title {{
-                subcontrol-origin: margin;
-                subcontrol-position: top left;
-                left: 10px;
-                top: 4px;
-                padding: 0 5px;
-                color: {COLORS.TEXT_PRIMARY};
-            }}
-        """)
-
-        grid = QGridLayout(group)
-        grid.setContentsMargins(2, 2, 2, 2)
-        grid.setHorizontalSpacing(8)
-        grid.setVerticalSpacing(12)
-
-        # Label style - altura fixa para não cortar
-        label_style = f"font-size: 9px; color: {COLORS.TEXT_SECONDARY}; min-height: 16px;"
-
-        # Spinbox stylesheet - menor, sobrescreve global
-        spinbox_style = f"""
-            QDoubleSpinBox {{
-                background-color: {COLORS.BACKGROUND};
-                color: {COLORS.TEXT_PRIMARY};
-                border: 1px solid {COLORS.BORDER};
-                border-radius: 2px;
-                padding: 0px 2px;
-                padding-right: 12px;
-                font-size: 9px;
-                min-height: 14px;
-                max-height: 14px;
-            }}
-            QDoubleSpinBox::up-button {{
-                subcontrol-position: top right;
-                width: 12px;
-                height: 7px;
-                background-color: {COLORS.SURFACE_VARIANT};
-                border: none;
-                border-left: 1px solid {COLORS.BORDER};
-            }}
-            QDoubleSpinBox::down-button {{
-                subcontrol-position: bottom right;
-                width: 12px;
-                height: 7px;
-                background-color: {COLORS.SURFACE_VARIANT};
-                border: none;
-                border-left: 1px solid {COLORS.BORDER};
-            }}
-            QDoubleSpinBox::up-arrow {{
-                image: none;
-                border-left: 3px solid transparent;
-                border-right: 3px solid transparent;
-                border-bottom: 4px solid {COLORS.TEXT_PRIMARY};
-            }}
-            QDoubleSpinBox::down-arrow {{
-                image: none;
-                border-left: 3px solid transparent;
-                border-right: 3px solid transparent;
-                border-top: 4px solid {COLORS.TEXT_PRIMARY};
-            }}
-        """
-
-        # Row 0: Mín + Warn↓
-        lbl_min = QLabel("Mín:")
-        lbl_min.setStyleSheet(label_style)
-        grid.addWidget(lbl_min, 0, 0)
-
-        self.spin_min = QDoubleSpinBox()
-        self.spin_min.setRange(0, 100)
-        self.spin_min.setValue(25.0)
-        self.spin_min.setFixedSize(50, 14)
-        self.spin_min.setStyleSheet(spinbox_style)
-        self.spin_min.valueChanged.connect(self.on_criteria_changed)
-        grid.addWidget(self.spin_min, 0, 1)
-
-        lbl_warn_low = QLabel("Warn↓:")
-        lbl_warn_low.setStyleSheet(label_style)
-        grid.addWidget(lbl_warn_low, 0, 2)
-
-        self.spin_warn_low = QDoubleSpinBox()
-        self.spin_warn_low.setRange(0, 100)
-        self.spin_warn_low.setValue(28.0)
-        self.spin_warn_low.setFixedSize(50, 14)
-        self.spin_warn_low.setStyleSheet(spinbox_style)
-        self.spin_warn_low.valueChanged.connect(self.on_criteria_changed)
-        grid.addWidget(self.spin_warn_low, 0, 3)
-
-        # Row 1: Warn↑ + Máx
-        lbl_warn_high = QLabel("Warn↑:")
-        lbl_warn_high.setStyleSheet(label_style)
-        grid.addWidget(lbl_warn_high, 1, 0)
-
-        self.spin_warn_high = QDoubleSpinBox()
-        self.spin_warn_high.setRange(0, 100)
-        self.spin_warn_high.setValue(42.0)
-        self.spin_warn_high.setFixedSize(50, 14)
-        self.spin_warn_high.setStyleSheet(spinbox_style)
-        self.spin_warn_high.valueChanged.connect(self.on_criteria_changed)
-        grid.addWidget(self.spin_warn_high, 1, 1)
-
-        lbl_max = QLabel("Máx:")
-        lbl_max.setStyleSheet(label_style)
-        grid.addWidget(lbl_max, 1, 2)
-
-        self.spin_max = QDoubleSpinBox()
-        self.spin_max.setRange(0, 100)
-        self.spin_max.setValue(45.0)
-        self.spin_max.setFixedSize(50, 14)
-        self.spin_max.setStyleSheet(spinbox_style)
-        self.spin_max.valueChanged.connect(self.on_criteria_changed)
-        grid.addWidget(self.spin_max, 1, 3)
-
-        # Row 2: Botão Receita (ocupa todas as colunas, centralizado)
-        self.btn_recipe = StandardButton(
-            "Receita",
-            variant="primary-blue",
-            semantic_size="inline-compact"
-        )
-        self.btn_recipe.setFixedHeight(20)
-        self.btn_recipe.clicked.connect(self.load_criteria_from_recipe)
-        grid.addWidget(self.btn_recipe, 2, 0, 1, 4)
-
-        return group
-
     def create_legend_widget(self) -> QWidget:
         """
         Cria widget de legenda horizontal (310x50px).
@@ -654,7 +506,7 @@ class TensionMeasurementTab(QWidget):
         # Item OK - círculo + texto
         ok_indicator = QLabel("●")
         ok_indicator.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 12px; font-weight: bold;")
-        self.ok_label = QLabel(f"OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()})")
+        self.ok_label = QLabel(f"OK ({self.criteria_warn_low}-{self.criteria_warn_high})")
         self.ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 9px;")
         ok_layout = QHBoxLayout()
         ok_layout.setSpacing(4)
@@ -694,7 +546,7 @@ class TensionMeasurementTab(QWidget):
 
     def _update_legend(self):
         """Atualiza textos da legenda com valores dos critérios."""
-        self.ok_label.setText(f"OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()})")
+        self.ok_label.setText(f"OK ({self.criteria_warn_low}-{self.criteria_warn_high})")
 
     def create_file_info_group(self) -> QGroupBox:
         """Cria grupo de informações do arquivo."""
@@ -927,7 +779,7 @@ class TensionMeasurementTab(QWidget):
 
     def _is_tension_ok(self, tension: float) -> bool:
         """Verifica se tensão está dentro dos critérios OK."""
-        return self.spin_warn_low.value() <= tension <= self.spin_warn_high.value()
+        return self.criteria_warn_low <= tension <= self.criteria_warn_high
 
     def load_tension_file(self):
         """Carrega arquivo JSON de tensão."""
@@ -962,25 +814,9 @@ class TensionMeasurementTab(QWidget):
             # Atualiza heatmap
             self.heatmap.set_measurements(data)
 
-            # Atualiza critérios se disponíveis
-            if 'parameters' in data and 'acceptance' in data['parameters']:
-                acc = data['parameters']['acceptance']
-                self.spin_min.blockSignals(True)
-                self.spin_max.blockSignals(True)
-                self.spin_warn_low.blockSignals(True)
-                self.spin_warn_high.blockSignals(True)
+            # Nota: Critérios agora são globais, não carregados do arquivo
 
-                self.spin_min.setValue(acc.get('min_tension', 25.0))
-                self.spin_max.setValue(acc.get('max_tension', 45.0))
-                self.spin_warn_low.setValue(acc.get('warning_low', 28.0))
-                self.spin_warn_high.setValue(acc.get('warning_high', 42.0))
-
-                self.spin_min.blockSignals(False)
-                self.spin_max.blockSignals(False)
-                self.spin_warn_low.blockSignals(False)
-                self.spin_warn_high.blockSignals(False)
-
-            # Atualiza visualização
+            # Atualiza visualização com critérios globais
             self.on_criteria_changed()
 
         except Exception as e:
@@ -994,13 +830,13 @@ class TensionMeasurementTab(QWidget):
         if self.last_file_path:
             self.load_file(self.last_file_path)
 
-    def on_criteria_changed(self, value=None):
+    def on_criteria_changed(self):
         """Handle quando critérios mudam."""
         self.acceptance_criteria = TensionAcceptance(
-            min_tension=self.spin_min.value(),
-            max_tension=self.spin_max.value(),
-            warning_low=self.spin_warn_low.value(),
-            warning_high=self.spin_warn_high.value()
+            min_tension=self.criteria_min,
+            max_tension=self.criteria_max,
+            warning_low=self.criteria_warn_low,
+            warning_high=self.criteria_warn_high
         )
 
         # Atualiza heatmap
@@ -1009,6 +845,27 @@ class TensionMeasurementTab(QWidget):
         # Atualiza estatísticas se houver dados
         if self.measurements_data:
             self.update_statistics()
+
+    def update_criteria(self, criteria):
+        """
+        Atualiza critérios globais recebidos do manager.
+
+        Args:
+            criteria: TensionCriteriaConfig com novos valores
+        """
+        self.criteria_min = criteria.min_tension
+        self.criteria_max = criteria.max_tension
+        self.criteria_warn_low = criteria.warning_low
+        self.criteria_warn_high = criteria.warning_high
+
+        logger.info(f"Critérios atualizados: min={self.criteria_min}, max={self.criteria_max}, "
+                    f"warn_low={self.criteria_warn_low}, warn_high={self.criteria_warn_high}")
+
+        # Atualiza legenda
+        self._update_legend()
+
+        # Atualiza critérios
+        self.on_criteria_changed()
 
     def update_statistics(self):
         """Atualiza estatísticas e resultado."""
@@ -1120,51 +977,6 @@ class TensionMeasurementTab(QWidget):
                 self.file_details_label.setText(f"Grid: 4x4 | Área: {area_w}x{area_h}mm")
             else:
                 self.file_details_label.setText("Grid: 4x4")
-
-    def load_criteria_from_recipe(self):
-        """Carrega critérios da receita atual."""
-        # Tenta obter a receita do pai (AOIControllerApp)
-        parent = self.parent()
-        while parent and not hasattr(parent, 'current_recipe'):
-            parent = parent.parent()
-
-        if parent and hasattr(parent, 'current_recipe') and parent.current_recipe:
-            recipe = parent.current_recipe
-            acc = recipe.tension.acceptance
-
-            # Bloqueia sinais para evitar múltiplas atualizações
-            self.spin_min.blockSignals(True)
-            self.spin_max.blockSignals(True)
-            self.spin_warn_low.blockSignals(True)
-            self.spin_warn_high.blockSignals(True)
-
-            self.spin_min.setValue(acc.min_tension)
-            self.spin_max.setValue(acc.max_tension)
-            self.spin_warn_low.setValue(acc.warning_low)
-            self.spin_warn_high.setValue(acc.warning_high)
-
-            self.spin_min.blockSignals(False)
-            self.spin_max.blockSignals(False)
-            self.spin_warn_low.blockSignals(False)
-            self.spin_warn_high.blockSignals(False)
-
-            # Atualiza manualmente
-            self.on_criteria_changed()
-
-            QMessageBox.information(
-                self, "Critérios Carregados",
-                f"Critérios da receita '{recipe.name}' aplicados:\n\n"
-                f"Mínimo: {acc.min_tension} N/cm²\n"
-                f"Máximo: {acc.max_tension} N/cm²\n"
-                f"Warning ↓: {acc.warning_low} N/cm²\n"
-                f"Warning ↑: {acc.warning_high} N/cm²"
-            )
-        else:
-            QMessageBox.warning(
-                self, "Receita Não Encontrada",
-                "Nenhuma receita está carregada.\n\n"
-                "Acesse o menu para carregar uma receita."
-            )
 
     def filter_stencils(self, search_term: str = ""):
         """Filtra stencils por termo de busca."""

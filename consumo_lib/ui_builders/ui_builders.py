@@ -8,7 +8,7 @@ import logging
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox,
     QLabel, QLineEdit, QComboBox, QSpinBox, QPushButton,
-    QTabWidget, QTableWidget, QHeaderView
+    QTableWidget, QHeaderView
 )
 from aoi_lib.plc_axis_controller import PLCAxisController
 from consumo_lib.controllers import ConnectionManagerController
@@ -218,28 +218,34 @@ class MainUIBuilder:
 
     def _build_right_panel(self, splitter):
         """
-        Cria painel direito com abas e controllers que dependem de UI.
+        Cria painel direito com aba de Medição de Tensão.
 
-        NOVO (2026-01-16): Parâmetro splitter ignorado (left panel foi removido)
+        REFACTORED (2026-03-29): QTabWidget removido - apenas uma aba resta.
+        TensionMeasurementTab é colocada diretamente no layout.
+
+        NOTA: Parâmetro splitter ignorado (left panel foi removido).
         """
-        # Cria QTabWidget para abas
-        right_panel = QTabWidget()
-        self.window.right_panel = right_panel
-
-        # REMOVIDO (release/v0.5-tension): Aba "Movimento"
-        # O controle de movimento agora está em um diálogo acessível via menu
-        # Ferramentas → Controle de Movimento (Ctrl+M)
-        # self._build_movement_tab(right_panel)
-
         # Criar ConnectionManagerController (preview de câmera é opcional)
         self._create_connection_manager_controller()
 
-        # Abas restantes (incluindo nova aba "Backup de Controles")
-        self._build_remaining_tabs(right_panel)
+        # Criar movement_widget oculto para compatibilidade com keyboard handler
+        # (movido de TabFactory.create_all_tabs())
+        self.window.movement_widget = MovementControlWidget(
+            self.window.controller,
+            self.window.config,
+            parent=self.window
+        )
+        self.window.movement_widget.hide()  # Oculto - acessível via MovementDialog
 
-        # NOTA: As abas ficam habilitadas mesmo sem CLP conectado
-        # O bloqueio agora é feito apenas nas ações que requerem movimento
-        return right_panel
+        # Criar TensionMeasurementTab diretamente (sem QTabWidget)
+        tension_measurement_tab = self._create_tension_measurement_tab()
+
+        # Referência para compatibilidade
+        self.window.right_panel = tension_measurement_tab  # Alias para compatibilidade
+        self.window.tension_measurement_tab = tension_measurement_tab
+
+        logger.info("TensionMeasurementTab criada diretamente (QTabWidget removido)")
+        return tension_measurement_tab
 
     def _build_movement_tab(self, parent):
         """Cria aba dedicada apenas ao controle de movimento."""
@@ -273,27 +279,17 @@ class MainUIBuilder:
             logger.error(f"Erro ao criar ConnectionManagerController: {e}")
             self.window.connection_manager_controller = None
 
-    def _build_remaining_tabs(self, parent):
-        """Cria abas restantes do painel direito usando TabFactory."""
-        # Usa TabFactory para criar todas as abas (incluindo Câmera & Movimento)
-        from consumo_lib.factories import TabFactory
+    def _create_tension_measurement_tab(self):
+        """Cria TensionMeasurementTab diretamente (sem QTabWidget wrapper)."""
+        from consumo_lib.tabs import TensionMeasurementTab
 
-        tab_factory = TabFactory(
-            self.window.controller,
-            self.window.config,
-            self.window.stencil_tracker,
-            self.window
+        tab = TensionMeasurementTab(
+            stencil_manager=self.window.stencil_tracker,
+            parent=self.window
         )
 
-        # Cria todas as abas via factory (sinais já são conectados pelo TabFactory)
-        tabs = tab_factory.create_all_tabs(parent)
+        # NOTA: stencil_identification é definido em open_tracking_dialog()
+        # TensionMeasurementTab usa stencil_manager internamente, não precisa de conexões
 
-        # Nota: TabFactory já expõe os widgets na window:
-        # - self.window.cnc_control_tab
-        # - self.window.movement_widget (via cnc_control_tab.movement_widget)
-        # - self.window.camera_preview
-        # - self.window.tension_visualization
-        # - self.window.tracking_tab (sinais já conectados)
-        # - self.window.stencil_identification
-
-        logger.info(f"Abas criadas via TabFactory: {len(tabs)} abas")
+        logger.debug("TensionMeasurementTab criada")
+        return tab
