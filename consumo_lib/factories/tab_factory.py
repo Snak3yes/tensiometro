@@ -111,24 +111,20 @@ class TabFactory:
         """
         tabs = []
 
-        # Aba 1: Câmera & Movimento
-        cnc_tab = self.create_cnc_control_tab()
-        cnc_tab.image_captured.connect(
-            self.main_window.on_image_captured
+        # REMOVIDO (release/v0.5-tension): Aba "Câmera & Movimento"
+        # O controle de movimento agora está em um diálogo acessível via menu
+        # Ferramentas → Controle de Movimento (Ctrl+M)
+        #
+        # NOTA: Criamos movement_widget oculto para compatibilidade com keyboard handler
+        from consumo_lib.widgets.movement_control import MovementControlWidget
+        self.main_window.movement_widget = MovementControlWidget(
+            self.controller,
+            self.config,
+            parent=self.main_window
         )
-        tab_widget.addTab(cnc_tab, "Câmera & Movimento")
-        tabs.append(cnc_tab)
+        self.main_window.movement_widget.hide()  # Oculto - acessível via diálogo
 
-        # Expose widgets internos para compatibilidade
-        self.main_window.cnc_control_tab = cnc_tab
-        self.main_window.camera_preview = cnc_tab.camera_preview
-        self.main_window.movement_widget = cnc_tab.movement_widget
-
-        # REMOVIDO (release/v0.5-tension): Aba "Monitor CLP"
-        # O monitor CLP agora está em um diálogo acessível via menu
-        # Ferramentas → Monitor CLP (Ctrl+L)
-
-        # Aba 2: Stencils (Lista de Programas)
+        # Aba 1: Stencils (Lista de Programas)
         from consumo_lib.tabs import TreeViewTab
         tree_view_tab = TreeViewTab(
             stencil_manager=self.stencil_tracker,
@@ -138,14 +134,14 @@ class TabFactory:
         tab_widget.addTab(tree_view_tab, "Stencils")
         tabs.append(tree_view_tab)
 
-        # Aba 3: Visualização de Tensão
+        # Aba 2: Visualização de Tensão
         tension_tab = self.create_tension_tab()
         self.main_window.tension_visualization = tension_tab
         self.main_window.tension_viz_widget = tension_tab.visualization
         tab_widget.addTab(tension_tab, "Visualização de Tensão")
         tabs.append(tension_tab)
 
-        # Aba 4: Rastreabilidade
+        # Aba 3: Rastreabilidade
         tracking_tab = self.create_tracking_tab()
         tracking_tab.tension_measurement_requested.connect(
             self.main_window._run_tension_measurement
@@ -157,8 +153,6 @@ class TabFactory:
             self.main_window.show_new_stencil_dialog
         )
         self.main_window.stencil_identification = tracking_tab.stencil_identification
-        # REMOVIDO (release/v0.5-tension): btn_run_tension removido da aba Rastreabilidade
-        # self.main_window.btn_run_tension = tracking_tab.btn_run_tension
         tab_widget.addTab(tracking_tab, "Rastreabilidade")
         tabs.append(tracking_tab)
 
