@@ -223,43 +223,51 @@ class TensionMeasurementTab(QWidget):
         return widget
 
     def create_right_panel(self) -> QWidget:
-        """Cria painel direito com visualização de tensão."""
+        """Cria painel direito com visualização de tensão (30% - 340px largura)."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(8)
+        layout.setSpacing(10)
 
-        # Título e subtítulo em linha horizontal
+        # HEADER: Título + Botões (lado a lado)
         header_layout = QHBoxLayout()
+        header_layout.setSpacing(10)
 
+        # Títulos (esquerda)
         titles_layout = QVBoxLayout()
+        titles_layout.setSpacing(0)
         self.viz_title = QLabel("Visualização")
-        self.viz_title.setFont(TYPO.get_font(TYPO.TITLE_MEDIUM, bold=True))
+        self.viz_title.setFont(TYPO.get_font(TYPO.TITLE_SMALL, bold=True))  # 13px bold
         titles_layout.addWidget(self.viz_title)
 
         self.viz_subtitle = QLabel("Selecione um stencil")
         self.viz_subtitle.setStyleSheet(
-            f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;"
+            f"color: {COLORS.TEXT_HINT}; font-size: 9px;"
         )
         titles_layout.addWidget(self.viz_subtitle)
-        titles_layout.setSpacing(2)
         header_layout.addLayout(titles_layout)
 
-        # Botões superiores (compactos, lado a lado)
+        # Botões (direita) - 75x28px e 65x28px conforme proposta
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(8)
+
         self.btn_load = StandardButton(
             "Carregar",
             variant="primary-green",
-            semantic_size="inline-compact"
+            semantic_size="inline-primary"  # 24x60px
         )
+        self.btn_load.setFixedHeight(28)
+        self.btn_load.setMinimumWidth(75)
         self.btn_load.clicked.connect(self.load_tension_file)
         btn_layout.addWidget(self.btn_load)
 
         self.btn_reload = StandardButton(
             "Recarregar",
             variant="secondary",
-            semantic_size="inline-compact"
+            semantic_size="inline-compact"  # 20x50px
         )
+        self.btn_reload.setFixedHeight(28)
+        self.btn_reload.setMinimumWidth(65)
         self.btn_reload.setEnabled(False)
         self.btn_reload.clicked.connect(self.reload_tension)
         btn_layout.addWidget(self.btn_reload)
@@ -267,78 +275,42 @@ class TensionMeasurementTab(QWidget):
         header_layout.addLayout(btn_layout)
         layout.addLayout(header_layout)
 
-        # Critérios de aceitação (compacto, horizontal)
+        # CRITÉRIOS: Layout horizontal compacto (spinboxes 45x18px, labels 9px)
         criteria_group = self.create_criteria_group()
         layout.addWidget(criteria_group)
 
-        # Heatmap (com size fixo)
+        # HEATMAP: 310x280px fixo
         self.heatmap = MiniTensionHeatmapWidget()
         self.heatmap.setMinimumSize(310, 280)
-        layout.addWidget(self.heatmap, 1)
+        self.heatmap.setMaximumSize(310, 280)
+        self.heatmap.setSizePolicy(
+            self.heatmap.sizePolicy().horizontalPolicy(),
+            self.heatmap.sizePolicy().verticalPolicy()
+        )
+        layout.addWidget(self.heatmap)
 
-        # Resultado (badge estilo)
+        # RESULTADO: Badge 310x40px
         self.result_badge = QLabel("---")
         self.result_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.result_badge.setFixedHeight(40)
+        self.result_badge.setFixedWidth(310)
         self.result_badge.setStyleSheet(f"""
             QLabel {{
-                font-size: {TYPO.TITLE_SMALL}px;
+                font-size: 14px;
                 font-weight: bold;
-                padding: {SPACE.SM}px;
-                border-radius: {DIM.RADIUS_MD}px;
+                border-radius: 6px;
                 background-color: {COLORS.TEXT_DISABLED};
                 color: {COLORS.TEXT_PRIMARY};
-                min-height: 40px;
             }}
         """)
         layout.addWidget(self.result_badge)
 
-        # Estatísticas (layout vertical organizado)
+        # ESTATÍSTICAS: GroupBox 310x90px - 3 linhas organizadas
         stats_group = QGroupBox("Estatísticas")
-        stats_layout = QVBoxLayout(stats_group)
-        stats_layout.setSpacing(4)
-
-        # Linha 1: OK/WARN/NOK
-        self.stats_counts_label = QLabel("🟢 OK: 0 | 🟡 WARN: 0 | 🔴 NOK: 0")
-        self.stats_counts_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_PRIMARY};")
-        stats_layout.addWidget(self.stats_counts_label)
-
-        # Linha 2: Min/Máx/Média
-        self.stats_values_label = QLabel("Mín: -- | Máx: -- | Média: --")
-        self.stats_values_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_SECONDARY};")
-        stats_layout.addWidget(self.stats_values_label)
-
-        # Linha 3: Total
-        self.stats_total_label = QLabel("Total: 0 pontos")
-        self.stats_total_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_HINT};")
-        stats_layout.addWidget(self.stats_total_label)
-
-        layout.addWidget(stats_group)
-
-        # Legenda (horizontal compacta)
-        self.legend_widget = self.create_legend_widget()
-        layout.addWidget(self.legend_widget)
-
-        # Botão Histórico (compacto)
-        self.btn_full_history = StandardButton(
-            "Ver Histórico Completo",
-            variant="primary-blue",
-            semantic_size="inline-primary"
-        )
-        self.btn_full_history.clicked.connect(self.show_full_history)
-        layout.addWidget(self.btn_full_history)
-
-        # Info do arquivo
-        self.file_info_group = self.create_file_info_group()
-        layout.addWidget(self.file_info_group)
-
-        return widget
-
-    def create_criteria_group(self) -> QGroupBox:
-        """Cria grupo de critérios de aceitação (layout compacto horizontal)."""
-        group = QGroupBox("Critérios")
-        group.setStyleSheet(f"""
+        stats_group.setMinimumWidth(310)
+        stats_group.setStyleSheet(f"""
             QGroupBox {{
-                font-size: {TYPO.LABEL_SMALL}px;
+                font-size: 10px;
                 font-weight: bold;
             }}
             QGroupBox::title {{
@@ -347,55 +319,147 @@ class TensionMeasurementTab(QWidget):
                 padding: 0 5px;
             }}
         """)
+        stats_layout = QVBoxLayout(stats_group)
+        stats_layout.setContentsMargins(10, 20, 10, 10)
+        stats_layout.setSpacing(4)
+
+        # Linha 1: OK/WARN/NOK com porcentagens
+        self.stats_counts_label = QLabel("🟢 OK: 0 (0%) | 🟡 WARN: 0 (0%) | 🔴 NOK: 0 (0%)")
+        self.stats_counts_label.setStyleSheet(f"font-size: 9px; color: {COLORS.TEXT_PRIMARY};")
+        stats_layout.addWidget(self.stats_counts_label)
+
+        # Linha 2: Min/Máx/Média
+        self.stats_values_label = QLabel("Mín: -- | Máx: -- | Média: --")
+        self.stats_values_label.setStyleSheet(f"font-size: 9px; color: {COLORS.TEXT_SECONDARY};")
+        stats_layout.addWidget(self.stats_values_label)
+
+        # Linha 3: Total
+        self.stats_total_label = QLabel("Total: 0 pontos")
+        self.stats_total_label.setStyleSheet(f"font-size: 9px; color: {COLORS.TEXT_HINT};")
+        stats_layout.addWidget(self.stats_total_label)
+
+        layout.addWidget(stats_group)
+
+        # LEGENDA: Box horizontal 310x50px
+        self.legend_widget = self.create_legend_widget()
+        self.legend_widget.setMinimumWidth(310)
+        layout.addWidget(self.legend_widget)
+
+        # BOTÃO HISTÓRICO: 310x35px
+        self.btn_full_history = StandardButton(
+            "Ver Histórico Completo",
+            variant="primary-blue",
+            semantic_size="inline-primary"
+        )
+        self.btn_full_history.setFixedHeight(35)
+        self.btn_full_history.setMinimumWidth(310)
+        self.btn_full_history.clicked.connect(self.show_full_history)
+        layout.addWidget(self.btn_full_history)
+
+        # INFO ARQUIVO: GroupBox 310x60px
+        self.file_info_group = self.create_file_info_group()
+        self.file_info_group.setMinimumWidth(310)
+        layout.addWidget(self.file_info_group)
+
+        layout.addStretch()
+        return widget
+
+    def create_criteria_group(self) -> QGroupBox:
+        """
+        Cria grupo de critérios de aceitação (layout compacto horizontal).
+
+        Dimensões da proposta:
+        - Container: 310x55px
+        - Spinboxes: 45x18px
+        - Labels: 9px
+        - Botão 'Usar Receita': 100x22px
+        """
+        group = QGroupBox("Critérios")
+        group.setFixedHeight(60)
+        group.setFixedWidth(310)
+        group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: 9px;
+                font-weight: bold;
+                background-color: {COLORS.SURFACE};
+                border-radius: 6px;
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+                color: {COLORS.TEXT_HINT};
+            }}
+        """)
 
         layout = QHBoxLayout(group)
         layout.setContentsMargins(8, 18, 8, 8)
-        layout.setSpacing(6)
+        layout.setSpacing(4)
 
-        # Título do grupo (inline)
+        # Spinbox stylesheet
+        spinbox_style = f"""
+            QDoubleSpinBox {{
+                background-color: {COLORS.BACKGROUND};
+                color: {COLORS.TEXT_PRIMARY};
+                border: 1px solid {COLORS.BORDER};
+                border-radius: 3px;
+                padding: 2px;
+                font-size: 9px;
+            }}
+        """
+
+        # Mín: spinbox 45x18px
         layout.addWidget(QLabel("Mín:"))
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0, 100)
         self.spin_min.setValue(25.0)
-        self.spin_min.setFixedWidth(50)
-        self.spin_min.setFixedHeight(22)
+        self.spin_min.setFixedWidth(45)
+        self.spin_min.setFixedHeight(18)
+        self.spin_min.setStyleSheet(spinbox_style)
         self.spin_min.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_min)
 
+        # Warn↓: spinbox 45x18px
         layout.addWidget(QLabel("Warn↓:"))
         self.spin_warn_low = QDoubleSpinBox()
         self.spin_warn_low.setRange(0, 100)
         self.spin_warn_low.setValue(28.0)
-        self.spin_warn_low.setFixedWidth(50)
-        self.spin_warn_low.setFixedHeight(22)
+        self.spin_warn_low.setFixedWidth(45)
+        self.spin_warn_low.setFixedHeight(18)
+        self.spin_warn_low.setStyleSheet(spinbox_style)
         self.spin_warn_low.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_warn_low)
 
+        # Warn↑: spinbox 45x18px
         layout.addWidget(QLabel("Warn↑:"))
         self.spin_warn_high = QDoubleSpinBox()
         self.spin_warn_high.setRange(0, 100)
         self.spin_warn_high.setValue(42.0)
-        self.spin_warn_high.setFixedWidth(50)
-        self.spin_warn_high.setFixedHeight(22)
+        self.spin_warn_high.setFixedWidth(45)
+        self.spin_warn_high.setFixedHeight(18)
+        self.spin_warn_high.setStyleSheet(spinbox_style)
         self.spin_warn_high.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_warn_high)
 
+        # Máx: spinbox 45x18px
         layout.addWidget(QLabel("Máx:"))
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0, 100)
         self.spin_max.setValue(45.0)
-        self.spin_max.setFixedWidth(50)
-        self.spin_max.setFixedHeight(22)
+        self.spin_max.setFixedWidth(45)
+        self.spin_max.setFixedHeight(18)
+        self.spin_max.setStyleSheet(spinbox_style)
         self.spin_max.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_max)
 
-        # Usar Receita (botão compacto)
+        # Botão "Usar Receita": 100x22px
         self.btn_recipe = StandardButton(
             "Receita",
             variant="primary-blue",
             semantic_size="inline-compact"
         )
         self.btn_recipe.setFixedHeight(22)
+        self.btn_recipe.setMinimumWidth(70)
         self.btn_recipe.clicked.connect(self.load_criteria_from_recipe)
         layout.addWidget(self.btn_recipe)
 
