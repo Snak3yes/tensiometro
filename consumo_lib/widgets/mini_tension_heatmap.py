@@ -128,8 +128,8 @@ class MiniTensionHeatmapWidget(QWidget):
             # Determina cor baseada na tensão
             color = self._get_tension_color(tension)
 
-            # Desenha círculo
-            point_radius = min(cell_width, cell_height) * 0.35
+            # Desenha círculo (raio 14px conforme proposta)
+            point_radius = 14
             painter.setPen(QPen(COLORS.to_qcolor(COLORS.TEXT_SECONDARY), 1))
             painter.setBrush(QBrush(color))
             painter.drawEllipse(QPointF(center_x, center_y), point_radius, point_radius)

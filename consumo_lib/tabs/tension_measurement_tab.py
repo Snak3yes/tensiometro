@@ -22,7 +22,6 @@ from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.mini_tension_heatmap import MiniTensionHeatmapWidget
 from consumo_lib.widgets.hardware_status_bar import HardwareStatusBar
-from consumo_lib.widgets.status_badge import StatusBadge
 
 from aoi_lib.recipe_manager import TensionAcceptance
 
@@ -106,7 +105,7 @@ class TensionMeasurementTab(QWidget):
         self.tree_widget.setColumnWidth(5, 80)   # Ações
         self.tree_widget.itemClicked.connect(self.on_stencil_selected)
 
-        # Customizar altura dos items (45px) e selected background
+        # Customizar altura dos items (45px) e selected background (verde semitransparente)
         self.tree_widget.setStyleSheet(f"""
             QTreeWidget {{
                 background-color: {COLORS.BACKGROUND};
@@ -118,8 +117,9 @@ class TensionMeasurementTab(QWidget):
                 padding: {SPACE.SM}px;
             }}
             QTreeWidget::item:selected {{
-                background-color: {COLORS.PRIMARY};
-                color: {COLORS.BACKGROUND};
+                background-color: #05966915;
+                border: 1px solid #059669;
+                color: {COLORS.TEXT_PRIMARY};
             }}
             QTreeWidget::item:hover {{
                 background-color: {COLORS.SURFACE};
@@ -184,11 +184,13 @@ class TensionMeasurementTab(QWidget):
         Cria painel de detalhes do stencil selecionado.
 
         Proposta SVG: Layout horizontal grid 3 colunas, 7 campos + 2 botões (75x30px, 55x30px)
+        Altura fixa: 155px
         """
         widget = QWidget()
+        widget.setFixedHeight(155)
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(10)
+        layout.setSpacing(6)
 
         title = QLabel("Detalhes do Stencil Selecionado")
         title.setFont(TYPO.get_font(TYPO.TITLE_SMALL, bold=True))  # 13px bold
@@ -300,7 +302,7 @@ class TensionMeasurementTab(QWidget):
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(10)
+        layout.setSpacing(6)  # Reduzido de 10 para 6 para caber em 700px
 
         # HEADER: Título + Botões (lado a lado)
         header_layout = QHBoxLayout()
@@ -352,10 +354,10 @@ class TensionMeasurementTab(QWidget):
         criteria_group = self.create_criteria_group()
         layout.addWidget(criteria_group)
 
-        # HEATMAP: 310x280px fixo
+        # HEATMAP: 310x250px fixo (reduzido para caber em 700px)
         self.heatmap = MiniTensionHeatmapWidget()
-        self.heatmap.setMinimumSize(310, 280)
-        self.heatmap.setMaximumSize(310, 280)
+        self.heatmap.setMinimumSize(310, 250)
+        self.heatmap.setMaximumSize(310, 250)
         self.heatmap.setSizePolicy(
             self.heatmap.sizePolicy().horizontalPolicy(),
             self.heatmap.sizePolicy().verticalPolicy()
@@ -695,9 +697,22 @@ class TensionMeasurementTab(QWidget):
             item.setText(0, stencil["code"])
             item.setText(1, stencil["description"])
 
-            # Status badge
-            status_badge = StatusBadge(stencil.get("status", "pending"))
-            self.tree_widget.setItemWidget(item, 2, status_badge)
+            # Status com círculo colorido + texto (conforme proposta)
+            status = stencil.get("status", "pending")
+            status_config = {
+                "active": ("Ativo", COLORS.SUCCESS),
+                "warning": ("Alerta", COLORS.WARNING),
+                "retired": ("Retirado", COLORS.ERROR),
+                "pending": ("Pendente", COLORS.TEXT_SECONDARY),
+            }
+            status_text, status_color = status_config.get(status, ("Pendente", COLORS.TEXT_SECONDARY))
+            status_label = QLabel(f"● {status_text}")
+            status_label.setStyleSheet(f"""
+                color: {status_color};
+                font-size: 11px;
+                font-weight: bold;
+            """)
+            self.tree_widget.setItemWidget(item, 2, status_label)
 
             # Tensão média
             tension_avg = stencil.get("tension_avg")
@@ -922,7 +937,7 @@ class TensionMeasurementTab(QWidget):
         """Atualiza estatísticas e resultado."""
         if not self.measurements_data:
             # Reset labels
-            self.stats_counts_label.setText("🟢 OK: 0 | 🟡 WARN: 0 | 🔴 NOK: 0")
+            self.stats_counts_label.setText("OK: 0 (0%) | WARN: 0 (0%) | NOK: 0 (0%)")
             self.stats_values_label.setText("Mín: -- | Máx: -- | Média: --")
             self.stats_total_label.setText("Total: 0 pontos")
             self.result_badge.setText("---")
@@ -953,11 +968,11 @@ class TensionMeasurementTab(QWidget):
         warn_pct = (counts['WARNING'] / total * 100) if total > 0 else 0
         nok_pct = (counts['NOK'] / total * 100) if total > 0 else 0
 
-        # Atualiza estatísticas (linha 1: counts)
+        # Atualiza estatísticas (linha 1: counts) - sem emojis
         self.stats_counts_label.setText(
-            f"🟢 OK: {counts['OK']} ({ok_pct:.1f}%) | "
-            f"🟡 WARN: {counts['WARNING']} ({warn_pct:.1f}%) | "
-            f"🔴 NOK: {counts['NOK']} ({nok_pct:.1f}%)"
+            f"OK: {counts['OK']} ({ok_pct:.1f}%) | "
+            f"WARN: {counts['WARNING']} ({warn_pct:.1f}%) | "
+            f"NOK: {counts['NOK']} ({nok_pct:.1f}%)"
         )
 
         # Atualiza estatísticas (linha 2: valores)
@@ -965,7 +980,7 @@ class TensionMeasurementTab(QWidget):
             f"Mín: {min_tension:.1f} | Máx: {max_tension:.1f} | Média: {avg_tension:.1f} N/cm²"
         )
 
-        # Atualiza estatísticas (linha 3: total)
+        # Atualiza estatísticas (linha 3: total) - sem emoji
         self.stats_total_label.setText(f"Total: {total} pontos medidos")
 
         # Atualiza resultado (badge)
