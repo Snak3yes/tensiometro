@@ -17,19 +17,33 @@
 | Aba "Movimento" | **CONVERTIDA** para diálogo não-modal (Ctrl+M) |
 | Aba "Monitor CLP" | **CONVERTIDA** para diálogo não-modal (Ctrl+L) |
 
-### 2. Diálogos Não-Modais Criados
+### 2. Menu Consolidado (8 → 5 menus)
+
+| Antes | Depois |
+|-------|--------|
+| Arquivo, Receitas, Stencils, Relatórios, Ferramentas, Tensão do Stencil, Sistema, Ajuda | Arquivo, Cadastros, Relatórios, Ferramentas, Sistema |
+
+**Novo menu Cadastros:**
+- Stencils (submenu): Gerenciar, Novo, Stencil Atual
+- Receitas (submenu): Gerenciar, Nova, Receita Atual, Aplicar à Tensão
+
+**Movidos:**
+- "Nova Medição de Tensão" → Ferramentas (era menu dedicado)
+- "Sobre" → Sistema (era menu Ajuda)
+
+### 3. Diálogos Não-Modais Criados
 
 - `MovementDialog` - Controle CNC acessível via menu Ferramentas
 - `PLCMonitorDialog` - Monitoramento PLC acessível via menu Ferramentas
 
 Ambos permanecem sobre a janela principal (`WindowStaysOnTopHint`)
 
-### 3. Limpeza de Interface
+### 4. Limpeza de Interface
 
 - **Todos os emojis removidos** dos menus, abas, botões e diálogos
 - Interface mais limpa e profissional
 
-### 4. Documentação
+### 5. Documentação
 
 - Regra de dimensões fixas (1200×800px) documentada no CLAUDE.md
 
@@ -38,6 +52,7 @@ Ambos permanecem sobre a janela principal (`WindowStaysOnTopHint`)
 ## Commits Realizados
 
 ```
+3193605 refactor: Consolidate menus from 8 to 5 for cleaner UI
 d79fb72 fix: Add KeyboardInterrupt protection in keyboard_handler eventFilter
 5c718f9 refactor: Remove Camera & Movement tab for v0.5-tension
 2b67eb8 fix: Resolve initialization errors for release v0.5-tension
