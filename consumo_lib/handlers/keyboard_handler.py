@@ -103,65 +103,79 @@ class KeyboardEventHandler(QObject):
         Returns:
             True se o evento foi processado, False caso contrário
         """
-        # 🔴 LOG GLOBAL: Capturar TODOS os eventos para verificar se eventFilter está sendo chamado
-        event_type = event.type()
-        if event_type in [QEvent.Type.KeyPress, QEvent.Type.KeyRelease]:
-            logger.warning(f"⚡️ EVENT FILTER CHAMADO: type={event_type}, source={source.__class__.__name__}")
+        # PROTEÇÃO contra KeyboardInterrupt causado por Windows Defender
+        # O antivírus pode bloquear .pyc files durante primeira execução
+        # causando KeyboardInterrupt no event loop do Qt
+        try:
+            # 🔴 LOG GLOBAL: Capturar TODOS os eventos para verificar se eventFilter está sendo chamado
+            event_type = event.type()
+            if event_type in [QEvent.Type.KeyPress, QEvent.Type.KeyRelease]:
+                logger.warning(f"⚡️ EVENT FILTER CHAMADO: type={event_type}, source={source.__class__.__name__}")
 
-        # Apenas processar eventos de teclado
-        if event.type() != QEvent.Type.KeyPress and event.type() != QEvent.Type.KeyRelease:
-            return False
-
-        # Log inicial para depuração
-        key = event.key()
-        # Converter key (int) para Qt.Key para poder acessar métodos
-        qt_key = Qt.Key(key)
-        key_name = qt_key.name if hasattr(qt_key, 'name') else f"Key_{key}"
-        logger.debug(f"🔑 KeyboardEventHandler: event.type={event.type()}, key={key}, key_name={key_name}")
-
-        # Verificar se keyboard control está habilitado
-        if self.enable_control_callback:
-            enabled = self.enable_control_callback()
-            logger.debug(f"🔑 Keyboard control habilitado: {enabled}")
-            if not enabled:
-                logger.debug("🔑 Keyboard control desabilitado, ignorando evento")
+            # Apenas processar eventos de teclado
+            if event.type() != QEvent.Type.KeyPress and event.type() != QEvent.Type.KeyRelease:
                 return False
-        else:
-            logger.warning("🔑 enable_control_callback não definido!")
+
+            # Log inicial para depuração
+            key = event.key()
+            # Converter key (int) para Qt.Key para poder acessar métodos
+            qt_key = Qt.Key(key)
+            key_name = qt_key.name if hasattr(qt_key, 'name') else f"Key_{key}"
+            logger.debug(f"🔑 KeyboardEventHandler: event.type={event.type()}, key={key}, key_name={key_name}")
+
+            # Verificar se keyboard control está habilitado
+            if self.enable_control_callback:
+                enabled = self.enable_control_callback()
+                logger.debug(f"🔑 Keyboard control habilitado: {enabled}")
+                if not enabled:
+                    logger.debug("🔑 Keyboard control desabilitado, ignorando evento")
+                    return False
+            else:
+                logger.warning("🔑 enable_control_callback não definido!")
+                return False
+
+            # Ignorar eventos de repetição automática (tecla mantida pressionada)
+            if event.isAutoRepeat():
+                logger.debug("🔑 Auto-repeat detectado, ignorando")
+                return False
+
+            # Verificar se é uma tecla mapeada
+            if key not in self.key_mapping:
+                logger.debug(f"🔑 Tecla {key_name} não está mapeada, ignorando")
+                return False
+
+            # Obter eixo e direção
+            axis, direction = self.key_mapping[key]
+            logger.debug(f"🔑 Tecla mapeada: {key_name} → {axis}{direction}")
+
+            # Verificar se temos movement widget
+            if not self.movement_widget:
+                logger.warning("MovementWidget não definido, ignorando tecla")
+                return False
+
+            # KeyPress: Iniciar movimento
+            if event.type() == QEvent.Type.KeyPress:
+                logger.info(f"🎮 KeyPress: {key_name} → Iniciando movimento {axis}{direction}")
+                self._start_movement(axis, direction)
+                return True
+
+            # KeyRelease: Parar movimento
+            elif event.type() == QEvent.Type.KeyRelease:
+                logger.info(f"🎮 KeyRelease: {key_name} → Parando movimento")
+                self._stop_movement()
+                return True
+
             return False
 
-        # Ignorar eventos de repetição automática (tecla mantida pressionada)
-        if event.isAutoRepeat():
-            logger.debug("🔑 Auto-repeat detectado, ignorando")
+        except KeyboardInterrupt:
+            # Windows Defender bloqueou .pyc durante execução
+            # Ignorar evento e continuar normalmente
+            logger.warning("⚠️ KeyboardInterrupt capturado no eventFilter - Windows Defender interferência")
             return False
-
-        # Verificar se é uma tecla mapeada
-        if key not in self.key_mapping:
-            logger.debug(f"🔑 Tecla {key_name} não está mapeada, ignorando")
+        except Exception as e:
+            # Qualquer outro erro - log e continuar
+            logger.error(f"❌ Erro no eventFilter: {e}")
             return False
-
-        # Obter eixo e direção
-        axis, direction = self.key_mapping[key]
-        logger.debug(f"🔑 Tecla mapeada: {key_name} → {axis}{direction}")
-
-        # Verificar se temos movement widget
-        if not self.movement_widget:
-            logger.warning("MovementWidget não definido, ignorando tecla")
-            return False
-
-        # KeyPress: Iniciar movimento
-        if event.type() == QEvent.Type.KeyPress:
-            logger.info(f"🎮 KeyPress: {key_name} → Iniciando movimento {axis}{direction}")
-            self._start_movement(axis, direction)
-            return True
-
-        # KeyRelease: Parar movimento
-        elif event.type() == QEvent.Type.KeyRelease:
-            logger.info(f"🎮 KeyRelease: {key_name} → Parando movimento")
-            self._stop_movement()
-            return True
-
-        return False
 
     def _start_movement(self, axis: str, direction: int):
         """
