@@ -1,0 +1,325 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Proposta 1 Revisada: Divisão Vertical 70%/30% -->
+  <!-- Lista de Stencils (70%), Visualização (30%) -->
+
+  <!-- Fundo -->
+  <rect width="1200" height="800" fill="#1B2633"/>
+
+  <!-- Título da Aba -->
+  <text x="20" y="35" font-family="Segoe UI, Arial" font-size="18" font-weight="bold" fill="#FFFFFF">📊 Medição de Tensão</text>
+
+  <!-- ==================== PAINEL ESQUERDO - LISTA DE STENCILS (70%) ==================== -->
+  <g transform="translate(0, 50)">
+    <!-- Fundo do painel -->
+    <rect width="840" height="700" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+
+    <!-- Barra de Filtros -->
+    <rect x="10" y="10" width="820" height="45" fill="#2D3748" rx="6"/>
+    <text x="20" y="38" font-family="Segoe UI, Arial" font-size="13" fill="#9CA3AF">Buscar:</text>
+    <rect x="70" y="18" width="200" height="26" fill="#1B2633" rx="4"/>
+    <text x="80" y="36" font-family="Segoe UI, Arial" font-size="11" fill="#6B7280">Buscar programas...</text>
+
+    <text x="290" y="38" font-family="Segoe UI, Arial" font-size="13" fill="#9CA3AF">Período:</text>
+    <rect x="345" y="18" width="100" height="26" fill="#1B2633" rx="4"/>
+    <text x="355" y="36" font-family="Segoe UI, Arial" font-size="11" fill="#D1D5DB">Últimas 10</text>
+
+    <text x="465" y="38" font-family="Segoe UI, Arial" font-size="13" fill="#9CA3AF">Status:</text>
+    <rect x="520" y="18" width="110" height="26" fill="#1B2633" rx="4"/>
+    <text x="530" y="36" font-family="Segoe UI, Arial" font-size="11" fill="#D1D5DB">Todos</text>
+
+    <text x="650" y="38" font-family="Segoe UI, Arial" font-size="13" fill="#9CA3AF">Ordenar:</text>
+    <rect x="710" y="18" width="125" height="26" fill="#1B2633" rx="4"/>
+    <text x="720" y="36" font-family="Segoe UI, Arial" font-size="11" fill="#D1D5DB">Mais recentes</text>
+
+    <!-- Lista de Stencils -->
+    <rect x="10" y="65" width="820" height="420" fill="#1B2633" rx="6"/>
+
+    <!-- Header da lista -->
+    <rect x="10" y="65" width="820" height="35" fill="#374151" rx="6"/>
+    <text x="25" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Código</text>
+    <text x="120" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Descrição</text>
+    <text x="450" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Status</text>
+    <text x="540" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Tensão Média</text>
+    <text x="670" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Última Medição</text>
+    <text x="770" y="88" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">Ações</text>
+
+    <!-- Items da lista -->
+    <rect x="10" y="100" width="820" height="45" fill="#05966915" stroke="#059669" stroke-width="1"/>
+    <text x="25" y="127" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF" font-weight="bold">STN-001</text>
+    <text x="120" y="127" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB A - Rev 2</text>
+    <circle cx="460" cy="122" r="7" fill="#10B981"/>
+    <text x="475" y="127" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">Ativo</text>
+    <text x="540" y="127" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">38.5 N/cm²</text>
+    <text x="670" y="127" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">28/03/2026 14:30</text>
+    <rect x="760" y="110" width="60" height="26" fill="#059669" rx="4"/>
+    <text x="790" y="128" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="145" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="172" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-002</text>
+    <text x="120" y="172" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB B</text>
+    <circle cx="460" cy="167" r="7" fill="#F59E0B"/>
+    <text x="475" y="172" font-family="Segoe UI, Arial" font-size="11" fill="#F59E0B">Alerta</text>
+    <text x="540" y="172" font-family="Segoe UI, Arial" font-size="12" fill="#F59E0B" font-weight="bold">27.2 N/cm²</text>
+    <text x="670" y="172" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">27/03/2026 09:15</text>
+    <rect x="760" y="155" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="173" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="190" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="217" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-003</text>
+    <text x="120" y="217" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB C</text>
+    <circle cx="460" cy="212" r="7" fill="#10B981"/>
+    <text x="475" y="217" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">Ativo</text>
+    <text x="540" y="217" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">40.1 N/cm²</text>
+    <text x="670" y="217" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">26/03/2026 16:45</text>
+    <rect x="760" y="200" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="218" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="235" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="262" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-004</text>
+    <text x="120" y="262" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB D</text>
+    <circle cx="460" cy="257" r="7" fill="#10B981"/>
+    <text x="475" y="262" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">Ativo</text>
+    <text x="540" y="262" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">36.8 N/cm²</text>
+    <text x="670" y="262" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">25/03/2026 10:20</text>
+    <rect x="760" y="245" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="263" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="280" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="307" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-005</text>
+    <text x="120" y="307" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB E</text>
+    <circle cx="460" cy="302" r="7" fill="#EF4444"/>
+    <text x="475" y="307" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">Retirado</text>
+    <text x="540" y="307" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">--</text>
+    <text x="670" y="307" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">15/03/2026 11:00</text>
+    <rect x="760" y="290" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="308" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="325" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="352" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-006</text>
+    <text x="120" y="352" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB F</text>
+    <circle cx="460" cy="347" r="7" fill="#10B981"/>
+    <text x="475" y="352" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">Ativo</text>
+    <text x="540" y="352" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">39.2 N/cm²</text>
+    <text x="670" y="352" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">24/03/2026 08:45</text>
+    <rect x="760" y="335" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="353" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <rect x="10" y="370" width="820" height="45" fill="#1B2633"/>
+    <text x="25" y="397" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF">STN-007</text>
+    <text x="120" y="397" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB G</text>
+    <circle cx="460" cy="392" r="7" fill="#10B981"/>
+    <text x="475" y="397" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">Ativo</text>
+    <text x="540" y="397" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">37.5 N/cm²</text>
+    <text x="670" y="397" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">23/03/2026 15:30</text>
+    <rect x="760" y="380" width="60" height="26" fill="#4B5563" rx="4"/>
+    <text x="790" y="398" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Ver</text>
+
+    <!-- Scrollbar -->
+    <rect x="815" y="100" width="12" height="150" fill="#374151" rx="2"/>
+    <rect x="817" y="103" width="8" height="60" fill="#6B7280" rx="2"/>
+
+    <!-- Painel de Detalhes -->
+    <rect x="10" y="495" width="820" height="155" fill="#2D3748" rx="6"/>
+    <text x="20" y="520" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" fill="#FFFFFF">📋 Detalhes do Stencil Selecionado</text>
+
+    <text x="20" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Código:</text>
+    <text x="75" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF" font-weight="bold">STN-001</text>
+
+    <text x="20" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Descrição:</text>
+    <text x="85" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">Stencil PCB A - Revisão 2</text>
+
+    <text x="20" y="600" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Receita:</text>
+    <text x="70" y="600" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">recipe_pcb_a_v2.json</text>
+
+    <text x="20" y="625" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Observações:</text>
+    <text x="90" y="625" font-family="Segoe UI, Arial" font-size="11" fill="#D1D5DB" font-style="italic">Nenhuma observação registrada.</text>
+
+    <text x="400" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Status:</text>
+    <text x="450" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">🟢 Ativo</text>
+
+    <text x="400" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Tensão Média:</text>
+    <text x="495" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#10B981" font-weight="bold">38.5 N/cm²</text>
+
+    <text x="400" y="600" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Total Medições:</text>
+    <text x="510" y="600" font-family="Segoe UI, Arial" font-size="12" fill="#FFFFFF" font-weight="bold">47</text>
+
+    <text x="620" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Criado em:</text>
+    <text x="685" y="550" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">15/01/2026</text>
+
+    <text x="620" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#9CA3AF">Última:</text>
+    <text x="680" y="575" font-family="Segoe UI, Arial" font-size="12" fill="#D1D5DB">28/03/2026 14:30</text>
+
+    <!-- Botões de Ação -->
+    <rect x="680" y="615" width="75" height="30" fill="#4B5563" rx="4"/>
+    <text x="717" y="635" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📜 Histórico</text>
+
+    <rect x="765" y="615" width="55" height="30" fill="#059669" rx="4"/>
+    <text x="792" y="635" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📈 Ver</text>
+  </g>
+
+  <!-- ==================== PAINEL DIREITO - VISUALIZAÇÃO (30%) ==================== -->
+  <g transform="translate(850, 50)">
+    <!-- Fundo do painel -->
+    <rect width="340" height="700" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+
+    <!-- Título e Ações -->
+    <g transform="translate(15, 10)">
+      <text x="0" y="20" font-family="Segoe UI, Arial" font-size="13" font-weight="bold" fill="#FFFFFF">📊 Visualização</text>
+      <text x="0" y="40" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">STN-001 - PCB A</text>
+
+      <!-- Botões Superiores -->
+      <rect x="180" y="5" width="75" height="28" fill="#059669" rx="4"/>
+      <text x="217" y="24" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📁 Carregar</text>
+
+      <rect x="265" y="5" width="65" height="28" fill="#4B5563" rx="4"/>
+      <text x="297" y="24" font-family="Segoe UI, Arial" font-size="9" fill="#FFFFFF" text-anchor="middle">↻ Recarregar</text>
+    </g>
+
+    <!-- Critérios de Aceitação -->
+    <rect x="15" y="60" width="310" height="55" fill="#2D3748" rx="6"/>
+    <text x="20" y="78" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#9CA3AF">CRITÉRIOS (N/cm²)</text>
+
+    <text x="20" y="98" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">Mín:</text>
+    <rect x="42" y="90" width="45" height="18" fill="#1B2633" rx="3"/>
+    <text x="50" y="103" font-family="Segoe UI, Arial" font-size="9" fill="#FFFFFF">25</text>
+
+    <text x="95" y="98" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">Warn↓:</text>
+    <rect x="130" y="90" width="45" height="18" fill="#1B2633" rx="3"/>
+    <text x="138" y="103" font-family="Segoe UI, Arial" font-size="9" fill="#FFFFFF">28</text>
+
+    <text x="183" y="98" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">Warn↑:</text>
+    <rect x="218" y="90" width="45" height="18" fill="#1B2633" rx="3"/>
+    <text x="226" y="103" font-family="Segoe UI, Arial" font-size="9" fill="#FFFFFF">42</text>
+
+    <text x="270" y="98" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">Máx:</text>
+    <rect x="295" y="90" width="45" height="18" fill="#1B2633" rx="3"/>
+    <text x="303" y="103" font-family="Segoe UI, Arial" font-size="9" fill="#FFFFFF">45</text>
+
+    <rect x="20" y="115" width="100" height="22" fill="#0891b2" rx="4"/>
+    <text x="70" y="130" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Usar Receita</text>
+
+    <!-- Heatmap -->
+    <g transform="translate(15, 125)">
+      <rect x="0" y="0" width="310" height="280" fill="#1B2633" rx="6"/>
+
+      <!-- Grid 4x4 -->
+      <line x1="77" y1="0" x2="77" y2="280" stroke="#374151" stroke-width="1"/>
+      <line x1="155" y1="0" x2="155" y2="280" stroke="#374151" stroke-width="1"/>
+      <line x1="232" y1="0" x2="232" y2="280" stroke="#374151" stroke-width="1"/>
+      <line x1="0" y1="70" x2="310" y2="70" stroke="#374151" stroke-width="1"/>
+      <line x1="0" y1="140" x2="310" y2="140" stroke="#374151" stroke-width="1"/>
+      <line x1="0" y1="210" x2="310" y2="210" stroke="#374151" stroke-width="1"/>
+
+      <!-- Pontos 4x4 -->
+      <!-- Linha 1 -->
+      <circle cx="38" cy="35" r="14" fill="#10B981"/>
+      <text x="38" y="40" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.2</text>
+
+      <circle cx="116" cy="35" r="14" fill="#10B981"/>
+      <text x="116" y="40" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.5</text>
+
+      <circle cx="193" cy="35" r="14" fill="#10B981"/>
+      <text x="193" y="40" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">39.1</text>
+
+      <circle cx="271" cy="35" r="14" fill="#10B981"/>
+      <text x="271" y="40" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.4</text>
+
+      <!-- Linha 2 -->
+      <circle cx="38" cy="105" r="14" fill="#10B981"/>
+      <text x="38" y="110" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.8</text>
+
+      <circle cx="116" cy="105" r="14" fill="#10B981"/>
+      <text x="116" y="110" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">40.2</text>
+
+      <circle cx="193" cy="105" r="14" fill="#10B981"/>
+      <text x="193" y="110" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">35.9</text>
+
+      <circle cx="271" cy="105" r="14" fill="#10B981"/>
+      <text x="271" y="110" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.0</text>
+
+      <!-- Linha 3 -->
+      <circle cx="38" cy="175" r="14" fill="#F59E0B"/>
+      <text x="38" y="180" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">27.5</text>
+
+      <circle cx="116" cy="175" r="14" fill="#10B981"/>
+      <text x="116" y="180" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.7</text>
+
+      <circle cx="193" cy="175" r="14" fill="#10B981"/>
+      <text x="193" y="180" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.4</text>
+
+      <circle cx="271" cy="175" r="14" fill="#10B981"/>
+      <text x="271" y="180" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">39.5</text>
+
+      <!-- Linha 4 -->
+      <circle cx="38" cy="245" r="14" fill="#10B981"/>
+      <text x="38" y="250" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">35.2</text>
+
+      <circle cx="116" cy="245" r="14" fill="#10B981"/>
+      <text x="116" y="250" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">41.0</text>
+
+      <circle cx="193" cy="245" r="14" fill="#10B981"/>
+      <text x="193" y="250" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.9</text>
+
+      <circle cx="271" cy="245" r="14" fill="#10B981"/>
+      <text x="271" y="250" font-family="Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.8</text>
+    </g>
+
+    <!-- Resultado -->
+    <rect x="15" y="415" width="310" height="40" fill="#10B981" rx="6"/>
+    <text x="155" y="442" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" fill="#FFFFFF" text-anchor="middle">✅ APROVADO</text>
+
+    <!-- Estatísticas -->
+    <rect x="15" y="465" width="310" height="90" fill="#2D3748" rx="6"/>
+    <text x="20" y="485" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF">📊 Estatísticas</text>
+
+    <text x="20" y="508" font-family="Segoe UI, Arial" font-size="9" fill="#10B981">🟢 OK: 15 (93.8%)</text>
+    <text x="160" y="508" font-family="Segoe UI, Arial" font-size="9" fill="#F59E0B">🟡 WARN: 1 (6.2%)</text>
+
+    <text x="20" y="528" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">Mín: 23.10</text>
+    <text x="110" y="528" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">Máx: 42.80</text>
+    <text x="200" y="528" font-family="Segoe UI, Arial" font-size="9" fill="#10B981">Média: 35.68</text>
+
+    <text x="20" y="548" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">Total: 16 pontos medidos</text>
+
+    <!-- Legenda -->
+    <rect x="15" y="565" width="310" height="50" fill="#1B2633" rx="6"/>
+    <text x="20" y="585" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF">Legenda</text>
+
+    <circle cx="30" cy="600" r="6" fill="#10B981"/>
+    <text x="42" y="605" font-family="Segoe UI, Arial" font-size="9" fill="#10B981">OK (28-42)</text>
+
+    <circle cx="130" cy="600" r="6" fill="#F59E0B"/>
+    <text x="142" y="605" font-family="Segoe UI, Arial" font-size="9" fill="#F59E0B">WARNING</text>
+
+    <circle cx="220" cy="600" r="6" fill="#EF4444"/>
+    <text x="232" y="605" font-family="Segoe UI, Arial" font-size="9" fill="#EF4444">NOK</text>
+
+    <!-- Botão Histórico -->
+    <rect x="15" y="625" width="310" height="35" fill="#0891b2" rx="6"/>
+    <text x="155" y="648" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📜 Ver Histórico Completo</text>
+
+    <!-- Informações do Arquivo -->
+    <rect x="15" y="670" width="310" height="60" fill="#2D3748" rx="6"/>
+    <text x="20" y="690" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#9CA3AF">📄 Arquivo</text>
+    <text x="20" y="708" font-family="Segoe UI, Arial" font-size="9" fill="#D1D5DB">recipe_pcb_a_v2.json</text>
+    <text x="20" y="722" font-family="Segoe UI, Arial" font-size="8" fill="#6B7280">Grid: 4x4 | Área: 100x100mm</text>
+  </g>
+
+  <!-- Hardware Status Bar -->
+  <g transform="translate(10, 765)">
+    <rect width="230" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="15" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="28" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">CLP: Desconectado</text>
+
+    <rect x="240" width="280" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="255" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="268" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">Tensiômetro: Desconectado</text>
+
+    <rect x="530" width="250" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="545" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="558" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">Câmera: Desconectada</text>
+  </g>
+
+  <!-- Label da Proposta -->
+  <text x="1190" y="790" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" fill="#6B7280" text-anchor="end">PROPOSTA 1 REVISADA: 70% Lista / 30% Visualização</text>
+</svg>

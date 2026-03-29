@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from consumo_lib.tabs import (
         CNCControlTab,
         TensionTab,
+        TensionMeasurementTab,
         TrackingTab,
     )
 
@@ -49,6 +50,23 @@ class TabFactory:
         self.main_window = main_window
 
         logger.debug("TabFactory inicializada")
+
+    def create_tension_measurement_tab(self) -> 'TensionMeasurementTab':
+        """
+        Cria aba unificada de Medição de Tensão.
+
+        Returns:
+            Instância de TensionMeasurementTab configurada
+        """
+        from consumo_lib.tabs import TensionMeasurementTab
+
+        tab = TensionMeasurementTab(
+            stencil_manager=self.stencil_tracker,
+            parent=self.main_window
+        )
+
+        logger.debug("TensionMeasurementTab criada")
+        return tab
 
     def create_cnc_control_tab(self) -> 'CNCControlTab':
         """
@@ -141,7 +159,13 @@ class TabFactory:
         tab_widget.addTab(tension_tab, "Visualização de Tensão")
         tabs.append(tension_tab)
 
-        # Aba 3: Rastreabilidade
+        # Aba 3: Medição de Tensão (Unificada) - NOVA v0.5
+        tension_measurement_tab = self.create_tension_measurement_tab()
+        self.main_window.tension_measurement_tab = tension_measurement_tab
+        tab_widget.addTab(tension_measurement_tab, "Medição de Tensão")
+        tabs.append(tension_measurement_tab)
+
+        # Aba 4: Rastreabilidade
         tracking_tab = self.create_tracking_tab()
         tracking_tab.tension_measurement_requested.connect(
             self.main_window._run_tension_measurement

@@ -1,0 +1,302 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Proposta 3: Layout Mestre-Detalhe com Expansão -->
+  <!-- Lista compacta à esquerda, visualização completa à direita com possibilidade de expandir -->
+
+  <!-- Fundo -->
+  <rect width="1200" height="800" fill="#1B2633"/>
+
+  <!-- Título da Aba -->
+  <text x="20" y="35" font-family="Segoe UI, Arial" font-size="18" font-weight="bold" fill="#FFFFFF">📊 Medição de Tensão</text>
+
+  <!-- ==================== PAINEL LATERAL ESQUERDO - LISTA COMPACTA ==================== -->
+  <g transform="translate(0, 50)">
+    <!-- Fundo do painel -->
+    <rect width="350" height="700" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+
+    <!-- Título + Ações -->
+    <rect x="0" y="0" width="350" height="50" fill="#1F2937" stroke="#374151" stroke-width="0,0,1,0"/>
+    <text x="15" y="25" font-family="Segoe UI, Arial" font-size="13" font-weight="bold" fill="#FFFFFF">📋 Stencils</text>
+
+    <!-- Botão Novo Stencil -->
+    <rect x="240" y="10" width="100" height="28" fill="#059669" rx="4"/>
+    <text x="290" y="29" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">+ Novo</text>
+
+    <!-- Campo de Busca -->
+    <rect x="15" y="60" width="320" height="35" fill="#2D3748" rx="6"/>
+    <text x="25" y="82" font-family="Segoe UI, Arial" font-size="12" fill="#6B7280">🔍 Buscar stencil...</text>
+
+    <!-- Filtros Rápidos -->
+    <g transform="translate(15, 105)">
+      <rect x="0" y="0" width="75" height="26" fill="#374151" rx="4"/>
+      <text x="37" y="18" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB" text-anchor="middle">Todos</text>
+
+      <rect x="85" y="0" width="75" height="26" fill="#1F2937" rx="4"/>
+      <text x="122" y="18" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF" text-anchor="middle">Ativos</text>
+
+      <rect x="170" y="0" width="75" height="26" fill="#1F2937" rx="4"/>
+      <text x="207" y="18" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF" text-anchor="middle">Alerta</text>
+
+      <rect x="255" y="0" width="75" height="26" fill="#1F2937" rx="4"/>
+      <text x="292" y="18" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF" text-anchor="middle">Retirados</text>
+    </g>
+
+    <!-- Lista de Stencils (scrollable) -->
+    <g transform="translate(10, 145)">
+      <!-- Item 1 - SELECIONADO -->
+      <rect x="0" y="0" width="330" height="70" fill="#05966920" stroke="#059669" stroke-width="2" rx="6"/>
+      <circle cx="20" cy="20" r="8" fill="#10B981"/>
+      <text x="40" y="17" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">STN-001</text>
+      <text x="40" y="35" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Stencil PCB A</text>
+      <text x="200" y="20" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Média:</text>
+      <text x="240" y="20" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#10B981">38.5</text>
+      <text x="200" y="38" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">28/03 14:30</text>
+      <rect x="280" y="8" width="40" height="20" fill="#059669" rx="3"/>
+      <text x="300" y="22" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">OK</text>
+
+      <!-- Item 2 -->
+      <rect x="0" y="75" width="330" height="60" fill="#2D3748" rx="6"/>
+      <circle cx="20" cy="20" r="8" fill="#F59E0B"/>
+      <text x="40" y="17" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">STN-002</text>
+      <text x="40" y="35" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Stencil PCB B</text>
+      <text x="200" y="20" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Média:</text>
+      <text x="240" y="20" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#F59E0B">27.2</text>
+      <text x="200" y="38" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">27/03 09:15</text>
+      <rect x="280" y="8" width="40" height="20" fill="#F59E0B" rx="3"/>
+      <text x="300" y="22" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">⚠</text>
+
+      <!-- Item 3 -->
+      <rect x="0" y="140" width="330" height="60" fill="#1F2937" rx="6"/>
+      <circle cx="20" cy="20" r="8" fill="#10B981"/>
+      <text x="40" y="17" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">STN-003</text>
+      <text x="40" y="35" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Stencil PCB C</text>
+      <text x="200" y="20" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Média:</text>
+      <text x="240" y="20" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#10B981">40.1</text>
+      <text x="200" y="38" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">26/03 16:45</text>
+      <rect x="280" y="8" width="40" height="20" fill="#059669" rx="3"/>
+      <text x="300" y="22" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">OK</text>
+
+      <!-- Item 4 -->
+      <rect x="0" y="205" width="330" height="60" fill="#1F2937" rx="6"/>
+      <circle cx="20" cy="20" r="8" fill="#10B981"/>
+      <text x="40" y="17" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">STN-004</text>
+      <text x="40" y="35" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Stencil PCB D</text>
+      <text x="200" y="20" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Média:</text>
+      <text x="240" y="20" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#10B981">36.8</text>
+      <text x="200" y="38" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">25/03 10:20</text>
+      <rect x="280" y="8" width="40" height="20" fill="#059669" rx="3"/>
+      <text x="300" y="22" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">OK</text>
+
+      <!-- Item 5 -->
+      <rect x="0" y="270" width="330" height="60" fill="#1F2937" rx="6"/>
+      <circle cx="20" cy="20" r="8" fill="#EF4444"/>
+      <text x="40" y="17" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">STN-005</text>
+      <text x="40" y="35" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Stencil PCB E</text>
+      <text x="200" y="20" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">--</text>
+      <text x="200" y="38" font-family="Segoe UI, Arial" font-size="9" fill="#9CA3AF">15/03 11:00</text>
+      <rect x="280" y="8" width="40" height="20" fill="#6B7280" rx="3"/>
+      <text x="300" y="22" font-family="Segoe UI, Arial" font-size="9" font-weight="bold" fill="#FFFFFF" text-anchor="middle">--</text>
+    </g>
+
+    <!-- Resumo -->
+    <g transform="translate(10, 500)">
+      <rect x="0" y="0" width="330" height="80" fill="#2D3748" rx="6"/>
+      <text x="15" y="25" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">📊 Resumo</text>
+      <text x="15" y="45" font-family="Segoe UI, Arial" font-size="11" fill="#10B981">🟢 12 Ativos</text>
+      <text x="120" y="45" font-family="Segoe UI, Arial" font-size="11" fill="#F59E0B">🟡 3 Alerta</text>
+      <text x="220" y="45" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">🔴 2 Retirados</text>
+      <text x="15" y="65" font-family="Segoe UI, Arial" font-size="11" fill="#9CA3AF">Total: 17 stencils cadastrados</text>
+    </g>
+
+    <!-- Detalhes Rápidos do Selecionado -->
+    <g transform="translate(10, 590)">
+      <rect x="0" y="0" width="330" height="100" fill="#05966910" stroke="#059669" stroke-width="1" rx="6"/>
+      <text x="15" y="25" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#059669">📋 STN-001 Selecionado</text>
+      <text x="15" y="45" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Receita: recipe_pcb_a_v2.json</text>
+      <text x="15" y="65" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Total: 47 medições</text>
+      <text x="15" y="85" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Última: 28/03/2026 14:30</text>
+    </g>
+  </g>
+
+  <!-- ==================== PAINEL DIREITO - VISUALIZAÇÃO COMPLETA ==================== -->
+  <g transform="translate(360, 50)">
+    <!-- Fundo do painel -->
+    <rect width="830" height="700" fill="#1F2937" stroke="#374151" stroke-width="1"/>
+
+    <!-- Barra Superior de Controles -->
+    <g transform="translate(15, 10)">
+      <rect x="0" y="0" width="800" height="50" fill="#2D3748" rx="6"/>
+
+      <!-- Título -->
+      <text x="15" y="22" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" fill="#FFFFFF">📈 Visualização Gráfica - STN-001</text>
+      <text x="15" y="40" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Stencil PCB A - recipe_pcb_a_v2.json</text>
+
+      <!-- Botões de Ação -->
+      <rect x="520" y="10" width="110" height="30" fill="#059669" rx="4"/>
+      <text x="575" y="30" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📁 Carregar JSON</text>
+
+      <rect x="640" y="10" width="80" height="30" fill="#4B5563" rx="4"/>
+      <text x="680" y="30" font-family="Segoe UI, Arial" font-size="11" fill="#FFFFFF" text-anchor="middle">↻ Recarregar</text>
+
+      <rect x="730" y="10" width="85" height="30" fill="#0891b2" rx="4"/>
+      <text x="772" y="30" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">📜 Histórico</text>
+    </g>
+
+    <!-- Critérios de Aceitação -->
+    <g transform="translate(15, 70)">
+      <rect x="0" y="0" width="800" height="55" fill="#2D3748" rx="6"/>
+      <text x="15" y="20" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#9CA3AF">CRITÉRIOS DE ACEITAÇÃO (N/cm²)</text>
+
+      <!-- Spins -->
+      <text x="15" y="42" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Mín:</text>
+      <rect x="40" y="30" width="55" height="20" fill="#1B2633" rx="3"/>
+      <text x="50" y="44" font-family="Segoe UI, Arial" font-size="10" fill="#FFFFFF">25,00</text>
+
+      <text x="110" y="42" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Warn↓:</text>
+      <rect x="155" y="30" width="55" height="20" fill="#1B2633" rx="3"/>
+      <text x="165" y="44" font-family="Segoe UI, Arial" font-size="10" fill="#FFFFFF">28,00</text>
+
+      <text x="225" y="42" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Warn↑:</text>
+      <rect x="270" y="30" width="55" height="20" fill="#1B2633" rx="3"/>
+      <text x="280" y="44" font-family="Segoe UI, Arial" font-size="10" fill="#FFFFFF">42,00</text>
+
+      <text x="340" y="42" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">Máx:</text>
+      <rect x="365" y="30" width="55" height="20" fill="#1B2633" rx="3"/>
+      <text x="375" y="44" font-family="Segoe UI, Arial" font-size="10" fill="#FFFFFF">45,00</text>
+
+      <!-- Botão Usar Receita -->
+      <rect x="435" y="30" width="100" height="22" fill="#059669" rx="4"/>
+      <text x="485" y="45" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF" text-anchor="middle">Usar Receita</text>
+
+      <!-- Status/Résultado -->
+      <rect x="550" y="28" width="120" height="26" fill="#10B981" rx="4"/>
+      <text x="610" y="46" font-family="Segoe UI, Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">✅ APROVADO</text>
+
+      <text x="690" y="45" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">🟢 8 OK | 🟡 1 WARN | 🔴 0 NOK</text>
+    </g>
+
+    <!-- Canvas de Visualização (Heatmap) -->
+    <g transform="translate(15, 135)">
+      <rect x="0" y="0" width="800" height="420" fill="#1B2633" rx="6"/>
+
+      <!-- Grid e Pontos -->
+      <g transform="translate(150, 50)">
+        <!-- Borda da área -->
+        <rect x="0" y="0" width="500" height="320" fill="none" stroke="#4B5563" stroke-width="2" rx="4"/>
+
+        <!-- Grid 4x4 -->
+        <line x1="125" y1="0" x2="125" y2="320" stroke="#374151" stroke-width="1"/>
+        <line x1="250" y1="0" x2="250" y2="320" stroke="#374151" stroke-width="1"/>
+        <line x1="375" y1="0" x2="375" y2="320" stroke="#374151" stroke-width="1"/>
+        <line x1="0" y1="80" x2="500" y2="80" stroke="#374151" stroke-width="1"/>
+        <line x1="0" y1="160" x2="500" y2="160" stroke="#374151" stroke-width="1"/>
+        <line x1="0" y1="240" x2="500" y2="240" stroke="#374151" stroke-width="1"/>
+
+        <!-- Pontos de tensão - 4x4 grid -->
+        <!-- Linha 1 -->
+        <circle cx="62" cy="40" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="62" y="46" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.2</text>
+        <text x="62" y="62" font-family="Arial" font-size="8" fill="#9CA3AF" text-anchor="middle">(10,45)</text>
+
+        <circle cx="187" cy="40" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="187" y="46" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.5</text>
+
+        <circle cx="312" cy="40" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="312" y="46" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">39.1</text>
+
+        <circle cx="437" cy="40" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="437" y="46" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.4</text>
+
+        <!-- Linha 2 -->
+        <circle cx="62" cy="120" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="62" y="126" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.8</text>
+
+        <circle cx="187" cy="120" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="187" y="126" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">40.2</text>
+
+        <circle cx="312" cy="120" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="312" y="126" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">35.9</text>
+
+        <circle cx="437" cy="120" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="437" y="126" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.0</text>
+
+        <!-- Linha 3 -->
+        <circle cx="62" cy="200" r="20" fill="#F59E0B" opacity="0.85"/>
+        <text x="62" y="206" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">27.5</text>
+
+        <circle cx="187" cy="200" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="187" y="206" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">38.7</text>
+
+        <circle cx="312" cy="200" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="312" y="206" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.4</text>
+
+        <circle cx="437" cy="200" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="437" y="206" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">39.5</text>
+
+        <!-- Linha 4 -->
+        <circle cx="62" cy="280" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="62" y="286" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">35.2</text>
+
+        <circle cx="187" cy="280" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="187" y="286" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">41.0</text>
+
+        <circle cx="312" cy="280" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="312" y="286" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">37.9</text>
+
+        <circle cx="437" cy="280" r="20" fill="#10B981" opacity="0.85"/>
+        <text x="437" y="286" font-family="Arial" font-size="11" font-weight="bold" fill="#FFFFFF" text-anchor="middle">36.8</text>
+      </g>
+
+      <!-- Legenda interna -->
+      <g transform="translate(20, 380)">
+        <text x="0" y="0" font-family="Segoe UI, Arial" font-size="10" font-weight="bold" fill="#FFFFFF">Legenda:</text>
+        <circle cx="60" cy="-5" r="6" fill="#10B981"/>
+        <text x="75" y="0" font-family="Segoe UI, Arial" font-size="10" fill="#10B981">OK (28-42)</text>
+        <circle cx="170" cy="-5" r="6" fill="#F59E0B"/>
+        <text x="185" y="0" font-family="Segoe UI, Arial" font-size="10" fill="#F59E0B">WARNING</text>
+        <circle cx="280" cy="-5" r="6" fill="#EF4444"/>
+        <text x="295" y="0" font-family="Segoe UI, Arial" font-size="10" fill="#EF4444">NOK</text>
+      </g>
+    </g>
+
+    <!-- Estatísticas Detalhadas -->
+    <g transform="translate(15, 565)">
+      <rect x="0" y="0" width="800" height="85" fill="#2D3748" rx="6"/>
+
+      <text x="15" y="25" font-family="Segoe UI, Arial" font-size="12" font-weight="bold" fill="#FFFFFF">📊 Estatísticas da Medição</text>
+
+      <text x="15" y="50" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Tensão Mínima:</text>
+      <text x="110" y="50" font-family="Segoe UI, Arial" font-size="11" fill="#FFFFFF" font-weight="bold">23.10 N/cm²</text>
+
+      <text x="220" y="50" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Tensão Máxima:</text>
+      <text x="315" y="50" font-family="Segoe UI, Arial" font-size="11" fill="#FFFFFF" font-weight="bold">42.80 N/cm²</text>
+
+      <text x="430" y="50" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Tensão Média:</text>
+      <text x="525" y="50" font-family="Segoe UI, Arial" font-size="11" fill="#10B981" font-weight="bold">35.68 N/cm²</text>
+
+      <text x="630" y="50" font-family="Segoe UI, Arial" font-size="10" fill="#9CA3AF">Desvio Padrão:</text>
+      <text x="720" y="50" font-family="Segoe UI, Arial" font-size="11" fill="#D1D5DB" font-weight="bold">4.52</text>
+
+      <text x="15" y="75" font-family="Segoe UI, Arial" font-size="10" fill="#D1D5DB">
+        🟢 OK: 15 (93.8%) | 🟡 WARNING: 1 (6.2%) | 🔴 NOK: 0 (0%) | Total: 16 pontos
+      </text>
+    </g>
+  </g>
+
+  <!-- Hardware Status Bar -->
+  <g transform="translate(10, 765)">
+    <rect width="230" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="15" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="28" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">CLP: Desconectado</text>
+
+    <rect x="240" width="280" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="255" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="268" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">Tensiômetro: Desconectado</text>
+
+    <rect x="530" width="250" height="25" fill="#EF444420" rx="4"/>
+    <circle cx="545" cy="12.5" r="6" fill="#EF4444"/>
+    <text x="558" y="17" font-family="Segoe UI, Arial" font-size="11" fill="#EF4444">Câmera: Desconectada</text>
+  </g>
+
+  <!-- Label da Proposta -->
+  <text x="1190" y="790" font-family="Segoe UI, Arial" font-size="14" font-weight="bold" fill="#6B7280" text-anchor="end">PROPOSTA 3: Mestre-Detalhe com Lista Compacta</text>
+</svg>
