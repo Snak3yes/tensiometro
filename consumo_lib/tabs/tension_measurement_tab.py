@@ -105,24 +105,36 @@ class TensionMeasurementTab(QWidget):
         self.tree_widget.setColumnWidth(5, 80)   # Ações
         self.tree_widget.itemClicked.connect(self.on_stencil_selected)
 
-        # Customizar altura dos items (45px) e selected background (verde semitransparente)
+        # Compact header and items (conforme proposta SVG)
         self.tree_widget.setStyleSheet(f"""
             QTreeWidget {{
                 background-color: {COLORS.BACKGROUND};
                 border: 1px solid {COLORS.BORDER};
                 border-radius: {DIM.RADIUS_SM}px;
+                font-size: 11px;
+            }}
+            QHeaderView::section {{
+                padding: 4px 8px;
+                font-size: 11px;
+                min-height: 24px;
+                background-color: {COLORS.SURFACE_VARIANT};
+                border: none;
+                border-right: 1px solid {COLORS.BORDER};
+                border-bottom: 1px solid {COLORS.BORDER};
+                font-weight: bold;
             }}
             QTreeWidget::item {{
-                min-height: 45px;
-                padding: {SPACE.SM}px;
+                min-height: 20px;
+                padding: 4px 2px;
+                border-bottom: 1px solid {COLORS.BORDER};
             }}
             QTreeWidget::item:selected {{
                 background-color: #05966915;
                 border: 1px solid #059669;
                 color: {COLORS.TEXT_PRIMARY};
             }}
-            QTreeWidget::item:hover {{
-                background-color: {COLORS.SURFACE};
+            QTreeWidget::item:hover:!selected {{
+                background-color: {COLORS.SURFACE_VARIANT};
             }}
         """)
 
@@ -135,22 +147,41 @@ class TensionMeasurementTab(QWidget):
         return widget
 
     def create_filter_bar(self) -> QWidget:
-        """Cria barra de filtros."""
+        """Cria barra de filtros compacta."""
         widget = QWidget()
+        widget.setFixedHeight(36)
         layout = QHBoxLayout(widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(8)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(6)
+
+        # Estilo compacto para campos
+        field_style = f"""
+            QLineEdit, QComboBox {{
+                min-height: 20px;
+                max-height: 20px;
+                font-size: 9px;
+                padding: 1px 4px;
+                border-radius: 3px;
+            }}
+            QLabel {{
+                font-size: 9px;
+                color: {COLORS.TEXT_SECONDARY};
+            }}
+        """
+        widget.setStyleSheet(field_style)
 
         # Buscar
         layout.addWidget(QLabel("Buscar:"))
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Buscar programas...")
+        self.search_input.setMinimumWidth(140)
         self.search_input.textChanged.connect(self.filter_stencils)
         layout.addWidget(self.search_input, 1)
 
         # Período
         layout.addWidget(QLabel("Período:"))
         self.period_combo = QComboBox()
+        self.period_combo.setMinimumWidth(70)
         self.period_combo.addItems([
             "Últimas 10", "7 dias", "30 dias",
             "60 dias", "90 dias", "180 dias", "365 dias"
@@ -161,13 +192,15 @@ class TensionMeasurementTab(QWidget):
         # Status
         layout.addWidget(QLabel("Status:"))
         self.status_combo = QComboBox()
+        self.status_combo.setMinimumWidth(70)
         self.status_combo.addItems(["Todos", "Ativos", "Alerta", "Retirados"])
         self.status_combo.currentTextChanged.connect(self.apply_filters)
         layout.addWidget(self.status_combo)
 
-        # Ordenar (NOVO)
+        # Ordenar
         layout.addWidget(QLabel("Ordenar:"))
         self.sort_combo = QComboBox()
+        self.sort_combo.setMinimumWidth(90)
         self.sort_combo.addItems([
             "Mais recentes", "Mais antigos",
             "Código (A-Z)", "Código (Z-A)",

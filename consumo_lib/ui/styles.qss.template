@@ -509,11 +509,13 @@ QTableView::item:hover, QTableWidget::item:hover {
 QHeaderView::section {
     background-color: {{SURFACE_VARIANT}};
     color: {{TEXT_PRIMARY}};
-    padding: 8px;
+    padding: 4px 8px;
     border: none;
-    border-right: 2px solid {{BORDER}};
-    border-bottom: 2px solid {{BORDER}};
+    border-right: 1px solid {{BORDER}};
+    border-bottom: 1px solid {{BORDER}};
     font-weight: bold;
+    font-size: 11px;
+    min-height: 24px;
 }
 
 QHeaderView::section:hover {
