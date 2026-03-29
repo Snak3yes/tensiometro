@@ -23,9 +23,12 @@
 |-------|--------|
 | Arquivo, Receitas, Stencils, Relatórios, Ferramentas, Tensão do Stencil, Sistema, Ajuda | Arquivo, Cadastros, Relatórios, Ferramentas, Sistema |
 
-**Novo menu Cadastros:**
-- Stencils (submenu): Gerenciar, Novo, Stencil Atual
-- Receitas (submenu): Gerenciar, Nova, Receita Atual, Aplicar à Tensão
+**Menu Cadastros:**
+- Stencils: Gerenciar (Ctrl+T), Novo, Stencil Atual
+
+**Menu Receitas REMOVIDO:**
+- Funcionalidade incompleta (TODO não implementado)
+- Não utilizado na release v0.5 (medição de tensão standalone)
 
 **Movidos:**
 - "Nova Medição de Tensão" → Ferramentas (era menu dedicado)
@@ -52,6 +55,7 @@ Ambos permanecem sobre a janela principal (`WindowStaysOnTopHint`)
 ## Commits Realizados
 
 ```
+8864f96 refactor: Remove Recipes menu from v0.5-tension release
 3193605 refactor: Consolidate menus from 8 to 5 for cleaner UI
 d79fb72 fix: Add KeyboardInterrupt protection in keyboard_handler eventFilter
 5c718f9 refactor: Remove Camera & Movement tab for v0.5-tension
