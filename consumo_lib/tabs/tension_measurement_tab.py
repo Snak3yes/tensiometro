@@ -467,51 +467,76 @@ class TensionMeasurementTab(QWidget):
         return group
 
     def create_legend_widget(self) -> QWidget:
-        """Cria widget de legenda horizontal."""
+        """
+        Cria widget de legenda horizontal (310x50px).
+
+        Proposta SVG:
+        - Título 'Legenda' 10px bold
+        - 3 items horizontais: OK (28-42), WARNING, NOK
+        - Círculos r=6px
+        """
         widget = QWidget()
-        layout = QHBoxLayout(widget)
-        layout.setContentsMargins(8, 8, 8, 8)
-        layout.setSpacing(12)
+        widget.setFixedHeight(50)
+        widget.setMinimumWidth(310)
+
+        layout = QVBoxLayout(widget)
+        layout.setContentsMargins(8, 4, 8, 4)
+        layout.setSpacing(4)
 
         widget.setStyleSheet(f"""
             QWidget {{
-                background-color: {COLORS.SURFACE};
-                border-radius: {DIM.RADIUS_SM}px;
+                background-color: {COLORS.BACKGROUND};
+                border-radius: 6px;
             }}
         """)
 
-        # Item OK
-        ok_layout = QHBoxLayout()
-        self.ok_indicator = QLabel("●")
-        self.ok_indicator.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 14px; font-weight: bold;")
+        # Título
+        title_label = QLabel("Legenda")
+        title_label.setStyleSheet(f"font-size: 10px; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+        layout.addWidget(title_label)
+
+        # Items horizontais
+        items_layout = QHBoxLayout()
+        items_layout.setSpacing(16)
+
+        # Item OK - círculo + texto
+        ok_indicator = QLabel("●")
+        ok_indicator.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 12px; font-weight: bold;")
         self.ok_label = QLabel(f"OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()})")
-        self.ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: {TYPO.LABEL_SMALL}px;")
-        ok_layout.addWidget(self.ok_indicator)
+        self.ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 9px;")
+        ok_layout = QHBoxLayout()
+        ok_layout.setSpacing(4)
+        ok_layout.addWidget(ok_indicator)
         ok_layout.addWidget(self.ok_label)
         ok_layout.addStretch()
-        layout.addLayout(ok_layout)
+        items_layout.addLayout(ok_layout)
 
-        # Item WARN
-        warn_layout = QHBoxLayout()
-        self.warn_indicator = QLabel("●")
-        self.warn_indicator.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 14px; font-weight: bold;")
+        # Item WARN - círculo + texto
+        warn_indicator = QLabel("●")
+        warn_indicator.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 12px; font-weight: bold;")
         self.warn_label = QLabel("WARN")
-        self.warn_label.setStyleSheet(f"color: {COLORS.WARNING}; font-size: {TYPO.LABEL_SMALL}px;")
-        warn_layout.addWidget(self.warn_indicator)
+        self.warn_label.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 9px;")
+        warn_layout = QHBoxLayout()
+        warn_layout.setSpacing(4)
+        warn_layout.addWidget(warn_indicator)
         warn_layout.addWidget(self.warn_label)
         warn_layout.addStretch()
-        layout.addLayout(warn_layout)
+        items_layout.addLayout(warn_layout)
 
-        # Item NOK
-        nok_layout = QHBoxLayout()
-        self.nok_indicator = QLabel("●")
-        self.nok_indicator.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 14px; font-weight: bold;")
+        # Item NOK - círculo + texto
+        nok_indicator = QLabel("●")
+        nok_indicator.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 12px; font-weight: bold;")
         self.nok_label = QLabel("NOK")
-        self.nok_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: {TYPO.LABEL_SMALL}px;")
-        nok_layout.addWidget(self.nok_indicator)
+        self.nok_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 9px;")
+        nok_layout = QHBoxLayout()
+        nok_layout.setSpacing(4)
+        nok_layout.addWidget(nok_indicator)
         nok_layout.addWidget(self.nok_label)
         nok_layout.addStretch()
-        layout.addLayout(nok_layout)
+        items_layout.addLayout(nok_layout)
+
+        items_layout.addStretch()
+        layout.addLayout(items_layout)
 
         return widget
 

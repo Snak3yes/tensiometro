@@ -25,7 +25,7 @@ class MiniTensionHeatmapWidget(QWidget):
         self.measurements: List[Dict] = []
         self.parameters: Dict = {}
         self.acceptance_criteria = None
-        self.setMinimumSize(280, 280)
+        self.setMinimumSize(310, 280)
 
     def set_measurements(self, data: Dict):
         """Define dados de medição para visualização."""
