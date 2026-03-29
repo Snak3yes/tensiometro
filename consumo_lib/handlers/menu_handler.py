@@ -28,15 +28,12 @@ class MenuHandler(QObject):
         - Conectar signals aos handlers apropriados
         - Gerenciar estado dinâmico de menus (enabled/disabled)
 
-    Estrutura de Menus:
-        - Arquivo
-        - Receitas
-        - Stencils
-        - Relatórios
-        - Ferramentas
-        - Sistema
-        - Tensão do Stencil
-        - Ajuda
+    Estrutura de Menus (v0.5-tension - Consolidada):
+        - Arquivo (Sair)
+        - Cadastros (Receitas, Stencils como submenus)
+        - Relatórios (Tensão, Stencil, Período, Configurações)
+        - Ferramentas (Movimento, CLP, Calibração, Conexões, Preferências)
+        - Sistema (Autenticação, Tema, Permissões, Sobre)
     """
 
     def __init__(self, main_window=None):
@@ -67,36 +64,27 @@ class MenuHandler(QObject):
 
         logger.info("Criando menus da aplicação")
 
-        # Menu Arquivo
+        # Menu Arquivo (simplificado)
         self._create_file_menu(menubar)
 
-        # Menu Receitas
-        self._create_recipes_menu(menubar)
-
-        # Menu Stencils
-        self._create_stencils_menu(menubar)
+        # Menu Cadastros (NOVO - Receitas + Stencils como submenus)
+        self._create_cadastros_menu(menubar)
 
         # Menu Relatórios
         self._create_reports_menu(menubar)
 
-        # Menu Ferramentas
+        # Menu Ferramentas (inclui Nova Medição de Tensão)
         self._create_tools_menu(menubar)
 
-        # Menu Tensão do Stencil
-        self._create_tension_menu(menubar)
-
-        # Menu Sistema
+        # Menu Sistema (inclui Sobre)
         self._create_system_menu(menubar)
-
-        # Menu Ajuda
-        self._create_help_menu(menubar)
 
         logger.info(f"Menus criados: {len(self.actions)} actions registradas")
 
     # ==================== CRIAÇÃO DE MENUS ====================
 
     def _create_file_menu(self, menubar: QMenuBar):
-        """Cria o menu Arquivo."""
+        """Cria o menu Arquivo (simplificado)."""
         menu = menubar.addMenu('&Arquivo')
 
         # Sair
@@ -107,67 +95,65 @@ class MenuHandler(QObject):
 
         self._register_action('file.exit', exit_action)
 
-    def _create_recipes_menu(self, menubar: QMenuBar):
-        """Cria o menu Receitas."""
-        menu = menubar.addMenu('&Receitas')
+    def _create_cadastros_menu(self, menubar: QMenuBar):
+        """Cria o menu Cadastros com Receitas e Stencils como submenus."""
+        menu = menubar.addMenu('&Cadastros')
 
-        # Gerenciar Receitas
-        manage_action = QAction('Gerenciar Receitas...', self.main_window)
-        manage_action.setShortcut('Ctrl+R')
-        manage_action.triggered.connect(self.main_window.show_recipe_manager)
-        menu.addAction(manage_action)
-        self._register_action('recipes.manage', manage_action)
-
-        # Nova Receita
-        new_action = QAction('Nova Receita...', self.main_window)
-        new_action.triggered.connect(self.main_window.show_new_recipe_dialog)
-        menu.addAction(new_action)
-        self._register_action('recipes.new', new_action)
-
-        menu.addSeparator()
-
-        # Receita Atual (dinâmico)
-        self.current_recipe_action = QAction('(Nenhuma receita carregada)', self.main_window)
-        self.current_recipe_action.setEnabled(False)
-        menu.addAction(self.current_recipe_action)
-        self._register_action('recipes.current', self.current_recipe_action)
-
-        # Aplicar à Captura
-        apply_capture_action = QAction('Aplicar Receita à Captura', self.main_window)
-        apply_capture_action.triggered.connect(self.main_window.apply_recipe_to_capture)
-        menu.addAction(apply_capture_action)
-        self._register_action('recipes.apply_capture', apply_capture_action)
-
-        # Aplicar à Tensão
-        apply_tension_action = QAction('Aplicar Receita à Tensão', self.main_window)
-        apply_tension_action.triggered.connect(self.main_window.apply_recipe_to_tension)
-        menu.addAction(apply_tension_action)
-        self._register_action('recipes.apply_tension', apply_tension_action)
-
-    def _create_stencils_menu(self, menubar: QMenuBar):
-        """Cria o menu Stencils."""
-        menu = menubar.addMenu('&Stencils')
+        # ========== Submenu Stencils ==========
+        stencils_submenu = menu.addMenu('Stencils')
 
         # Gerenciar Stencils
-        manage_action = QAction('Gerenciar Stencils...', self.main_window)
-        manage_action.setShortcut('Ctrl+T')
-        manage_action.triggered.connect(self.main_window.show_stencil_manager)
-        menu.addAction(manage_action)
-        self._register_action('stencils.manage', manage_action)
+        manage_stencil_action = QAction('Gerenciar Stencils...', self.main_window)
+        manage_stencil_action.setShortcut('Ctrl+T')
+        manage_stencil_action.triggered.connect(self.main_window.show_stencil_manager)
+        stencils_submenu.addAction(manage_stencil_action)
+        self._register_action('stencils.manage', manage_stencil_action)
 
         # Novo Stencil
-        new_action = QAction('Novo Stencil...', self.main_window)
-        new_action.triggered.connect(self.main_window.show_new_stencil_dialog)
-        menu.addAction(new_action)
-        self._register_action('stencils.new', new_action)
+        new_stencil_action = QAction('Novo Stencil...', self.main_window)
+        new_stencil_action.triggered.connect(self.main_window.show_new_stencil_dialog)
+        stencils_submenu.addAction(new_stencil_action)
+        self._register_action('stencils.new', new_stencil_action)
 
-        menu.addSeparator()
+        stencils_submenu.addSeparator()
 
         # Stencil Atual (dinâmico)
         self.current_stencil_action = QAction('(Nenhum stencil selecionado)', self.main_window)
         self.current_stencil_action.setEnabled(False)
-        menu.addAction(self.current_stencil_action)
+        stencils_submenu.addAction(self.current_stencil_action)
         self._register_action('stencils.current', self.current_stencil_action)
+
+        menu.addSeparator()
+
+        # ========== Submenu Receitas ==========
+        recipes_submenu = menu.addMenu('Receitas')
+
+        # Gerenciar Receitas
+        manage_recipe_action = QAction('Gerenciar Receitas...', self.main_window)
+        manage_recipe_action.setShortcut('Ctrl+R')
+        manage_recipe_action.triggered.connect(self.main_window.show_recipe_manager)
+        recipes_submenu.addAction(manage_recipe_action)
+        self._register_action('recipes.manage', manage_recipe_action)
+
+        # Nova Receita
+        new_recipe_action = QAction('Nova Receita...', self.main_window)
+        new_recipe_action.triggered.connect(self.main_window.show_new_recipe_dialog)
+        recipes_submenu.addAction(new_recipe_action)
+        self._register_action('recipes.new', new_recipe_action)
+
+        recipes_submenu.addSeparator()
+
+        # Receita Atual (dinâmico)
+        self.current_recipe_action = QAction('(Nenhuma receita carregada)', self.main_window)
+        self.current_recipe_action.setEnabled(False)
+        recipes_submenu.addAction(self.current_recipe_action)
+        self._register_action('recipes.current', self.current_recipe_action)
+
+        # Aplicar à Tensão (mantido para release v0.5)
+        apply_tension_action = QAction('Aplicar Receita à Tensão', self.main_window)
+        apply_tension_action.triggered.connect(self.main_window.apply_recipe_to_tension)
+        recipes_submenu.addAction(apply_tension_action)
+        self._register_action('recipes.apply_tension', apply_tension_action)
 
     def _create_reports_menu(self, menubar: QMenuBar):
         """Cria o menu Relatórios."""
@@ -205,8 +191,16 @@ class MenuHandler(QObject):
         self._register_action('reports.settings', settings_action)
 
     def _create_tools_menu(self, menubar: QMenuBar):
-        """Cria o menu Ferramentas."""
+        """Cria o menu Ferramentas (inclui Nova Medição de Tensão)."""
         menu = menubar.addMenu('&Ferramentas')
+
+        # Nova Medição de Tensão (movido de menu dedicado)
+        tension_action = QAction('Nova Medição de Tensão', self.main_window)
+        tension_action.triggered.connect(self.main_window.open_stencil_tension_dialog)
+        menu.addAction(tension_action)
+        self._register_action('tools.tension_new', tension_action)
+
+        menu.addSeparator()
 
         # Controle de Movimento (NOVO - release/v0.5-tension)
         movement_action = QAction('Controle de Movimento', self.main_window)
@@ -234,15 +228,6 @@ class MenuHandler(QObject):
 
         menu.addSeparator()
 
-        # Preferências
-        pref_action = QAction('Preferências', self.main_window)
-        pref_action.setShortcut('Ctrl+,')
-        pref_action.triggered.connect(self.main_window.show_settings_dialog)
-        menu.addAction(pref_action)
-        self._register_action('tools.preferences', pref_action)
-
-        menu.addSeparator()
-
         # Painel de Conexões
         conn_action = QAction('Conexões…', self.main_window)
         conn_action.setCheckable(True)
@@ -253,15 +238,17 @@ class MenuHandler(QObject):
         menu.addAction(conn_action)
         self._register_action('tools.connections', conn_action)
 
-    def _create_tension_menu(self, menubar: QMenuBar):
-        """Cria o menu Tensão do Stencil."""
-        tension_action = QAction('Tensão do Stencil', self.main_window)
-        tension_action.triggered.connect(self.main_window.open_stencil_tension_dialog)
-        menubar.addAction(tension_action)
-        self._register_action('tension.dialog', tension_action)
+        menu.addSeparator()
+
+        # Preferências
+        pref_action = QAction('Preferências', self.main_window)
+        pref_action.setShortcut('Ctrl+,')
+        pref_action.triggered.connect(self.main_window.show_settings_dialog)
+        menu.addAction(pref_action)
+        self._register_action('tools.preferences', pref_action)
 
     def _create_system_menu(self, menubar: QMenuBar):
-        """Cria o menu Sistema."""
+        """Cria o menu Sistema (inclui Sobre)."""
         menu = menubar.addMenu('&Sistema')
 
         # Configurações de Autenticação (NOVO - 2026-01-15)
@@ -295,14 +282,13 @@ class MenuHandler(QObject):
         menu.addAction(permissions_action)
         self._register_action('system.permissions', permissions_action)
 
-    def _create_help_menu(self, menubar: QMenuBar):
-        """Cria o menu Ajuda."""
-        menu = menubar.addMenu('&Ajuda')
+        menu.addSeparator()
 
+        # Sobre (movido de menu Ajuda)
         about_action = QAction('Sobre', self.main_window)
         about_action.triggered.connect(self.main_window.show_about_dialog)
         menu.addAction(about_action)
-        self._register_action('help.about', about_action)
+        self._register_action('system.about', about_action)
 
     # ==================== MÉTODOS AUXILIARES ====================
 
