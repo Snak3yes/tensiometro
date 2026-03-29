@@ -14,13 +14,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Status:** ~99% completo | **Versão:** 0.5.0 (release/v0.5-tension) | **Tech:** Python 3.x + PyQt6 + OpenCV + SQLite
 
-**Branch atual:** `release/v0.5-tension` - Versão simplificada para cliente (apenas medição de tensão)
+**Branch atual:** `test/ui-adjustments-70-30` - Ajustes de UI para matching com proposta SVG
 
 **Filosofia:** SOLID, TDD, documentação como fonte de verdade.
 
 ---
 
-## Release v0.5-tension (2026-03-28)
+## Release v0.5-tension (2026-03-29)
 
 **Objetivo:** Versão de entrega para cliente com funcionalidade de medição de tensão apenas.
 
@@ -39,11 +39,32 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | Emojis na UI | TODOS REMOVIDOS |
 | Diálogo "Preferências" | Renomeado para "Preferências do Sistema" |
 
+### UI Adjustments - Aba "Medição de Tensão" (2026-03-29)
+
+**Branch:** `test/ui-adjustments-70-30`
+
+Ajustes para matching com proposta SVG (`docs/ui_proposals/proposta_1_revisada_70_30_real.svg`):
+
+| Componente | Antes | Depois |
+|------------|-------|--------|
+| Tree header | Altura padrão | 24px min-height, 11px font |
+| Tree items | 45px altura | 20px min-height, 4px padding |
+| Filter bar | Altura variável | 36px fixo, campos 20px |
+| Groupbox "Critérios" | QHBoxLayout 1 linha | QGridLayout 3 linhas |
+| Spinboxes | 26px (global) | 50x14px com setas CSS |
+| Botão "Receita" | Fixo 60px | Ocupa toda largura |
+
+**Notas técnicas:**
+- Spinboxes usam CSS borders para setas visíveis (triângulos)
+- Global stylesheet `min-height: 26px` sobrescrito inline
+- QGridLayout para melhor distribuição dos campos
+
 ### Novos Arquivos
 
 - `consumo_lib/dialogs/movement_dialog.py` - Diálogo de controle CNC (não-modal, Ctrl+M)
 - `consumo_lib/dialogs/plc_monitor_dialog.py` - Diálogo de monitoramento PLC (não-modal, Ctrl+L)
 - `consumo_lib/dialogs/connection_dialog.py` - Diálogo de conexão PLC (não-modal)
+- `tools/populate_test_stencils.py` - Script para popular stencils de teste no banco
 
 ### Menu Consolidado (5 menus)
 
@@ -69,6 +90,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |--------|-----------|
 | `main` | Desenvolvimento principal (com inspeção visual) |
 | `release/v0.5-tension` | Release para cliente (medição de tensão apenas) |
+| `test/ui-adjustments-70-30` | Ajustes de UI para matching com proposta SVG |
 
 **Ver detalhes:** `docs/reports/RELEASE_v0.5-tension.md`
 
@@ -375,4 +397,4 @@ tensio.is_connected
 
 ---
 
-**Last Updated:** 2026-03-28 | **Version:** 0.5.0 | **Release Branch:** v0.5-tension
+**Last Updated:** 2026-03-29 | **Version:** 0.5.0 | **Branch:** test/ui-adjustments-70-30

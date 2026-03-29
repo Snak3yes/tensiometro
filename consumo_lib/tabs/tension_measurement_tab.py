@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
+    QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QSplitter,
     QGroupBox, QLabel, QLineEdit, QComboBox,
     QTreeWidget, QTreeWidgetItem,
     QDoubleSpinBox,
@@ -476,104 +476,146 @@ class TensionMeasurementTab(QWidget):
 
     def create_criteria_group(self) -> QGroupBox:
         """
-        Cria grupo de critérios de aceitação (layout compacto horizontal).
+        Cria grupo de critérios de aceitação usando QGridLayout.
 
-        Dimensões da proposta:
-        - Container: 310x55px
-        - Spinboxes: 45x18px
-        - Labels: 9px
-        - Botão 'Usar Receita': 100x22px
+        Layout (grid 3x5):
+        - Row 0: Mín(label) + Mín(spin) + Warn↓(label) + Warn↓(spin) + stretch
+        - Row 1: Warn↑(label) + Warn↑(spin) + Máx(label) + Máx(spin) + stretch
+        - Row 2: Botão Receita (coluna 3-4, alinhado à direita)
         """
         group = QGroupBox("Critérios")
-        group.setFixedHeight(60)
+        group.setFixedHeight(100)
         group.setFixedWidth(310)
         group.setStyleSheet(f"""
             QGroupBox {{
-                font-size: 9px;
+                font-size: 10px;
                 font-weight: bold;
                 background-color: {COLORS.SURFACE};
                 border-radius: 6px;
+                border: 1px solid {COLORS.BORDER};
+                padding-top: 2px;
             }}
             QGroupBox::title {{
                 subcontrol-origin: margin;
+                subcontrol-position: top left;
                 left: 10px;
+                top: 4px;
                 padding: 0 5px;
-                color: {COLORS.TEXT_HINT};
+                color: {COLORS.TEXT_PRIMARY};
             }}
         """)
 
-        layout = QHBoxLayout(group)
-        layout.setContentsMargins(8, 18, 8, 8)
-        layout.setSpacing(4)
+        grid = QGridLayout(group)
+        grid.setContentsMargins(2, 2, 2, 2)
+        grid.setHorizontalSpacing(8)
+        grid.setVerticalSpacing(12)
 
-        # Spinbox stylesheet
+        # Label style - altura fixa para não cortar
+        label_style = f"font-size: 9px; color: {COLORS.TEXT_SECONDARY}; min-height: 16px;"
+
+        # Spinbox stylesheet - menor, sobrescreve global
         spinbox_style = f"""
             QDoubleSpinBox {{
                 background-color: {COLORS.BACKGROUND};
                 color: {COLORS.TEXT_PRIMARY};
                 border: 1px solid {COLORS.BORDER};
-                border-radius: 3px;
-                padding: 2px;
+                border-radius: 2px;
+                padding: 0px 2px;
+                padding-right: 12px;
                 font-size: 9px;
+                min-height: 14px;
+                max-height: 14px;
+            }}
+            QDoubleSpinBox::up-button {{
+                subcontrol-position: top right;
+                width: 12px;
+                height: 7px;
+                background-color: {COLORS.SURFACE_VARIANT};
+                border: none;
+                border-left: 1px solid {COLORS.BORDER};
+            }}
+            QDoubleSpinBox::down-button {{
+                subcontrol-position: bottom right;
+                width: 12px;
+                height: 7px;
+                background-color: {COLORS.SURFACE_VARIANT};
+                border: none;
+                border-left: 1px solid {COLORS.BORDER};
+            }}
+            QDoubleSpinBox::up-arrow {{
+                image: none;
+                border-left: 3px solid transparent;
+                border-right: 3px solid transparent;
+                border-bottom: 4px solid {COLORS.TEXT_PRIMARY};
+            }}
+            QDoubleSpinBox::down-arrow {{
+                image: none;
+                border-left: 3px solid transparent;
+                border-right: 3px solid transparent;
+                border-top: 4px solid {COLORS.TEXT_PRIMARY};
             }}
         """
 
-        # Mín: spinbox 45x18px
-        layout.addWidget(QLabel("Mín:"))
+        # Row 0: Mín + Warn↓
+        lbl_min = QLabel("Mín:")
+        lbl_min.setStyleSheet(label_style)
+        grid.addWidget(lbl_min, 0, 0)
+
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0, 100)
         self.spin_min.setValue(25.0)
-        self.spin_min.setFixedWidth(45)
-        self.spin_min.setFixedHeight(18)
+        self.spin_min.setFixedSize(50, 14)
         self.spin_min.setStyleSheet(spinbox_style)
         self.spin_min.valueChanged.connect(self.on_criteria_changed)
-        layout.addWidget(self.spin_min)
+        grid.addWidget(self.spin_min, 0, 1)
 
-        # Warn↓: spinbox 45x18px
-        layout.addWidget(QLabel("Warn↓:"))
+        lbl_warn_low = QLabel("Warn↓:")
+        lbl_warn_low.setStyleSheet(label_style)
+        grid.addWidget(lbl_warn_low, 0, 2)
+
         self.spin_warn_low = QDoubleSpinBox()
         self.spin_warn_low.setRange(0, 100)
         self.spin_warn_low.setValue(28.0)
-        self.spin_warn_low.setFixedWidth(45)
-        self.spin_warn_low.setFixedHeight(18)
+        self.spin_warn_low.setFixedSize(50, 14)
         self.spin_warn_low.setStyleSheet(spinbox_style)
         self.spin_warn_low.valueChanged.connect(self.on_criteria_changed)
-        layout.addWidget(self.spin_warn_low)
+        grid.addWidget(self.spin_warn_low, 0, 3)
 
-        # Warn↑: spinbox 45x18px
-        layout.addWidget(QLabel("Warn↑:"))
+        # Row 1: Warn↑ + Máx
+        lbl_warn_high = QLabel("Warn↑:")
+        lbl_warn_high.setStyleSheet(label_style)
+        grid.addWidget(lbl_warn_high, 1, 0)
+
         self.spin_warn_high = QDoubleSpinBox()
         self.spin_warn_high.setRange(0, 100)
         self.spin_warn_high.setValue(42.0)
-        self.spin_warn_high.setFixedWidth(45)
-        self.spin_warn_high.setFixedHeight(18)
+        self.spin_warn_high.setFixedSize(50, 14)
         self.spin_warn_high.setStyleSheet(spinbox_style)
         self.spin_warn_high.valueChanged.connect(self.on_criteria_changed)
-        layout.addWidget(self.spin_warn_high)
+        grid.addWidget(self.spin_warn_high, 1, 1)
 
-        # Máx: spinbox 45x18px
-        layout.addWidget(QLabel("Máx:"))
+        lbl_max = QLabel("Máx:")
+        lbl_max.setStyleSheet(label_style)
+        grid.addWidget(lbl_max, 1, 2)
+
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0, 100)
         self.spin_max.setValue(45.0)
-        self.spin_max.setFixedWidth(45)
-        self.spin_max.setFixedHeight(18)
+        self.spin_max.setFixedSize(50, 14)
         self.spin_max.setStyleSheet(spinbox_style)
         self.spin_max.valueChanged.connect(self.on_criteria_changed)
-        layout.addWidget(self.spin_max)
+        grid.addWidget(self.spin_max, 1, 3)
 
-        # Botão "Usar Receita": 100x22px
+        # Row 2: Botão Receita (ocupa todas as colunas, centralizado)
         self.btn_recipe = StandardButton(
             "Receita",
             variant="primary-blue",
             semantic_size="inline-compact"
         )
-        self.btn_recipe.setFixedHeight(22)
-        self.btn_recipe.setMinimumWidth(70)
+        self.btn_recipe.setFixedHeight(20)
         self.btn_recipe.clicked.connect(self.load_criteria_from_recipe)
-        layout.addWidget(self.btn_recipe)
+        grid.addWidget(self.btn_recipe, 2, 0, 1, 4)
 
-        layout.addStretch()
         return group
 
     def create_legend_widget(self) -> QWidget:
