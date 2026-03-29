@@ -69,6 +69,13 @@
 
 ## 📐 Dimensões de Referência (da Proposta)
 
+### Proposta Original SVG (1200x800px tela cheia)
+- Ver: `proposta_1_revisada_70_30.svg`
+
+### Proposta REAL com UI Completa (1200x800px com menus/tabs/status)
+- Ver: `proposta_1_revisada_70_30_real.svg`
+- **Altura útil da aba: ~677px** (não 740px)
+
 ### Botões
 ```
 Superiores:     75x28px, 65x28px
@@ -87,10 +94,10 @@ Período/Status: 100-110x26px
 
 ### Heatmap
 ```
-Container:      310x280px
-Grid cell:      77.5x70px (aprox)
-Círculos:       r=14px
-Font tensão:    9px bold
+Proposta Original:  310x280px  (r=14px círculos)
+Proposta Real:      310x220px  (r=11px círculos)  <- IMPLEMENTADO
+Grid cell:          77.5x55px  (proposta real)
+Font tensão:        8px bold   (reduzido de 9px)
 ```
 
 ### Tipografia
@@ -185,3 +192,9 @@ A proposta SVG original considerava tela cheia (1200x800px), mas a aba ocupa esp
 - **Problema:** Proposta SVG considerava 1200x800px (tela cheia), mas aba tem ~677px de altura útil
 - **Solução:** Heatmap 280px → 220px, Estatísticas 90px → 85px
 - **Commit:** `d60ddd7` - fix(ui): Ajustar dimensões do painel direito para espaço real (~677px)
+
+### 2026-03-29 - Proposta SVG Realista
+- **Novo arquivo:** `proposta_1_revisada_70_30_real.svg`
+- **Inclui:** Menu (25px) + Tabs (25px) + Conteúdo (677px) + Status Bar (30px)
+- **Compromisso:** Heatmap reduzido para 220px mantém legibilidade com círculos r=11px
+- **Commit:** `fb37323` - feat(docs): Adicionar proposta SVG com dimensões reais da UI
