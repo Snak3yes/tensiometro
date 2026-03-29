@@ -30,10 +30,12 @@ class MenuHandler(QObject):
 
     Estrutura de Menus (v0.5-tension - Consolidada):
         - Arquivo (Sair)
-        - Cadastros (Receitas, Stencils como submenus)
+        - Cadastros (Stencils)
         - Relatórios (Tensão, Stencil, Período, Configurações)
         - Ferramentas (Movimento, CLP, Calibração, Conexões, Preferências)
         - Sistema (Autenticação, Tema, Permissões, Sobre)
+
+    NOTA: Menu Receitas removido na v0.5-tension (funcionalidade não implementada).
     """
 
     def __init__(self, main_window=None):
@@ -96,64 +98,30 @@ class MenuHandler(QObject):
         self._register_action('file.exit', exit_action)
 
     def _create_cadastros_menu(self, menubar: QMenuBar):
-        """Cria o menu Cadastros com Receitas e Stencils como submenus."""
+        """Cria o menu Cadastros com Stencils."""
         menu = menubar.addMenu('&Cadastros')
 
-        # ========== Submenu Stencils ==========
-        stencils_submenu = menu.addMenu('Stencils')
-
+        # ========== Stencils ==========
         # Gerenciar Stencils
         manage_stencil_action = QAction('Gerenciar Stencils...', self.main_window)
         manage_stencil_action.setShortcut('Ctrl+T')
         manage_stencil_action.triggered.connect(self.main_window.show_stencil_manager)
-        stencils_submenu.addAction(manage_stencil_action)
+        menu.addAction(manage_stencil_action)
         self._register_action('stencils.manage', manage_stencil_action)
 
         # Novo Stencil
         new_stencil_action = QAction('Novo Stencil...', self.main_window)
         new_stencil_action.triggered.connect(self.main_window.show_new_stencil_dialog)
-        stencils_submenu.addAction(new_stencil_action)
+        menu.addAction(new_stencil_action)
         self._register_action('stencils.new', new_stencil_action)
 
-        stencils_submenu.addSeparator()
+        menu.addSeparator()
 
         # Stencil Atual (dinâmico)
         self.current_stencil_action = QAction('(Nenhum stencil selecionado)', self.main_window)
         self.current_stencil_action.setEnabled(False)
-        stencils_submenu.addAction(self.current_stencil_action)
+        menu.addAction(self.current_stencil_action)
         self._register_action('stencils.current', self.current_stencil_action)
-
-        menu.addSeparator()
-
-        # ========== Submenu Receitas ==========
-        recipes_submenu = menu.addMenu('Receitas')
-
-        # Gerenciar Receitas
-        manage_recipe_action = QAction('Gerenciar Receitas...', self.main_window)
-        manage_recipe_action.setShortcut('Ctrl+R')
-        manage_recipe_action.triggered.connect(self.main_window.show_recipe_manager)
-        recipes_submenu.addAction(manage_recipe_action)
-        self._register_action('recipes.manage', manage_recipe_action)
-
-        # Nova Receita
-        new_recipe_action = QAction('Nova Receita...', self.main_window)
-        new_recipe_action.triggered.connect(self.main_window.show_new_recipe_dialog)
-        recipes_submenu.addAction(new_recipe_action)
-        self._register_action('recipes.new', new_recipe_action)
-
-        recipes_submenu.addSeparator()
-
-        # Receita Atual (dinâmico)
-        self.current_recipe_action = QAction('(Nenhuma receita carregada)', self.main_window)
-        self.current_recipe_action.setEnabled(False)
-        recipes_submenu.addAction(self.current_recipe_action)
-        self._register_action('recipes.current', self.current_recipe_action)
-
-        # Aplicar à Tensão (mantido para release v0.5)
-        apply_tension_action = QAction('Aplicar Receita à Tensão', self.main_window)
-        apply_tension_action.triggered.connect(self.main_window.apply_recipe_to_tension)
-        recipes_submenu.addAction(apply_tension_action)
-        self._register_action('recipes.apply_tension', apply_tension_action)
 
     def _create_reports_menu(self, menubar: QMenuBar):
         """Cria o menu Relatórios."""
@@ -319,12 +287,14 @@ class MenuHandler(QObject):
         """
         Atualiza o texto da action de receita atual.
 
+        NOTA: Menu Receitas foi removido na v0.5-tension.
+        Este método é mantido para compatibilidade mas não faz nada.
+
         Args:
-            text: Novo texto para exibir
+            text: Novo texto para exibir (ignorado)
         """
-        if self.current_recipe_action:
-            self.current_recipe_action.setText(text)
-            logger.debug(f"Receita atual atualizada: {text}")
+        # Menu Receitas removido - método mantido para compatibilidade
+        pass
 
     def update_current_stencil_text(self, text: str):
         """
