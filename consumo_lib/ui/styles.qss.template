@@ -452,25 +452,25 @@ QProgressBar::chunk:disabled {
    ============================================================================= */
 
 QTabWidget::pane {
-    border: 2px solid {{BORDER}};
-    border-radius: 8px;
+    border: 1px solid {{BORDER}};
+    border-radius: 4px;
     background-color: {{BACKGROUND}};
 }
 
 QTabBar::tab {
     background-color: {{SURFACE_VARIANT}};
-    border: 2px solid {{BORDER}};
+    border: 1px solid {{BORDER}};
     border-bottom: none;
-    border-top-left-radius: 8px;
-    border-top-right-radius: 8px;
-    padding: 12px 24px;
-    margin-right: 4px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    padding: 6px 16px;
+    margin-right: 2px;
     font-weight: bold;
 }
 
 QTabBar::tab:selected {
     background-color: {{BACKGROUND}};
-    border-bottom: 2px solid {{BACKGROUND}};
+    border-bottom: 1px solid {{BACKGROUND}};
 }
 
 QTabBar::tab:hover:!selected {
@@ -540,18 +540,46 @@ QDialog {
 }
 
 /* =============================================================================
+   MENU BAR & STATUS BAR (Compacto - 25px / 30px)
+   ============================================================================= */
+
+QMenuBar {
+    background-color: {{SURFACE_VARIANT}};
+    border-bottom: 1px solid {{BORDER}};
+    padding: 2px 8px;
+    spacing: 4px;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+QMenuBar::item:selected {
+    background-color: {{SURFACE}};
+}
+
+QStatusBar {
+    background-color: {{SURFACE_VARIANT}};
+    border-top: 1px solid {{BORDER}};
+    padding: 4px 8px;
+    spacing: 8px;
+}
+
+/* =============================================================================
    MENU
    ============================================================================= */
 
 QMenu {
     background-color: {{BACKGROUND}};
-    border: 2px solid {{BORDER}};
-    border-radius: 8px;
-    padding: 8px;
+    border: 1px solid {{BORDER}};
+    border-radius: 4px;
+    padding: 4px;
 }
 
 QMenu::item {
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 4px;
 }
 
@@ -560,9 +588,9 @@ QMenu::item:selected {
 }
 
 QMenu::separator {
-    height: 2px;
+    height: 1px;
     background-color: {{BORDER}};
-    margin: 8px 0;
+    margin: 4px 0;
 }
 
 QMenu::indicator {

@@ -78,15 +78,43 @@ class TreeViewTab(QWidget):
         layout.addWidget(self.hw_status_bar)
 
     def create_top_bar(self) -> QWidget:
-        widget = QWidget()
-        layout = QHBoxLayout(widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        """Cria barra de filtros compacta (conforme SVG)."""
+        from PyQt6.QtWidgets import QFrame
 
+        # Container com fundo (simula groupbox do SVG)
+        container = QFrame()
+        container.setObjectName("filterBar")
+        container.setStyleSheet("""
+            QFrame#filterBar {
+                background-color: #2D3748;
+                border-radius: 4px;
+                padding: 6px;
+            }
+            QFrame#filterBar QLabel {
+                font-size: 9px;
+                color: #9CA3AF;
+            }
+            QFrame#filterBar QComboBox {
+                min-width: 70px;
+                max-height: 20px;
+                font-size: 9px;
+                padding: 1px 2px;
+                border-radius: 3px;
+            }
+        """)
+        container.setFixedHeight(36)
+
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(8, 6, 8, 6)
+        layout.setSpacing(6)
+
+        # Buscar
         layout.addWidget(QLabel("Buscar:"))
         self.search_input = SearchLineEdit()
         self.search_input.searchPerformed.connect(self.filter_stencils)
         layout.addWidget(self.search_input)
 
+        # Período
         layout.addWidget(QLabel("Período:"))
         self.period_combo = QComboBox()
         self.period_combo.addItems([
@@ -98,19 +126,22 @@ class TreeViewTab(QWidget):
             "180 dias",
             "365 dias",
         ])
-        self.period_combo.setMinimumWidth(120)
+        self.period_combo.setMinimumWidth(70)
+        self.period_combo.setFixedHeight(20)
         self.period_combo.currentTextChanged.connect(self.on_filter_changed)
         layout.addWidget(self.period_combo)
 
+        # Status
         layout.addWidget(QLabel("Status:"))
         self.status_combo = QComboBox()
         self.status_combo.addItems(["Todos", "Ativos", "Alerta", "Retirados"])
-        self.status_combo.setMinimumWidth(120)
+        self.status_combo.setMinimumWidth(70)
+        self.status_combo.setFixedHeight(20)
         self.status_combo.currentTextChanged.connect(self.on_filter_changed)
         layout.addWidget(self.status_combo)
 
         layout.addStretch()
-        return widget
+        return container
 
     def create_details_panel(self) -> QWidget:
         panel = QWidget()
