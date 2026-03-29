@@ -128,6 +128,16 @@ class TabFactory:
         # O monitor CLP agora está em um diálogo acessível via menu
         # Ferramentas → Monitor CLP (Ctrl+L)
 
+        # Aba 2: Stencils (Lista de Programas)
+        from consumo_lib.tabs import TreeViewTab
+        tree_view_tab = TreeViewTab(
+            stencil_manager=self.stencil_tracker,
+            parent=self.main_window
+        )
+        self.main_window.tree_view_tab = tree_view_tab
+        tab_widget.addTab(tree_view_tab, "Stencils")
+        tabs.append(tree_view_tab)
+
         # Aba 3: Visualização de Tensão
         tension_tab = self.create_tension_tab()
         self.main_window.tension_visualization = tension_tab

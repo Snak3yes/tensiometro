@@ -196,30 +196,38 @@ class ControllersFactory:
             )
             logger.debug("Widgets PLC configurados no ConnectionManager via ControllersFactory")
 
-        # 1. File IO Controller
-        try:
-            controllers['file_io_controller'] = FileIOController(
-                controller,
-                window.position_list_widget,
-                window.sequence_widget,
-                window
-            )
-            logger.debug("FileIOController criado via ControllersFactory")
-        except Exception as e:
-            logger.error(f"Erro ao criar FileIOController via ControllersFactory: {e}")
+        # 1. File IO Controller (requer position_list_widget e sequence_widget)
+        if hasattr(window, 'position_list_widget') and hasattr(window, 'sequence_widget'):
+            try:
+                controllers['file_io_controller'] = FileIOController(
+                    controller,
+                    window.position_list_widget,
+                    window.sequence_widget,
+                    window
+                )
+                logger.debug("FileIOController criado via ControllersFactory")
+            except Exception as e:
+                logger.error(f"Erro ao criar FileIOController via ControllersFactory: {e}")
+                controllers['file_io_controller'] = None
+        else:
+            logger.info("FileIOController não criado - position_list_widget não disponível (release/v0.5-tension)")
             controllers['file_io_controller'] = None
 
-        # 2. Position Manager Controller
-        try:
-            controllers['position_manager_controller'] = PositionManagerController(
-                controller,
-                window.position_list_widget,
-                window
-            )
-            controllers['position_manager_controller'].setup_ui_handlers()
-            logger.debug("PositionManagerController criado via ControllersFactory")
-        except Exception as e:
-            logger.error(f"Erro ao criar PositionManagerController via ControllersFactory: {e}")
+        # 2. Position Manager Controller (requer position_list_widget)
+        if hasattr(window, 'position_list_widget'):
+            try:
+                controllers['position_manager_controller'] = PositionManagerController(
+                    controller,
+                    window.position_list_widget,
+                    window
+                )
+                controllers['position_manager_controller'].setup_ui_handlers()
+                logger.debug("PositionManagerController criado via ControllersFactory")
+            except Exception as e:
+                logger.error(f"Erro ao criar PositionManagerController via ControllersFactory: {e}")
+                controllers['position_manager_controller'] = None
+        else:
+            logger.info("PositionManagerController não criado - position_list_widget não disponível (release/v0.5-tension)")
             controllers['position_manager_controller'] = None
 
         logger.info("Controllers dependentes de UI criados via ControllersFactory")

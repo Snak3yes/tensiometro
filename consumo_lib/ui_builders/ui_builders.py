@@ -5,26 +5,22 @@ Este módulo contém builders para criar a UI da aplicação de forma organizada
 """
 
 import logging
-from PyQt6.QtCore import Qt
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGridLayout, QGroupBox,
     QLabel, QLineEdit, QComboBox, QSpinBox, QPushButton,
-    QTabWidget, QSplitter, QTableWidget, QTableView,
-    QHeaderView
+    QTabWidget, QTableWidget, QHeaderView
 )
 from aoi_lib.plc_axis_controller import PLCAxisController
-from consumo_lib.tabs import (
-    TensionTab,
-    TrackingTab,
-)
-from consumo_lib.widgets.movement_control import MovementControlWidget
-from consumo_lib.widgets.position_list import PositionListWidget
-from consumo_lib.widgets.sequence_control import SequenceControlWidget
-from consumo_lib.widgets.plc_monitor import PLCMonitorWidget
 from consumo_lib.controllers import ConnectionManagerController
 
 # Design System
 from consumo_lib.ui.widget_standards import StandardButton
+
+# NOTA: Os imports abaixo são mantidos para compatibilidade com métodos não usados
+# na release v0.5-tension (inspeção visual desabilitada)
+from consumo_lib.widgets.movement_control import MovementControlWidget  # noqa: F401
+from consumo_lib.widgets.position_list import PositionListWidget  # noqa: F401
+from consumo_lib.widgets.sequence_control import SequenceControlWidget  # noqa: F401
 
 logger = logging.getLogger(__name__)
 
@@ -328,48 +324,26 @@ class MainUIBuilder:
             self.window.connection_manager_controller = None
 
     def _build_remaining_tabs(self, parent):
-        """Cria abas restantes do painel direito."""
-        # NOVO - FASE 2: Aba TreeView (Lista de Programas)
-        from consumo_lib.tabs import TreeViewTab
-        self.window.tree_view_tab = TreeViewTab(
-            stencil_manager=self.window.stencil_tracker,
-            parent=self.window
-        )
-        parent.addTab(self.window.tree_view_tab, "Stencils")
+        """Cria abas restantes do painel direito usando TabFactory."""
+        # Usa TabFactory para criar todas as abas (incluindo Câmera & Movimento)
+        from consumo_lib.factories import TabFactory
 
-        # REMOVIDO (release/v0.5-tension): Aba "Monitor CLP"
-        # O monitor CLP agora está em um diálogo acessível via menu
-        # Ferramentas → Monitor CLP (Ctrl+L)
-        # self.window.plc_monitor = PLCMonitorWidget(self.window.controller)
-        # parent.addTab(self.window.plc_monitor, "Monitor CLP")
-
-        # Aba 3: Visualização de Tensão
-        self.window.tension_visualization = TensionTab(parent=self.window)
-        self.window.tension_viz_widget = self.window.tension_visualization.visualization
-        parent.addTab(self.window.tension_visualization, "Visualização de Tensão")
-
-        # Aba 4: Rastreabilidade
-        self.window.tracking_tab = TrackingTab(
+        tab_factory = TabFactory(
+            self.window.controller,
+            self.window.config,
             self.window.stencil_tracker,
-            parent=self.window
+            self.window
         )
-        # Conecta sinais (exceto _on_* que são tratados pelo SignalAggregator)
-        self.window.tracking_tab.tension_measurement_requested.connect(
-            self.window._run_tension_measurement
-        )
-        self.window.tracking_tab.stencil_management_requested.connect(
-            self.window.show_stencil_manager
-        )
-        self.window.tracking_tab.new_stencil_requested.connect(
-            self.window.show_new_stencil_dialog
-        )
-        # Expose widget interno para compatibilidade
-        self.window.stencil_identification = self.window.tracking_tab.stencil_identification
-        # REMOVIDO (release/v0.5-tension): btn_run_tension removido da aba Rastreabilidade
-        # self.window.btn_run_tension = self.window.tracking_tab.btn_run_tension
-        parent.addTab(self.window.tracking_tab, "Rastreabilidade")
 
-        # REMOVIDO (release/v0.5-tension): Aba "Posições e Rotinas"
-        # Esta aba é útil apenas para inspeção visual (main branch)
-        # Para medição de tensão, usar TensionMeasurementDialog
-        # self._build_backup_controls_tab(parent)
+        # Cria todas as abas via factory (sinais já são conectados pelo TabFactory)
+        tabs = tab_factory.create_all_tabs(parent)
+
+        # Nota: TabFactory já expõe os widgets na window:
+        # - self.window.cnc_control_tab
+        # - self.window.movement_widget (via cnc_control_tab.movement_widget)
+        # - self.window.camera_preview
+        # - self.window.tension_visualization
+        # - self.window.tracking_tab (sinais já conectados)
+        # - self.window.stencil_identification
+
+        logger.info(f"Abas criadas via TabFactory: {len(tabs)} abas")
