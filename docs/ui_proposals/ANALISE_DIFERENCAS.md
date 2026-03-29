@@ -2,6 +2,7 @@
 
 **Data:** 2026-03-29
 **Branch:** fix/tension-measurement-ui
+**Status:** EM PROGRESSO
 
 ---
 
@@ -9,26 +10,26 @@
 
 ### 1. Painel Direito (30%) - Visualização
 
-| Elemento | Proposta SVG | Implementação Atual | Ação Necessária |
-|----------|--------------|---------------------|-----------------|
-| **Botões Superiores** | 75x28px e 65x28px, lado a lado | Largura total, um por linha | Usar `semantic_size="inline-compact"`, layout horizontal |
-| **Critérios** | Labels 9px, spinboxes 45x18px, "Usar Receita" ao lado | Spinboxes grandes, "Usar Receita" abaixo | Reduzir spinboxes, layout horizontal compacto |
-| **Heatmap** | 310x280px, grid 4x4 com círculos r=14px | Sem size definido, placeholder | Fixar minimum size, melhorar rendering |
-| **Resultado** | 310x40px, badge verde "APROVADO" | Label "---", largura total,  estilo diferente | Criar widget de resultado tipo badge |
-| **Estatísticas** | Box com 3 linhas: OK/WARN/NOK, Min/Máx/Média, Total | Label único linha longa | Separar em layout vertical com labels |
-| **Legenda** | Box com 3 itens horizontais: 🟢 OK  WARN 🔴 NOK | Label vazio/não aparece | Implementar legenda horizontal |
-| **Botão Histórico** | 310x35px, "Ver Histórico Completo" | Largura total, grande | Reduzir com `semantic_size="inline-primary"` |
-| **Info Arquivo** | Box 310x60px no final | Não existe | Adicionar widget de info do arquivo |
+| Elemento | Proposta SVG | Implementação Atual | Status |
+|----------|--------------|---------------------|--------|
+| **Botões Superiores** | 75x28px e 65x28px, lado a lado | 75x28px e 65x28px, lado a lado | ✅ IMPLEMENTADO |
+| **Critérios** | Labels 9px, spinboxes 45x18px, "Usar Receita" ao lado | Spinboxes 45x18px, labels 9px, botão 70x22px | ✅ IMPLEMENTADO |
+| **Heatmap** | 310x280px, grid 4x4 com círculos r=14px | 310x280px fixo | ✅ IMPLEMENTADO |
+| **Resultado** | 310x40px, badge verde "APROVADO" | Badge 310x40px centralizado | ✅ IMPLEMENTADO |
+| **Estatísticas** | Box com 3 linhas: OK/WARN/NOK, Min/Máx/Média, Total | 3 linhas organizadas em GroupBox | ✅ IMPLEMENTADO |
+| **Legenda** | Box com título + 3 itens horizontais | Título + 3 itens horizontais, 310x50px | ✅ IMPLEMENTADO |
+| **Botão Histórico** | 310x35px, "Ver Histórico Completo" | 310x35px | ✅ IMPLEMENTADO |
+| **Info Arquivo** | Box 310x60px no final | GroupBox "Arquivo" 310x60px | ✅ IMPLEMENTADO |
 
 ### 2. Painel Esquerdo (70%) - Lista
 
-| Elemento | Proposta SVG | Implementação Atual | Ação Necessária |
-|----------|--------------|---------------------|-----------------|
-| **Filtros** | 4 campos: Buscar, Período, Status, Ordenar | 3 campos: Buscar, Período, Status | Adicionar combo "Ordenar" |
-| **Lista** | 6 colunas: Código, Descrição, Status, Tensão, Última, Ações | 6 colunas (ok) | Layout ok |
-| **Items** | 45px altura, selected verde | Default QTreeWidget | Customizar item height, selected bg |
-| **Detalhes** | Layout horizontal, 7 campos + 2 botões | Layout vertical, poucos campos | Mudar para horizontal grid |
-| **Botões Detalhes** | 75x30px e 55x30px | Padrão StandardButton | Usar tamanhos compactos |
+| Elemento | Proposta SVG | Implementação Atual | Status |
+|----------|--------------|---------------------|--------|
+| **Filtros** | 4 campos: Buscar, Período, Status, Ordenar | 4 campos implementados | ✅ IMPLEMENTADO |
+| **Lista** | 6 colunas: Código, Descrição, Status, Tensão, Última, Ações | 6 colunas (ok) | ✅ IMPLEMENTADO |
+| **Items** | 45px altura, selected verde | min-height: 45px, selected PRIMARY | ✅ IMPLEMENTADO |
+| **Detalhes** | Layout horizontal, 7 campos + 2 botões | Layout vertical, poucos campos | ⚠️ PENDENTE |
+| **Botões Detalhes** | 75x30px e 55x30px | Padrão StandardButton | ⚠️ PENDENTE |
 
 ### 3. Design System - Tokens Existentes vs Necessários
 
@@ -43,24 +44,24 @@
 
 ## 🎯 Plano de Correções
 
-### Prioridade 1: Layout do Painel Direito
-1. [ ] Reduzir botões superiores para `inline-compact`
-2. [ ] Reorganizar critérios em layout horizontal compacto
-3. [ ] Fixar tamanho do heatmap (310x280px minimum)
-4. [ ] Criar badge de resultado estilo "APROVADO/ATENÇÃO/REPROVADO"
-5. [ ] Separar estatísticas em múltiplas linhas
-6. [ ] Implementar legenda horizontal
-7. [ ] Adicionar info do arquivo no final
+### Prioridade 1: Layout do Painel Direito ✅ CONCLUÍDO
+1. [x] Reduzir botões superiores para `inline-compact`
+2. [x] Reorganizar critérios em layout horizontal compacto
+3. [x] Fixar tamanho do heatmap (310x280px minimum)
+4. [x] Criar badge de resultado estilo "APROVADO/ATENÇÃO/REPROVADO"
+5. [x] Separar estatísticas em múltiplas linhas
+6. [x] Implementar legenda horizontal
+7. [x] Adicionar info do arquivo no final
 
 ### Prioridade 2: Layout do Painel Esquerdo
-1. [ ] Adicionar filtro "Ordenar"
-2. [ ] Customizar altura dos items da tree (45px)
-3. [ ] Reorganizar detalhes em layout horizontal (grid 3 colunas)
+1. [x] Adicionar filtro "Ordenar"
+2. [x] Customizar altura dos items da tree (45px)
+3. [ ] Reorganizar detalhes em layout horizontal (grid 3 colunas) - PENDENTE
 
 ### Prioridade 3: Ajustes Finos
-1. [ ] Reduzir font sizes conforme proposta (9-11px para labels secundários)
-2. [ ] Ajustar espaçamentos (padding/margin)
-3. [ ] Melhorar contraste de cores
+1. [x] Reduzir font sizes conforme proposta (9-11px para labels secundários)
+2. [x] Ajustar espaçamentos (padding/margin)
+3. [x] Melhorar contraste de cores
 
 ---
 
