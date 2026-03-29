@@ -173,9 +173,8 @@ class MainWindowState:
                     logger.debug(f"Aba habilitada e selecionada: {self._main_window.right_panel.tabText(i)}")
                     break
 
-            # Desabilita grupos de conexão e calibração (painel esquerdo)
-            if hasattr(self._main_window, 'connection_group'):
-                self._main_window.connection_group.setEnabled(False)
+            # REMOVIDO (release/v0.5-tension): connection_group removido da UI principal
+            # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
             if hasattr(self._main_window, 'calibration_group'):
                 self._main_window.calibration_group.setEnabled(False)
 
@@ -188,9 +187,8 @@ class MainWindowState:
                 self._main_window.right_panel.setTabEnabled(i, True)
                 logger.debug(f"Aba habilitada: {self._main_window.right_panel.tabText(i)}")
 
-            # Habilita grupos de conexão e calibração
-            if hasattr(self._main_window, 'connection_group'):
-                self._main_window.connection_group.setEnabled(True)
+            # REMOVIDO (release/v0.5-tension): connection_group removido da UI principal
+            # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
             if hasattr(self._main_window, 'calibration_group'):
                 # Calibração fica oculta mesmo para admin, mas habilitada
                 self._main_window.calibration_group.setEnabled(True)

@@ -253,9 +253,7 @@ class StencilManagerWrapper(QObject):
                 f"Medições: {stencil.inspection_count}"
             )
 
-        # Atualiza menu
-        if hasattr(self.main_window, 'current_stencil_action'):
-            self.main_window.current_stencil_action.setText(f"Stencil: {stencil.code}")
+        # REMOVIDO (release/v0.5-tension): Stencil Atual removido do menu
 
         logger.info(f"Stencil selecionado: {stencil.code}")
 
@@ -271,9 +269,7 @@ class StencilManagerWrapper(QObject):
         if hasattr(self.main_window, 'statusBar'):
             self.main_window.statusBar().showMessage("Pronto")
 
-        # Atualiza menu
-        if hasattr(self.main_window, 'current_stencil_action'):
-            self.main_window.current_stencil_action.setText("(Nenhum stencil selecionado)")
+        # REMOVIDO (release/v0.5-tension): Stencil Atual removido do menu
 
         logger.info("Seleção de stencil limpa")
 

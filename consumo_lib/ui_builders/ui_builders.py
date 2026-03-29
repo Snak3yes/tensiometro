@@ -53,17 +53,11 @@ class MainUIBuilder:
 
         Este método:
         1. Cria widget central e layout principal
-        2. Cria grupo de conexão
-        3. Cria painel direito com abas (agora ocupando todo o espaço central)
-        4. Cria painel de movimento (direita)
-        5. Configura layout horizontal simplificado
-        6. Inicializa controllers que dependem de UI widgets
+        2. Cria painel direito com abas (ocupando todo o espaço central)
+        3. Inicializa controllers que dependem de UI widgets
 
-        NOVO LAYOUT (Refatoração 2026-01-16):
-        - Removeu painel esquerdo (agora na aba "Backup de Controles")
-        - Layout simplificado: QHBoxLayout [QTabWidget | MovementControlWidget]
-        - QTabWidget ocupa todo o espaço disponível
-        - MovementControlWidget permanece visível (fixo à direita)
+        NOTA: Conexão PLC movida para diálogo dedicado (menu Ferramentas → Conexões).
+        Release v0.5-tension: groupbox de conexão removido da janela principal.
         """
         # Widget central
         central_widget = QWidget()
@@ -72,68 +66,20 @@ class MainUIBuilder:
         # Layout principal
         main_layout = QVBoxLayout(central_widget)
 
-        # Cria grupos principais
-        self._build_connection_group(main_layout)
+        # Cria grupos principais (calibração oculto)
         self._build_calibration_group(main_layout)
 
-        # NOVO: Layout horizontal simplificado (sem splitter, sem left panel)
+        # Layout horizontal para o painel de abas
         content_layout = QHBoxLayout()
 
-        # Painel esquerdo: QTabWidget (expanding, ocupa todo o espaço)
+        # Painel principal: QTabWidget (expanding, ocupa todo o espaço)
         right_panel = self._build_right_panel(None)  # None = não usa mais splitter
         content_layout.addWidget(right_panel, 1)  # stretch=1 para expandir
-
-        # Painel direito: MovementControlWidget (fixed width, dentro de CNCControlTab)
-        # NOTA: MovementControlWidget está dentro de CNCControlTab (self.window.movement_widget)
-        # Ele já é visível na aba "Câmera & Movimento", então não precisamos adicioná-lo separadamente
-        # O layout agora é apenas o QTabWidget expandido
 
         main_layout.addLayout(content_layout)
 
         # Barra de status
         self.window.statusBar().showMessage("Pronto para conectar")
-
-    def _build_connection_group(self, main_layout):
-        """Cria grupo de conexão (PLC, CNC, Camera)."""
-        self.window.connection_group = QGroupBox("Conexão")
-        connection_layout = QGridLayout()
-
-        # PLC (Modbus TCP)
-        connection_layout.addWidget(QLabel("IP PLC:"), 0, 0)
-        self.window.plc_host_input = QLineEdit(
-            self.window.config.get("connections", "plc_host", default="192.168.1.5")
-        )
-        connection_layout.addWidget(self.window.plc_host_input, 0, 1)
-
-        connection_layout.addWidget(QLabel("Porta:"), 0, 2)
-        self.window.plc_port_input = QSpinBox()
-        self.window.plc_port_input.setRange(1, 65535)
-        self.window.plc_port_input.setValue(
-            self.window.config.get("connections", "plc_port", default=502)
-        )
-        self.window.plc_port_input.setFixedWidth(100)
-        connection_layout.addWidget(self.window.plc_port_input, 0, 3)
-
-        btn_label = "Conectar PLC" if isinstance(
-            self.window.controller.cnc, PLCAxisController
-        ) else "Conectar CNC"
-        self.window.connect_cnc_btn = QPushButton(btn_label)
-        self.window.connect_cnc_btn.clicked.connect(self.window._on_connect_btn_clicked)
-        connection_layout.addWidget(self.window.connect_cnc_btn, 0, 4)
-
-        # CNC Connection (serial legacy)
-        connection_layout.addWidget(QLabel("Porta CNC:"), 1, 0)
-        self.window.cnc_port_combo = QComboBox()
-        self.window.refresh_ports()
-        connection_layout.addWidget(self.window.cnc_port_combo, 1, 1)
-
-        # Refresh ports button
-        self.window.refresh_ports_btn = StandardButton("Atualizar Portas")
-        self.window.refresh_ports_btn.clicked.connect(self.window.refresh_ports)
-        connection_layout.addWidget(self.window.refresh_ports_btn, 1, 3)
-
-        self.window.connection_group.setLayout(connection_layout)
-        main_layout.addWidget(self.window.connection_group)
 
     def _build_calibration_group(self, main_layout):
         """Cria grupo de calibração (oculto por padrão)."""
@@ -161,6 +107,10 @@ class MainUIBuilder:
         calibration_group.setLayout(calibration_layout)
         calibration_group.setVisible(False)  # Esconde grupo
         main_layout.addWidget(calibration_group)  # Mantém no DOM para uso interno
+
+    # NOTA: _build_connection_group() removido na release v0.5-tension
+    # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
+    # Ver consumo_lib/dialogs/connection_dialog.py
 
     def _build_left_panel(self):
         """Cria painel esquerdo (lista, sequência, resultados)."""

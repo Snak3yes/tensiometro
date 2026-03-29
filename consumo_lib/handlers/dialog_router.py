@@ -355,10 +355,15 @@ class DialogRouter:
             UserRole.ADMIN: "Administrador"
         }
 
-        role_name = role_names.get(current_role, current_role.value)
+        # Handle both enum and string cases
+        if isinstance(current_role, UserRole):
+            role_name = role_names.get(current_role, current_role.value)
+        else:
+            # current_role is a string
+            role_name = current_role if current_role else "Desconhecido"
 
         # Obtém lista de permissões
-        permissions = self.main_window.role_manager.get_permissions()
+        permissions = self.main_window.role_manager.get_all_permissions_for_role(current_role if isinstance(current_role, str) else current_role.value)
 
         # Cria mensagem
         message = f"Usuário: {user.username}\n"

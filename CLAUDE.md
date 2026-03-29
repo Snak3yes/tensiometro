@@ -30,14 +30,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 |------|--------|
 | Aba "Posições e Rotinas" | REMOVIDA |
 | Groupbox "Ações Rápidas" | REMOVIDO |
+| Groupbox "Conexão" (janela principal) | REMOVIDA → Diálogo dedicado |
 | Aba "Movimento" | Dialog não-modal (Ctrl+M) |
 | Aba "Monitor CLP" | Dialog não-modal (Ctrl+L) |
+| Aba "Conexões" (em Preferências) | REMOVIDA |
+| Menu Receitas | REMOVIDO (funcionalidade não implementada) |
+| Campo "Stencil Atual" (menu Cadastros) | REMOVIDO |
 | Emojis na UI | TODOS REMOVIDOS |
+| Diálogo "Preferências" | Renomeado para "Preferências do Sistema" |
 
 ### Novos Arquivos
 
-- `consumo_lib/dialogs/movement_dialog.py` - Diálogo de controle CNC
-- `consumo_lib/dialogs/plc_monitor_dialog.py` - Diálogo de monitoramento PLC
+- `consumo_lib/dialogs/movement_dialog.py` - Diálogo de controle CNC (não-modal, Ctrl+M)
+- `consumo_lib/dialogs/plc_monitor_dialog.py` - Diálogo de monitoramento PLC (não-modal, Ctrl+L)
+- `consumo_lib/dialogs/connection_dialog.py` - Diálogo de conexão PLC (não-modal)
+
+### Menu Consolidado (5 menus)
+
+| Menu | Items |
+|------|-------|
+| **Arquivo** | Sair |
+| **Cadastros** | Gerenciar Stencils, Novo Stencil |
+| **Relatórios** | Tensão, Stencil, Período, Configurações |
+| **Ferramentas** | Nova Medição de Tensão, Controle de Movimento (Ctrl+M), Monitor CLP (Ctrl+L), Calibração CNC, Conexões, Preferências (Ctrl+,) |
+| **Sistema** | Configurações de Autenticação, Configurações de Tema, Verificar Permissões, Sobre |
+
+### Conexão PLC
+
+**IMPORTANTE:** A conexão PLC agora é feita via diálogo dedicado:
+- **Menu:** Ferramentas → Conexões...
+- **Características:** Não-modal, permanece no topo, permite operar janela principal
+- **Groupbox "Conexão":** Removido da janela principal (era redundante)
+- **Aba "Conexões" em Preferências:** Removida (configurações redundantes + câmera não usada)
 
 ### Branches
 

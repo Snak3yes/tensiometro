@@ -73,9 +73,8 @@ class MainWindowInitializer:
         # Usar MenuHandler para criar todos os menus
         self.main_window.menu_handler.create_menus(menubar)
 
-        # Obter referências para actions dinâmicos (para compatibilidade)
-        self.main_window.current_recipe_action = self.main_window.menu_handler.current_recipe_action
-        self.main_window.current_stencil_action = self.main_window.menu_handler.current_stencil_action
+        # REMOVIDO (release/v0.5-tension): Stencil Atual action removido do menu
+        # current_stencil_action não é mais usado
 
         logger.info("Menu configurado via MenuHandler")
 

@@ -222,8 +222,8 @@ class SetupCoordinator:
 
     def _setup_ui_state(self):
         """Configura estado inicial da UI."""
-        # Painel de conexão inicialmente oculto
-        self.window.connection_group.setVisible(False)
+        # REMOVIDO (release/v0.5-tension): connection_group removido da UI principal
+        # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
 
         logger.debug("Estado inicial da UI configurado")
 
@@ -240,17 +240,12 @@ class SetupCoordinator:
             getattr(self.window.controller.cnc, 'is_connected', False)
         )
 
-        if isinstance(self.window.controller.cnc, PLCAxisController):
-            # Estado inicial - aguardando tentativa de conexão automática
-            self.window.connect_cnc_btn.setText("Conectar PLC")
-            # REMOVIDO: cnc_status não existe mais no painel esquerdo
-            # A posição agora está dentro de MovementControlWidget (aba CNC Control)
-            if hasattr(self.window, 'cnc_status'):
-                self.window.cnc_status.setText("Iniciando...")
-            self.window.statusBar().showMessage(
-                "Iniciando aplicação - conexão automática ao PLC em breve..."
-            )
-            logger.info("Aplicação iniciada. Tentativa de conexão automática ao PLC agendada.")
+        # REMOVIDO (release/v0.5-tension): connect_cnc_btn removido da UI principal
+        # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
+        self.window.statusBar().showMessage(
+            "Iniciando aplicação - conexão automática ao PLC em breve..."
+        )
+        logger.info("Aplicação iniciada. Tentativa de conexão automática ao PLC agendada.")
 
         # Auto-connect apenas após a interface estar pronta
         QTimer.singleShot(500, self.window._attempt_auto_connect)

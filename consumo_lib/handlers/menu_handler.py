@@ -115,13 +115,7 @@ class MenuHandler(QObject):
         menu.addAction(new_stencil_action)
         self._register_action('stencils.new', new_stencil_action)
 
-        menu.addSeparator()
-
-        # Stencil Atual (dinâmico)
-        self.current_stencil_action = QAction('(Nenhum stencil selecionado)', self.main_window)
-        self.current_stencil_action.setEnabled(False)
-        menu.addAction(self.current_stencil_action)
-        self._register_action('stencils.current', self.current_stencil_action)
+        # REMOVIDO (release/v0.5-tension): Stencil Atual (dinâmico) removido do menu
 
     def _create_reports_menu(self, menubar: QMenuBar):
         """Cria o menu Relatórios."""
@@ -196,13 +190,10 @@ class MenuHandler(QObject):
 
         menu.addSeparator()
 
-        # Painel de Conexões
-        conn_action = QAction('Conexões…', self.main_window)
-        conn_action.setCheckable(True)
-        conn_action.setChecked(False)
-        conn_action.triggered.connect(
-            lambda checked: self.main_window.connection_group.setVisible(checked)
-        )
+        # Conexões (NOVO - abre diálogo dedicado)
+        conn_action = QAction('Conexões...', self.main_window)
+        conn_action.setToolTip('Abre diálogo de conexão com o PLC')
+        conn_action.triggered.connect(self.main_window.open_connection_dialog)
         menu.addAction(conn_action)
         self._register_action('tools.connections', conn_action)
 
@@ -300,12 +291,14 @@ class MenuHandler(QObject):
         """
         Atualiza o texto da action de stencil atual.
 
+        NOTA (release/v0.5-tension): Stencil Atual removido do menu.
+        Este método é mantido para compatibilidade mas não faz nada.
+
         Args:
-            text: Novo texto para exibir
+            text: Novo texto para exibir (ignorado)
         """
-        if self.current_stencil_action:
-            self.current_stencil_action.setText(text)
-            logger.debug(f"Stencil atual atualizado: {text}")
+        # Stencil Atual removido - método mantido para compatibilidade
+        pass
 
     def enable_action(self, key: str, enabled: bool = True):
         """

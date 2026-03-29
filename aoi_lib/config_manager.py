@@ -326,15 +326,14 @@ class AOIConfigManager:
 # ============================================================
 #  SettingsDialog – UI PyQt6 para editar as preferências
 # ============================================================
-from PyQt6.QtWidgets import (QDialog, QFormLayout, QDoubleSpinBox, QCheckBox,
-                             QPushButton, QHBoxLayout, QVBoxLayout, QGroupBox, 
-                             QComboBox, QLineEdit, QSpinBox, QLabel, QTabWidget,
-                             QWidget)
+from PyQt6.QtWidgets import (QDialog, QFormLayout, QDoubleSpinBox,
+                             QPushButton, QHBoxLayout, QVBoxLayout, QGroupBox,
+                             QLabel, QTabWidget, QWidget)
 
 class SettingsDialog(QDialog):
     def __init__(self, cfg: AOIConfigManager, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Preferências do Sistema AOI")
+        self.setWindowTitle("Preferências do Sistema")
         self.cfg = cfg
         self.setMinimumWidth(450)
         
@@ -343,49 +342,7 @@ class SettingsDialog(QDialog):
         # Cria abas para organizar as configurações
         tabs = QTabWidget()
         main_layout.addWidget(tabs)
-        
-        # ================== ABA: CONEXÕES ==================
-        conn_tab = QWidget()
-        conn_layout = QFormLayout(conn_tab)
-        
-        # Grupo PLC
-        plc_group = QGroupBox("Conexão PLC (Modbus TCP)")
-        plc_layout = QFormLayout(plc_group)
-        
-        self.edit_plc_host = QLineEdit()
-        self.edit_plc_host.setText(cfg.get("connections", "plc_host", default="192.168.1.5"))
-        plc_layout.addRow("Endereço IP:", self.edit_plc_host)
-        
-        self.spin_plc_port = QSpinBox()
-        self.spin_plc_port.setRange(1, 65535)
-        self.spin_plc_port.setValue(cfg.get("connections", "plc_port", default=502))
-        plc_layout.addRow("Porta Modbus:", self.spin_plc_port)
-        
-        self.spin_bl_coil = QSpinBox()
-        self.spin_bl_coil.setRange(0, 65535)
-        self.spin_bl_coil.setValue(cfg.get("connections", "backlight_coil", default=5))
-        self.spin_bl_coil.setToolTip("Endereço Modbus do Coil de Backlight (Padrão: 1 para M1 -> Y0.7)")
-        plc_layout.addRow("Endereço Coil Backlight:", self.spin_bl_coil)
-        
-        conn_layout.addRow(plc_group)
-        
-        # Grupo Câmera
-        cam_group = QGroupBox("Câmera")
-        cam_layout = QFormLayout(cam_group)
-        
-        self.edit_camera_id = QLineEdit()
-        self.edit_camera_id.setText(str(cfg.get("connections", "last_camera_id", default="0")))
-        self.edit_camera_id.setToolTip("ID numérico ou URL (http://...)")
-        cam_layout.addRow("ID/URL da Câmera:", self.edit_camera_id)
-        
-        self.chk_auto_camera = QCheckBox("Conectar câmera automaticamente")
-        self.chk_auto_camera.setChecked(cfg.get("connections", "auto_connect_camera", default=False))
-        cam_layout.addRow(self.chk_auto_camera)
-        
-        conn_layout.addRow(cam_group)
-        
-        tabs.addTab(conn_tab, "Conexões")
-        
+
         # ================== ABA: MOVIMENTO ==================
         mov_tab = QWidget()
         mov_layout = QFormLayout(mov_tab)
@@ -484,18 +441,6 @@ class SettingsDialog(QDialog):
             self.lbl_pulses_mm.setText("--")
 
     def _on_save(self):
-        # Conexões
-        self.cfg.set("connections", "plc_host", value=self.edit_plc_host.text().strip())
-        self.cfg.set("connections", "plc_port", value=self.spin_plc_port.value())
-        
-        # Camera ID/URL
-        cam_val = self.edit_camera_id.text().strip()
-        if cam_val.isdigit():
-            cam_val = int(cam_val)
-        self.cfg.set("connections", "last_camera_id", value=cam_val)
-        self.cfg.set("connections", "auto_connect_camera", value=self.chk_auto_camera.isChecked())
-        self.cfg.set("connections", "backlight_coil", value=self.spin_bl_coil.value())
-        
         # Velocidades
         self.cfg.set("cnc", "max_feed", "x", value=self.spin_f_x.value())
         self.cfg.set("cnc", "max_feed", "y", value=self.spin_f_y.value())

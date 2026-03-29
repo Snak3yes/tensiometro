@@ -583,9 +583,25 @@ class AOIControllerApp(QMainWindow):
         selected_theme = show_theme_settings_dialog(theme_mgr, parent=self)
 
         if selected_theme:
-            logger.info(f"✅ Tema alterado via diálogo: {selected_theme}")
-            # O diálogo já aplicou o tema via theme_manager.set_theme()
-            # e salvou no config, então não precisamos fazer mais nada
+            logger.info(f"Tema alterado via diálogo: {selected_theme}")
+
+    def open_connection_dialog(self):
+        """
+        Abre o diálogo de conexão com o PLC.
+
+        NOVO na release v0.5-tension:
+        - Substitui o groupbox "Conexão" que estava na janela principal
+        - Diálogo não-modal, permite operar a janela principal
+        """
+        from consumo_lib.dialogs import ConnectionDialog
+
+        # Cria e mostra o diálogo (não-modal)
+        if not hasattr(self, '_connection_dialog') or self._connection_dialog is None:
+            self._connection_dialog = ConnectionDialog(self, parent=self)
+
+        self._connection_dialog.show()
+        self._connection_dialog.raise_()
+        self._connection_dialog.activateWindow()
 
     def _on_auth_config_changed(self):
         """
@@ -740,31 +756,9 @@ class AOIControllerApp(QMainWindow):
             logger.error("ConnectionManagerController não está disponível")
 
     def connect_cnc(self):
-        """Conecta/desconecta à máquina CNC (delega para ConnectionManager)."""
-        if isinstance(self.controller.cnc, PLCAxisController):
-            self.connection_mgr.toggle_plc()
-            return
-
-        if not hasattr(self, 'cnc_status'):
-            self.cnc_status = QLabel("Desconectado")
-
-        if hasattr(self.controller.cnc, 'grbl') and self.controller.cnc.grbl:
-            self.connection_mgr.disconnect_grbl(
-                self.connect_cnc_btn,
-                self.cnc_status,
-                self.statusBar(),
-                self
-            )
-        else:
-            port = self.cnc_port_combo.currentText()
-            self.connection_mgr.connect_grbl(
-                port,
-                self.connect_cnc_btn,
-                self.cnc_status,
-                self.statusBar(),
-                self.grbl_callback_handler,
-                self
-            )
+        """Conecta/desconecta ao PLC (delega para ConnectionManager)."""
+        # NOTA (release/v0.5-tension): GRBL removido, apenas PLC é suportado
+        self.connection_mgr.toggle_plc()
 
     def connect_camera(self):
         """Conecta à câmera (delega para ConnectionManagerController)."""

@@ -189,20 +189,18 @@ class HardwareConnectionFacade:
         """
         Aplica configurações de UI baseadas no tipo de PLC.
 
-        Atualiza labels e textos baseados no tipo de controller
-        (PLCAxisController vs GrblStreamer).
+        NOTA (release/v0.5-tension): connect_cnc_btn removido da UI principal.
+        Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões).
         """
         try:
             from aoi_lib.plc_axis_controller import PLCAxisController
 
             if isinstance(self.connection_manager.cnc, PLCAxisController):
                 # Modo PLC
-                self.main_window.connect_cnc_btn.setText("Conectar PLC")
-                logger.debug("UI configurada para modo PLC")
+                logger.debug("Backend PLC configurado")
             else:
-                # Modo GRBL
-                self.main_window.connect_cnc_btn.setText("Conectar CNC")
-                logger.debug("UI configurada para modo GRBL")
+                # Modo GRBL (não usado em v0.5-tension)
+                logger.debug("Backend GRBL configurado (não usado)")
         except Exception as e:
             logger.error(f"Erro ao aplicar configurações UI: {e}")
 

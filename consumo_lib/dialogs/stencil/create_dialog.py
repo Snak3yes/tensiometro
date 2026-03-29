@@ -53,7 +53,9 @@ class StencilCreateDialog(QDialog):
 
         # Código (obrigatório)
         self.txt_code = QLineEdit()
-        self.txt_code.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, family="Consolas"))
+        # Fonte monospace para código
+        font = QFont("Consolas", TYPO.BODY_MEDIUM)
+        self.txt_code.setFont(font)
         self.txt_code.setPlaceholderText("Código de barras (obrigatório)")
         form.addRow("Código*:", self.txt_code)
 
