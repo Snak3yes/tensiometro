@@ -176,5 +176,11 @@
   },
   "engineering_wizard": {
     "free_navigation_enabled": true
+  },
+  "tension_criteria": {
+    "min_tension": 25.0,
+    "max_tension": 45.0,
+    "warning_low": 28.0,
+    "warning_high": 42.0
   }
 }

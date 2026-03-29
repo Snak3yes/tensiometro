@@ -95,6 +95,13 @@ class AOIConfigManager:
         "engineering_wizard": {
             "free_navigation_enabled": False,  # Habilitar navegação livre (testing/debug)
             "last_used_mode": "normal"          # Rastrear último modo usado (normal|free)
+        },
+        # ---------- CONFIGURAÇÕES DE CRITÉRIOS DE TENSÃO -----------
+        "tension_criteria": {
+            "min_tension": 25.0,     # N/cm² mínimo aceitável (NOK abaixo deste)
+            "max_tension": 45.0,     # N/cm² máximo aceitável (NOK acima deste)
+            "warning_low": 28.0,     # N/cm² limite warning inferior
+            "warning_high": 42.0     # N/cm² limite warning superior
         }
     }
 
