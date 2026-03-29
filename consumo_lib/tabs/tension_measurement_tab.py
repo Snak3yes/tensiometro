@@ -298,13 +298,16 @@ class TensionMeasurementTab(QWidget):
         return widget
 
     def create_right_panel(self) -> QWidget:
-        """Cria painel direito com visualização de tensão (30% - 340px largura)."""
+        """Cria painel direito com visualização de tensão (30% - 340px largura).
+
+        Espaço real disponível: ~677px de altura (1200x740px útil menos menus/status bar)
+        """
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
-        layout.setSpacing(6)  # Reduzido de 10 para 6 para caber em 700px
+        layout.setSpacing(8)
 
-        # HEADER: Título + Botões (lado a lado)
+        # HEADER: Título + Botões (lado a lado) - ~45px
         header_layout = QHBoxLayout()
         header_layout.setSpacing(10)
 
@@ -350,14 +353,14 @@ class TensionMeasurementTab(QWidget):
         header_layout.addLayout(btn_layout)
         layout.addLayout(header_layout)
 
-        # CRITÉRIOS: Layout horizontal compacto (spinboxes 45x18px, labels 9px)
+        # CRITÉRIOS: Layout horizontal compacto (spinboxes 45x18px, labels 9px) - 60px
         criteria_group = self.create_criteria_group()
         layout.addWidget(criteria_group)
 
-        # HEATMAP: 310x250px fixo (reduzido para caber em 700px)
+        # HEATMAP: 310x220px fixo (ajustado para caber em ~677px)
         self.heatmap = MiniTensionHeatmapWidget()
-        self.heatmap.setMinimumSize(310, 250)
-        self.heatmap.setMaximumSize(310, 250)
+        self.heatmap.setMinimumSize(310, 220)
+        self.heatmap.setMaximumSize(310, 220)
         self.heatmap.setSizePolicy(
             self.heatmap.sizePolicy().horizontalPolicy(),
             self.heatmap.sizePolicy().verticalPolicy()
@@ -380,7 +383,7 @@ class TensionMeasurementTab(QWidget):
         """)
         layout.addWidget(self.result_badge)
 
-        # ESTATÍSTICAS: GroupBox 310x90px - 3 linhas organizadas
+        # ESTATÍSTICAS: GroupBox 310x85px - 3 linhas organizadas (reduzido de 90px)
         stats_group = QGroupBox("Estatísticas")
         stats_group.setMinimumWidth(310)
         stats_group.setStyleSheet(f"""
@@ -395,8 +398,8 @@ class TensionMeasurementTab(QWidget):
             }}
         """)
         stats_layout = QVBoxLayout(stats_group)
-        stats_layout.setContentsMargins(10, 20, 10, 10)
-        stats_layout.setSpacing(4)
+        stats_layout.setContentsMargins(10, 18, 10, 8)
+        stats_layout.setSpacing(3)
 
         # Linha 1: OK/WARN/NOK com porcentagens
         self.stats_counts_label = QLabel("🟢 OK: 0 (0%) | 🟡 WARN: 0 (0%) | 🔴 NOK: 0 (0%)")
@@ -436,7 +439,6 @@ class TensionMeasurementTab(QWidget):
         self.file_info_group.setMinimumWidth(310)
         layout.addWidget(self.file_info_group)
 
-        layout.addStretch()
         return widget
 
     def create_criteria_group(self) -> QGroupBox:
