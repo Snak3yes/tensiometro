@@ -180,32 +180,103 @@ class TensionMeasurementTab(QWidget):
         return widget
 
     def create_details_panel(self) -> QWidget:
-        """Cria painel de detalhes do stencil selecionado."""
+        """
+        Cria painel de detalhes do stencil selecionado.
+
+        Proposta SVG: Layout horizontal grid 3 colunas, 7 campos + 2 botões (75x30px, 55x30px)
+        """
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(10)
 
         title = QLabel("Detalhes do Stencil Selecionado")
-        title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
+        title.setFont(TYPO.get_font(TYPO.TITLE_SMALL, bold=True))  # 13px bold
         layout.addWidget(title)
 
-        # Conteúdo dos detalhes (preenchido quando seleciona)
-        self.details_label = QLabel(
-            "Selecione um stencil para ver detalhes"
-        )
-        self.details_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
-        layout.addWidget(self.details_label)
+        # Grid de detalhes (3 colunas)
+        self.details_grid_widget = QWidget()
+        self.details_grid = QVBoxLayout(self.details_grid_widget)
+        self.details_grid.setContentsMargins(0, 0, 0, 0)
+        self.details_grid.setSpacing(8)
 
-        # Botões
+        # Placeholder quando nada está selecionado
+        self.details_placeholder = QLabel("Selecione um stencil para ver detalhes")
+        self.details_placeholder.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;")
+        self.details_grid.addWidget(self.details_placeholder)
+
+        # Campos (inicialmente ocultos)
+        self.details_fields_widget = QWidget()
+        self.details_fields_widget.hide()
+        fields_layout = QVBoxLayout(self.details_fields_widget)
+        fields_layout.setContentsMargins(0, 0, 0, 0)
+        fields_layout.setSpacing(6)
+
+        # Linha 1: Código, Descrição, Status
+        row1_layout = QHBoxLayout()
+        row1_layout.setSpacing(10)
+        self.field_code_label = QLabel("")
+        self.field_code_label.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+        self.field_desc_label = QLabel("")
+        self.field_desc_label.setStyleSheet(f"font-size: 12px; color: {COLORS.TEXT_SECONDARY};")
+        self.field_status_badge = QLabel("")
+        self.field_status_badge.setStyleSheet(f"font-size: 11px; font-weight: bold;")
+        row1_layout.addWidget(QLabel("Código:"))
+        row1_layout.addWidget(self.field_code_label, 1)
+        row1_layout.addWidget(QLabel("Descrição:"))
+        row1_layout.addWidget(self.field_desc_label, 2)
+        row1_layout.addWidget(QLabel("Status:"))
+        row1_layout.addWidget(self.field_status_badge)
+        fields_layout.addLayout(row1_layout)
+
+        # Linha 2: Receita, Tensão Média, Total Medições
+        row2_layout = QHBoxLayout()
+        row2_layout.setSpacing(10)
+        self.field_recipe_label = QLabel("")
+        self.field_recipe_label.setStyleSheet(f"font-size: 11px; color: {COLORS.TEXT_SECONDARY};")
+        self.field_tension_label = QLabel("")
+        self.field_tension_label.setStyleSheet(f"font-size: 11px; font-weight: bold; color: {COLORS.SUCCESS};")
+        self.field_count_label = QLabel("")
+        self.field_count_label.setStyleSheet(f"font-size: 11px; font-weight: bold; color: {COLORS.TEXT_PRIMARY};")
+        row2_layout.addWidget(QLabel("Receita:"))
+        row2_layout.addWidget(self.field_recipe_label, 1)
+        row2_layout.addWidget(QLabel("Tensão Média:"))
+        row2_layout.addWidget(self.field_tension_label)
+        row2_layout.addWidget(QLabel("Total Medições:"))
+        row2_layout.addWidget(self.field_count_label)
+        fields_layout.addLayout(row2_layout)
+
+        # Linha 3: Criado em, Última, Observações
+        row3_layout = QHBoxLayout()
+        row3_layout.setSpacing(10)
+        self.field_created_label = QLabel("")
+        self.field_created_label.setStyleSheet(f"font-size: 11px; color: {COLORS.TEXT_SECONDARY};")
+        self.field_last_label = QLabel("")
+        self.field_last_label.setStyleSheet(f"font-size: 11px; color: {COLORS.TEXT_SECONDARY};")
+        self.field_notes_label = QLabel("")
+        self.field_notes_label.setStyleSheet(f"font-size: 11px; color: {COLORS.TEXT_HINT}; font-style: italic;")
+        row3_layout.addWidget(QLabel("Criado em:"))
+        row3_layout.addWidget(self.field_created_label)
+        row3_layout.addWidget(QLabel("Última:"))
+        row3_layout.addWidget(self.field_last_label)
+        row3_layout.addWidget(QLabel("Obs:"))
+        row3_layout.addWidget(self.field_notes_label, 1)
+        fields_layout.addLayout(row3_layout)
+
+        self.details_grid.addWidget(self.details_fields_widget)
+        layout.addWidget(self.details_grid_widget)
+
+        # Botões (75x30px e 55x30px)
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
         self.btn_history = StandardButton(
             "Histórico",
             variant="secondary",
-            semantic_size="inline-secondary"
+            semantic_size="grid-action"  # 28x60px
         )
+        self.btn_history.setFixedHeight(30)
+        self.btn_history.setMinimumWidth(75)
         self.btn_history.setEnabled(False)
         self.btn_history.clicked.connect(self.show_history)
         btn_layout.addWidget(self.btn_history)
@@ -213,8 +284,10 @@ class TensionMeasurementTab(QWidget):
         self.btn_view = StandardButton(
             "Ver",
             variant="primary-green",
-            semantic_size="inline-primary"
+            semantic_size="grid-action"  # 28x60px
         )
+        self.btn_view.setFixedHeight(30)
+        self.btn_view.setMinimumWidth(55)
         self.btn_view.setEnabled(False)
         self.btn_view.clicked.connect(self.view_stencil_details)
         btn_layout.addWidget(self.btn_view)
@@ -690,52 +763,65 @@ class TensionMeasurementTab(QWidget):
         self.program_selected.emit(stencil_data)
 
     def show_details(self, stencil: Dict):
-        """Mostra detalhes do stencil no painel esquerdo."""
-        # Remove conteúdo atual
-        parent_widget = self.details_label.parent()
-        if not parent_widget:
-            return
-        layout = parent_widget.layout()
-        if not layout:
-            return
-        while layout.count() > 1:  # Mantém o título
-            child = layout.takeAt(1)
-            if child.widget():
-                child.widget().deleteLater()
+        """Mostra detalhes do stencil no painel esquerdo (layout horizontal grid 3 colunas)."""
+        # Esconde placeholder e mostra campos
+        self.details_placeholder.hide()
+        self.details_fields_widget.show()
 
-        # Cria novos detalhes
-        details_text = f"""
-        <style>
-            .label {{ color: {COLORS.TEXT_HINT}; font-weight: bold; }}
-            .value {{ color: {COLORS.TEXT_PRIMARY}; }}
-        </style>
-        <table cellpadding="3" cellspacing="0">
-            <tr>
-                <td class="label">Código:</td>
-                <td class="value">{stencil.get('code', '-')}</td>
-            </tr>
-            <tr>
-                <td class="label">Descrição:</td>
-                <td class="value">{stencil.get('description', '-') or '-'}</td>
-            </tr>
-            <tr>
-                <td class="label">Receita:</td>
-                <td class="value">{stencil.get('recipe', '-') or '-'}</td>
-            </tr>
-            <tr>
-                <td class="label">Status:</td>
-                <td class="value">{self._get_status_label(stencil.get('status', ''))}</td>
-            </tr>
-        </table>
-        """
+        # Preenche campos da Linha 1: Código, Descrição, Status
+        code = stencil.get('code', '-')
+        desc = stencil.get('description', '-') or '-'
+        status = stencil.get('status', 'pending')
 
-        details_label = QLabel(details_text)
-        details_label.setTextFormat(Qt.TextFormat.RichText)
-        details_label.setWordWrap(True)
-        details_label.setStyleSheet(f"padding: {SPACE.SM}px;")
-        layout.insertWidget(1, details_label)
+        self.field_code_label.setText(code)
+        self.field_desc_label.setText(desc)
 
-        self.details_label.setText("")
+        # Status badge com cor
+        status_config = {
+            'active': ('OK', COLORS.SUCCESS),
+            'warning': ('ALERTA', COLORS.WARNING),
+            'retired': ('RETIRADO', COLORS.TEXT_HINT),
+            'pending': ('PENDENTE', COLORS.TEXT_SECONDARY),
+        }
+        status_text, status_color = status_config.get(status, ('PENDENTE', COLORS.TEXT_SECONDARY))
+        self.field_status_badge.setText(status_text)
+        self.field_status_badge.setStyleSheet(f"""
+            font-size: 11px;
+            font-weight: bold;
+            color: {status_color};
+            background-color: {COLORS.BACKGROUND};
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: 1px solid {status_color};
+        """)
+
+        # Preenche campos da Linha 2: Receita, Tensão Média, Total Medições
+        recipe = stencil.get('recipe', '-') or '-'
+        tension_avg = stencil.get('tension_avg')
+        tension_count = stencil.get('measurement_count', 0)
+
+        self.field_recipe_label.setText(recipe)
+
+        if tension_avg is not None:
+            self.field_tension_label.setText(f"{tension_avg:.1f} N/cm²")
+            # Cor baseada na tensão
+            if self._is_tension_ok(tension_avg):
+                self.field_tension_label.setStyleSheet(f"font-size: 11px; font-weight: bold; color: {COLORS.SUCCESS};")
+            else:
+                self.field_tension_label.setStyleSheet(f"font-size: 11px; font-weight: bold; color: {COLORS.ERROR};")
+        else:
+            self.field_tension_label.setText("--")
+
+        self.field_count_label.setText(str(tension_count))
+
+        # Preenche campos da Linha 3: Criado em, Última, Observações
+        created = self._format_datetime(stencil.get('created_at'))
+        last_meas = self._format_datetime(stencil.get('last_measurement'))
+        notes = stencil.get('notes', '-') or '-'
+
+        self.field_created_label.setText(created)
+        self.field_last_label.setText(last_meas)
+        self.field_notes_label.setText(notes)
 
     def _get_status_label(self, status: str) -> str:
         """Retorna label formatada do status."""
@@ -746,6 +832,10 @@ class TensionMeasurementTab(QWidget):
             "pending": "Pendente",
         }
         return labels.get(status, status.upper())
+
+    def _is_tension_ok(self, tension: float) -> bool:
+        """Verifica se tensão está dentro dos critérios OK."""
+        return self.spin_warn_low.value() <= tension <= self.spin_warn_high.value()
 
     def load_tension_file(self):
         """Carrega arquivo JSON de tensão."""
