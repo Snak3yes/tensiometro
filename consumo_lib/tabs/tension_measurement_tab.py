@@ -105,6 +105,27 @@ class TensionMeasurementTab(QWidget):
         self.tree_widget.setColumnWidth(4, 150)  # Última
         self.tree_widget.setColumnWidth(5, 80)   # Ações
         self.tree_widget.itemClicked.connect(self.on_stencil_selected)
+
+        # Customizar altura dos items (45px) e selected background
+        self.tree_widget.setStyleSheet(f"""
+            QTreeWidget {{
+                background-color: {COLORS.BACKGROUND};
+                border: 1px solid {COLORS.BORDER};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
+            QTreeWidget::item {{
+                min-height: 45px;
+                padding: {SPACE.SM}px;
+            }}
+            QTreeWidget::item:selected {{
+                background-color: {COLORS.PRIMARY};
+                color: {COLORS.BACKGROUND};
+            }}
+            QTreeWidget::item:hover {{
+                background-color: {COLORS.SURFACE};
+            }}
+        """)
+
         layout.addWidget(self.tree_widget, 1)
 
         # Painel de detalhes
@@ -118,13 +139,14 @@ class TensionMeasurementTab(QWidget):
         widget = QWidget()
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
 
         # Buscar
         layout.addWidget(QLabel("Buscar:"))
         self.search_input = QLineEdit()
         self.search_input.setPlaceholderText("Buscar programas...")
         self.search_input.textChanged.connect(self.filter_stencils)
-        layout.addWidget(self.search_input)
+        layout.addWidget(self.search_input, 1)
 
         # Período
         layout.addWidget(QLabel("Período:"))
@@ -142,6 +164,17 @@ class TensionMeasurementTab(QWidget):
         self.status_combo.addItems(["Todos", "Ativos", "Alerta", "Retirados"])
         self.status_combo.currentTextChanged.connect(self.apply_filters)
         layout.addWidget(self.status_combo)
+
+        # Ordenar (NOVO)
+        layout.addWidget(QLabel("Ordenar:"))
+        self.sort_combo = QComboBox()
+        self.sort_combo.addItems([
+            "Mais recentes", "Mais antigos",
+            "Código (A-Z)", "Código (Z-A)",
+            "Tensão (maior)", "Tensão (menor)"
+        ])
+        self.sort_combo.currentTextChanged.connect(self.apply_filters)
+        layout.addWidget(self.sort_combo)
 
         layout.addStretch()
         return widget
@@ -193,26 +226,31 @@ class TensionMeasurementTab(QWidget):
         """Cria painel direito com visualização de tensão."""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setSpacing(10)
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(8)
 
-        # Título
+        # Título e subtítulo em linha horizontal
+        header_layout = QHBoxLayout()
+
+        titles_layout = QVBoxLayout()
         self.viz_title = QLabel("Visualização")
-        self.viz_title.setFont(TYPO.get_font(TYPO.BODY_LARGE, bold=True))
-        layout.addWidget(self.viz_title)
+        self.viz_title.setFont(TYPO.get_font(TYPO.TITLE_MEDIUM, bold=True))
+        titles_layout.addWidget(self.viz_title)
 
         self.viz_subtitle = QLabel("Selecione um stencil")
         self.viz_subtitle.setStyleSheet(
-            f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.BODY_SMALL}px;"
+            f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;"
         )
-        layout.addWidget(self.viz_subtitle)
+        titles_layout.addWidget(self.viz_subtitle)
+        titles_layout.setSpacing(2)
+        header_layout.addLayout(titles_layout)
 
-        # Botões superiores
+        # Botões superiores (compactos, lado a lado)
         btn_layout = QHBoxLayout()
-
         self.btn_load = StandardButton(
-            "Carregar JSON",
-            variant="primary-blue",
-            semantic_size="inline-primary"
+            "Carregar",
+            variant="primary-green",
+            semantic_size="inline-compact"
         )
         self.btn_load.clicked.connect(self.load_tension_file)
         btn_layout.addWidget(self.btn_load)
@@ -220,49 +258,67 @@ class TensionMeasurementTab(QWidget):
         self.btn_reload = StandardButton(
             "Recarregar",
             variant="secondary",
-            semantic_size="inline-secondary"
+            semantic_size="inline-compact"
         )
         self.btn_reload.setEnabled(False)
         self.btn_reload.clicked.connect(self.reload_tension)
         btn_layout.addWidget(self.btn_reload)
 
-        layout.addLayout(btn_layout)
+        header_layout.addLayout(btn_layout)
+        layout.addLayout(header_layout)
 
-        # Critérios de aceitação
+        # Critérios de aceitação (compacto, horizontal)
         criteria_group = self.create_criteria_group()
         layout.addWidget(criteria_group)
 
-        # Heatmap
+        # Heatmap (com size fixo)
         self.heatmap = MiniTensionHeatmapWidget()
+        self.heatmap.setMinimumSize(310, 280)
         layout.addWidget(self.heatmap, 1)
 
-        # Resultado
-        self.result_label = QLabel("---")
-        self.result_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.result_label.setStyleSheet(f"""
+        # Resultado (badge estilo)
+        self.result_badge = QLabel("---")
+        self.result_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.result_badge.setStyleSheet(f"""
             QLabel {{
-                font-size: {TYPO.BODY_LARGE}px;
+                font-size: {TYPO.TITLE_SMALL}px;
                 font-weight: bold;
                 padding: {SPACE.SM}px;
-                border-radius: {DIM.RADIUS_SM}px;
+                border-radius: {DIM.RADIUS_MD}px;
                 background-color: {COLORS.TEXT_DISABLED};
                 color: {COLORS.TEXT_PRIMARY};
+                min-height: 40px;
             }}
         """)
-        layout.addWidget(self.result_label)
+        layout.addWidget(self.result_badge)
 
-        # Estatísticas
-        self.stats_label = QLabel(
-            "Carregue um arquivo para ver estatísticas"
-        )
-        self.stats_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY};")
-        layout.addWidget(self.stats_label)
+        # Estatísticas (layout vertical organizado)
+        stats_group = QGroupBox("Estatísticas")
+        stats_layout = QVBoxLayout(stats_group)
+        stats_layout.setSpacing(4)
 
-        # Legenda
-        self.legend_label = QLabel("")
-        layout.addWidget(self.legend_label)
+        # Linha 1: OK/WARN/NOK
+        self.stats_counts_label = QLabel("🟢 OK: 0 | 🟡 WARN: 0 | 🔴 NOK: 0")
+        self.stats_counts_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_PRIMARY};")
+        stats_layout.addWidget(self.stats_counts_label)
 
-        # Botão Histórico
+        # Linha 2: Min/Máx/Média
+        self.stats_values_label = QLabel("Mín: -- | Máx: -- | Média: --")
+        self.stats_values_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_SECONDARY};")
+        stats_layout.addWidget(self.stats_values_label)
+
+        # Linha 3: Total
+        self.stats_total_label = QLabel("Total: 0 pontos")
+        self.stats_total_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_HINT};")
+        stats_layout.addWidget(self.stats_total_label)
+
+        layout.addWidget(stats_group)
+
+        # Legenda (horizontal compacta)
+        self.legend_widget = self.create_legend_widget()
+        layout.addWidget(self.legend_widget)
+
+        # Botão Histórico (compacto)
         self.btn_full_history = StandardButton(
             "Ver Histórico Completo",
             variant="primary-blue",
@@ -271,53 +327,160 @@ class TensionMeasurementTab(QWidget):
         self.btn_full_history.clicked.connect(self.show_full_history)
         layout.addWidget(self.btn_full_history)
 
+        # Info do arquivo
+        self.file_info_group = self.create_file_info_group()
+        layout.addWidget(self.file_info_group)
+
         return widget
 
     def create_criteria_group(self) -> QGroupBox:
-        """Cria grupo de critérios de aceitação."""
-        group = QGroupBox("Critérios de Aceitação (N/cm²)")
-        layout = QHBoxLayout(group)
+        """Cria grupo de critérios de aceitação (layout compacto horizontal)."""
+        group = QGroupBox("Critérios")
+        group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {TYPO.LABEL_SMALL}px;
+                font-weight: bold;
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }}
+        """)
 
-        # Mínimo
+        layout = QHBoxLayout(group)
+        layout.setContentsMargins(8, 18, 8, 8)
+        layout.setSpacing(6)
+
+        # Título do grupo (inline)
         layout.addWidget(QLabel("Mín:"))
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0, 100)
         self.spin_min.setValue(25.0)
+        self.spin_min.setFixedWidth(50)
+        self.spin_min.setFixedHeight(22)
         self.spin_min.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_min)
 
-        # Warning baixo
         layout.addWidget(QLabel("Warn↓:"))
         self.spin_warn_low = QDoubleSpinBox()
         self.spin_warn_low.setRange(0, 100)
         self.spin_warn_low.setValue(28.0)
+        self.spin_warn_low.setFixedWidth(50)
+        self.spin_warn_low.setFixedHeight(22)
         self.spin_warn_low.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_warn_low)
 
-        # Warning alto
         layout.addWidget(QLabel("Warn↑:"))
         self.spin_warn_high = QDoubleSpinBox()
         self.spin_warn_high.setRange(0, 100)
         self.spin_warn_high.setValue(42.0)
+        self.spin_warn_high.setFixedWidth(50)
+        self.spin_warn_high.setFixedHeight(22)
         self.spin_warn_high.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_warn_high)
 
-        # Máximo
         layout.addWidget(QLabel("Máx:"))
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0, 100)
         self.spin_max.setValue(45.0)
+        self.spin_max.setFixedWidth(50)
+        self.spin_max.setFixedHeight(22)
         self.spin_max.valueChanged.connect(self.on_criteria_changed)
         layout.addWidget(self.spin_max)
 
-        # Usar Receita
+        # Usar Receita (botão compacto)
         self.btn_recipe = StandardButton(
-            "Usar Receita",
+            "Receita",
             variant="primary-blue",
             semantic_size="inline-compact"
         )
+        self.btn_recipe.setFixedHeight(22)
         self.btn_recipe.clicked.connect(self.load_criteria_from_recipe)
         layout.addWidget(self.btn_recipe)
+
+        layout.addStretch()
+        return group
+
+    def create_legend_widget(self) -> QWidget:
+        """Cria widget de legenda horizontal."""
+        widget = QWidget()
+        layout = QHBoxLayout(widget)
+        layout.setContentsMargins(8, 8, 8, 8)
+        layout.setSpacing(12)
+
+        widget.setStyleSheet(f"""
+            QWidget {{
+                background-color: {COLORS.SURFACE};
+                border-radius: {DIM.RADIUS_SM}px;
+            }}
+        """)
+
+        # Item OK
+        ok_layout = QHBoxLayout()
+        self.ok_indicator = QLabel("●")
+        self.ok_indicator.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 14px; font-weight: bold;")
+        self.ok_label = QLabel(f"OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()})")
+        self.ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: {TYPO.LABEL_SMALL}px;")
+        ok_layout.addWidget(self.ok_indicator)
+        ok_layout.addWidget(self.ok_label)
+        ok_layout.addStretch()
+        layout.addLayout(ok_layout)
+
+        # Item WARN
+        warn_layout = QHBoxLayout()
+        self.warn_indicator = QLabel("●")
+        self.warn_indicator.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 14px; font-weight: bold;")
+        self.warn_label = QLabel("WARN")
+        self.warn_label.setStyleSheet(f"color: {COLORS.WARNING}; font-size: {TYPO.LABEL_SMALL}px;")
+        warn_layout.addWidget(self.warn_indicator)
+        warn_layout.addWidget(self.warn_label)
+        warn_layout.addStretch()
+        layout.addLayout(warn_layout)
+
+        # Item NOK
+        nok_layout = QHBoxLayout()
+        self.nok_indicator = QLabel("●")
+        self.nok_indicator.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 14px; font-weight: bold;")
+        self.nok_label = QLabel("NOK")
+        self.nok_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: {TYPO.LABEL_SMALL}px;")
+        nok_layout.addWidget(self.nok_indicator)
+        nok_layout.addWidget(self.nok_label)
+        nok_layout.addStretch()
+        layout.addLayout(nok_layout)
+
+        return widget
+
+    def _update_legend(self):
+        """Atualiza textos da legenda com valores dos critérios."""
+        self.ok_label.setText(f"OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()})")
+
+    def create_file_info_group(self) -> QGroupBox:
+        """Cria grupo de informações do arquivo."""
+        group = QGroupBox("Arquivo")
+        group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: {TYPO.LABEL_SMALL}px;
+                font-weight: bold;
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }}
+        """)
+
+        layout = QVBoxLayout(group)
+        layout.setContentsMargins(10, 15, 10, 10)
+        layout.setSpacing(4)
+
+        self.file_name_label = QLabel("Nenhum arquivo carregado")
+        self.file_name_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_PRIMARY};")
+        layout.addWidget(self.file_name_label)
+
+        self.file_details_label = QLabel("Grid: -- | Área: --")
+        self.file_details_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_HINT};")
+        layout.addWidget(self.file_details_label)
 
         return group
 
@@ -440,7 +603,12 @@ class TensionMeasurementTab(QWidget):
     def show_details(self, stencil: Dict):
         """Mostra detalhes do stencil no painel esquerdo."""
         # Remove conteúdo atual
-        layout = self.details_label.parent().layout()
+        parent_widget = self.details_label.parent()
+        if not parent_widget:
+            return
+        layout = parent_widget.layout()
+        if not layout:
+            return
         while layout.count() > 1:  # Mantém o título
             child = layout.takeAt(1)
             if child.widget():
@@ -574,6 +742,13 @@ class TensionMeasurementTab(QWidget):
     def update_statistics(self):
         """Atualiza estatísticas e resultado."""
         if not self.measurements_data:
+            # Reset labels
+            self.stats_counts_label.setText("🟢 OK: 0 | 🟡 WARN: 0 | 🔴 NOK: 0")
+            self.stats_values_label.setText("Mín: -- | Máx: -- | Média: --")
+            self.stats_total_label.setText("Total: 0 pontos")
+            self.result_badge.setText("---")
+            self.file_name_label.setText("Nenhum arquivo carregado")
+            self.file_details_label.setText("Grid: -- | Área: --")
             return
 
         measurements = self.measurements_data.get('measurements', [])
@@ -599,60 +774,81 @@ class TensionMeasurementTab(QWidget):
         warn_pct = (counts['WARNING'] / total * 100) if total > 0 else 0
         nok_pct = (counts['NOK'] / total * 100) if total > 0 else 0
 
-        # Atualiza estatísticas
-        self.stats_label.setText(
-            f"OK: {counts['OK']} ({ok_pct:.1f}%) | "
-            f"WARN: {counts['WARNING']} ({warn_pct:.1f}%) | "
-            f"NOK: {counts['NOK']} ({nok_pct:.1f}%) | "
-            f"Total: {total} | "
-            f"Mín: {min_tension:.1f} | Máx: {max_tension:.1f} | "
-            f"Média: {avg_tension:.1f} N/cm²"
+        # Atualiza estatísticas (linha 1: counts)
+        self.stats_counts_label.setText(
+            f"🟢 OK: {counts['OK']} ({ok_pct:.1f}%) | "
+            f"🟡 WARN: {counts['WARNING']} ({warn_pct:.1f}%) | "
+            f"🔴 NOK: {counts['NOK']} ({nok_pct:.1f}%)"
         )
 
-        # Atualiza resultado
+        # Atualiza estatísticas (linha 2: valores)
+        self.stats_values_label.setText(
+            f"Mín: {min_tension:.1f} | Máx: {max_tension:.1f} | Média: {avg_tension:.1f} N/cm²"
+        )
+
+        # Atualiza estatísticas (linha 3: total)
+        self.stats_total_label.setText(f"Total: {total} pontos medidos")
+
+        # Atualiza resultado (badge)
         if nok_pct > 0:
-            self.result_label.setText("REPROVADO")
-            self.result_label.setStyleSheet(f"""
+            self.result_badge.setText("REPROVADO")
+            self.result_badge.setStyleSheet(f"""
                 QLabel {{
-                    font-size: {TYPO.BODY_LARGE}px;
+                    font-size: {TYPO.TITLE_SMALL}px;
                     font-weight: bold;
                     padding: {SPACE.SM}px;
-                    border-radius: {DIM.RADIUS_SM}px;
+                    border-radius: {DIM.RADIUS_MD}px;
                     background-color: {COLORS.ERROR};
                     color: {COLORS.BACKGROUND};
+                    min-height: 40px;
                 }}
             """)
         elif warn_pct > 20:
-            self.result_label.setText("ATENÇÃO")
-            self.result_label.setStyleSheet(f"""
+            self.result_badge.setText("ATENÇÃO")
+            self.result_badge.setStyleSheet(f"""
                 QLabel {{
-                    font-size: {TYPO.BODY_LARGE}px;
+                    font-size: {TYPO.TITLE_SMALL}px;
                     font-weight: bold;
                     padding: {SPACE.SM}px;
-                    border-radius: {DIM.RADIUS_SM}px;
+                    border-radius: {DIM.RADIUS_MD}px;
                     background-color: {COLORS.WARNING};
                     color: {COLORS.TEXT_PRIMARY};
+                    min-height: 40px;
                 }}
             """)
         else:
-            self.result_label.setText("APROVADO")
-            self.result_label.setStyleSheet(f"""
+            self.result_badge.setText("APROVADO")
+            self.result_badge.setStyleSheet(f"""
                 QLabel {{
-                    font-size: {TYPO.BODY_LARGE}px;
+                    font-size: {TYPO.TITLE_SMALL}px;
                     font-weight: bold;
                     padding: {SPACE.SM}px;
-                    border-radius: {DIM.RADIUS_SM}px;
+                    border-radius: {DIM.RADIUS_MD}px;
                     background-color: {COLORS.SUCCESS};
                     color: {COLORS.BACKGROUND};
+                    min-height: 40px;
                 }}
             """)
 
         # Atualiza legenda
-        self.legend_label.setText(
-            f"Legenda: OK ({self.spin_warn_low.value()}-{self.spin_warn_high.value()}) | "
-            f"WARN (<{self.spin_warn_low.value()} ou >{self.spin_warn_high.value()}) | "
-            f"NOK (<{self.spin_min.value()} ou >{self.spin_max.value()})"
-        )
+        self._update_legend()
+
+        # Atualiza info do arquivo
+        if self.last_file_path:
+            import os
+            file_name = os.path.basename(self.last_file_path)
+            self.file_name_label.setText(file_name)
+
+            # Tenta obter informações do grid
+            params = self.measurements_data.get('parameters', {})
+            start = params.get('start', {})
+            end = params.get('end', {})
+            if start and end:
+                area_w = end.get('x', 0) - start.get('x', 0)
+                area_h = end.get('y', 0) - start.get('y', 0)
+                self.file_details_label.setText(f"Grid: 4x4 | Área: {area_w}x{area_h}mm")
+            else:
+                self.file_details_label.setText("Grid: 4x4")
 
     def load_criteria_from_recipe(self):
         """Carrega critérios da receita atual."""
@@ -752,11 +948,31 @@ class TensionMeasurementTab(QWidget):
                     and dt >= cutoff
                 ]
 
+        # Ordenar (NOVO)
+        sort_text = self.sort_combo.currentText()
+        if sort_text == "Mais recentes":
+            filtered.sort(
+                key=lambda s: self._parse_datetime(s.get("last_measurement")) or datetime.min,
+                reverse=True
+            )
+        elif sort_text == "Mais antigos":
+            filtered.sort(
+                key=lambda s: self._parse_datetime(s.get("last_measurement")) or datetime.min,
+            )
+        elif sort_text == "Código (A-Z)":
+            filtered.sort(key=lambda s: s.get("code", ""))
+        elif sort_text == "Código (Z-A)":
+            filtered.sort(key=lambda s: s.get("code", ""), reverse=True)
+        elif sort_text == "Tensão (maior)":
+            filtered.sort(key=lambda s: s.get("tension_avg") or 0, reverse=True)
+        elif sort_text == "Tensão (menor)":
+            filtered.sort(key=lambda s: s.get("tension_avg") or 0)
+
         self.populate_tree(filtered)
 
     def show_history(self):
         """Mostra histórico do stencil selecionado."""
-        if self.selected_stencil:
+        if self.selected_stencil and self.stencil_manager:
             from consumo_lib.dialogs.stencil import StencilFullHistoryDialog
 
             dialog = StencilFullHistoryDialog(
