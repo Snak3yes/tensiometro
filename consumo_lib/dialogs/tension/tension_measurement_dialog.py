@@ -14,13 +14,16 @@ from typing import Optional
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
+    QWidget, QTabWidget,
     QLabel, QLineEdit, QComboBox, QGroupBox,
     QProgressBar, QMessageBox
 )
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
 
+from aoi_lib.config_manager import AOIConfigManager
 from consumo_lib.ui import COLORS, TYPO
 from consumo_lib.ui.widget_standards import StandardButton
+from consumo_lib.widgets.movement_control import MovementControlWidget
 
 # Import refactored modules
 from aoi_lib.tensiometer import (
@@ -69,6 +72,7 @@ class TensionMeasurementDialog(QDialog):
         """
         super().__init__(parent)
         self.cnc = cnc_controller
+        self.config = getattr(parent, "config", None) or AOIConfigManager()
 
         # Business logic components
         self.tensiometer = TensiometerSerialManager()
@@ -88,7 +92,16 @@ class TensionMeasurementDialog(QDialog):
 
     def _build_ui(self):
         """Build user interface."""
-        main_layout = QVBoxLayout(self)
+        outer_layout = QVBoxLayout(self)
+        outer_layout.setSpacing(12)
+
+        self.tabs = QTabWidget(self)
+        outer_layout.addWidget(self.tabs)
+
+        measurement_tab = QWidget(self)
+        self.tabs.addTab(measurement_tab, "Medição")
+
+        main_layout = QVBoxLayout(measurement_tab)
         main_layout.setSpacing(15)
 
         # ==================== TENSIONOMETER CONNECTION ====================
@@ -196,12 +209,18 @@ class TensionMeasurementDialog(QDialog):
         self.z_height_input = QLineEdit("5.0")
         self.z_height_input.setValidator(QDoubleValidator())
         self.z_height_input.setMaximumWidth(80)
+        self.z_height_input.setToolTip(
+            "Neste CLP, valores maiores de Z significam posicao fisica mais baixa."
+        )
         grid_layout.addWidget(self.z_height_input, 3, 1)
 
         grid_layout.addWidget(QLabel("Altura Movimento:"), 3, 2)
         self.z_move_input = QLineEdit("10.0")
         self.z_move_input.setValidator(QDoubleValidator())
         self.z_move_input.setMaximumWidth(80)
+        self.z_move_input.setToolTip(
+            "Use um valor menor que o Z de medicao para manter a altura segura."
+        )
         grid_layout.addWidget(self.z_move_input, 3, 3)
 
         main_layout.addWidget(grid_group)
@@ -242,6 +261,19 @@ class TensionMeasurementDialog(QDialog):
         btn_layout.addWidget(self.close_btn)
 
         main_layout.addLayout(btn_layout)
+
+        movement_tab = QWidget(self)
+        movement_layout = QVBoxLayout(movement_tab)
+        movement_layout.setContentsMargins(0, 0, 0, 0)
+        movement_layout.setSpacing(0)
+
+        self.movement_widget = MovementControlWidget(
+            self.cnc,
+            self.config,
+            parent=movement_tab
+        )
+        movement_layout.addWidget(self.movement_widget)
+        self.tabs.addTab(movement_tab, "Movimento")
 
     # ==================== CONNECTION HANDLERS ====================
 

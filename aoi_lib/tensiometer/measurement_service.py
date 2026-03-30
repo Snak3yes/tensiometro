@@ -152,9 +152,9 @@ class GridCalculationService:
                 f"Altura Z de movimento deve ser >= 0, recebido: {parameters.z_move}"
             )
 
-        if parameters.z_move <= parameters.z_height:
+        if parameters.z_move >= parameters.z_height:
             errors.append(
-                f"Altura Z de movimento ({parameters.z_move}) deve ser maior "
+                f"Altura Z de movimento ({parameters.z_move}) deve ser menor "
                 f"que altura de medição ({parameters.z_height})"
             )
 
