@@ -89,7 +89,7 @@ class MeasurementOrchestrator:
         grid_size: int,
         z_height: float,
         z_move: float = 5.0,
-        user_feed: float = 1000.0,
+        user_feed: Optional[float] = None,
         stabilization_time_ms: int = 500
     ) -> Dict[str, Any]:
         """
@@ -101,7 +101,7 @@ class MeasurementOrchestrator:
             grid_size: N for NxN grid
             z_height: Z measurement height in mm
             z_move: Safe Z height for movement
-            user_feed: Feed rate in mm/min
+            user_feed: Feed rate in mm/min. None preserves the current PLC speed.
             stabilization_time_ms: Stabilization delay in ms
 
         Returns:

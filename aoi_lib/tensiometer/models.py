@@ -146,14 +146,14 @@ class MeasurementSession:
         measurements: List of all measurements taken
         start_time: Session start timestamp
         end_time: Session end timestamp (None until complete)
-        user_feed: Feed rate for CNC movements (mm/min)
+        user_feed: Optional feed rate for CNC movements (mm/min)
         stabilization_time_ms: Stabilization delay after Z movement (ms)
     """
     parameters: GridParameters
     measurements: List[TensionMeasurement] = field(default_factory=list)
     start_time: datetime = field(default_factory=datetime.now)
     end_time: Optional[datetime] = None
-    user_feed: float = 1000.0  # mm/min
+    user_feed: Optional[float] = None  # None preserves the current PLC speed
     stabilization_time_ms: int = 500  # milliseconds
 
     @property

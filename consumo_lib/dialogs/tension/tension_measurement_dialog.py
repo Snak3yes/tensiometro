@@ -430,8 +430,7 @@ class TensionMeasurementDialog(QDialog):
             return
 
         try:
-            x = self.cnc.read_position('X')
-            y = self.cnc.read_position('Y')
+            x, y = self._read_current_xy_for_measurement()
             self.start_x_input.setText(f"{x:.2f}")
             self.start_y_input.setText(f"{y:.2f}")
             logger.info(f"Posição inicial capturada: ({x:.2f}, {y:.2f})")
@@ -445,13 +444,35 @@ class TensionMeasurementDialog(QDialog):
             return
 
         try:
-            x = self.cnc.read_position('X')
-            y = self.cnc.read_position('Y')
+            x, y = self._read_current_xy_for_measurement()
             self.end_x_input.setText(f"{x:.2f}")
             self.end_y_input.setText(f"{y:.2f}")
             logger.info(f"Posição final capturada: ({x:.2f}, {y:.2f})")
         except Exception as e:
             QMessageBox.critical(self, "Erro", f"Falha ao ler posição:\n{e}")
+
+    def _measurement_coordinate_unit(self) -> str:
+        """Return the coordinate unit currently available for automatic measurement."""
+        pulses_per_mm = float(getattr(self.cnc, "pulses_per_mm", 1.0) or 1.0)
+        return "mm" if pulses_per_mm > 1.0 else "pulsos"
+
+    def _read_current_xy_for_measurement(self) -> tuple[float, float]:
+        """
+        Read current XY using the same unit expected by the automatic routine.
+
+        If the machine is calibrated, use mm. Otherwise keep the legacy pulse mode.
+        """
+        pulses_per_mm = float(getattr(self.cnc, "pulses_per_mm", 1.0) or 1.0)
+
+        if pulses_per_mm > 1.0 and hasattr(self.cnc, "get_current_position"):
+            current = self.cnc.get_current_position()
+            if isinstance(current, dict):
+                if "x" in current and "y" in current:
+                    return float(current["x"]), float(current["y"])
+                if "X" in current and "Y" in current:
+                    return float(current["X"]), float(current["Y"])
+
+        return float(self.cnc.read_position('X')), float(self.cnc.read_position('Y'))
 
     # ==================== MEASUREMENT HANDLERS ====================
 
@@ -488,7 +509,8 @@ class TensionMeasurementDialog(QDialog):
             end_point=(end_x, end_y),
             grid_size=grid_size,
             z_height=z_height,
-            z_move=z_move
+            z_move=z_move,
+            user_feed=None
         )
 
         if not result['success']:

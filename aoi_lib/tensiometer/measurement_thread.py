@@ -6,6 +6,7 @@ Keeps UI responsive during measurement operations.
 """
 
 import logging
+import math
 import time
 from typing import List, Optional
 from PyQt6.QtCore import QThread, pyqtSignal
@@ -35,7 +36,7 @@ class TensionMeasurementThread(QThread):
         points: List[GridPoint],
         z_height: float,
         z_move: float = 5.0,
-        user_feed: float = 1000.0,
+        user_feed: Optional[float] = None,
         stabilization_time_ms: int = 500,
     ):
         super().__init__()
@@ -134,8 +135,79 @@ class TensionMeasurementThread(QThread):
         if feed is not None:
             kwargs["feed_rate"] = feed
 
+        timeout = self._calculate_timeout_seconds(x=x, y=y, z=z, feed=feed)
         self.cnc.move_to_absolute_position(**kwargs)
-        self.cnc.wait_for_idle()
+
+        if not self.cnc.wait_for_idle(timeout=timeout):
+            target_desc = ", ".join(f"{axis}={value}" for axis, value in kwargs.items() if axis != "feed_rate")
+            raise RuntimeError(
+                f"Movimento nao concluiu dentro do timeout para {target_desc or 'destino desconhecido'}"
+            )
+
+    def _calculate_timeout_seconds(
+        self,
+        x: Optional[float] = None,
+        y: Optional[float] = None,
+        z: Optional[float] = None,
+        feed: Optional[float] = None,
+    ) -> int:
+        """
+        Estimate a timeout proportional to the requested move.
+
+        When no feed is provided, keep the timeout conservative and rely on the PLC's
+        current speed registers.
+        """
+        if feed is None or feed <= 0:
+            return 30
+
+        current = self._read_current_position_for_timeout()
+        if current is None:
+            return 30
+
+        deltas = []
+        if x is not None:
+            deltas.append(abs(x - current.get("x", 0.0)))
+        if y is not None:
+            deltas.append(abs(y - current.get("y", 0.0)))
+        if z is not None:
+            deltas.append(abs(z - current.get("z", 0.0)))
+
+        if not deltas:
+            return 30
+
+        longest_move = max(deltas)
+        expected_seconds = (longest_move / feed) * 60.0
+        return max(15, min(300, int(math.ceil(expected_seconds * 1.5 + 5))))
+
+    def _read_current_position_for_timeout(self) -> Optional[dict]:
+        """Read current XYZ using the same user-facing unit used by absolute moves."""
+        try:
+            if hasattr(self.cnc, "get_current_position"):
+                position = self.cnc.get_current_position()
+                if isinstance(position, dict):
+                    if {"x", "y", "z"}.issubset(position.keys()):
+                        return {
+                            "x": float(position["x"]),
+                            "y": float(position["y"]),
+                            "z": float(position["z"]),
+                        }
+                    if {"X", "Y", "Z"}.issubset(position.keys()):
+                        return {
+                            "x": float(position["X"]),
+                            "y": float(position["Y"]),
+                            "z": float(position["Z"]),
+                        }
+
+            if hasattr(self.cnc, "read_position"):
+                return {
+                    "x": float(self.cnc.read_position("X")),
+                    "y": float(self.cnc.read_position("Y")),
+                    "z": float(self.cnc.read_position("Z")),
+                }
+        except Exception as exc:
+            logger.debug("Falha ao ler posicao atual para timeout de movimento: %s", exc)
+
+        return None
 
     def _enable_tension_sensor(self) -> None:
         try:
