@@ -7,7 +7,7 @@ Diálogo para editar informações de um stencil.
 import logging
 
 from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QFormLayout,
+    QDialog, QVBoxLayout, QFormLayout, QLabel,
     QLineEdit, QTextEdit, QComboBox, QPushButton,
     QDialogButtonBox, QMessageBox
 )
@@ -40,7 +40,7 @@ class StencilEditDialog(QDialog):
 
         # Código (somente leitura)
         self.lbl_code = QLabel(self.stencil.code)
-        self.lbl_code.setFont(TYPO.get_font(TYPO.BODY_MEDIUM, family="Consolas"))
+        self.lbl_code.setFont(QFont("Consolas", TYPO.BODY_MEDIUM))
         form.addRow("Código:", self.lbl_code)
 
         # Descrição
