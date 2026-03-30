@@ -333,14 +333,22 @@ class MovementControlWidget(QWidget):
             QMessageBox.warning(self, "Erro", "Step size inválido")
             return None
 
-    def go_to_zero(self):
-        result = self.orchestrator.home()
-        if not result.success:
-            QMessageBox.warning(self, "Erro", result.error_message)
-        else:
-            if self.window():
-                self.window().statusBar().showMessage("Homing iniciado/concluído")
-    
+    def _show_status_message(self, message: str, timeout: int = 0) -> None:
+        """
+        Exibe status sem assumir que a janela toplevel possui status bar.
+        """
+        widget = self
+        while widget is not None:
+            status_bar_factory = getattr(widget, "statusBar", None)
+            if callable(status_bar_factory):
+                status_bar = status_bar_factory()
+                if status_bar is not None:
+                    status_bar.showMessage(message, timeout)
+                    return
+            widget = widget.parentWidget()
+
+        logger.debug("Nenhuma status bar disponivel para mensagem: %s", message)
+
     def get_current_feed_rate(self):
         try:
             return float(self.feed_rate.text())
@@ -397,23 +405,6 @@ class MovementControlWidget(QWidget):
             except ValueError:
                 QMessageBox.warning(self, "Erro", "Valores inválidos para X ou Y")
 
-    def go_to_position(self, x, y):
-        feed = self._get_feed_rate()
-        if feed is None: return
-
-        # Executa movimento absoluto via orchestrator
-        # Nota: Idealmente seria assíncrono para não travar a UI se for bloqueante.
-        # O MovementOrchestrator.move_absolute é bloqueante ou não?
-        # No PLC controller, move_to_absolute_position parece retornar rápido após enviar comando?
-        # Vamos assumir que sim por enquanto. Se precisar de thread, o orchestrator deveria gerenciar ou o widget.
-        # Por enquanto, chamada direta.
-        
-        result = self.orchestrator.move_absolute(x, y, 0, feed)
-        if result.success:
-            if self.window(): self.window().statusBar().showMessage(f"Movendo para {x},{y}")
-        else:
-            QMessageBox.warning(self, "Erro", result.error_message)
-
     def set_motion_mode(self, mode):
         # Atualiza UI
         if mode == "G90":
@@ -428,9 +419,28 @@ class MovementControlWidget(QWidget):
         # Vamos adicionar no futuro se necessário, mas G90/G91 é implícito nas chamadas jog/step do orchestrator.
         pass
 
+    def go_to_zero(self):
+        result = self.orchestrator.home()
+        if not result.success:
+            QMessageBox.warning(self, "Erro", result.error_message)
+            return
+
+        self._show_status_message("Homing iniciado/concluido")
+
+    def go_to_position(self, x, y):
+        feed = self._get_feed_rate()
+        if feed is None:
+            return
+
+        result = self.orchestrator.move_absolute(x, y, 0, feed)
+        if result.success:
+            self._show_status_message(f"Movendo para {x},{y}")
+            return
+
+        QMessageBox.warning(self, "Erro", result.error_message)
+
     def on_emergency_stop_toggle(self, checked):
         if checked:
-            # RESET / PARADA
             result = self.orchestrator.emergency_stop()
             if result.success:
                 self.emergency_stop_button.setText("Reset")
@@ -445,20 +455,21 @@ class MovementControlWidget(QWidget):
                         font-weight: bold;
                     }}
                 """)
-                if self.window(): self.window().statusBar().showMessage("Máquina parada.")
-            else:
-                QMessageBox.critical(self, "Erro", f"Falha na parada: {result.error_message}")
-                self.emergency_stop_button.setChecked(False)
-        else:
-            # UNLOCK
-            result = self.orchestrator.unlock()
-            if result.success:
-                self.emergency_stop_button.setText("STOP")
-                # StandardButton danger variant handles STOP state
-                if self.window(): self.window().statusBar().showMessage("Máquina desbloqueada.")
-            else:
-                QMessageBox.critical(self, "Erro", f"Falha no desbloqueio: {result.error_message}")
-                self.emergency_stop_button.setChecked(True)
+                self._show_status_message("Maquina parada.")
+                return
+
+            QMessageBox.critical(self, "Erro", f"Falha na parada: {result.error_message}")
+            self.emergency_stop_button.setChecked(False)
+            return
+
+        result = self.orchestrator.unlock()
+        if result.success:
+            self.emergency_stop_button.setText("STOP")
+            self._show_status_message("Maquina desbloqueada.")
+            return
+
+        QMessageBox.critical(self, "Erro", f"Falha no desbloqueio: {result.error_message}")
+        self.emergency_stop_button.setChecked(True)
 
     def closeEvent(self, event):
         """
