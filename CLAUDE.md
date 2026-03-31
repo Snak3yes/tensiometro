@@ -126,6 +126,18 @@ git push gitlab main  # Apenas GitLab
 - **HTTPS:** Usa Personal Access Token (não senha)
 - Para criar token: GitLab → Settings → Access Tokens → scopes: `write_repository`
 
+### Política de Merge
+
+**⚠️ POLÍTICA DE SEGURANÇA:** Para aumentar a segurança do trabalho em equipe, **NUNCA** use merges fast-forward (ff).
+Sempre utilize `--no-ff` ao fazer merges para manter o histórico de commits claro e auditável:
+
+```bash
+# Ao invés de: git merge feature-branch
+# Use: git merge --no-ff feature-branch
+```
+
+Isso garante que cada feature ou correção tenha seu próprio registro no histórico, facilitando auditorias e compreensão do desenvolvimento.
+
 ---
 
 ## Quick Start
@@ -410,4 +422,68 @@ tensio.is_connected
 
 ---
 
-**Last Updated:** 2026-03-29 | **Version:** 0.5.0 | **Branch:** test/ui-adjustments-70-30
+**Last Updated:** 2026-03-31 | **Version:** 0.5.0 | **Branch:** test/ui-adjustments-70-30
+
+---
+
+## Padrões de Medição de Tensão (2026-03-31)
+
+**Funcionalidade:** Sistema de salvamento e carregamento de configurações de medição de tensão.
+
+### Arquitetura
+
+| Componente | Arquivo | Responsabilidade |
+|------------|---------|------------------|
+| **Modelo** | `aoi_lib/tensiometer/models.py` | `MeasurementPattern` dataclass |
+| **Gerenciador** | `consumo_lib/managers/measurement_pattern_manager.py` | CRUD de padrões (JSON) |
+| **Diálogo Salvar** | `consumo_lib/dialogs/tension/save_pattern_dialog.py` | Modal de salvamento |
+| **Diálogo Selecionar** | `consumo_lib/dialogs/tension/select_pattern_dialog.py` | TreeView modal |
+| **Diálogo Medição** | `consumo_lib/dialogs/tension/tension_measurement_dialog.py` | UI com coluna de padrões |
+
+### UI - TensionMeasurementDialog
+
+Layout com duas colunas (QSplitter):
+
+```
+┌─────────────────────┬──────────────────────────────────────┐
+│  COLUNA ESQUERDA    │  COLUNA DIREITA (70%)                │
+│  (30% - TreeView)   │                                      │
+│                     │  - Conexão do Tensiômetro            │
+│  - TreeView de      │  - Configuração do Grid              │
+│    Padrões          │  - Progresso da Medição              │
+│  - Botão "Carregar" │  - Botões: Salvar Padrão, Iniciar,   │
+│  - Label do padrão  │    Parar, Fechar                     │
+│    selecionado      │                                      │
+└─────────────────────┴──────────────────────────────────────┘
+```
+
+### Padrão de Projeto
+
+- **Persistence:** Arquivos JSON em `patterns/` na raiz do projeto
+- **Manager Pattern:** `MeasurementPatternManager` centraliza operações
+- **Dataclass:** `MeasurementPattern` com `to_dict()` / `from_dict()`
+
+### Uso
+
+```python
+# Salvar padrão
+pattern = pattern_manager.create_pattern_from_dialog_params(
+    name="Padrão 3x3",
+    description="Medição rápida",
+    start_point=(0, 0),
+    end_point=(100, 100),
+    grid_size=3,
+    z_height=5.0,
+    z_move=10.0
+)
+pattern_manager.save_pattern(pattern)
+
+# Carregar padrões
+patterns = pattern_manager.list_patterns()
+
+# Carregar padrão específico
+pattern = pattern_manager.load_pattern("Padrão 3x3")
+
+# Excluir padrão
+pattern_manager.delete_pattern("Padrão 3x3")
+```

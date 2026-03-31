@@ -1094,3 +1094,10 @@ class TensionMeasurementTab(QWidget):
         if parsed is None:
             return value or "-"
         return parsed.strftime("%d/%m/%Y %H:%M")
+
+    def _format_date(self, value) -> str:
+        """Formata datetime para exibição (apenas data)."""
+        parsed = self._parse_datetime(value)
+        if parsed is None:
+            return value or "-"
+        return parsed.strftime("%d/%m/%Y")

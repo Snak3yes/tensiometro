@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tension Measurement Dialog (Refactored)
 
 PyQt6 dialog for tension measurement of stencils.
@@ -9,19 +9,19 @@ Refactored from: aoi_lib/stencil_tension.py (lines 447-1409, 962 lines)
 """
 
 import logging
-from pathlib import Path
 from typing import Optional
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
-    QWidget, QTabWidget,
     QLabel, QLineEdit, QComboBox, QGroupBox,
-    QProgressBar, QMessageBox
+    QProgressBar, QMessageBox, QTreeWidget, QTreeWidgetItem,
+    QSplitter, QTabWidget, QWidget
 )
 from PyQt6.QtGui import QDoubleValidator, QIntValidator
+from PyQt6.QtCore import Qt
 
 from aoi_lib.config_manager import AOIConfigManager
-from consumo_lib.ui import COLORS, TYPO
+from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.movement_control import MovementControlWidget
 
@@ -29,8 +29,12 @@ from consumo_lib.widgets.movement_control import MovementControlWidget
 from aoi_lib.tensiometer import (
     MeasurementOrchestrator,
     TensiometerSerialManager,
-    ValidationError
 )
+
+# Import pattern manager and dialogs
+from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
+from consumo_lib.dialogs.tension.save_pattern_dialog import SavePatternDialog
+from consumo_lib.dialogs.tension.select_pattern_dialog import SelectPatternDialog
 
 logger = logging.getLogger(__name__)
 
@@ -78,34 +82,162 @@ class TensionMeasurementDialog(QDialog):
         self.tensiometer = TensiometerSerialManager()
         self.orchestrator: Optional[MeasurementOrchestrator] = None
 
+        # Pattern manager
+        self.pattern_manager = MeasurementPatternManager()
+
         # UI State
         self.current_points = []
         self.is_measuring = False
+        self.selected_pattern_name: Optional[str] = None
 
         # Setup UI
-        self.setWindowTitle("Medição de Tensão do Stencil")
-        self.setMinimumSize(700, 500)
+        self.setWindowTitle("MediÃ§Ã£o de TensÃ£o do Stencil")
+        self.setMinimumSize(900, 600)
         self._build_ui()
 
         # Connect tensiometer
         self._refresh_ports()
 
+        # Load patterns
+        self._load_patterns_tree()
+
     def _build_ui(self):
         """Build user interface."""
         outer_layout = QVBoxLayout(self)
-        outer_layout.setSpacing(12)
+        outer_layout.setSpacing(SPACE.MD)
+        outer_layout.setContentsMargins(SPACE.MD, SPACE.MD, SPACE.MD, SPACE.MD)
 
         self.tabs = QTabWidget(self)
         outer_layout.addWidget(self.tabs)
 
         measurement_tab = QWidget(self)
-        self.tabs.addTab(measurement_tab, "Medição")
+        self.tabs.addTab(measurement_tab, "MediÃƒÂ§ÃƒÂ£o")
 
-        main_layout = QVBoxLayout(measurement_tab)
-        main_layout.setSpacing(15)
+        main_layout = QHBoxLayout(measurement_tab)
+        main_layout.setSpacing(SPACE.MD)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # ==================== SPLITTER (COLUNA ESQUERDA | DIREITA) ====================
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setHandleWidth(4)
+
+        # ==================== COLUNA ESQUERDA: PADRÃ•ES (30%) ====================
+        left_widget = self._build_patterns_column()
+        splitter.addWidget(left_widget)
+
+        # ==================== COLUNA DIREITA: CONTEÃšDO PRINCIPAL (70%) ====================
+        right_widget = self._build_main_content()
+        splitter.addWidget(right_widget)
+
+        # Define proporÃ§Ã£o 30/70
+        splitter.setStretchFactor(0, 0)  # Esquerda: tamanho fixo
+        splitter.setStretchFactor(1, 1)  # Direita: expande
+        splitter.setCollapsible(0, False)
+
+        main_layout.addWidget(splitter, 1)
+
+        movement_tab = QWidget(self)
+        movement_layout = QVBoxLayout(movement_tab)
+        movement_layout.setContentsMargins(0, 0, 0, 0)
+        movement_layout.setSpacing(0)
+
+        self.movement_widget = MovementControlWidget(
+            self.cnc,
+            self.config,
+            parent=movement_tab
+        )
+        movement_layout.addWidget(self.movement_widget)
+        self.tabs.addTab(movement_tab, "Movimento")
+
+    def _build_patterns_column(self) -> QWidget:
+        """ConstrÃ³i coluna esquerda com treeview de padrÃµes."""
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setSpacing(SPACE.SM)
+        layout.setContentsMargins(0, 0, 0, 0)
+
+        # Header
+        header_label = QLabel("PadrÃµes de MediÃ§Ã£o")
+        header_label.setFont(TYPO.get_font(TYPO.TITLE_SMALL, bold=True))
+        layout.addWidget(header_label)
+
+        # TreeView
+        self.pattern_tree = QTreeWidget()
+        self.pattern_tree.setHeaderLabels(["Nome", "Grid"])
+        self.pattern_tree.setColumnWidth(0, 140)
+        self.pattern_tree.setColumnWidth(1, 50)
+        self.pattern_tree.setMinimumWidth(200)
+        self.pattern_tree.setMaximumWidth(280)
+        self.pattern_tree.itemClicked.connect(self._on_pattern_selected)
+        self.pattern_tree.itemDoubleClicked.connect(self._on_pattern_double_clicked)
+
+        # Estilo
+        self.pattern_tree.setStyleSheet(f"""
+            QTreeWidget {{
+                background-color: {COLORS.SURFACE_VARIANT};
+                border: 1px solid {COLORS.BORDER};
+                border-radius: {DIM.RADIUS_SM}px;
+                font-size: {TYPO.BODY_SMALL}px;
+            }}
+            QHeaderView::section {{
+                padding: 4px 8px;
+                font-size: {TYPO.LABEL_SMALL}px;
+                min-height: 24px;
+                background-color: {COLORS.SURFACE_VARIANT};
+                border: none;
+                border-right: 1px solid {COLORS.BORDER};
+                border-bottom: 1px solid {COLORS.BORDER};
+                font-weight: bold;
+            }}
+            QTreeWidget::item {{
+                min-height: 20px;
+                padding: 4px 2px;
+                border-bottom: 1px solid {COLORS.BORDER};
+            }}
+            QTreeWidget::item:selected {{
+                background-color: #05966915;
+                border: 1px solid #059669;
+                color: {COLORS.TEXT_PRIMARY};
+            }}
+            QTreeWidget::item:hover:!selected {{
+                background-color: {COLORS.SURFACE_VARIANT};
+            }}
+        """)
+        layout.addWidget(self.pattern_tree, 1)
+
+        # BotÃµes de aÃ§Ã£o
+        btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(SPACE.SM)
+
+        self.btn_load_pattern = StandardButton(
+            "Carregar",
+            variant="primary-blue",
+            semantic_size="inline-primary"
+        )
+        self.btn_load_pattern.clicked.connect(self._on_load_pattern)
+        btn_layout.addWidget(self.btn_load_pattern)
+
+        layout.addLayout(btn_layout)
+
+        # Label do padrÃ£o atual
+        self.current_pattern_label = QLabel("Nenhum padrÃ£o selecionado")
+        self.current_pattern_label.setStyleSheet(
+            f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;"
+        )
+        self.current_pattern_label.setWordWrap(True)
+        layout.addWidget(self.current_pattern_label)
+
+        return container
+
+    def _build_main_content(self) -> QWidget:
+        """ConstrÃ³i coluna direita com conteÃºdo principal do diÃ¡logo."""
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setSpacing(SPACE.MD)
+        layout.setContentsMargins(0, 0, 0, 0)
 
         # ==================== TENSIONOMETER CONNECTION ====================
-        conn_group = QGroupBox("Conexão do Tensiômetro")
+        conn_group = QGroupBox("ConexÃ£o do TensiÃ´metro")
         conn_layout = QGridLayout(conn_group)
         conn_layout.setSpacing(8)
 
@@ -117,7 +249,7 @@ class TensionMeasurementDialog(QDialog):
 
         # Refresh ports button
         self.refresh_ports_btn = StandardButton("Atualizar")
-        self.refresh_ports_btn.setMaximumWidth(40)
+        self.refresh_ports_btn.setMaximumWidth(80)
         self.refresh_ports_btn.clicked.connect(self._refresh_ports)
         conn_layout.addWidget(self.refresh_ports_btn, 0, 2)
 
@@ -157,10 +289,10 @@ class TensionMeasurementDialog(QDialog):
         self.zero_btn.setEnabled(False)
         conn_layout.addWidget(self.zero_btn, 3, 3, 1, 2)
 
-        main_layout.addWidget(conn_group)
+        layout.addWidget(conn_group)
 
         # ==================== GRID CONFIGURATION ====================
-        grid_group = QGroupBox("Configuração do Grid")
+        grid_group = QGroupBox("ConfiguraÃ§Ã£o do Grid")
         grid_layout = QGridLayout(grid_group)
         grid_layout.setSpacing(8)
 
@@ -205,7 +337,7 @@ class TensionMeasurementDialog(QDialog):
         grid_layout.addWidget(QLabel("Para grid NxN"), 2, 2)
 
         # Z heights
-        grid_layout.addWidget(QLabel("Altura Medição (Z):"), 3, 0)
+        grid_layout.addWidget(QLabel("Altura MediÃ§Ã£o (Z):"), 3, 0)
         self.z_height_input = QLineEdit("5.0")
         self.z_height_input.setValidator(QDoubleValidator())
         self.z_height_input.setMaximumWidth(80)
@@ -223,10 +355,10 @@ class TensionMeasurementDialog(QDialog):
         )
         grid_layout.addWidget(self.z_move_input, 3, 3)
 
-        main_layout.addWidget(grid_group)
+        layout.addWidget(grid_group)
 
         # ==================== PROGRESS DISPLAY ====================
-        progress_group = QGroupBox("Progresso da Medição")
+        progress_group = QGroupBox("Progresso da MediÃ§Ã£o")
         progress_layout = QVBoxLayout(progress_group)
 
         self.progress_bar = QProgressBar()
@@ -237,21 +369,33 @@ class TensionMeasurementDialog(QDialog):
         self.progress_label = QLabel("Pronto para iniciar")
         progress_layout.addWidget(self.progress_label)
 
-        self.current_value_label = QLabel("Última leitura: --")
+        self.current_value_label = QLabel("Ãšltima leitura: --")
         self.current_value_label.setStyleSheet(f"font-size: {TYPO.BODY_MEDIUM}px; font-weight: bold;")
         progress_layout.addWidget(self.current_value_label)
 
-        main_layout.addWidget(progress_group)
+        layout.addWidget(progress_group)
 
         # ==================== CONTROL BUTTONS ====================
         btn_layout = QHBoxLayout()
+        btn_layout.setSpacing(SPACE.SM)
 
-        self.start_btn = StandardButton("▶ Iniciar Medição", variant="primary-green", semantic_size="dialog-primary")
+        self.btn_save_pattern = StandardButton(
+            "ðŸ’¾ Salvar como PadrÃ£o",
+            variant="primary-green",
+            semantic_size="inline-primary"
+        )
+        self.btn_save_pattern.clicked.connect(self._on_save_pattern)
+        self.btn_save_pattern.setEnabled(False)
+        btn_layout.addWidget(self.btn_save_pattern)
+
+        btn_layout.addStretch()
+
+        self.start_btn = StandardButton("â–¶ Iniciar MediÃ§Ã£o", variant="primary-green", semantic_size="dialog-primary")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._on_start)
         btn_layout.addWidget(self.start_btn)
 
-        self.stop_btn = StandardButton("⏹ Parar", variant="emergency", semantic_size="dialog-secondary")
+        self.stop_btn = StandardButton("â¹ Parar", variant="emergency", semantic_size="dialog-secondary")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
         btn_layout.addWidget(self.stop_btn)
@@ -260,20 +404,9 @@ class TensionMeasurementDialog(QDialog):
         self.close_btn.clicked.connect(self.close)
         btn_layout.addWidget(self.close_btn)
 
-        main_layout.addLayout(btn_layout)
+        layout.addLayout(btn_layout)
 
-        movement_tab = QWidget(self)
-        movement_layout = QVBoxLayout(movement_tab)
-        movement_layout.setContentsMargins(0, 0, 0, 0)
-        movement_layout.setSpacing(0)
-
-        self.movement_widget = MovementControlWidget(
-            self.cnc,
-            self.config,
-            parent=movement_tab
-        )
-        movement_layout.addWidget(self.movement_widget)
-        self.tabs.addTab(movement_tab, "Movimento")
+        return container
 
     # ==================== CONNECTION HANDLERS ====================
 
@@ -282,14 +415,14 @@ class TensionMeasurementDialog(QDialog):
         ports = self.tensiometer.get_available_ports()
         self.port_combo.clear()
         self.port_combo.addItems(ports)
-        logger.debug(f"Portas disponíveis: {ports}")
+        logger.debug(f"Portas disponÃ­veis: {ports}")
 
     def _toggle_connection(self):
         """Toggle tensiometer connection."""
         if self.tensiometer.is_connected:
             self.tensiometer.disconnect()
             self._update_connection_ui(False)
-            logger.info("Tensiômetro desconectado")
+            logger.info("TensiÃ´metro desconectado")
         else:
             port = self.port_combo.currentText()
             if not port:
@@ -301,11 +434,11 @@ class TensionMeasurementDialog(QDialog):
                 self._update_connection_ui(True)
                 # Initialize orchestrator
                 self.orchestrator = MeasurementOrchestrator(self.cnc, self.tensiometer)
-                logger.info(f"Tensiômetro conectado em {port}")
+                logger.info(f"TensiÃ´metro conectado em {port}")
             else:
                 QMessageBox.critical(
                     self,
-                    "Erro de Conexão",
+                    "Erro de ConexÃ£o",
                     f"Falha ao conectar em {port}:\n{self.tensiometer.last_error}"
                 )
 
@@ -313,7 +446,7 @@ class TensionMeasurementDialog(QDialog):
         """Update UI based on connection state."""
         if connected:
             self.connect_btn.setText("Desconectar")
-            self.conn_status_label.setText("Status: ✅ Conectado")
+            self.conn_status_label.setText("Status: âœ… Conectado")
             self.conn_status_label.setStyleSheet(f"color: {COLORS.SUCCESS};")
             self.test_btn.setEnabled(True)
             self.start_btn.setEnabled(True)
@@ -336,27 +469,27 @@ class TensionMeasurementDialog(QDialog):
     def _test_reading(self):
         """Test tensiometer reading."""
         if not self.tensiometer.is_connected:
-            QMessageBox.warning(self, "Aviso", "Conecte o tensiômetro primeiro.")
+            QMessageBox.warning(self, "Aviso", "Conecte o tensiÃ´metro primeiro.")
             return
 
         value = self.tensiometer.read_tension_value()
         QMessageBox.information(
             self,
             "Leitura Teste",
-            f"Valor lido: {value} N/cm²"
+            f"Valor lido: {value} N/cmÂ²"
         )
-        logger.info(f"Leitura teste: {value} N/cm²")
+        logger.info(f"Leitura teste: {value} N/cmÂ²")
 
     def _can_control_tensiometer_hardware(self, show_message: bool = True) -> bool:
         """Check whether PLC control for the tensiometer is available."""
         if self.cnc is None:
             if show_message:
-                QMessageBox.warning(self, "Aviso", "Controller CNC nÃ£o disponÃ­vel.")
+                QMessageBox.warning(self, "Aviso", "Controller CNC nÃƒÂ£o disponÃƒÂ­vel.")
             return False
 
         if not getattr(self.cnc, "is_connected", False):
             if show_message:
-                QMessageBox.warning(self, "Aviso", "Conecte o CLP antes de acionar o tenciÃ´metro.")
+                QMessageBox.warning(self, "Aviso", "Conecte o CLP antes de acionar o tenciÃƒÂ´metro.")
             return False
 
         if not hasattr(self.cnc, "pulse_coil") and not hasattr(self.cnc, "_pulse_coil"):
@@ -364,7 +497,7 @@ class TensionMeasurementDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Aviso",
-                    "O controlador atual nÃ£o expÃµe pulso de coil para o tenciÃ´metro."
+                    "O controlador atual nÃƒÂ£o expÃƒÂµe pulso de coil para o tenciÃƒÂ´metro."
                 )
             return False
 
@@ -381,14 +514,14 @@ class TensionMeasurementDialog(QDialog):
             else:
                 self.cnc._pulse_coil(coil, duration_ms)
 
-            self.progress_label.setText(f"{action_name} enviado ao tenciÃ´metro")
-            logger.info(f"Comando enviado ao tenciÃ´metro: {action_name} (M{coil})")
+            self.progress_label.setText(f"{action_name} enviado ao tenciÃƒÂ´metro")
+            logger.info(f"Comando enviado ao tenciÃƒÂ´metro: {action_name} (M{coil})")
             return True
         except Exception as e:
-            logger.exception(f"Erro ao executar comando {action_name} no tenciÃ´metro")
+            logger.exception(f"Erro ao executar comando {action_name} no tenciÃƒÂ´metro")
             QMessageBox.critical(
                 self,
-                "Erro no TenciÃ´metro",
+                "Erro no TenciÃƒÂ´metro",
                 f"Falha ao executar '{action_name}':\n{e}"
             )
             return False
@@ -400,7 +533,7 @@ class TensionMeasurementDialog(QDialog):
             "Ligar",
             duration_ms=TENSIOMETER_POWER_ON_PULSE_MS,
         ):
-            QMessageBox.information(self, "TenciÃ´metro", "Comando de ligar enviado.")
+            QMessageBox.information(self, "TenciÃƒÂ´metro", "Comando de ligar enviado.")
 
     def _turn_off_tensiometer(self):
         """Turn off tensiometer via PLC."""
@@ -409,47 +542,47 @@ class TensionMeasurementDialog(QDialog):
             "Desligar",
             duration_ms=TENSIOMETER_POWER_OFF_PULSE_MS,
         ):
-            QMessageBox.information(self, "TenciÃ´metro", "Comando de desligar enviado.")
+            QMessageBox.information(self, "TenciÃƒÂ´metro", "Comando de desligar enviado.")
 
     def _calibrate_tensiometer(self):
         """Send calibration command to tensiometer via PLC."""
         if self._pulse_tensiometer_coil(TENSIOMETER_CALIBRATE_COIL, "Calibrar"):
-            QMessageBox.information(self, "TenciÃ´metro", "Comando de calibraÃ§Ã£o enviado.")
+            QMessageBox.information(self, "TenciÃƒÂ´metro", "Comando de calibraÃƒÂ§ÃƒÂ£o enviado.")
 
     def _zero_tensiometer(self):
         """Send zero command to tensiometer via PLC."""
         if self._pulse_tensiometer_coil(TENSIOMETER_ZERO_COIL, "Zerar"):
-            QMessageBox.information(self, "TenciÃ´metro", "Comando de zerar enviado.")
+            QMessageBox.information(self, "TenciÃƒÂ´metro", "Comando de zerar enviado.")
 
     # ==================== POSITION CAPTURE ====================
 
     def _capture_start_position(self):
         """Capture current CNC position as start point."""
         if self.cnc is None:
-            QMessageBox.warning(self, "Aviso", "Controller CNC não disponível.")
+            QMessageBox.warning(self, "Aviso", "Controller CNC nÃ£o disponÃ­vel.")
             return
 
         try:
             x, y = self._read_current_xy_for_measurement()
             self.start_x_input.setText(f"{x:.2f}")
             self.start_y_input.setText(f"{y:.2f}")
-            logger.info(f"Posição inicial capturada: ({x:.2f}, {y:.2f})")
+            logger.info(f"PosiÃ§Ã£o inicial capturada: ({x:.2f}, {y:.2f})")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Falha ao ler posição:\n{e}")
+            QMessageBox.critical(self, "Erro", f"Falha ao ler posiÃ§Ã£o:\n{e}")
 
     def _capture_end_position(self):
         """Capture current CNC position as end point."""
         if self.cnc is None:
-            QMessageBox.warning(self, "Aviso", "Controller CNC não disponível.")
+            QMessageBox.warning(self, "Aviso", "Controller CNC nÃ£o disponÃ­vel.")
             return
 
         try:
             x, y = self._read_current_xy_for_measurement()
             self.end_x_input.setText(f"{x:.2f}")
             self.end_y_input.setText(f"{y:.2f}")
-            logger.info(f"Posição final capturada: ({x:.2f}, {y:.2f})")
+            logger.info(f"PosiÃ§Ã£o final capturada: ({x:.2f}, {y:.2f})")
         except Exception as e:
-            QMessageBox.critical(self, "Erro", f"Falha ao ler posição:\n{e}")
+            QMessageBox.critical(self, "Erro", f"Falha ao ler posiÃ§Ã£o:\n{e}")
 
     def _measurement_coordinate_unit(self) -> str:
         """Return the coordinate unit currently available for automatic measurement."""
@@ -474,12 +607,169 @@ class TensionMeasurementDialog(QDialog):
 
         return float(self.cnc.read_position('X')), float(self.cnc.read_position('Y'))
 
+    # ==================== PATTERN TREE METHODS ====================
+
+    def _load_patterns_tree(self):
+        """Carrega padrÃµes na treeview da coluna esquerda."""
+        self.pattern_tree.clear()
+        patterns = self.pattern_manager.list_patterns()
+
+        for pattern in patterns:
+            item = QTreeWidgetItem()
+            name = pattern.get('name', 'Sem Nome')
+            grid_size = pattern.get('grid_size', 0)
+
+            item.setText(0, name)
+            item.setText(1, f"{grid_size}x{grid_size}")
+            item.setData(0, Qt.ItemDataRole.UserRole, pattern)
+
+            self.pattern_tree.addTopLevelItem(item)
+
+        # Seleciona primeiro item se existir
+        if self.pattern_tree.topLevelItemCount() > 0:
+            self.pattern_tree.setCurrentItem(self.pattern_tree.topLevelItem(0))
+
+    def _on_pattern_selected(self, item: QTreeWidgetItem, column: int):
+        """Handle quando padrÃ£o Ã© selecionado na treeview."""
+        pattern_data = item.data(0, Qt.ItemDataRole.UserRole)
+        self.selected_pattern_name = pattern_data.get('name')
+        self.current_pattern_label.setText(f"PadrÃ£o selecionado: {self.selected_pattern_name}")
+        logger.info(f"PadrÃ£o selecionado na treeview: {self.selected_pattern_name}")
+
+    def _on_pattern_double_clicked(self, item: QTreeWidgetItem, column: int):
+        """Handle para double-click - carrega padrÃ£o automaticamente."""
+        self._on_pattern_selected(item, column)
+        if self.selected_pattern_name:
+            self._load_pattern(self.selected_pattern_name)
+
+    # ==================== PATTERN HANDLERS ====================
+
+    def _on_load_pattern(self):
+        """Handle para carregar padrÃ£o salvo."""
+        dialog = SelectPatternDialog(self.pattern_manager, self)
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            pattern_name = dialog.get_selected_pattern()
+            if pattern_name:
+                self._load_pattern(pattern_name)
+
+    def _load_pattern(self, pattern_name: str):
+        """
+        Carrega padrÃ£o de mediÃ§Ã£o salvo.
+
+        Args:
+            pattern_name: Nome do padrÃ£o
+        """
+        pattern = self.pattern_manager.load_pattern(pattern_name)
+        if pattern is None:
+            QMessageBox.critical(
+                self, "Erro",
+                f"NÃ£o foi possÃ­vel carregar o padrÃ£o '{pattern_name}'."
+            )
+            return
+
+        # Aplica parÃ¢metros do padrÃ£o aos campos
+        grid_params = pattern.grid_parameters
+
+        self.start_x_input.setText(f"{grid_params.start_point[0]:.2f}")
+        self.start_y_input.setText(f"{grid_params.start_point[1]:.2f}")
+        self.end_x_input.setText(f"{grid_params.end_point[0]:.2f}")
+        self.end_y_input.setText(f"{grid_params.end_point[1]:.2f}")
+        self.grid_size_input.setText(str(grid_params.grid_size))
+        self.z_height_input.setText(f"{grid_params.z_height:.2f}")
+        self.z_move_input.setText(f"{grid_params.z_move:.2f}")
+
+        # Atualiza label do padrÃ£o atual
+        self.current_pattern_label.setText(f"PadrÃ£o atual: {pattern.name}")
+        self.current_pattern_label.setStyleSheet(
+            f"color: {COLORS.SUCCESS}; font-size: {TYPO.LABEL_SMALL}px; font-weight: bold;"
+        )
+
+        logger.info(f"PadrÃ£o carregado: {pattern.name}")
+        QMessageBox.information(
+            self, "PadrÃ£o Carregado",
+            f"PadrÃ£o '{pattern.name}' carregado com sucesso!\n\n"
+            f"Grid: {grid_params.grid_size}x{grid_params.grid_size}\n"
+            f"Ãrea: ({grid_params.start_point[0]:.1f}, {grid_params.start_point[1]:.1f}) -> "
+            f"({grid_params.end_point[0]:.1f}, {grid_params.end_point[1]:.1f})\n"
+            f"Altura Z: {grid_params.z_height:.2f}mm"
+        )
+
+    def _on_save_pattern(self):
+        """Handle para salvar configuraÃ§Ã£o atual como padrÃ£o."""
+        # ObtÃ©m parÃ¢metros atuais
+        try:
+            start_x = float(self.start_x_input.text())
+            start_y = float(self.start_y_input.text())
+            end_x = float(self.end_x_input.text())
+            end_y = float(self.end_y_input.text())
+            grid_size = int(self.grid_size_input.text())
+            z_height = float(self.z_height_input.text())
+            z_move = float(self.z_move_input.text())
+
+        except ValueError:
+            QMessageBox.warning(
+                self, "ParÃ¢metros InvÃ¡lidos",
+                "Por favor, preencha todos os campos corretamente antes de salvar o padrÃ£o."
+            )
+            return
+
+        # Abre diÃ¡logo de salvamento
+        dialog = SavePatternDialog(
+            parent=self,
+            start_point=(start_x, start_y),
+            end_point=(end_x, end_y),
+            grid_size=grid_size,
+            z_height=z_height,
+            z_move=z_move,
+            stabilization_time_ms=500,  # Default
+            feed_rate=1000.0  # Default
+        )
+
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            name, description = dialog.get_pattern_data()
+
+            # Cria padrÃ£o
+            pattern = self.pattern_manager.create_pattern_from_dialog_params(
+                name=name,
+                description=description,
+                start_point=(start_x, start_y),
+                end_point=(end_x, end_y),
+                grid_size=grid_size,
+                z_height=z_height,
+                z_move=z_move,
+                stabilization_time_ms=dialog.stabilization_time_ms,
+                feed_rate=dialog.feed_rate,
+                created_by=""  # Poderia pegar do sistema de autenticaÃ§Ã£o
+            )
+
+            if pattern:
+                success = self.pattern_manager.save_pattern(pattern)
+                if success:
+                    logger.info(f"PadrÃ£o salvo: {name}")
+                    QMessageBox.information(
+                        self, "PadrÃ£o Salvo",
+                        f"PadrÃ£o '{name}' salvo com sucesso!\n\n"
+                        f"Agora vocÃª pode reutilizar esta configuraÃ§Ã£o em futuras mediÃ§Ãµes."
+                    )
+                    # Atualiza label
+                    self.current_pattern_label.setText(f"PadrÃ£o atual: {name}")
+                    self.current_pattern_label.setStyleSheet(
+                        f"color: {COLORS.SUCCESS}; font-size: {TYPO.LABEL_SMALL}px; font-weight: bold;"
+                    )
+                    self.selected_pattern_name = name
+                    self._load_patterns_tree()
+                else:
+                    QMessageBox.critical(
+                        self, "Erro",
+                        "Erro ao salvar padrÃ£o. Verifique se o nome jÃ¡ existe."
+                    )
+
     # ==================== MEASUREMENT HANDLERS ====================
 
     def _on_start(self):
         """Start measurement process."""
         if not self.tensiometer.is_connected:
-            QMessageBox.warning(self, "Aviso", "Conecte o tensiômetro primeiro.")
+            QMessageBox.warning(self, "Aviso", "Conecte o tensiÃ´metro primeiro.")
             return
 
         if self.orchestrator is None:
@@ -495,11 +785,11 @@ class TensionMeasurementDialog(QDialog):
             z_height = float(self.z_height_input.text())
             z_move = float(self.z_move_input.text())
 
-            logger.info(f"Parâmetros: start=({start_x}, {start_y}), end=({end_x}, {end_y}), "
+            logger.info(f"ParÃ¢metros: start=({start_x}, {start_y}), end=({end_x}, {end_y}), "
                        f"grid={grid_size}x{grid_size}, Z={z_height}")
 
         except ValueError as e:
-            QMessageBox.critical(self, "Erro de Parâmetros",
+            QMessageBox.critical(self, "Erro de ParÃ¢metros",
                                "Preencha todos os campos corretamente.")
             return
 
@@ -514,8 +804,8 @@ class TensionMeasurementDialog(QDialog):
         )
 
         if not result['success']:
-            QMessageBox.critical(self, "Erro de Validação",
-                               f"Parâmetros inválidos:\n{result['error']}")
+            QMessageBox.critical(self, "Erro de ValidaÃ§Ã£o",
+                               f"ParÃ¢metros invÃ¡lidos:\n{result['error']}")
             return
 
         # Store points
@@ -528,8 +818,11 @@ class TensionMeasurementDialog(QDialog):
             "Grid Preparado",
             f"Grid {stats['grid_size']}x{stats['grid_size']} gerado:\n"
             f"Total de pontos: {stats['total_points']}\n"
-            f"Distância total: {stats['total_distance_mm']} mm"
+            f"DistÃ¢ncia total: {stats['total_distance_mm']} mm"
         )
+
+        # Habilita botÃ£o de salvar padrÃ£o apÃ³s grid preparado com sucesso
+        self.btn_save_pattern.setEnabled(True)
 
         # Start measurement
         success = self.orchestrator.start_measurement(
@@ -542,16 +835,16 @@ class TensionMeasurementDialog(QDialog):
 
         if success:
             self._set_measuring_state(True)
-            logger.info("Medição iniciada")
+            logger.info("MediÃ§Ã£o iniciada")
         else:
-            QMessageBox.critical(self, "Erro", "Falha ao iniciar medição.")
+            QMessageBox.critical(self, "Erro", "Falha ao iniciar mediÃ§Ã£o.")
 
     def _on_stop(self):
         """Stop measurement."""
         if self.orchestrator:
             self.orchestrator.stop_measurement()
             self._set_measuring_state(False)
-            logger.info("Medição interrompida")
+            logger.info("MediÃ§Ã£o interrompida")
 
     def _on_progress(self, current: int, total: int, message: str):
         """Handle progress update."""
@@ -563,8 +856,8 @@ class TensionMeasurementDialog(QDialog):
     def _on_measurement(self, measurement_dict: dict):
         """Handle individual measurement."""
         value = measurement_dict.get('tension', '0')
-        self.current_value_label.setText(f"Última leitura: {value} N/cm²")
-        logger.debug(f"Medição: {value} N/cm²")
+        self.current_value_label.setText(f"Ãšltima leitura: {value} N/cmÂ²")
+        logger.debug(f"MediÃ§Ã£o: {value} N/cmÂ²")
 
     def _on_complete(self, results: dict):
         """Handle measurement completion."""
@@ -575,23 +868,23 @@ class TensionMeasurementDialog(QDialog):
         if 'statistics' in analysis:
             stats = analysis['statistics']
             msg = (
-                f"✅ Medição Concluída!\n\n"
-                f"Média: {stats['mean']} N/cm²\n"
-                f"Mediana: {stats['median']} N/cm²\n"
-                f"Desvio padrão: {stats['std']} N/cm²\n"
-                f"Mínimo: {stats['min']} N/cm²\n"
-                f"Máximo: {stats['max']} N/cm²\n\n"
+                f"âœ… MediÃ§Ã£o ConcluÃ­da!\n\n"
+                f"MÃ©dia: {stats['mean']} N/cmÂ²\n"
+                f"Mediana: {stats['median']} N/cmÂ²\n"
+                f"Desvio padrÃ£o: {stats['std']} N/cmÂ²\n"
+                f"MÃ­nimo: {stats['min']} N/cmÂ²\n"
+                f"MÃ¡ximo: {stats['max']} N/cmÂ²\n\n"
             )
 
             if 'classification' in analysis:
                 cls = analysis['classification']
-                msg += f"Classificação: {cls['category']}\n{cls['message']}"
+                msg += f"ClassificaÃ§Ã£o: {cls['category']}\n{cls['message']}"
 
             saved_path = results.get('saved_to')
             if saved_path:
                 msg += f"\n\nSalvo em:\n{saved_path}"
 
-            QMessageBox.information(self, "Medição Concluída", msg)
+            QMessageBox.information(self, "MediÃ§Ã£o ConcluÃ­da", msg)
 
         # Generate and show report
         if self.orchestrator:
@@ -601,7 +894,7 @@ class TensionMeasurementDialog(QDialog):
     def _on_error(self, error_message: str):
         """Handle measurement error."""
         self._set_measuring_state(False)
-        QMessageBox.critical(self, "Erro na Medição", error_message)
+        QMessageBox.critical(self, "Erro na MediÃ§Ã£o", error_message)
 
     def _set_measuring_state(self, measuring: bool):
         """Update UI state based on measurement status."""
@@ -617,20 +910,20 @@ class TensionMeasurementDialog(QDialog):
 
     # ==================== LIFECYCLE ====================
 
-    def closeEvent(self, event):
+    def closeEvent(self, a0: any) -> None:
         """Handle dialog close."""
         # Stop measurement if running
         if self.is_measuring:
             reply = QMessageBox.question(
                 self,
-                "Medição em Andamento",
-                "Medição ainda está rodando. Deseja parar e fechar?",
+                "MediÃ§Ã£o em Andamento",
+                "MediÃ§Ã£o ainda estÃ¡ rodando. Deseja parar e fechar?",
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
                 self._on_stop()
             else:
-                event.ignore()
+                a0.ignore()
                 return
 
         # Cleanup
@@ -640,5 +933,6 @@ class TensionMeasurementDialog(QDialog):
         if self.tensiometer.is_connected:
             self.tensiometer.disconnect()
 
-        event.accept()
-        logger.debug("Diálogo fechado")
+        a0.accept()
+        logger.debug("DiÃ¡logo fechado")
+

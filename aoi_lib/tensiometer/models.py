@@ -263,3 +263,83 @@ class TensiometerConfig:
         0x04: "kg/cm²",
         0x06: "lb/cm²"
     })
+
+
+@dataclass
+class MeasurementPattern:
+    """
+    Padrão de medição de tensão - configurações reutilizáveis para grid de medição.
+
+    Attributes:
+        name: Nome do padrão (ex: "padrão 3x3", "padrão 5x5")
+        description: Descrição opcional do padrão
+        grid_parameters: GridParameters com configurações do grid
+        stabilization_time_ms: Tempo de estabilização após movimento Z (ms)
+        feed_rate: Velocidade de movimento CNC (mm/min)
+        created_at: Timestamp de criação
+        modified_at: Timestamp de última modificação
+        created_by: Usuário que criou o padrão
+    """
+    name: str
+    grid_parameters: GridParameters
+    description: str = ""
+    stabilization_time_ms: int = 500
+    feed_rate: float = 1000.0
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    modified_at: str = field(default_factory=lambda: datetime.now().isoformat())
+    created_by: str = ""
+
+    def to_dict(self) -> Dict:
+        """Converte para dicionário para serialização JSON."""
+        return {
+            "name": self.name,
+            "description": self.description,
+            "parameters": {
+                "start": {
+                    "x": self.grid_parameters.start_point[0],
+                    "y": self.grid_parameters.start_point[1]
+                },
+                "end": {
+                    "x": self.grid_parameters.end_point[0],
+                    "y": self.grid_parameters.end_point[1]
+                },
+                "grid_size": self.grid_parameters.grid_size,
+                "measurement_height": self.grid_parameters.z_height,
+                "movement_height": self.grid_parameters.z_move,
+                "stabilization_time": self.stabilization_time_ms,
+                "movement_feed": self.feed_rate
+            },
+            "created_at": self.created_at,
+            "modified_at": self.modified_at,
+            "created_by": self.created_by
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict) -> "MeasurementPattern":
+        """Cria MeasurementPattern a partir de dicionário."""
+        params = data.get("parameters", {})
+        start = params.get("start", {})
+        end = params.get("end", {})
+
+        grid_params = GridParameters(
+            start_point=(start.get("x", 0.0), start.get("y", 0.0)),
+            end_point=(end.get("x", 100.0), end.get("y", 100.0)),
+            grid_size=params.get("grid_size", 3),
+            z_height=params.get("measurement_height", 5.0),
+            z_move=params.get("movement_height", 10.0)
+        )
+
+        return cls(
+            name=data.get("name", "Padrão"),
+            description=data.get("description", ""),
+            grid_parameters=grid_params,
+            stabilization_time_ms=params.get("stabilization_time", 500),
+            feed_rate=params.get("movement_feed", 1000.0),
+            created_at=data.get("created_at", datetime.now().isoformat()),
+            modified_at=data.get("modified_at", data.get("created_at", datetime.now().isoformat())),
+            created_by=data.get("created_by", "")
+        )
+
+    def update_modified(self):
+        """Atualiza timestamp de modificação."""
+        self.modified_at = datetime.now().isoformat()
