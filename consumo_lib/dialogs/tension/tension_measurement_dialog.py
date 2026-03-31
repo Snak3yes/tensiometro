@@ -24,6 +24,7 @@ from aoi_lib.config_manager import AOIConfigManager
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.movement_control import MovementControlWidget
+from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
 
 # Import refactored modules
 from aoi_lib.tensiometer import (
@@ -84,6 +85,7 @@ class TensionMeasurementDialog(QDialog):
 
         # Pattern manager
         self.pattern_manager = MeasurementPatternManager()
+        self.criteria_manager = TensionCriteriaManager(self.config)
 
         # UI State
         self.current_points = []
@@ -375,6 +377,31 @@ class TensionMeasurementDialog(QDialog):
 
         layout.addWidget(progress_group)
 
+        result_group = QGroupBox("Resultado do Teste")
+        result_layout = QVBoxLayout(result_group)
+        result_layout.setSpacing(SPACE.SM)
+
+        self.result_status_label = QLabel("Aguardando mediÃ§Ã£o")
+        self.result_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.result_status_label.setStyleSheet(
+            self._build_result_status_style(COLORS.TEXT_HINT, COLORS.SURFACE_VARIANT)
+        )
+        result_layout.addWidget(self.result_status_label)
+
+        self.result_details_label = QLabel(
+            "O resultado final serÃ¡ avaliado pelos critÃ©rios de tensÃ£o configurados."
+        )
+        self.result_details_label.setWordWrap(True)
+        self.result_details_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY};")
+        result_layout.addWidget(self.result_details_label)
+
+        self.result_file_label = QLabel("Arquivo: --")
+        self.result_file_label.setWordWrap(True)
+        self.result_file_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
+        result_layout.addWidget(self.result_file_label)
+
+        layout.addWidget(result_group)
+
         # ==================== CONTROL BUTTONS ====================
         btn_layout = QHBoxLayout()
         btn_layout.setSpacing(SPACE.SM)
@@ -589,6 +616,85 @@ class TensionMeasurementDialog(QDialog):
         """Return the coordinate unit currently available for automatic measurement."""
         pulses_per_mm = float(getattr(self.cnc, "pulses_per_mm", 1.0) or 1.0)
         return "mm" if pulses_per_mm > 1.0 else "pulsos"
+
+    def _build_result_status_style(self, text_color: str, bg_color: str) -> str:
+        return f"""
+            QLabel {{
+                font-size: {TYPO.TITLE_SMALL}px;
+                font-weight: bold;
+                padding: {SPACE.SM}px;
+                border-radius: {DIM.RADIUS_MD}px;
+                background-color: {bg_color};
+                color: {text_color};
+                min-height: 40px;
+            }}
+        """
+
+    def _set_result_summary(
+        self,
+        status: str,
+        details: str,
+        file_path: Optional[str] = None,
+        *,
+        text_color: Optional[str] = None,
+        bg_color: Optional[str] = None,
+    ) -> None:
+        resolved_text = text_color or COLORS.TEXT_PRIMARY
+        resolved_bg = bg_color or COLORS.SURFACE_VARIANT
+        self.result_status_label.setText(status)
+        self.result_status_label.setStyleSheet(
+            self._build_result_status_style(resolved_text, resolved_bg)
+        )
+        self.result_details_label.setText(details)
+        self.result_file_label.setText(f"Arquivo: {file_path}" if file_path else "Arquivo: --")
+
+    def _evaluate_measurement_result(self, results: dict) -> tuple[str, str, str, str]:
+        criteria = self.criteria_manager.get_criteria()
+        measurements = results.get("measurements", [])
+
+        tensions = []
+        for measurement in measurements:
+            try:
+                tensions.append(float(measurement.get("tension")))
+            except (TypeError, ValueError):
+                continue
+
+        if not tensions:
+            return (
+                "SEM DADOS",
+                "NÃ£o foi possÃ­vel extrair leituras vÃ¡lidas para avaliar o teste.",
+                COLORS.TEXT_PRIMARY,
+                COLORS.SURFACE_VARIANT,
+            )
+
+        ok_count = 0
+        warning_count = 0
+        ng_count = 0
+        for value in tensions:
+            if value < criteria.min_tension or value > criteria.max_tension:
+                ng_count += 1
+            elif value < criteria.warning_low or value > criteria.warning_high:
+                warning_count += 1
+            else:
+                ok_count += 1
+
+        mean_value = sum(tensions) / len(tensions)
+        if ng_count > 0:
+            status = "NG"
+            text_color = COLORS.BACKGROUND
+            bg_color = COLORS.ERROR
+        else:
+            status = "OK"
+            text_color = COLORS.BACKGROUND
+            bg_color = COLORS.SUCCESS
+
+        details = (
+            f"MÃ©dia {mean_value:.2f} N/cmÂ² | "
+            f"OK: {ok_count} | WARN: {warning_count} | NG: {ng_count} | "
+            f"CritÃ©rios: min={criteria.min_tension:.1f}, max={criteria.max_tension:.1f}, "
+            f"warn={criteria.warning_low:.1f}-{criteria.warning_high:.1f}"
+        )
+        return status, details, text_color, bg_color
 
     def _read_current_xy_for_measurement(self) -> tuple[float, float]:
         """
@@ -822,6 +928,10 @@ class TensionMeasurementDialog(QDialog):
         )
 
         # Prepare measurement
+        self._set_result_summary(
+            "EM EXECUCAO",
+            "Medicao iniciada. O resultado final sera calculado ao concluir o grid.",
+        )
         result = self.orchestrator.prepare_measurement(
             start_point=(start_x, start_y),
             end_point=(end_x, end_y),
@@ -832,6 +942,12 @@ class TensionMeasurementDialog(QDialog):
         )
 
         if not result['success']:
+            self._set_result_summary(
+                "PARAMETROS INVALIDOS",
+                f"Falha na validacao da medicao: {result['error']}",
+                text_color=COLORS.BACKGROUND,
+                bg_color=COLORS.ERROR,
+            )
             QMessageBox.critical(self, "Erro de Validação",
                                f"Parâmetros inválidos:\n{result['error']}")
             return
@@ -932,6 +1048,69 @@ class TensionMeasurementDialog(QDialog):
         else:
             self.start_btn.setEnabled(self.tensiometer.is_connected)
             self.stop_btn.setEnabled(False)
+
+    def _on_stop(self):
+        """Stop measurement."""
+        if self.orchestrator:
+            self.orchestrator.stop_measurement()
+            self._set_measuring_state(False)
+            self._set_result_summary(
+                "INTERROMPIDO",
+                "A medicao foi interrompida antes da conclusao do teste.",
+                text_color=COLORS.TEXT_PRIMARY,
+                bg_color=COLORS.WARNING,
+            )
+            logger.info("Medicao interrompida")
+
+    def _on_complete(self, results: dict):
+        """Handle measurement completion."""
+        self._set_measuring_state(False)
+        saved_path = results.get("saved_to")
+        status, details, text_color, bg_color = self._evaluate_measurement_result(results)
+        self._set_result_summary(
+            status,
+            details,
+            file_path=saved_path,
+            text_color=text_color,
+            bg_color=bg_color,
+        )
+
+        analysis = results.get("analysis", {})
+        if "statistics" in analysis:
+            stats = analysis["statistics"]
+            msg = (
+                f"Medicao concluida.\n\n"
+                f"Media: {stats['mean']} N/cm²\n"
+                f"Mediana: {stats['median']} N/cm²\n"
+                f"Desvio padrao: {stats['std']} N/cm²\n"
+                f"Minimo: {stats['min']} N/cm²\n"
+                f"Maximo: {stats['max']} N/cm²\n\n"
+                f"Resultado do teste: {status}\n"
+            )
+
+            if "classification" in analysis:
+                cls = analysis["classification"]
+                msg += f"\nClassificacao estatistica: {cls['category']}\n{cls['message']}"
+
+            if saved_path:
+                msg += f"\n\nSalvo em:\n{saved_path}"
+
+            QMessageBox.information(self, "Medicao Concluida", msg)
+
+        if self.orchestrator:
+            report = self.orchestrator.get_report()
+            logger.info("\n" + report)
+
+    def _on_error(self, error_message: str):
+        """Handle measurement error."""
+        self._set_measuring_state(False)
+        self._set_result_summary(
+            "ERRO",
+            error_message,
+            text_color=COLORS.BACKGROUND,
+            bg_color=COLORS.ERROR,
+        )
+        QMessageBox.critical(self, "Erro na Medicao", error_message)
 
     # ==================== LIFECYCLE ====================
 
