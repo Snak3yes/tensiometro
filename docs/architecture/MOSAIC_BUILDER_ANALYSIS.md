@@ -94,8 +94,8 @@ tools/mosaic_builder.py    # GUI that imports from aoi_lib.mosaic
 **Cons:**
 - ❌ More complex (2 files instead of 1)
 - ❌ Circular import risk if GUI needs to call back
-- �1 Maintains two files for what is logically one tool
-- �1 Extra effort for minimal benefit
+- ❌ Maintains two files for what is logically one tool
+- ❌ Extra effort for minimal benefit
 
 ### Option 3: Keep in `tools/` ✅ **RECOMMENDED**
 

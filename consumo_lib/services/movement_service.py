@@ -564,14 +564,14 @@ class MovementService:
             if machine_status in ["Alarm", "Disconnected"]:
                 return MovementResult(
                     success=False,
-                    error_message=f"MÃ¡quina em estado inadequado para homing: {machine_status}. " +
+                    error_message=f"Máquina em estado inadequado para homing: {machine_status}. " +
                                  ("Reset o alarme antes de prosseguir." if machine_status == "Alarm" else
                                   "Conecte o PLC primeiro.")
                 )
 
             logger.debug(f"Iniciando homing PLC com status: {machine_status}")
             self.cnc.home_all()
-            logger.info("Homing PLC concluÃ­do")
+            logger.info("Homing PLC concluído")
             return MovementResult(success=True)
         except Exception as e:
             logger.error(f"Erro ao executar homing PLC: {e}")
