@@ -39,6 +39,7 @@ class StencilIdentificationWidget(QWidget):
     stencil_selected = pyqtSignal(object)  # Stencil
     stencil_cleared = pyqtSignal()
     recipe_requested = pyqtSignal(str)  # Nome da receita para carregar
+    measurement_requested = pyqtSignal()
 
     def __init__(self, tracker: StencilTracker, parent=None):
         super().__init__(parent)
@@ -64,7 +65,7 @@ class StencilIdentificationWidget(QWidget):
         self.code_input.setFont(TYPO.get_font(TYPO.BODY_MEDIUM))
         input_layout.addWidget(self.code_input, 1)
 
-        self.btn_load = StandardButton("Carregar")
+        self.btn_load = StandardButton("Carregar Stencil")
         self.btn_load.setDefault(True)
         input_layout.addWidget(self.btn_load)
 
@@ -140,6 +141,11 @@ class StencilIdentificationWidget(QWidget):
         self.btn_edit.clicked.connect(self._edit_stencil)
         btn_layout.addWidget(self.btn_edit)
 
+        self.btn_run_tension = StandardButton("Iniciar Medição", variant="primary-green")
+        self.btn_run_tension.setEnabled(False)
+        self.btn_run_tension.clicked.connect(self._request_tension_measurement)
+        btn_layout.addWidget(self.btn_run_tension)
+
         btn_layout.addStretch()
 
         info_layout.addLayout(btn_layout, 4, 0, 1, 3)
@@ -196,6 +202,7 @@ class StencilIdentificationWidget(QWidget):
         self.empty_label.setVisible(False)
         self.info_frame.setVisible(True)
         self.btn_clear.setEnabled(True)
+        self.btn_run_tension.setEnabled(True)
 
         # Status com cor
         status_colors = {
@@ -250,6 +257,7 @@ class StencilIdentificationWidget(QWidget):
         self.info_frame.setVisible(False)
         self.empty_label.setVisible(True)
         self.btn_clear.setEnabled(False)
+        self.btn_run_tension.setEnabled(False)
         self.alert_frame.setVisible(False)
 
         self.stencil_cleared.emit()
@@ -290,6 +298,18 @@ class StencilIdentificationWidget(QWidget):
     def get_current_stencil(self) -> Optional[Stencil]:
         """Retorna stencil atualmente selecionado."""
         return self.current_stencil
+
+    def _request_tension_measurement(self):
+        """Solicita abertura do fluxo de medição para o stencil selecionado."""
+        if not self.current_stencil:
+            QMessageBox.warning(
+                self,
+                "Stencil",
+                "Carregue um stencil antes de iniciar a medição."
+            )
+            return
+
+        self.measurement_requested.emit()
 
     def set_stencil_code(self, code: str):
         """Define código programaticamente e carrega."""

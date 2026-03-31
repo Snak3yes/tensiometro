@@ -727,14 +727,36 @@ class AOIControllerApp(QMainWindow):
 
     def _run_tension_measurement(self):
         """Executa medição de tensão (delega para TensionMeasurementController)."""
+        tracking_was_visible = (
+            hasattr(self, '_tracking_dialog')
+            and self._tracking_dialog is not None
+            and self._tracking_dialog.isVisible()
+        )
+
+        if tracking_was_visible:
+            self._tracking_dialog.hide()
+
         if self.tension_measurement_controller is not None:
-            self.tension_measurement_controller.run_measurement(
-                self.current_stencil,
-                self.current_recipe
-            )
+            try:
+                self.tension_measurement_controller.run_recipe_measurement(
+                    self.current_stencil,
+                    self.current_recipe,
+                    interaction_parent=self._tracking_dialog if tracking_was_visible else self,
+                )
+            finally:
+                if tracking_was_visible and self._tracking_dialog is not None:
+                    self._tracking_dialog.show()
+                    self._tracking_dialog.raise_()
+                    self._tracking_dialog.activateWindow()
         else:
-            logger.error("TensionMeasurementController não está disponível")
-            QMessageBox.warning(self, "Erro", "TensionMeasurementController não está disponível")
+            try:
+                logger.error("TensionMeasurementController não está disponível")
+                QMessageBox.warning(self, "Erro", "TensionMeasurementController não está disponível")
+            finally:
+                if tracking_was_visible and self._tracking_dialog is not None:
+                    self._tracking_dialog.show()
+                    self._tracking_dialog.raise_()
+                    self._tracking_dialog.activateWindow()
 
     def _save_tension_to_history(self, tension_dialog):
         """Salva resultado da medição de tensão (delega para TensionMeasurementController)."""
@@ -985,6 +1007,12 @@ class AOIControllerApp(QMainWindow):
             )
             self._tracking_dialog.stencil_cleared.connect(
                 self.stencil_manager_wrapper.clear_selection
+            )
+            self._tracking_dialog.recipe_requested.connect(
+                self.recipe_manager_controller.load_recipe
+            )
+            self._tracking_dialog.measurement_requested.connect(
+                self._run_tension_measurement
             )
 
             # Mantém referência global para stencil_identification

@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from aoi_lib.config_manager import AOIConfigManager
     from consumo_lib.tabs import (
         CNCControlTab,
+        RecipeManagementTab,
         TensionTab,
         TensionMeasurementTab,
         TrackingTab,
@@ -66,6 +67,24 @@ class TabFactory:
         )
 
         logger.debug("TensionMeasurementTab criada")
+        return tab
+
+    def create_recipe_management_tab(self) -> 'RecipeManagementTab':
+        """
+        Cria aba de gerenciamento de receitas.
+
+        Returns:
+            Instância de RecipeManagementTab configurada
+        """
+        from consumo_lib.tabs import RecipeManagementTab
+
+        tab = RecipeManagementTab(
+            recipe_manager=self.main_window.recipe_manager,
+            recipe_controller=self.main_window.recipe_manager_controller,
+            parent=self.main_window
+        )
+
+        logger.debug("RecipeManagementTab criada")
         return tab
 
     def create_cnc_control_tab(self) -> 'CNCControlTab':
@@ -155,6 +174,11 @@ class TabFactory:
         self.main_window.tension_measurement_tab = tension_measurement_tab
         tab_widget.addTab(tension_measurement_tab, "Medição de Tensão")
         tabs.append(tension_measurement_tab)
+
+        recipe_management_tab = self.create_recipe_management_tab()
+        self.main_window.recipe_management_tab = recipe_management_tab
+        tab_widget.addTab(recipe_management_tab, "Receitas")
+        tabs.append(recipe_management_tab)
 
         logger.info(f"{len(tabs)} aba criada e adicionada ao QTabWidget")
         return tabs

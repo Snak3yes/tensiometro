@@ -194,7 +194,9 @@ Material: {recipe.stencil.material}
 <h4>Tensão</h4>
 <p>
 Status: {'Habilitado' if recipe.tension.enabled else 'Desabilitado'}<br>
+Padrão: {recipe.tension.measurement_pattern_name or 'Manual'}<br>
 Grid: {recipe.tension.grid_rows} x {recipe.tension.grid_cols}<br>
+Alturas Z: mov={recipe.tension.movement_height} / med={recipe.tension.measurement_height}<br>
 Aceitação: {recipe.tension.acceptance.min_tension} - {recipe.tension.acceptance.max_tension} N/cm²
 </p>
 

@@ -91,6 +91,8 @@ class TensionMeasurementDialog(QDialog):
         self.current_points = []
         self.is_measuring = False
         self.selected_pattern_name: Optional[str] = None
+        self.criteria_override = None
+        self.active_recipe_name: Optional[str] = None
 
         # Setup UI
         self.setWindowTitle("Medição de Tensão do Stencil")
@@ -675,7 +677,7 @@ class TensionMeasurementDialog(QDialog):
         self.result_file_label.setText(f"Arquivo: {file_path}" if file_path else "Arquivo: --")
 
     def _evaluate_measurement_result(self, results: dict) -> tuple[str, str, str, str]:
-        criteria = self.criteria_manager.get_criteria()
+        criteria = self.criteria_override or self.criteria_manager.get_criteria()
         measurements = results.get("measurements", [])
 
         tensions = []
@@ -785,7 +787,47 @@ class TensionMeasurementDialog(QDialog):
             if pattern_name:
                 self._load_pattern(pattern_name)
 
-    def _load_pattern(self, pattern_name: str):
+    def apply_recipe(self, recipe) -> None:
+        """Aplica parâmetros de tensão de uma receita ao diálogo atual."""
+        if recipe is None or not getattr(recipe, "tension", None) or not recipe.tension.enabled:
+            return
+
+        self.active_recipe_name = recipe.name
+        self.criteria_override = recipe.tension.acceptance
+
+        pattern_name = getattr(recipe.tension, "measurement_pattern_name", "") or ""
+        if pattern_name and self._load_pattern(pattern_name, show_message=False):
+            self.current_pattern_label.setText(
+                f"Padrão da receita '{recipe.name}': {pattern_name}"
+            )
+        else:
+            self._apply_recipe_tension_defaults(recipe)
+            self.current_pattern_label.setText(f"Receita aplicada: {recipe.name}")
+
+        logger.info("Configurações de tensão aplicadas da receita '%s'", recipe.name)
+
+    def _apply_recipe_tension_defaults(self, recipe) -> None:
+        """Aplica ao diálogo os parâmetros de tensão armazenados na receita."""
+        tension = recipe.tension
+        grid_size = max(2, int(tension.grid_rows))
+        if tension.grid_rows != tension.grid_cols:
+            logger.warning(
+                "Receita '%s' possui grid %sx%s; o diálogo atual suporta NxN e usará %s.",
+                recipe.name,
+                tension.grid_rows,
+                tension.grid_cols,
+                grid_size,
+            )
+
+        self.start_x_input.setText(f"{tension.start_point.x:.2f}")
+        self.start_y_input.setText(f"{tension.start_point.y:.2f}")
+        self.end_x_input.setText(f"{tension.end_point.x:.2f}")
+        self.end_y_input.setText(f"{tension.end_point.y:.2f}")
+        self.grid_size_input.setText(str(grid_size))
+        self.z_height_input.setText(f"{tension.measurement_height:.2f}")
+        self.z_move_input.setText(f"{tension.movement_height:.2f}")
+
+    def _load_pattern(self, pattern_name: str, show_message: bool = True) -> bool:
         """
         Carrega padrão de medição salvo.
 
@@ -794,11 +836,12 @@ class TensionMeasurementDialog(QDialog):
         """
         pattern = self.pattern_manager.load_pattern(pattern_name)
         if pattern is None:
-            QMessageBox.critical(
-                self, "Erro",
-                f"Não foi possível carregar o padrão '{pattern_name}'."
-            )
-            return
+            if show_message:
+                QMessageBox.critical(
+                    self, "Erro",
+                    f"Não foi possível carregar o padrão '{pattern_name}'."
+                )
+            return False
 
         # Aplica parâmetros do padrão aos campos
         grid_params = pattern.grid_parameters
@@ -816,16 +859,19 @@ class TensionMeasurementDialog(QDialog):
         self.current_pattern_label.setStyleSheet(
             f"color: {COLORS.SUCCESS}; font-size: {TYPO.LABEL_SMALL}px; font-weight: bold;"
         )
+        self.selected_pattern_name = pattern.name
 
         logger.info(f"Padrão carregado: {pattern.name}")
-        QMessageBox.information(
-            self, "Padrão Carregado",
-            f"Padrão '{pattern.name}' carregado com sucesso!\n\n"
-            f"Grid: {grid_params.grid_size}x{grid_params.grid_size}\n"
-            f"Área: ({grid_params.start_point[0]:.1f}, {grid_params.start_point[1]:.1f}) -> "
-            f"({grid_params.end_point[0]:.1f}, {grid_params.end_point[1]:.1f})\n"
-            f"Altura Z: {grid_params.z_height:.2f}mm"
-        )
+        if show_message:
+            QMessageBox.information(
+                self, "Padrão Carregado",
+                f"Padrão '{pattern.name}' carregado com sucesso!\n\n"
+                f"Grid: {grid_params.grid_size}x{grid_params.grid_size}\n"
+                f"Área: ({grid_params.start_point[0]:.1f}, {grid_params.start_point[1]:.1f}) -> "
+                f"({grid_params.end_point[0]:.1f}, {grid_params.end_point[1]:.1f})\n"
+                f"Altura Z: {grid_params.z_height:.2f}mm"
+            )
+        return True
 
     def _on_save_pattern(self):
         """Handle para salvar configuração atual como padrão."""

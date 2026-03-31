@@ -34,6 +34,7 @@ class TensionMeasurementTab(QWidget):
     """
 
     program_selected = pyqtSignal(dict)
+    measure_stencil_requested = pyqtSignal()
 
     def __init__(self, stencil_manager=None, parent=None):
         super().__init__(parent)
@@ -63,6 +64,19 @@ class TensionMeasurementTab(QWidget):
         title = QLabel("Medição de Tensão")
         title.setFont(TYPO.get_font(TYPO.HEADLINE_MEDIUM, bold=True))
         layout.addWidget(title)
+
+        header_actions = QHBoxLayout()
+        header_actions.addStretch()
+
+        self.btn_measure_stencil = StandardButton(
+            "Medir stencil",
+            variant="primary-green",
+            semantic_size="inline-primary"
+        )
+        self.btn_measure_stencil.clicked.connect(self.measure_stencil_requested.emit)
+        header_actions.addWidget(self.btn_measure_stencil)
+
+        layout.addLayout(header_actions)
 
         # Splitter 70%/30%
         splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -749,7 +763,7 @@ class TensionMeasurementTab(QWidget):
         # Preenche campos da Linha 2: Receita, Tensão Média, Total Medições
         recipe = stencil.get('recipe', '-') or '-'
         tension_avg = stencil.get('tension_avg')
-        tension_count = stencil.get('measurement_count', 0)
+        tension_count = stencil.get('measurements_count', stencil.get('measurement_count', 0))
 
         self.field_recipe_label.setText(recipe)
 
@@ -807,7 +821,8 @@ class TensionMeasurementTab(QWidget):
                 data = json.load(f)
 
             # Valida se é arquivo de tensão válido
-            if data.get('type') != 'stencil_tension':
+            measurement_type = data.get('type')
+            if measurement_type not in {'stencil_tension', 'stencil_tension_session'} and 'measurements' not in data:
                 QMessageBox.warning(
                     self, "Arquivo Inválido",
                     "Este não é um arquivo de medição de tensão válido."
@@ -978,12 +993,20 @@ class TensionMeasurementTab(QWidget):
             params = self.measurements_data.get('parameters', {})
             start = params.get('start', {})
             end = params.get('end', {})
+            grid_size = params.get('grid_size', '--')
+
+            if isinstance(start, (list, tuple)) and len(start) >= 2:
+                start = {'x': start[0], 'y': start[1]}
+            if isinstance(end, (list, tuple)) and len(end) >= 2:
+                end = {'x': end[0], 'y': end[1]}
             if start and end:
-                area_w = end.get('x', 0) - start.get('x', 0)
-                area_h = end.get('y', 0) - start.get('y', 0)
-                self.file_details_label.setText(f"Grid: 4x4 | Área: {area_w}x{area_h}mm")
+                area_w = float(end.get('x', 0)) - float(start.get('x', 0))
+                area_h = float(end.get('y', 0)) - float(start.get('y', 0))
+                self.file_details_label.setText(
+                    f"Grid: {grid_size}x{grid_size} | Área: {area_w:.1f}x{area_h:.1f}mm"
+                )
             else:
-                self.file_details_label.setText("Grid: 4x4")
+                self.file_details_label.setText(f"Grid: {grid_size}x{grid_size}")
 
     def filter_stencils(self, search_term: str = ""):
         """Filtra stencils por termo de busca."""

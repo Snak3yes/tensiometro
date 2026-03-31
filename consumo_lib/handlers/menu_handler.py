@@ -169,8 +169,11 @@ class MenuHandler(QObject):
 
         menu.addSeparator()
 
-        # Nova Medição de Tensão (movido de menu dedicado)
-        tension_action = QAction('Nova Medição de Tensão', self.main_window)
+        # Padrões de Medição (fluxo manual)
+        tension_action = QAction('Padrões de Medição...', self.main_window)
+        tension_action.setToolTip(
+            'Abre a tela manual de medição para criar, ajustar e salvar padrões.'
+        )
         tension_action.triggered.connect(self.main_window.open_stencil_tension_dialog)
         menu.addAction(tension_action)
         self._register_action('tools.tension_new', tension_action)

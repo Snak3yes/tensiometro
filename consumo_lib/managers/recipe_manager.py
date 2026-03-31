@@ -155,6 +155,7 @@ class RecipeManagerWrapper(QObject):
         tension_settings = {
             'grid_rows': r.tension.grid_rows,
             'grid_cols': r.tension.grid_cols,
+            'measurement_pattern_name': r.tension.measurement_pattern_name,
             'start_point': {
                 'x': r.tension.start_point.x,
                 'y': r.tension.start_point.y
@@ -163,6 +164,10 @@ class RecipeManagerWrapper(QObject):
                 'x': r.tension.end_point.x,
                 'y': r.tension.end_point.y
             },
+            'movement_height': r.tension.movement_height,
+            'measurement_height': r.tension.measurement_height,
+            'stabilization_time_ms': r.tension.stabilization_time_ms,
+            'feed_rate': r.tension.feed_rate,
             'acceptance': {
                 'min_tension': r.tension.acceptance.min_tension,
                 'max_tension': r.tension.acceptance.max_tension,

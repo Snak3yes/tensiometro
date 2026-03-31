@@ -288,6 +288,9 @@ class MainUIBuilder:
             parent=self.window
         )
 
+        if hasattr(tab, "measure_stencil_requested"):
+            tab.measure_stencil_requested.connect(self.window.open_tracking_dialog)
+
         # NOTA: stencil_identification é definido em open_tracking_dialog()
         # TensionMeasurementTab usa stencil_manager internamente, não precisa de conexões
 

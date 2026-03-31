@@ -98,8 +98,14 @@ class RecipeManagerController(QObject):
             recipe_error se erro
         """
         try:
-            self.recipe_manager_wrapper.load_recipe(recipe_name)
-            # O resto é tratado pelo signal do wrapper conectado ao _on_recipe_loaded
+            recipe = self.recipe_manager_wrapper.load_recipe(recipe_name)
+            if recipe is not None:
+                self.on_recipe_loaded(
+                    recipe,
+                    getattr(self.parent_window, 'current_recipe_action', None)
+                )
+            else:
+                self.recipe_error.emit(f"Receita '{recipe_name}' não encontrada")
         except Exception as e:
             error_msg = f"Erro ao carregar receita '{recipe_name}': {e}"
             logger.error(error_msg)
@@ -253,9 +259,12 @@ class RecipeManagerController(QObject):
             self.parent_window,
             "Receita de Tensão",
             f"Configurações de tensão da receita '{current_recipe.name}':\n\n"
+            f"Padrão vinculado: {settings.get('measurement_pattern_name') or 'Manual'}\n"
             f"Grid: {settings['grid_rows']} x {settings['grid_cols']}\n"
             f"Área: ({settings['start_point']['x']}, {settings['start_point']['y']}) → "
             f"({settings['end_point']['x']}, {settings['end_point']['y']})\n\n"
+            f"Altura movimento: {settings.get('movement_height')} mm\n"
+            f"Altura medição: {settings.get('measurement_height')} mm\n\n"
             f"Critérios de Aceitação:\n"
             f"  • Mínimo: {acc['min_tension']} N/cm²\n"
             f"  • Máximo: {acc['max_tension']} N/cm²\n"

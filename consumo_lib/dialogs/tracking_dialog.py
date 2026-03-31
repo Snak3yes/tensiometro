@@ -42,6 +42,7 @@ class TrackingDialog(QDialog):
     stencil_selected = pyqtSignal(object)  # Stencil
     stencil_cleared = pyqtSignal()
     recipe_requested = pyqtSignal(str)  # recipe_name
+    measurement_requested = pyqtSignal()
 
     def __init__(self, stencil_tracker, parent=None):
         """
@@ -91,6 +92,7 @@ class TrackingDialog(QDialog):
         self.stencil_identification.stencil_selected.connect(self.stencil_selected.emit)
         self.stencil_identification.stencil_cleared.connect(self.stencil_cleared.emit)
         self.stencil_identification.recipe_requested.connect(self.recipe_requested.emit)
+        self.stencil_identification.measurement_requested.connect(self.measurement_requested.emit)
 
         layout.addWidget(self.stencil_identification)
 

@@ -26,6 +26,8 @@ from aoi_lib.recipe_manager import (
     Point2D, MACHINE_LIMITS
 )
 from consumo_lib.ui import COLORS, SPACE
+from consumo_lib.ui.widget_standards import StandardButton
+from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
 
 logger = logging.getLogger(__name__)
 
@@ -57,6 +59,10 @@ class RecipeEditorDialog(QDialog):
         super().__init__(parent)
         self.recipe = recipe or Recipe(name="Nova Receita")
         self.is_new = recipe is None
+        self.pattern_manager = MeasurementPatternManager()
+
+        if self.is_new:
+            self.recipe.tension.enabled = True
 
         self.setWindowTitle("Nova Receita" if self.is_new else f"Editar: {self.recipe.name}")
         self.setMinimumSize(700, 600)
@@ -197,41 +203,65 @@ class RecipeEditorDialog(QDialog):
         grid_group = QGroupBox("Grid de Medição")
         grid_layout = QGridLayout(grid_group)
 
-        grid_layout.addWidget(QLabel("Linhas:"), 0, 0)
+        grid_layout.addWidget(QLabel("Padrão:"), 0, 0)
+        self.combo_measurement_pattern = QComboBox()
+        self.combo_measurement_pattern.addItem("Manual", "")
+        self._load_pattern_options()
+        grid_layout.addWidget(self.combo_measurement_pattern, 0, 1, 1, 2)
+
+        self.btn_apply_pattern = StandardButton("Aplicar Padrão", variant="secondary")
+        self.btn_apply_pattern.clicked.connect(self._apply_selected_pattern_to_tension_fields)
+        grid_layout.addWidget(self.btn_apply_pattern, 0, 3)
+
+        grid_layout.addWidget(QLabel("Linhas:"), 1, 0)
         self.spin_grid_rows = QSpinBox()
         self.spin_grid_rows.setRange(1, 20)
         self.spin_grid_rows.setValue(5)
-        grid_layout.addWidget(self.spin_grid_rows, 0, 1)
+        grid_layout.addWidget(self.spin_grid_rows, 1, 1)
 
-        grid_layout.addWidget(QLabel("Colunas:"), 0, 2)
+        grid_layout.addWidget(QLabel("Colunas:"), 1, 2)
         self.spin_grid_cols = QSpinBox()
         self.spin_grid_cols.setRange(1, 20)
         self.spin_grid_cols.setValue(5)
-        grid_layout.addWidget(self.spin_grid_cols, 0, 3)
+        grid_layout.addWidget(self.spin_grid_cols, 1, 3)
 
-        grid_layout.addWidget(QLabel("Ponto Inicial X:"), 1, 0)
+        grid_layout.addWidget(QLabel("Ponto Inicial X:"), 2, 0)
         self.spin_tension_start_x = QDoubleSpinBox()
         self.spin_tension_start_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
         self.spin_tension_start_x.setValue(50)
-        grid_layout.addWidget(self.spin_tension_start_x, 1, 1)
+        grid_layout.addWidget(self.spin_tension_start_x, 2, 1)
 
-        grid_layout.addWidget(QLabel("Y:"), 1, 2)
+        grid_layout.addWidget(QLabel("Y:"), 2, 2)
         self.spin_tension_start_y = QDoubleSpinBox()
         self.spin_tension_start_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
         self.spin_tension_start_y.setValue(50)
-        grid_layout.addWidget(self.spin_tension_start_y, 1, 3)
+        grid_layout.addWidget(self.spin_tension_start_y, 2, 3)
 
-        grid_layout.addWidget(QLabel("Ponto Final X:"), 2, 0)
+        grid_layout.addWidget(QLabel("Ponto Final X:"), 3, 0)
         self.spin_tension_end_x = QDoubleSpinBox()
         self.spin_tension_end_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
         self.spin_tension_end_x.setValue(350)
-        grid_layout.addWidget(self.spin_tension_end_x, 2, 1)
+        grid_layout.addWidget(self.spin_tension_end_x, 3, 1)
 
-        grid_layout.addWidget(QLabel("Y:"), 2, 2)
+        grid_layout.addWidget(QLabel("Y:"), 3, 2)
         self.spin_tension_end_y = QDoubleSpinBox()
         self.spin_tension_end_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
         self.spin_tension_end_y.setValue(250)
-        grid_layout.addWidget(self.spin_tension_end_y, 2, 3)
+        grid_layout.addWidget(self.spin_tension_end_y, 3, 3)
+
+        grid_layout.addWidget(QLabel("Altura Movimento:"), 4, 0)
+        self.spin_tension_move_height = QDoubleSpinBox()
+        self.spin_tension_move_height.setRange(-100000, 100000)
+        self.spin_tension_move_height.setDecimals(3)
+        self.spin_tension_move_height.setValue(10)
+        grid_layout.addWidget(self.spin_tension_move_height, 4, 1)
+
+        grid_layout.addWidget(QLabel("Altura Medição:"), 4, 2)
+        self.spin_tension_measurement_height = QDoubleSpinBox()
+        self.spin_tension_measurement_height.setRange(-100000, 100000)
+        self.spin_tension_measurement_height.setDecimals(3)
+        self.spin_tension_measurement_height.setValue(5)
+        grid_layout.addWidget(self.spin_tension_measurement_height, 4, 3)
 
         layout.addWidget(grid_group)
 
@@ -373,6 +403,9 @@ class RecipeEditorDialog(QDialog):
         self.spin_tension_start_y.setValue(r.tension.start_point.y)
         self.spin_tension_end_x.setValue(r.tension.end_point.x)
         self.spin_tension_end_y.setValue(r.tension.end_point.y)
+        self._set_pattern_combo_value(r.tension.measurement_pattern_name)
+        self.spin_tension_move_height.setValue(r.tension.movement_height)
+        self.spin_tension_measurement_height.setValue(r.tension.measurement_height)
         self.spin_tension_min.setValue(r.tension.acceptance.min_tension)
         self.spin_tension_max.setValue(r.tension.acceptance.max_tension)
         self.spin_warning_low.setValue(r.tension.acceptance.warning_low)
@@ -416,6 +449,9 @@ class RecipeEditorDialog(QDialog):
             self.spin_tension_end_x.value(),
             self.spin_tension_end_y.value()
         )
+        r.tension.measurement_pattern_name = self.combo_measurement_pattern.currentData() or ""
+        r.tension.movement_height = self.spin_tension_move_height.value()
+        r.tension.measurement_height = self.spin_tension_measurement_height.value()
         r.tension.acceptance = TensionAcceptance(
             min_tension=self.spin_tension_min.value(),
             max_tension=self.spin_tension_max.value(),
@@ -454,3 +490,42 @@ class RecipeEditorDialog(QDialog):
 
         self.recipe = recipe
         super().accept()
+
+    def _load_pattern_options(self):
+        """Carrega padrões disponíveis no combobox de tensão."""
+        for pattern in self.pattern_manager.list_patterns():
+            name = pattern.get("name")
+            if name:
+                self.combo_measurement_pattern.addItem(name, name)
+
+    def _set_pattern_combo_value(self, pattern_name: str):
+        """Seleciona padrão salvo na receita, se existir."""
+        index = self.combo_measurement_pattern.findData(pattern_name or "")
+        self.combo_measurement_pattern.setCurrentIndex(index if index >= 0 else 0)
+
+    def _apply_selected_pattern_to_tension_fields(self):
+        """Aplica os parâmetros do padrão selecionado aos campos de tensão."""
+        pattern_name = self.combo_measurement_pattern.currentData()
+        if not pattern_name:
+            return
+
+        pattern = self.pattern_manager.load_pattern(pattern_name)
+        if pattern is None:
+            QMessageBox.warning(
+                self,
+                "Padrão não encontrado",
+                f"Não foi possível carregar o padrão '{pattern_name}'."
+            )
+            return
+
+        params = pattern.grid_parameters
+        self.spin_grid_rows.setValue(params.grid_size)
+        self.spin_grid_cols.setValue(params.grid_size)
+        self.spin_tension_start_x.setValue(params.start_point[0])
+        self.spin_tension_start_y.setValue(params.start_point[1])
+        self.spin_tension_end_x.setValue(params.end_point[0])
+        self.spin_tension_end_y.setValue(params.end_point[1])
+        self.spin_tension_move_height.setValue(params.z_move)
+        self.spin_tension_measurement_height.setValue(params.z_height)
+
+        logger.info("Padrão de medição aplicado à receita: %s", pattern_name)

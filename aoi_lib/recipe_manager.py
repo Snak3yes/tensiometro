@@ -136,6 +136,11 @@ class TensionConfig:
     start_point: Point2D = field(default_factory=Point2D)
     end_point: Point2D = field(default_factory=lambda: Point2D(300.0, 200.0))
     acceptance: TensionAcceptance = field(default_factory=TensionAcceptance)
+    measurement_pattern_name: str = ""
+    measurement_height: float = 5.0
+    movement_height: float = 10.0
+    stabilization_time_ms: int = 500
+    feed_rate: Optional[float] = None
     
     # Campos restaurados para compatibilidade
     z_start: float = 0.0
@@ -150,6 +155,11 @@ class TensionConfig:
             "start_point": self.start_point.to_dict(),
             "end_point": self.end_point.to_dict(),
             "acceptance": self.acceptance.to_dict(),
+            "measurement_pattern_name": self.measurement_pattern_name,
+            "measurement_height": self.measurement_height,
+            "movement_height": self.movement_height,
+            "stabilization_time_ms": self.stabilization_time_ms,
+            "feed_rate": self.feed_rate,
             "z_start": self.z_start,
             "z_end": self.z_end,
             "z_speed": self.z_speed
@@ -164,6 +174,11 @@ class TensionConfig:
             start_point=Point2D.from_dict(data.get("start_point", {})),
             end_point=Point2D.from_dict(data.get("end_point", {"x": 300.0, "y": 200.0})),
             acceptance=TensionAcceptance.from_dict(data.get("acceptance", {})),
+            measurement_pattern_name=data.get("measurement_pattern_name", ""),
+            measurement_height=data.get("measurement_height", data.get("z_end", 5.0)),
+            movement_height=data.get("movement_height", data.get("z_start", 10.0)),
+            stabilization_time_ms=data.get("stabilization_time_ms", 500),
+            feed_rate=data.get("feed_rate"),
             z_start=data.get("z_start", 0.0),
             z_end=data.get("z_end", -5.0),
             z_speed=data.get("z_speed", 100.0)
@@ -449,12 +464,12 @@ class RecipeManager:
         file_path = self.recipes_dir / f"{recipe_id}.json"
         
         if not file_path.exists():
-            # Tenta buscar pelo recipe_id dentro dos arquivos
+            # Tenta buscar pelo recipe_id ou nome dentro dos arquivos
             for fp in self.recipes_dir.glob("*.json"):
                 try:
                     with open(fp, 'r', encoding='utf-8') as f:
                         data = json.load(f)
-                        if data.get('recipe_id') == recipe_id:
+                        if data.get('recipe_id') == recipe_id or data.get('name') == recipe_id:
                             file_path = fp
                             break
                 except:
