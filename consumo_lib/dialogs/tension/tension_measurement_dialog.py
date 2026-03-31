@@ -407,7 +407,7 @@ class TensionMeasurementDialog(QDialog):
         result_layout = QVBoxLayout(result_group)
         result_layout.setSpacing(SPACE.SM)
 
-        self.result_status_label = QLabel("Aguardando mediÃ§Ã£o")
+        self.result_status_label = QLabel("Aguardando medição")
         self.result_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.result_status_label.setStyleSheet(
             self._build_result_status_style(COLORS.TEXT_HINT, COLORS.SURFACE_VARIANT)
@@ -415,7 +415,7 @@ class TensionMeasurementDialog(QDialog):
         result_layout.addWidget(self.result_status_label)
 
         self.result_details_label = QLabel(
-            "O resultado final serÃ¡ avaliado pelos critÃ©rios de tensÃ£o configurados."
+            "O resultado final será avaliado pelos critérios de tensão configurados."
         )
         self.result_details_label.setWordWrap(True)
         self.result_details_label.setStyleSheet(f"color: {COLORS.TEXT_SECONDARY};")
@@ -433,7 +433,7 @@ class TensionMeasurementDialog(QDialog):
         btn_layout.setSpacing(SPACE.SM)
 
         self.btn_save_pattern = StandardButton(
-            "💾 Salvar como Padrão",
+            "Salvar como Padrão",
             variant="primary-green",
             semantic_size="inline-primary"
         )
@@ -444,12 +444,12 @@ class TensionMeasurementDialog(QDialog):
 
         btn_layout.addStretch()
 
-        self.start_btn = StandardButton("▶ Iniciar Medição", variant="primary-green", semantic_size="dialog-primary")
+        self.start_btn = StandardButton("Iniciar Medição", variant="primary-green", semantic_size="dialog-primary")
         self.start_btn.setEnabled(False)
         self.start_btn.clicked.connect(self._on_start)
         btn_layout.addWidget(self.start_btn)
 
-        self.stop_btn = StandardButton("â¹ Parar", variant="emergency", semantic_size="dialog-secondary")
+        self.stop_btn = StandardButton("Parar", variant="emergency", semantic_size="dialog-secondary")
         self.stop_btn.setEnabled(False)
         self.stop_btn.clicked.connect(self._on_stop)
         btn_layout.addWidget(self.stop_btn)
@@ -688,7 +688,7 @@ class TensionMeasurementDialog(QDialog):
         if not tensions:
             return (
                 "SEM DADOS",
-                "NÃ£o foi possÃ­vel extrair leituras vÃ¡lidas para avaliar o teste.",
+                "Não foi possível extrair leituras válidas para avaliar o teste.",
                 COLORS.TEXT_PRIMARY,
                 COLORS.SURFACE_VARIANT,
             )
@@ -715,9 +715,9 @@ class TensionMeasurementDialog(QDialog):
             bg_color = COLORS.SUCCESS
 
         details = (
-            f"MÃ©dia {mean_value:.2f} N/cmÂ² | "
+            f"Média {mean_value:.2f} N/cm² | "
             f"OK: {ok_count} | WARN: {warning_count} | NG: {ng_count} | "
-            f"CritÃ©rios: min={criteria.min_tension:.1f}, max={criteria.max_tension:.1f}, "
+            f"Critérios: min={criteria.min_tension:.1f}, max={criteria.max_tension:.1f}, "
             f"warn={criteria.warning_low:.1f}-{criteria.warning_high:.1f}"
         )
         return status, details, text_color, bg_color
@@ -822,7 +822,7 @@ class TensionMeasurementDialog(QDialog):
             self, "Padrão Carregado",
             f"Padrão '{pattern.name}' carregado com sucesso!\n\n"
             f"Grid: {grid_params.grid_size}x{grid_params.grid_size}\n"
-            f"Ãrea: ({grid_params.start_point[0]:.1f}, {grid_params.start_point[1]:.1f}) -> "
+            f"Área: ({grid_params.start_point[0]:.1f}, {grid_params.start_point[1]:.1f}) -> "
             f"({grid_params.end_point[0]:.1f}, {grid_params.end_point[1]:.1f})\n"
             f"Altura Z: {grid_params.z_height:.2f}mm"
         )
