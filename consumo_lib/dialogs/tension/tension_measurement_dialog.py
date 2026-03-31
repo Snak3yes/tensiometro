@@ -15,10 +15,10 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QComboBox, QGroupBox,
     QProgressBar, QMessageBox, QTreeWidget, QTreeWidgetItem,
-    QSplitter, QTabWidget, QWidget
+    QSplitter, QTabWidget, QWidget, QScrollArea
 )
-from PyQt6.QtGui import QDoubleValidator, QIntValidator
-from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QDoubleValidator, QIntValidator, QGuiApplication
+from PyQt6.QtCore import Qt, QRect
 
 from aoi_lib.config_manager import AOIConfigManager
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
@@ -94,7 +94,7 @@ class TensionMeasurementDialog(QDialog):
 
         # Setup UI
         self.setWindowTitle("Medição de Tensão do Stencil")
-        self.setMinimumSize(900, 600)
+        self._apply_screen_aware_geometry()
         self._build_ui()
 
         # Connect tensiometer
@@ -119,9 +119,21 @@ class TensionMeasurementDialog(QDialog):
         main_layout.setSpacing(SPACE.MD)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
+        scroll = QScrollArea(measurement_tab)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        main_layout.addWidget(scroll)
+
+        measurement_content = QWidget()
+        scroll.setWidget(measurement_content)
+        content_layout = QHBoxLayout(measurement_content)
+        content_layout.setSpacing(SPACE.MD)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+
         # ==================== SPLITTER (COLUNA ESQUERDA | DIREITA) ====================
         splitter = QSplitter(Qt.Orientation.Horizontal)
         splitter.setHandleWidth(4)
+        splitter.setChildrenCollapsible(False)
 
         # ==================== COLUNA ESQUERDA: PADRÕES (30%) ====================
         left_widget = self._build_patterns_column()
@@ -135,21 +147,35 @@ class TensionMeasurementDialog(QDialog):
         splitter.setStretchFactor(0, 0)  # Esquerda: tamanho fixo
         splitter.setStretchFactor(1, 1)  # Direita: expande
         splitter.setCollapsible(0, False)
+        splitter.setSizes([260, 760])
 
-        main_layout.addWidget(splitter, 1)
+        content_layout.addWidget(splitter, 1)
 
         movement_tab = QWidget(self)
         movement_layout = QVBoxLayout(movement_tab)
         movement_layout.setContentsMargins(0, 0, 0, 0)
         movement_layout.setSpacing(0)
 
+        movement_scroll = QScrollArea(movement_tab)
+        movement_scroll.setWidgetResizable(True)
+        movement_scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        movement_layout.addWidget(movement_scroll)
+
         self.movement_widget = MovementControlWidget(
             self.cnc,
             self.config,
             parent=movement_tab
         )
-        movement_layout.addWidget(self.movement_widget)
+        movement_scroll.setWidget(self.movement_widget)
         self.tabs.addTab(movement_tab, "Movimento")
+
+    def _apply_screen_aware_geometry(self):
+        screen = QGuiApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else QRect(0, 0, 1280, 720)
+        target_width = min(1080, max(820, available.width() - 60))
+        target_height = min(700, max(560, available.height() - 60))
+        self.setMinimumSize(min(target_width, 820), min(target_height, 560))
+        self.resize(target_width, target_height)
 
     def _build_patterns_column(self) -> QWidget:
         """Constrói coluna esquerda com treeview de padrões."""

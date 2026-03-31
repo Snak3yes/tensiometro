@@ -6,7 +6,8 @@ Coordenador de setup e inicialização da aplicação.
 Orquestra toda inicialização de controllers, coordinators, handlers, managers e services.
 """
 import logging
-from PyQt6.QtCore import QTimer
+from PyQt6.QtCore import QTimer, QRect
+from PyQt6.QtGui import QGuiApplication
 from aoi_lib import PLCAxisController
 
 logger = logging.getLogger(__name__)
@@ -87,14 +88,21 @@ class SetupCoordinator:
 
         Nota: config já foi criado pela factory, apenas configura a janela.
 
-        IMPORTANTE: Tamanho FIXO 1200×800px - monitor industrial predefinido da máquina.
-        Ver documentação em CLAUDE.md → Main Window Dimensions
+        Ajusta a janela ao espaço útil do monitor atual e mantém redimensionável.
         """
         self.window.setWindowTitle("Controle de Tensão e Rastreabilidade")
 
-        # Tamanho fixo para monitor industrial predefinido
-        self.window.setGeometry(100, 100, 1200, 800)
-        self.window.setFixedSize(1200, 800)  # Impede redimensionamento
+        screen = QGuiApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else QRect(0, 0, 1280, 720)
+
+        target_width = min(1200, max(1024, available.width() - 40))
+        target_height = min(800, max(640, available.height() - 40))
+        origin_x = available.x() + max(0, (available.width() - target_width) // 2)
+        origin_y = available.y() + max(0, (available.height() - target_height) // 2)
+
+        self.window.setMinimumSize(min(target_width, 960), min(target_height, 620))
+        self.window.resize(target_width, target_height)
+        self.window.setGeometry(origin_x, origin_y, target_width, target_height)
 
         logger.debug("Configuração básica concluída (config via factory)")
 

@@ -9,8 +9,9 @@ mas não bloqueia a interação com ela.
 """
 
 import logging
-from PyQt6.QtWidgets import QDialog, QVBoxLayout
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QDialog, QVBoxLayout, QScrollArea
+from PyQt6.QtCore import Qt, QRect
+from PyQt6.QtGui import QGuiApplication
 
 from consumo_lib.ui import SPACE
 
@@ -44,7 +45,7 @@ class MovementDialog(QDialog):
 
         # Configurações do diálogo
         self.setWindowTitle("Controle de Movimento CNC")
-        self.setMinimumSize(400, 500)
+        self._apply_screen_aware_geometry()
 
         # Diálogo não-modal e sempre acima
         self.setWindowFlags(
@@ -77,7 +78,19 @@ class MovementDialog(QDialog):
             parent=self
         )
 
-        layout.addWidget(self.movement_widget)
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setWidget(self.movement_widget)
+        layout.addWidget(scroll)
+
+    def _apply_screen_aware_geometry(self):
+        screen = QGuiApplication.primaryScreen()
+        available = screen.availableGeometry() if screen else QRect(0, 0, 1280, 720)
+        target_width = min(520, max(420, available.width() - 80))
+        target_height = min(680, max(520, available.height() - 80))
+        self.setMinimumSize(min(target_width, 420), min(target_height, 520))
+        self.resize(target_width, target_height)
 
     def closeEvent(self, a0):
         """

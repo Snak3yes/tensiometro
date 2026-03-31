@@ -68,17 +68,22 @@ class MovementControlWidget(QWidget):
         
         # Group box for movement controls
         movement_group = QGroupBox("Movement Controls")
-        movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+        movement_group.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
         movement_layout = QGridLayout()
+        movement_layout.setContentsMargins(10, 10, 10, 10)
+        movement_layout.setHorizontalSpacing(10)
+        movement_layout.setVerticalSpacing(8)
+        movement_layout.setColumnStretch(0, 1)
+        movement_layout.setColumnStretch(1, 1)
         
         # Directional control buttons (32×32px - Microsoft Style)
-        self.up_button = StandardButton("↑", semantic_size="directional")
-        self.down_button = StandardButton("↓", semantic_size="directional")
-        self.left_button = StandardButton("←", semantic_size="directional")
-        self.right_button = StandardButton("→", semantic_size="directional")
+        self.up_button = StandardButton("▲", semantic_size="directional")
+        self.down_button = StandardButton("▼", semantic_size="directional")
+        self.left_button = StandardButton("◀", semantic_size="directional")
+        self.right_button = StandardButton("▶", semantic_size="directional")
 
         for btn in [self.up_button, self.down_button, self.left_button, self.right_button]:
-            font = TYPO.get_font(14, bold=True)
+            font = TYPO.get_font(16, bold=True)
             btn.setFont(font)
         
         self.up_button.pressed.connect(lambda: self._on_direction_press("Y",  -1))
@@ -91,8 +96,12 @@ class MovementControlWidget(QWidget):
         self.right_button.released.connect(self._on_direction_release)
 
         # Z-axis buttons (32×24px - Microsoft Style)
-        self.z_up_button = StandardButton("Z+", semantic_size="z-axis")
-        self.z_down_button = StandardButton("Z-", semantic_size="z-axis")
+        self.z_up_button = StandardButton("Subir", semantic_size="z-axis")
+        self.z_down_button = StandardButton("Descer", semantic_size="z-axis")
+        self.z_up_button.setMinimumWidth(88)
+        self.z_down_button.setMinimumWidth(88)
+        self.z_up_button.setMaximumWidth(120)
+        self.z_down_button.setMaximumWidth(120)
         self.z_up_button.pressed.connect(  lambda: self._on_direction_press("Z",  -1))
         self.z_up_button.released.connect(self._on_direction_release)
         self.z_down_button.pressed.connect(lambda: self._on_direction_press("Z", 1))
@@ -107,6 +116,8 @@ class MovementControlWidget(QWidget):
 
         # Botão de Emergency Stop / Reset
         self.emergency_stop_button = StandardButton("STOP", variant="emergency", semantic_size="emergency")
+        self.emergency_stop_button.setMinimumSize(76, 32)
+        self.emergency_stop_button.setMaximumSize(76, 32)
         self.emergency_stop_button.setCheckable(True)
         self.emergency_stop_button.toggled.connect(self.on_emergency_stop_toggle)
         movement_layout.addWidget(self.emergency_stop_button, 1, 1, Qt.AlignmentFlag.AlignCenter)
@@ -136,8 +147,8 @@ class MovementControlWidget(QWidget):
         feed_layout.addWidget(self.feed_rate)
         feed_layout.addWidget(QLabel("mm/min"))
         
-        movement_layout.addLayout(step_layout, 3, 0, 1, 3)
-        movement_layout.addLayout(feed_layout, 4, 0, 1, 3)
+        movement_layout.addLayout(step_layout, 3, 0, 1, 4)
+        movement_layout.addLayout(feed_layout, 4, 0, 1, 4)
 
         self.step_size.editingFinished.connect(self._save_step_feed)
         self.feed_rate.editingFinished.connect(self._save_step_feed)
@@ -145,24 +156,24 @@ class MovementControlWidget(QWidget):
         # Go to Zero
         self.go_to_zero_btn = StandardButton("Go to Zero", variant="primary")
         self.go_to_zero_btn.clicked.connect(self.go_to_zero)
-        movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 3)
+        movement_layout.addWidget(self.go_to_zero_btn, 6, 0, 1, 4)
 
         # Go to Position
         self.go_to_position_btn = StandardButton("Go to Position", variant="primary")
         self.go_to_position_btn.setToolTip("Ir para posição de trabalho específica (WPos)")
         self.go_to_position_btn.clicked.connect(self.show_go_to_dialog)
-        movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 3)
+        movement_layout.addWidget(self.go_to_position_btn, 7, 0, 1, 4)
 
         # Keyboard Control
         self.keyboard_control_checkbox = QCheckBox("Enable Keyboard Control")
         self.keyboard_control_checkbox.setChecked(False)
-        movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 3)
+        movement_layout.addWidget(self.keyboard_control_checkbox, 8, 0, 1, 4)
         
         # Backlight
         self.backlight_button = StandardButton("💡 Backlight OFF", variant="secondary", semantic_size="function-secondary")
         self.backlight_button.setCheckable(True)
         self.backlight_button.toggled.connect(self._on_backlight_toggle)
-        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 5)
+        movement_layout.addWidget(self.backlight_button, 9, 0, 1, 4)
         
         # Movement mode (G90/G91)
         mode_layout = QHBoxLayout()
@@ -177,7 +188,7 @@ class MovementControlWidget(QWidget):
 
         mode_layout.addWidget(self.mode_absolute)
         mode_layout.addWidget(self.mode_relative)
-        movement_layout.addLayout(mode_layout, 5, 0, 1, 3)
+        movement_layout.addLayout(mode_layout, 5, 0, 1, 4)
 
         self._init_position_display(movement_layout)
 
@@ -236,8 +247,9 @@ class MovementControlWidget(QWidget):
         position_layout.addWidget(QLabel("Status:"), 3, 0)
         position_layout.addWidget(self.pos_status_label, 3, 1)
 
+        position_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         position_group.setLayout(position_layout)
-        parent_layout.addWidget(position_group, 3, 3, 6, 2)
+        parent_layout.addWidget(position_group, 10, 0, 1, 4)
 
     def update_position(self, x: float, y: float, z: float, status: str = None):
         self._sync_feed_rate_from_plc()

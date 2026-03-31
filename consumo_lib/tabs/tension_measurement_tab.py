@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QSplitter,
     QGroupBox, QLabel, QLineEdit, QComboBox,
     QTreeWidget, QTreeWidgetItem,
-    QFileDialog, QMessageBox
+    QFileDialog, QMessageBox, QScrollArea, QSizePolicy
 )
 from PyQt6.QtCore import Qt, pyqtSignal
 
@@ -66,6 +66,7 @@ class TensionMeasurementTab(QWidget):
 
         # Splitter 70%/30%
         splitter = QSplitter(Qt.Orientation.Horizontal)
+        splitter.setChildrenCollapsible(False)
 
         # Painel esquerdo (70%)
         left_panel = self.create_left_panel()
@@ -78,6 +79,7 @@ class TensionMeasurementTab(QWidget):
         splitter.setStretchFactor(0, 7)
         splitter.setStretchFactor(1, 3)
         splitter.setHandleWidth(4)
+        splitter.setSizes([760, 340])
 
         layout.addWidget(splitter, 1)
 
@@ -149,7 +151,7 @@ class TensionMeasurementTab(QWidget):
     def create_filter_bar(self) -> QWidget:
         """Cria barra de filtros compacta."""
         widget = QWidget()
-        widget.setFixedHeight(36)
+        widget.setMinimumHeight(36)
         layout = QHBoxLayout(widget)
         layout.setContentsMargins(8, 6, 8, 6)
         layout.setSpacing(6)
@@ -220,7 +222,8 @@ class TensionMeasurementTab(QWidget):
         Altura fixa: 155px
         """
         widget = QWidget()
-        widget.setFixedHeight(155)
+        widget.setMinimumHeight(155)
+        widget.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(6)
@@ -335,8 +338,8 @@ class TensionMeasurementTab(QWidget):
 
         Espaço real disponível: ~677px de altura (1200x740px útil menos menus/status bar)
         """
-        widget = QWidget()
-        layout = QVBoxLayout(widget)
+        content = QWidget()
+        layout = QVBoxLayout(content)
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(8)
 
@@ -388,19 +391,15 @@ class TensionMeasurementTab(QWidget):
 
         # HEATMAP: 310x220px fixo (ajustado para caber em ~677px)
         self.heatmap = MiniTensionHeatmapWidget()
-        self.heatmap.setMinimumSize(310, 220)
-        self.heatmap.setMaximumSize(310, 220)
-        self.heatmap.setSizePolicy(
-            self.heatmap.sizePolicy().horizontalPolicy(),
-            self.heatmap.sizePolicy().verticalPolicy()
-        )
+        self.heatmap.setMinimumSize(260, 190)
+        self.heatmap.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         layout.addWidget(self.heatmap)
 
         # RESULTADO: Badge 310x40px
         self.result_badge = QLabel("---")
         self.result_badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.result_badge.setFixedHeight(40)
-        self.result_badge.setFixedWidth(310)
+        self.result_badge.setMinimumHeight(40)
+        self.result_badge.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.result_badge.setStyleSheet(f"""
             QLabel {{
                 font-size: 14px;
@@ -414,7 +413,7 @@ class TensionMeasurementTab(QWidget):
 
         # ESTATÍSTICAS: GroupBox 310x85px - 3 linhas organizadas (reduzido de 90px)
         stats_group = QGroupBox("Estatísticas")
-        stats_group.setMinimumWidth(310)
+        stats_group.setMinimumWidth(260)
         stats_group.setStyleSheet(f"""
             QGroupBox {{
                 font-size: 10px;
@@ -449,7 +448,7 @@ class TensionMeasurementTab(QWidget):
 
         # LEGENDA: Box horizontal 310x50px
         self.legend_widget = self.create_legend_widget()
-        self.legend_widget.setMinimumWidth(310)
+        self.legend_widget.setMinimumWidth(260)
         layout.addWidget(self.legend_widget)
 
         # BOTÃO HISTÓRICO: 310x35px
@@ -458,17 +457,23 @@ class TensionMeasurementTab(QWidget):
             variant="primary-blue",
             semantic_size="inline-primary"
         )
-        self.btn_full_history.setFixedHeight(35)
-        self.btn_full_history.setMinimumWidth(310)
+        self.btn_full_history.setMinimumHeight(35)
+        self.btn_full_history.setMinimumWidth(260)
         self.btn_full_history.clicked.connect(self.show_full_history)
         layout.addWidget(self.btn_full_history)
 
         # INFO ARQUIVO: GroupBox 310x60px
         self.file_info_group = self.create_file_info_group()
-        self.file_info_group.setMinimumWidth(310)
+        self.file_info_group.setMinimumWidth(260)
         layout.addWidget(self.file_info_group)
 
-        return widget
+        layout.addStretch()
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QScrollArea.Shape.NoFrame)
+        scroll.setWidget(content)
+        return scroll
 
     def create_legend_widget(self) -> QWidget:
         """
@@ -480,8 +485,8 @@ class TensionMeasurementTab(QWidget):
         - Círculos r=6px
         """
         widget = QWidget()
-        widget.setFixedHeight(50)
-        widget.setMinimumWidth(310)
+        widget.setMinimumHeight(50)
+        widget.setMinimumWidth(260)
 
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(8, 4, 8, 4)
@@ -569,10 +574,12 @@ class TensionMeasurementTab(QWidget):
 
         self.file_name_label = QLabel("Nenhum arquivo carregado")
         self.file_name_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_PRIMARY};")
+        self.file_name_label.setWordWrap(True)
         layout.addWidget(self.file_name_label)
 
         self.file_details_label = QLabel("Grid: -- | Área: --")
         self.file_details_label.setStyleSheet(f"font-size: {TYPO.LABEL_SMALL}px; color: {COLORS.TEXT_HINT};")
+        self.file_details_label.setWordWrap(True)
         layout.addWidget(self.file_details_label)
 
         return group
