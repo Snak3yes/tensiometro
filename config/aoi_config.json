@@ -31,7 +31,7 @@
     "backlight_coil": 5
   },
   "ui": {
-    "theme": "system"
+    "theme": "dark"
   },
   "calibration": {
     "pulses_per_rev": 800.0,
@@ -39,7 +39,7 @@
   },
   "movement": {
     "step_size": 5.0,
-    "feed_rate": 800.0
+    "feed_rate": 10000.0
   },
   "map": {
     "step_x": 0.0,
