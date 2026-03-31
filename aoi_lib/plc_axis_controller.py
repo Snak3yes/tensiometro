@@ -290,14 +290,14 @@ class PLCAxisController:
         """
         return self._apply_motion_pulses({axis: position}, speed / self.pulses_per_mm if speed else None)
 
-    def move_relative(self, x=None, y=None, z=None, feed_rate=1000):
+    def move_relative(self, x=None, y=None, z=None, feed_rate=None):
         """
         Move de forma relativa em múltiplos eixos.
         Compatível com GRBLCNCController para uso em threads de medição.
         
         Args:
             x, y, z: Deslocamento relativo em mm (None para não mover o eixo)
-            feed_rate: Velocidade em mm/min
+            feed_rate: Velocidade em mm/min (opcional)
         """
         targets = {}
         if x is not None:
@@ -388,14 +388,14 @@ class PLCAxisController:
             self.client.write_coil(cfg['jog_minus'], False)
         self.machine_status = "Idle"
 
-    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=1000):
+    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=None):
         """
         Move para uma posição absoluta em coordenadas.
         Compatível com GRBLCNCController para uso em threads de medição.
         
         Args:
             x, y, z: Coordenadas de destino em mm (None para não mover o eixo)
-            feed_rate: Velocidade em mm/min
+            feed_rate: Velocidade em mm/min (opcional)
         """
         if self.pulses_per_mm <= 0:
             raise ValueError(

@@ -179,7 +179,7 @@ class CNCAOIController:
                 break
 
             # Move para a posição (X, Y, Z) via CLP
-            feed_rate = getattr(self, '_current_feed_rate', 1000)
+            feed_rate = getattr(self, '_current_feed_rate', None)
             self.cnc.move_to_absolute_position(
                 x=position.x,
                 y=position.y,
@@ -247,7 +247,7 @@ class CNCAOIController:
 
         # Percorre a grade
         capture_map = []
-        feed_rate = getattr(self, '_current_feed_rate', 1000)
+        feed_rate = getattr(self, '_current_feed_rate', None)
         for row_idx, col_idx, x, y in points:
             # move + espera
             self.cnc.move_to_absolute_position(x, y, feed_rate=feed_rate)

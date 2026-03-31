@@ -245,13 +245,13 @@ class PLCAxisControllerAdapter:
         """
         self.absolute_controller.move_absolute(axis, position, speed)
 
-    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=1000):
+    def move_to_absolute_position(self, x=None, y=None, z=None, feed_rate=None):
         """
         Move para uma posição absoluta em coordenadas.
 
         Args:
             x, y, z: Coordenadas de destino em mm (None para não mover o eixo)
-            feed_rate: Velocidade em mm/min
+            feed_rate: Velocidade em mm/min (opcional)
         """
         # Converte mm → pulsos
         if x is not None:
@@ -278,13 +278,13 @@ class PLCAxisControllerAdapter:
     # Relative Movement (3 métodos) - delega para PLCRelativeMovementController
     # =========================================================================
 
-    def move_relative(self, x=None, y=None, z=None, feed_rate=1000):
+    def move_relative(self, x=None, y=None, z=None, feed_rate=None):
         """
         Move de forma relativa em múltiplos eixos.
 
         Args:
             x, y, z: Deslocamento relativo em mm (None para não mover o eixo)
-            feed_rate: Velocidade em mm/min
+            feed_rate: Velocidade em mm/min (opcional)
         """
         # Converte mm → pulsos
         if x is not None:

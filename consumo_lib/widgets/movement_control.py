@@ -46,6 +46,8 @@ class MovementControlWidget(QWidget):
         self.controller = controller
         self.cfg = cfg
         self.orchestrator = orchestrator
+        self._feed_rate_dirty = False
+        self._feed_rate_synced_from_plc = False
 
         # Fallback para compatibilidade se orchestrator não for passado
         if self.orchestrator is None:
@@ -125,9 +127,12 @@ class MovementControlWidget(QWidget):
         # Feed rate
         feed_layout = QHBoxLayout()
         feed_layout.addWidget(QLabel("Feed Rate:"))
-        default_feed = self.cfg.get("movement", "feed_rate", default=1000.0)
+        default_feed = self._read_feed_rate_from_plc()
+        if default_feed is None:
+            default_feed = self.cfg.get("movement", "feed_rate", default=1000.0)
         self.feed_rate = QLineEdit(f"{default_feed}")
         self.feed_rate.setValidator(QDoubleValidator(1.0, 30000.0, 0, self))
+        self.feed_rate.textEdited.connect(self._on_feed_rate_edited)
         feed_layout.addWidget(self.feed_rate)
         feed_layout.addWidget(QLabel("mm/min"))
         
@@ -179,6 +184,7 @@ class MovementControlWidget(QWidget):
         movement_group.setLayout(movement_layout)
         layout.addWidget(movement_group)
         layout.setAlignment(movement_group, Qt.AlignmentFlag.AlignTop)
+        QTimer.singleShot(0, self._sync_feed_rate_from_plc)
 
     def _init_position_display(self, parent_layout):
         position_group = QGroupBox("Posição Atual (mm)")
@@ -234,11 +240,59 @@ class MovementControlWidget(QWidget):
         parent_layout.addWidget(position_group, 3, 3, 6, 2)
 
     def update_position(self, x: float, y: float, z: float, status: str = None):
+        self._sync_feed_rate_from_plc()
         self.pos_x_label.setText(f"{x:8.3f} mm")
         self.pos_y_label.setText(f"{y:8.3f} mm")
         self.pos_z_label.setText(f"{z:8.3f} mm")
         if status is not None:
             self.pos_status_label.setText(status)
+
+    def _on_feed_rate_edited(self, _text: str):
+        self._feed_rate_dirty = True
+
+    def _read_feed_rate_from_plc(self) -> float | None:
+        cnc = getattr(self.controller, "cnc", self.controller)
+        if not getattr(cnc, "is_connected", False) or not hasattr(cnc, "snapshot_registers"):
+            return None
+
+        try:
+            snapshot = cnc.snapshot_registers()
+            pulses_per_mm = snapshot.get("pulses_per_mm") or getattr(cnc, "pulses_per_mm", None)
+            if not pulses_per_mm or pulses_per_mm <= 0:
+                return None
+
+            axes = snapshot.get("axes", {})
+            xy_speed = axes.get("X", {}).get("speed")
+            z_speed = axes.get("Z", {}).get("speed")
+            speed_pulses = xy_speed if xy_speed and xy_speed > 0 else z_speed if z_speed and z_speed > 0 else None
+            if speed_pulses is None:
+                return None
+
+            if xy_speed and z_speed and xy_speed != z_speed:
+                logger.debug(
+                    "Velocidades XY e Z diferem no PLC (XY=%s, Z=%s). Usando registrador XY no campo principal.",
+                    xy_speed,
+                    z_speed,
+                )
+
+            return speed_pulses / pulses_per_mm
+        except Exception as exc:
+            logger.debug("Nao foi possivel ler feed_rate do PLC: %s", exc)
+            return None
+
+    def _sync_feed_rate_from_plc(self, force: bool = False):
+        if self._feed_rate_synced_from_plc and not force:
+            return
+        if self._feed_rate_dirty and not force:
+            return
+
+        feed_rate = self._read_feed_rate_from_plc()
+        if feed_rate is None:
+            return
+
+        self.feed_rate.setText(f"{feed_rate:.0f}")
+        self._feed_rate_synced_from_plc = True
+        logger.info("Feed rate carregado do PLC para a interface: %.0f mm/min", feed_rate)
 
     def _save_step_feed(self):
         try:
@@ -353,7 +407,10 @@ class MovementControlWidget(QWidget):
         try:
             return float(self.feed_rate.text())
         except ValueError:
-            return 1000.0
+            feed_rate = self._read_feed_rate_from_plc()
+            if feed_rate is not None:
+                return feed_rate
+            return self.cfg.get("movement", "feed_rate", default=1000.0)
 
     def stop_movement(self):
         self._on_direction_release()

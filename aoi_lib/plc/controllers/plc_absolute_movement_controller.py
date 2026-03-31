@@ -229,7 +229,9 @@ class PLCAbsoluteMovementController:
         return self.apply_motion_pulses({axis: int(position)}, speed_mm)
 
     def move_to_absolute_position(self, x: float, y: float, z: float,
-                                 speed_x: float = 0.0, speed_y: float = 0.0, speed_z: float = 0.0) -> bool:
+                                 speed_x: Optional[float] = None,
+                                 speed_y: Optional[float] = None,
+                                 speed_z: Optional[float] = None) -> bool:
         """
         Move para posição XYZ absoluta.
 
@@ -253,9 +255,9 @@ class PLCAbsoluteMovementController:
         if z is not None:
             targets['Z'] = int(round(z))
 
-        # Usa a maior velocidade fornecida para todos os eixos
-        speeds = [s for s in [speed_x, speed_y, speed_z] if s > 0]
-        feed_rate = max(speeds) if speeds else 1000
+        # Se nenhuma velocidade for informada, preserva o valor ja gravado no PLC.
+        speeds = [s for s in [speed_x, speed_y, speed_z] if s is not None and s > 0]
+        feed_rate = max(speeds) if speeds else None
 
         return self.apply_motion_pulses(targets, feed_rate)
 
