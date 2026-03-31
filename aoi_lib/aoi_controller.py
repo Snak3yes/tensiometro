@@ -42,8 +42,17 @@ class CNCAOIController:
         cfg = AOIConfigManager()
         ppr   = float(cfg.get("calibration", "pulses_per_rev", default=1.0))
         pitch = float(cfg.get("calibration", "fuso_pitch",     default=1.0))
-        # Cálculo pulses/mm:
-        self.cnc.pulses_per_mm = ppr / pitch if pitch != 0 else 1.0
+        # Cálculo pulses/mm: valores não positivos são inválidos e causam inversão indevida.
+        if ppr > 0 and pitch > 0:
+            self.cnc.pulses_per_mm = ppr / pitch
+        else:
+            logging.warning(
+                "Calibracao invalida para PLC (pulses_per_rev=%s, fuso_pitch=%s). "
+                "Usando fallback pulses_per_mm=1.0",
+                ppr,
+                pitch,
+            )
+            self.cnc.pulses_per_mm = 1.0
         
         self.camera = CameraController(camera_interface)
         self.position_manager = InspectionPositionManager()

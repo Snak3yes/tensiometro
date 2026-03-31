@@ -385,7 +385,8 @@ class TensionMeasurementDialog(QDialog):
             semantic_size="inline-primary"
         )
         self.btn_save_pattern.clicked.connect(self._on_save_pattern)
-        self.btn_save_pattern.setEnabled(False)
+        # Salvar padrão depende apenas dos campos atuais, não da execução da medição.
+        self.btn_save_pattern.setEnabled(True)
         btn_layout.addWidget(self.btn_save_pattern)
 
         btn_layout.addStretch()
@@ -793,6 +794,33 @@ class TensionMeasurementDialog(QDialog):
                                "Preencha todos os campos corretamente.")
             return
 
+        pulses_per_mm = float(getattr(self.cnc, "pulses_per_mm", 0.0) or 0.0)
+        if pulses_per_mm <= 0:
+            QMessageBox.critical(
+                self,
+                "Erro de Calibracao",
+                "O fator de conversao pulses_per_mm esta invalido. "
+                "Reaplique a calibracao do PLC antes de iniciar a medicao."
+            )
+            logger.error(
+                "Medicao bloqueada por calibracao invalida: pulses_per_mm=%s, z_move=%s, z_height=%s",
+                pulses_per_mm,
+                z_move,
+                z_height,
+            )
+            return
+
+        z_move_pulses = int(round(z_move * pulses_per_mm))
+        z_height_pulses = int(round(z_height * pulses_per_mm))
+        logger.info(
+            "Medicao de tensao: z_move_mm=%s -> %s pulsos, z_height_mm=%s -> %s pulsos, pulses_per_mm=%s",
+            z_move,
+            z_move_pulses,
+            z_height,
+            z_height_pulses,
+            pulses_per_mm,
+        )
+
         # Prepare measurement
         result = self.orchestrator.prepare_measurement(
             start_point=(start_x, start_y),
@@ -820,9 +848,6 @@ class TensionMeasurementDialog(QDialog):
             f"Total de pontos: {stats['total_points']}\n"
             f"Distância total: {stats['total_distance_mm']} mm"
         )
-
-        # Habilita botão de salvar padrão após grid preparado com sucesso
-        self.btn_save_pattern.setEnabled(True)
 
         # Start measurement
         success = self.orchestrator.start_measurement(

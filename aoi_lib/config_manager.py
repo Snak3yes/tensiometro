@@ -319,15 +319,24 @@ class AOIConfigManager:
         # Aplica fator de conversão pulsos/mm
         ppr = self.get("calibration", "pulses_per_rev", default=1000)
         pitch = self.get("calibration", "fuso_pitch", default=10)
-        if pitch > 0 and hasattr(cnc, 'pulses_per_mm'):
+        if ppr > 0 and pitch > 0 and hasattr(cnc, 'pulses_per_mm'):
             cnc.pulses_per_mm = ppr / pitch
+        elif hasattr(cnc, 'pulses_per_mm'):
+            cnc.pulses_per_mm = 1.0
+            self.log.warning(
+                "Calibracao invalida ignorada ao aplicar no PLC: pulses_per_rev=%s, fuso_pitch=%s. "
+                "Usando fallback pulses_per_mm=1.0",
+                ppr,
+                pitch,
+            )
         
         # Aplica endereço do backlight
         bl_addr = self.get("connections", "backlight_coil", default=5)
         if hasattr(cnc, 'backlight_coil_address'):
             cnc.backlight_coil_address = bl_addr
         
-        self.log.info(f"Configurações aplicadas ao PLC: max_feed={maxf}, pulses_per_mm={ppr/pitch if pitch > 0 else 'N/A'}")
+        ppm_info = ppr / pitch if ppr > 0 and pitch > 0 else 'N/A'
+        self.log.info(f"Configurações aplicadas ao PLC: max_feed={maxf}, pulses_per_mm={ppm_info}")
 
 
 # ============================================================

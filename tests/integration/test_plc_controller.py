@@ -98,20 +98,20 @@ class TestPLCControllerBasics:
         controller = PLCAxisController(auto_connect=False)
 
         # Verificar endereços X
-        assert controller.ADDRESSES['X']['zero'] == 1000
+        assert controller.ADDRESSES['X']['zero'] == 1500
         assert controller.ADDRESSES['X']['move_abs'] == 1050
         assert controller.ADDRESSES['X']['pos_input'] == 1100
         assert controller.ADDRESSES['X']['pos_reg'] == 3000
 
         # Verificar endereços Y
-        assert controller.ADDRESSES['Y']['zero'] == 500
+        assert controller.ADDRESSES['Y']['zero'] == 1000
         assert controller.ADDRESSES['Y']['move_abs'] == 1050  # Interpolação com X
         assert controller.ADDRESSES['Y']['pos_input'] == 600
         assert controller.ADDRESSES['Y']['pos_reg'] == 3200
 
         # Verificar endereços Z
-        assert controller.ADDRESSES['Z']['zero'] == 1500
-        assert controller.ADDRESSES['Z']['move_abs'] == 1600
+        assert controller.ADDRESSES['Z']['zero'] == 500
+        assert controller.ADDRESSES['Z']['move_abs'] == 1550
         assert controller.ADDRESSES['Z']['pos_input'] == 1600
         assert controller.ADDRESSES['Z']['pos_reg'] == 3400
 
@@ -410,10 +410,11 @@ class TestPLCControllerHoming:
 
         with patch('aoi_lib.plc_axis_controller.ModbusTcpClient', return_value=mock_client):
             controller = PLCAxisController(auto_connect=True)
-            controller.set_zero('X')
+            result = controller.set_zero('X')
 
-            # Deve pulsar coil zero
-            assert mock_client.write_coil.called
+            # O mapa atual do PLC não expõe zero dedicado por eixo.
+            assert result is False
+            assert not mock_client.write_coil.called
 
     def test_home_axis(self):
         """Testa homing de um eixo."""
@@ -779,7 +780,7 @@ class TestPLCControllerErrors:
         controller = PLCAxisController(auto_connect=False)
         controller.client = None
 
-        with pytest.raises(IOError, match="Cliente Modbus não inicializado"):
+        with pytest.raises(IOError, match="PLC não conectado"):
             controller._write_dword(100, 1000)
 
     def test_read_dword_without_client(self):
@@ -787,7 +788,7 @@ class TestPLCControllerErrors:
         controller = PLCAxisController(auto_connect=False)
         controller.client = None
 
-        with pytest.raises(IOError, match="Cliente Modbus não inicializado"):
+        with pytest.raises(IOError, match="PLC não conectado"):
             controller._read_dword(100)
 
     def test_move_absolute_invalid_axis(self):
@@ -849,12 +850,15 @@ class TestPLCControllerEdgeCases:
 
         with patch('aoi_lib.plc_axis_controller.ModbusTcpClient', return_value=mock_client):
             controller = PLCAxisController(auto_connect=True)
-            controller.set_zero('X')
-            controller.set_zero('Y')
-            controller.set_zero('Z')
+            results = [
+                controller.set_zero('X'),
+                controller.set_zero('Y'),
+                controller.set_zero('Z'),
+            ]
 
-            # Deve enviar pulso para cada eixo
-            assert mock_client.write_coil.called
+            # O mapa atual do PLC não expõe zero dedicado por eixo.
+            assert results == [False, False, False]
+            assert not mock_client.write_coil.called
 
     def test_pulses_per_mm_conversion(self):
         """Testa conversão de pulses para mm."""

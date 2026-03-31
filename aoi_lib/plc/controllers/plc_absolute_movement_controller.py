@@ -38,7 +38,7 @@ class PLCAbsoluteMovementController:
         },
         'Z': {
             'zero': 500,       # M500 - confirmacao homing Z
-            'move_abs': 1600,  # M1600_Z
+            'move_abs': 1550,  # M1550_Z - inicia movimento absoluto Z
             'pos_input': 1600, # D1600_Z
             'speed': 21500,    # D21500_Z
             'pos_reg': 3400    # D3400_Z

@@ -175,6 +175,14 @@ class CalibrationController(QObject):
                 pulses = float(pulses_value)
                 fuso_pass = float(fuso_value)
 
+                if pulses <= 0 or fuso_pass <= 0:
+                    QMessageBox.warning(
+                        None,
+                        "Erro",
+                        "Pulsos por revolução e passo do fuso devem ser maiores que zero."
+                    )
+                    return
+
                 # Update PLC pulses/mm conversion factor
                 self.controller.cnc.pulses_per_mm = pulses / fuso_pass
 
@@ -202,6 +210,14 @@ class CalibrationController(QObject):
         try:
             pulses = float(pulses_value)
             fuso_pass = float(fuso_value)
+
+            if pulses <= 0 or fuso_pass <= 0:
+                QMessageBox.warning(
+                    None,
+                    "Erro",
+                    "Pulsos por revolução e passo do fuso devem ser maiores que zero."
+                )
+                return
 
             # Calculate steps/mm: (pulses per revolution) / (leadscrew pitch in mm)
             steps_per_mm = pulses / fuso_pass

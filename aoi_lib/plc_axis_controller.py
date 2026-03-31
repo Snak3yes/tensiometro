@@ -51,7 +51,7 @@ class PLCAxisController:
         },
         'Z': {
             'zero':           500,     # M500 - confirmacao homing Z
-            'move_abs':       1600,    # M1600_Z - Movimento absoluto Z (corrige ERRO: era 1600 mas comments errados)
+            'move_abs':       1550,    # M1550_Z - inicia movimento absoluto Z (M1600 eh execucao)
             'pos_input':      1600,    # D1600_Z
             'speed':          21500,   # D21500_Z
             'jog_plus':       770,     # M770_Z
@@ -397,6 +397,12 @@ class PLCAxisController:
             x, y, z: Coordenadas de destino em mm (None para não mover o eixo)
             feed_rate: Velocidade em mm/min
         """
+        if self.pulses_per_mm <= 0:
+            raise ValueError(
+                f"Calibracao invalida do PLC: pulses_per_mm={self.pulses_per_mm}. "
+                "O fator deve ser maior que zero."
+            )
+
         targets = {}
         if x is not None:
             targets['X'] = int(round(x * self.pulses_per_mm))
@@ -406,6 +412,12 @@ class PLCAxisController:
 
         if z is not None:
             targets['Z'] = int(round(z * self.pulses_per_mm))
+            logger.info(
+                "Movimento absoluto Z solicitado: z_mm=%s, pulses_per_mm=%s, target_pulses=%s",
+                z,
+                self.pulses_per_mm,
+                targets['Z'],
+            )
 
         return self._apply_motion_pulses(targets, feed_rate)
     

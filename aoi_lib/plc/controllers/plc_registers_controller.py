@@ -45,7 +45,7 @@ class PLCRegistersController:
         },
         'Z': {
             'zero': 500,
-            'move_abs': 1600,
+            'move_abs': 1550,
             'pos_input': 1600,
             'speed': 21500,
             'pos_reg': 3400,
