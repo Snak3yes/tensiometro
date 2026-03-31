@@ -1,0 +1,204 @@
+MAPEAMENTO RELEVANTE DA LOGICA
+Fonte: imagens em Tenciometro_ISP\Imagens_logica
+
+CRITERIO
+- Somente sinais relevantes para a aplicacao.
+- Mapeamento feito a partir dos PNG do ladder e do MAPA original.
+- Quando o screenshot nao mostra o nome funcional do parametro do bloco, o endereco foi descrito pelo uso na rede.
+- O ladder `ENTRADAS_E_SAIDAS [PRG.LD]` esta `Disabled`; por isso ele foi usado apenas como referencia de entradas/saidas fisicas, e as memorias internas dele nao entram no mapa funcional.
+
+SEGURANCA E ESTADO GERAL
+X0.0 = sinal de emergencia
+X0.1 = cortina de seguranca
+X0.2 = erro drive X
+X0.3 = erro drive Y
+X0.4 = erro drive Z
+X0.5 = botao iniciar
+
+M35 = bloqueio/intertravamento do movimento automatico
+
+HOMING
+M1350 = inicia homing
+M1500 = confirmacao homing X
+M1000 = confirmacao homing Y
+M500 = confirmacao homing Z
+M32 = consolidacao das confirmacoes de homing
+M33 = homing completo
+
+Rede observada:
+- M1500 + M1000 + M500 geram M32
+- M32 seta M33
+- M33 seta Y0.8, reseta Y0.9 e reseta Y0.10
+- emergencia reseta M1500, M1000, M500 e M33
+
+EIXO X
+Entradas e saidas
+X0.6 = sensor home X
+X0.7 = sensor limite X
+Y0.0 = pulso X
+Y0.1 = direcao X
+
+Memorias
+M570 = jog positivo X
+M580 = jog negativo X
+M1010 = X acima do limite positivo
+M1011 = X abaixo do limite negativo
+M1050 = inicia movimento absoluto/interpolado X/Y
+M1100 = execucao do movimento absoluto/interpolado X/Y
+M501 = flag de zero do eixo X
+
+Registradores
+SR460 = posicao atual eixo X
+D1000 = limite negativo X
+D1050 = limite positivo X
+D1100 = alvo X
+D1150 = posicao auxiliar X para interpolacao
+D3000 = posicao absoluta X
+D22020 = parametro do jog positivo X
+D22070 = parametro do jog negativo X
+
+Condicoes observadas no JOG X
+- JOG positivo X: M570, nao M580, M33, X0.0, X0.1 e nao X0.7
+- JOG negativo X: M580, nao M570, M33, X0.0, X0.1 e nao X0.6
+- Ambos usam bloco JOG com D22100 e D22110 e comandam Y0.0/Y0.1
+
+Condicoes observadas no movimento automatico X/Y
+- M1050 e M33 setam M1100
+- M1100 limita D1100 entre D1000 e D1050
+- valor validado de X vai para D1150
+
+EIXO Y
+Entradas e saidas
+X0.8 = sensor home Y
+X0.9 = sensor limite Y
+Y0.2 = pulso Y
+Y0.3 = direcao Y
+
+Memorias
+M670 = jog positivo Y
+M680 = jog negativo Y
+M1020 = Y acima do limite positivo
+M1021 = Y abaixo do limite negativo
+M1000 = confirmacao homing Y
+M991 = flag de zero do eixo Y
+
+Registradores
+SR480 = posicao atual eixo Y
+D500 = limite positivo Y
+D550 = limite negativo Y
+D600 = alvo Y
+D650 = posicao auxiliar Y para interpolacao
+D3200 = posicao absoluta Y
+D22010 = parametro do jog positivo Y
+D22060 = parametro do jog negativo Y
+
+Condicoes observadas no JOG Y
+- JOG positivo Y: M670, nao M680, M33, X0.0, X0.1 e nao X0.9
+- JOG negativo Y: M680, nao M670, M33, X0.0, X0.1 e nao X0.8
+- Ambos usam bloco JOG com D22100 e D22110 e comandam Y0.2/Y0.3
+
+Condicoes observadas no movimento automatico X/Y
+- M1100 limita D600 entre D550 e D500
+- valor validado de Y vai para D650
+- bloco DPPMA usa D1150, D650 e D20500 para gerar Y0.0 e Y0.2
+
+EIXO Z
+Entradas e saidas
+X0.10 = sensor home Z
+X0.11 = sensor limite Z
+Y0.4 = pulso Z
+Y0.5 = direcao Z
+
+Memorias
+M770 = jog positivo Z
+M780 = jog negativo Z
+M1030 = Z acima do limite positivo
+M1031 = Z abaixo do limite negativo
+M1550 = inicia movimento absoluto Z
+M1600 = execucao do movimento absoluto Z
+M500 = confirmacao homing Z
+M1511 = flag de zero do eixo Z
+
+Registradores
+SR500 = posicao atual eixo Z
+D1500 = limite positivo Z
+D1550 = limite negativo Z
+D1600 = alvo Z
+D1650 = posicao auxiliar Z para movimento absoluto
+D3400 = posicao absoluta Z
+D22030 = parametro do jog positivo Z
+D22080 = parametro do jog negativo Z
+
+Condicoes observadas no JOG Z
+- JOG positivo Z: M770, nao M780, M33, X0.0, X0.1 e nao X0.11
+- JOG negativo Z: M780, nao M770, M33, X0.0, X0.1 e nao X0.10
+- Ambos usam bloco JOG com D22100 e D22110 e comandam Y0.4/Y0.5
+
+Condicoes observadas no movimento automatico Z
+- M1550 e M33 setam M1600
+- M1600 limita D1600 entre D1550 e D1500
+- valor validado vai para D1650
+- bloco DDRVA usa D1650 e D21500 para gerar Y0.4 e Y0.5
+
+TENCIOMETRO E SINALIZACAO
+Y0.6 = TENCI ON/OFF
+Y0.7 = iluminacao
+Y0.8 = tower green LED
+Y0.9 = tower red LED
+Y0.10 = TENCI calibrar
+Y0.11 = TENCI zerar
+
+M20 = liga tenciometro
+M22 = desliga tenciometro
+M23 = calibra tenciometro
+M24 = zera tenciometro
+
+Rede observada no programa TENCIOMETRO
+- M20 seta Y0.6 = TENCI ON/OFF
+- M22 reseta Y0.6 = TENCI ON/OFF
+- M23 aciona Y0.10 = TENCI CALIBRAR
+- M24 aciona Y0.11 = TENCI ZERAR
+
+CARGA DE PARAMETROS E POSICOES
+SM400 = bit sempre ligado, usado para carregar parametros e atualizar posicoes
+SM461 = fim/pronto do eixo X, reseta M1100
+SM481 = fim/pronto do eixo Y, reseta M1100
+SM501 = fim/pronto do eixo Z, reseta M1600
+
+ROM -> limites
+D23120 -> D1550 = limite negativo Z
+D23080 -> D1500 = limite positivo Z
+D23110 -> D1050 = limite positivo X
+D23070 -> D1000 = limite negativo X
+D23100 -> D500 = limite positivo Y
+D23060 -> D550 = limite negativo Y
+
+ROM -> velocidades de busca
+D23030 -> D970
+D23020 -> D960
+D23010 -> D950
+
+Posicoes atuais
+SR460 -> D3000 = posicao eixo X
+SR480 -> D3200 = posicao eixo Y
+SR500 -> D3400 = posicao eixo Z
+
+VELOCIDADES E PARAMETROS DE MOVIMENTO
+D950 = velocidade de busca do homing
+D960 = velocidade de busca do homing
+D970 = velocidade de busca do homing
+D20500 = velocidade de movimento absoluto/interpolado X/Y
+D21500 = velocidade de movimento absoluto Z
+D22100 = parametro comum do bloco JOG
+D22110 = parametro comum do bloco JOG
+
+BLOCOS OBSERVADOS
+JOG = movimento manual por eixo
+DPPMA = movimento interpolado X/Y
+DDRVA = movimento absoluto Z
+
+OBSERVACOES
+- Nos PNG, Y e Z aparecem usando diretamente X0.8, X0.9, X0.10 e X0.11 nas redes de JOG e movimento.
+- O espelhamento desses sensores em memorias internas nao ficou legivel de forma inequivoca nas imagens.
+- As memorias vistas em `ENTRADAS_E_SAIDAS [PRG.LD]` foram desconsideradas, porque esse ladder esta `Disabled` e serve apenas como mapeamento de I/O.
+- O arquivo foi mantido em texto simples para facilitar consulta rapida durante integracao com a aplicacao.
