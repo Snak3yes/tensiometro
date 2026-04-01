@@ -119,7 +119,7 @@ class TensionMeasurementTab(QWidget):
         self.tree_widget.setColumnWidth(3, 100)  # Tensão
         self.tree_widget.setColumnWidth(4, 150)  # Última
         self.tree_widget.setColumnWidth(5, 80)   # Ações
-        self.tree_widget.itemClicked.connect(self.on_stencil_selected)
+        self.tree_widget.currentItemChanged.connect(self._on_current_item_changed)
 
         # Compact header and items (conforme proposta SVG)
         self.tree_widget.setStyleSheet(f"""
@@ -473,6 +473,7 @@ class TensionMeasurementTab(QWidget):
         )
         self.btn_full_history.setMinimumHeight(35)
         self.btn_full_history.setMinimumWidth(260)
+        self.btn_full_history.setEnabled(False)
         self.btn_full_history.clicked.connect(self.show_full_history)
         layout.addWidget(self.btn_full_history)
 
@@ -641,6 +642,8 @@ class TensionMeasurementTab(QWidget):
     def populate_tree(self, filtered_stencils: List[Dict]):
         """Preenche a tree widget com stencils filtrados."""
         self.tree_widget.clear()
+        selected_code = (self.selected_stencil or {}).get("code")
+        item_to_select = None
 
         for stencil in filtered_stencils:
             item = QTreeWidgetItem()
@@ -696,6 +699,14 @@ class TensionMeasurementTab(QWidget):
             # Dados do stencil
             item.setData(0, Qt.ItemDataRole.UserRole, stencil)
             self.tree_widget.addTopLevelItem(item)
+
+            if selected_code and stencil.get("code") == selected_code:
+                item_to_select = item
+
+        if item_to_select is not None:
+            self.tree_widget.setCurrentItem(item_to_select)
+        else:
+            self._clear_visualization()
 
     def on_view_clicked(self, stencil: Dict):
         """Handle para clique no botão Ver."""
@@ -851,6 +862,8 @@ class TensionMeasurementTab(QWidget):
         """Recarrega último arquivo de tensão."""
         if self.last_file_path:
             self.load_file(self.last_file_path)
+        elif self.selected_stencil:
+            self._load_latest_measurement_for_stencil(self.selected_stencil)
 
     def on_criteria_changed(self):
         """Handle quando critérios mudam."""
@@ -1108,6 +1121,149 @@ class TensionMeasurementTab(QWidget):
             logger.info("Visualizando detalhes de %s", self.selected_stencil["code"])
         else:
             logger.warning("Tentativa de ver detalhes sem stencil selecionado")
+
+    def _on_current_item_changed(self, current: QTreeWidgetItem, previous: QTreeWidgetItem):
+        """Atualiza a visualizacao quando a selecao atual muda."""
+        del previous
+        self._apply_selected_stencil(current)
+
+    def _apply_selected_stencil(self, item: Optional[QTreeWidgetItem]):
+        """Aplica o stencil selecionado aos paineis da aba."""
+        if item is None:
+            self.selected_stencil = None
+            self.btn_history.setEnabled(False)
+            self.btn_view.setEnabled(False)
+            self.btn_full_history.setEnabled(False)
+            self._clear_visualization()
+            return
+
+        stencil_data = item.data(0, Qt.ItemDataRole.UserRole)
+        if not stencil_data:
+            self.selected_stencil = None
+            self.btn_history.setEnabled(False)
+            self.btn_view.setEnabled(False)
+            self.btn_full_history.setEnabled(False)
+            self._clear_visualization()
+            return
+
+        self.selected_stencil = stencil_data
+        self.show_details(stencil_data)
+        self.btn_history.setEnabled(True)
+        self.btn_view.setEnabled(True)
+        self.btn_full_history.setEnabled(True)
+        self._load_latest_measurement_for_stencil(stencil_data)
+        self.program_selected.emit(stencil_data)
+
+    def _load_latest_measurement_for_stencil(self, stencil: Optional[Dict]):
+        """Carrega a ultima medicao registrada do stencil selecionado."""
+        if not stencil or self.stencil_manager is None:
+            self._clear_visualization()
+            return
+
+        stencil_code = stencil.get("code")
+        if not stencil_code:
+            self._clear_visualization()
+            return
+
+        try:
+            history = self.stencil_manager.get_tension_history(stencil_code) or []
+        except Exception as exc:
+            logger.error("Erro ao carregar historico de tensao de %s: %s", stencil_code, exc)
+            self._clear_visualization(
+                subtitle=f"{stencil_code} sem visualizacao",
+                file_name="Erro ao carregar historico",
+            )
+            return
+
+        if not history:
+            self._clear_visualization(
+                subtitle=f"{stencil_code} sem medicao",
+                file_name="Nenhuma medicao registrada",
+            )
+            return
+
+        latest_record = history[0]
+        self.measurements_data = self._build_visualization_payload(latest_record.to_dict())
+        self.last_file_path = None
+        self.btn_reload.setEnabled(True)
+
+        self.heatmap.set_measurements(self.measurements_data)
+        self.on_criteria_changed()
+
+        self.viz_subtitle.setText(f"{stencil_code} | ultima medicao")
+        self.file_name_label.setText(
+            f"Ultima medicao: {self._format_datetime(latest_record.timestamp)}"
+        )
+
+        measurements = self.measurements_data.get("measurements", [])
+        if measurements:
+            xs = [float(m.get("x", 0)) for m in measurements]
+            ys = [float(m.get("y", 0)) for m in measurements]
+            self.file_details_label.setText(
+                f"Pontos: {len(measurements)} | Area: {max(xs) - min(xs):.1f}x{max(ys) - min(ys):.1f}mm"
+            )
+        else:
+            self.file_details_label.setText("Pontos: 0 | Area: --")
+
+    def _build_visualization_payload(self, data: Dict) -> Dict:
+        """Garante parametros suficientes para desenhar o heatmap do historico."""
+        payload = dict(data)
+        measurements = list(payload.get("measurements", []) or [])
+        parameters = dict(payload.get("parameters", {}) or {})
+
+        if not measurements:
+            payload["parameters"] = parameters
+            return payload
+
+        start = parameters.get("start")
+        end = parameters.get("end")
+        if not isinstance(start, dict):
+            start = None
+        if not isinstance(end, dict):
+            end = None
+
+        if start is None or end is None:
+            xs = [float(m.get("x", 0.0)) for m in measurements]
+            ys = [float(m.get("y", 0.0)) for m in measurements]
+            start = {"x": min(xs), "y": min(ys)}
+            end = {"x": max(xs), "y": max(ys)}
+
+        if not parameters.get("grid_size"):
+            rows = set()
+            cols = set()
+            for measurement in measurements:
+                grid_position = measurement.get("grid_position", {}) or {}
+                row = grid_position.get("row")
+                col = grid_position.get("col")
+                if row is not None:
+                    rows.add(int(row))
+                if col is not None:
+                    cols.add(int(col))
+
+            inferred_grid = max(len(rows), len(cols))
+            if inferred_grid <= 1:
+                inferred_grid = max(2, round(len(measurements) ** 0.5))
+            parameters["grid_size"] = inferred_grid
+
+        parameters["start"] = start
+        parameters["end"] = end
+        payload["parameters"] = parameters
+        return payload
+
+    def _clear_visualization(
+        self,
+        subtitle: str = "Selecione um stencil",
+        file_name: str = "Nenhuma medicao carregada",
+    ):
+        """Limpa a visualizacao quando nao ha dados para exibir."""
+        self.measurements_data = None
+        self.last_file_path = None
+        self.viz_subtitle.setText(subtitle)
+        self.btn_reload.setEnabled(False)
+        self.heatmap.set_measurements({"measurements": [], "parameters": {}})
+        self.on_criteria_changed()
+        self.file_name_label.setText(file_name)
+        self.file_details_label.setText("Grid: -- | Area: --")
 
     def _parse_datetime(self, value) -> Optional[datetime]:
         """Parse de datetime."""

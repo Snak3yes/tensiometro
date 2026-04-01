@@ -54,6 +54,7 @@ class TensionRecord:
 
     timestamp: str
     measurements: List[Dict[str, Any]] = field(default_factory=list)
+    parameters: Dict[str, Any] = field(default_factory=dict)
     average_tension: float = 0.0
     min_tension: float = 0.0
     max_tension: float = 0.0
@@ -72,6 +73,7 @@ class TensionRecord:
         return cls(
             timestamp=data.get("timestamp", ""),
             measurements=data.get("measurements", []),
+            parameters=data.get("parameters", {}),
             average_tension=data.get("average_tension", 0.0),
             min_tension=data.get("min_tension", 0.0),
             max_tension=data.get("max_tension", 0.0),
@@ -95,6 +97,7 @@ class TensionRecord:
         if not measurements:
             return cls(
                 timestamp=datetime.now().isoformat(),
+                parameters=tension_data.get("parameters", {}),
                 recipe_name=recipe_name,
                 operator=operator,
             )
@@ -114,6 +117,7 @@ class TensionRecord:
         return cls(
             timestamp=datetime.now().isoformat(),
             measurements=measurements,
+            parameters=tension_data.get("parameters", {}),
             average_tension=sum(tensions) / len(tensions) if tensions else 0,
             min_tension=min(tensions) if tensions else 0,
             max_tension=max(tensions) if tensions else 0,
