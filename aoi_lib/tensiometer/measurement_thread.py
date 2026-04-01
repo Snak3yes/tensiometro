@@ -105,6 +105,7 @@ class TensionMeasurementThread(QThread):
             logger.error(f"Erro durante medicao: {e}", exc_info=True)
             self.error_occurred.emit(f"Erro durante medicao: {str(e)}")
         finally:
+            self._move_z_to_absolute_zero()
             self._disable_tension_sensor()
 
     def _setup_absolute_mode(self) -> None:
@@ -234,6 +235,14 @@ class TensionMeasurementThread(QThread):
                 logger.warning("Controlador CNC nao expoe interface para desligar o tenciometro")
         except Exception as e:
             logger.error(f"Erro ao desligar sensor: {e}")
+
+    def _move_z_to_absolute_zero(self) -> None:
+        """Ao encerrar a rotina, reposiciona o eixo Z na origem absoluta."""
+        try:
+            logger.info("Encerrando medicao: movendo Z para posicao absoluta 0")
+            self._move_abs(z=0.0, feed=self.user_feed)
+        except Exception as e:
+            logger.error(f"Erro ao mover Z para zero absoluto no encerramento: {e}")
 
     @property
     def measurements(self) -> List[TensionMeasurement]:
