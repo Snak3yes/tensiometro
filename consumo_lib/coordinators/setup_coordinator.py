@@ -76,9 +76,10 @@ class SetupCoordinator:
         self._setup_keyboard_handler_dependencies()   # 5. Keyboard handler dependências
         self._setup_menu()                          # 6. Menu
         self._setup_signals_dependencies()          # 7. Signals dependencies
-        self._setup_ui_state()                       # 8. Estado inicial da UI
-        self._setup_auto_connect()                   # 9. Auto-connect
-        self._setup_timers()                         # 10. Timers
+        self._setup_startup_home_pulse()            # 8. Home automático no arranque
+        self._setup_ui_state()                      # 9. Estado inicial da UI
+        self._setup_auto_connect()                  # 10. Auto-connect
+        self._setup_timers()                        # 11. Timers
 
         logger.info("Setup da aplicação concluído com sucesso via factories")
 
@@ -234,6 +235,76 @@ class SetupCoordinator:
         # Conexão PLC agora é feita via diálogo (menu Ferramentas → Conexões)
 
         logger.debug("Estado inicial da UI configurado")
+
+    def _setup_startup_home_pulse(self):
+        """
+        Configura um pulso de homing global na primeira conexão PLC da sessão.
+
+        O disparo acontece apenas uma vez por abertura da aplicação e cobre
+        tanto auto-connect quanto conexão manual feita logo após o arranque.
+        """
+        plc = getattr(getattr(self.window, "controller", None), "cnc", None)
+
+        self.window._startup_home_pending = isinstance(plc, PLCAxisController)
+        self.window._startup_home_scheduled = False
+
+        if not self.window._startup_home_pending:
+            logger.debug("Backend atual nao eh PLC; home automatico no arranque ignorado")
+            return
+
+        if hasattr(self.window, "connection_coordinator"):
+            self.window.connection_coordinator.plc_connected.connect(
+                self._queue_startup_home_pulse
+            )
+
+        if hasattr(self.window, "connection_mgr"):
+            self.window.connection_mgr.plc_connected.connect(
+                self._queue_startup_home_pulse
+            )
+
+        self._queue_startup_home_pulse()
+        logger.info("Pulso automatico de homing no arranque configurado")
+
+    def _queue_startup_home_pulse(self):
+        """Agenda o envio do pulso automatico de homing quando o PLC estiver conectado."""
+        if not getattr(self.window, "_startup_home_pending", False):
+            return
+
+        if getattr(self.window, "_startup_home_scheduled", False):
+            return
+
+        plc = getattr(getattr(self.window, "controller", None), "cnc", None)
+        if not isinstance(plc, PLCAxisController) or not getattr(plc, "is_connected", False):
+            return
+
+        self.window._startup_home_scheduled = True
+        QTimer.singleShot(200, self._send_startup_home_pulse)
+
+    def _send_startup_home_pulse(self):
+        """Envia o pulso global de homing automatico no PLC."""
+        self.window._startup_home_scheduled = False
+
+        if not getattr(self.window, "_startup_home_pending", False):
+            return
+
+        plc = getattr(getattr(self.window, "controller", None), "cnc", None)
+        if not isinstance(plc, PLCAxisController) or not getattr(plc, "is_connected", False):
+            return
+
+        try:
+            plc.home_all()
+            self.window._startup_home_pending = False
+            self.window.statusBar().showMessage(
+                "Pulso de home enviado automaticamente na inicializacao",
+                5000
+            )
+            logger.info("Pulso automatico de homing enviado na inicializacao")
+        except Exception as e:
+            logger.error("Falha ao enviar pulso automatico de homing na inicializacao: %s", e)
+            self.window.statusBar().showMessage(
+                f"Falha ao enviar home automatico na inicializacao: {e}",
+                5000
+            )
 
     def _setup_auto_connect(self):
         """Configura auto-connect se preferido."""
