@@ -290,8 +290,8 @@ class RecipeManagerController(QObject):
             recipe_error se falhar
         """
         error_msg = (
-            "A criação de receita a partir de programas de engenharia foi "
-            "descontinuada junto com a inspeção visual."
+            "A criação de receita a partir de programas de engenharia "
+            "não está disponível nesta versão."
         )
         logger.warning(error_msg)
         self.recipe_error.emit(error_msg)

@@ -35,7 +35,7 @@ class RoleManager(QObject):
         - Validar acesso a funcionalidades
 
     Permissões por Role:
-        - operator: Pode executar inspeções, visualizar resultados básicos
+        - operator: Pode executar medições, visualizar resultados básicos
         - engineering: Pode configurar receitas, calibrar sistema, ver controles avançados
         - quality: Pode gerar relatórios, ver histórico detalhado
         - admin: Acesso total a configurações do sistema
@@ -48,16 +48,16 @@ class RoleManager(QObject):
     # Definição de permissões por role
     ROLE_PERMISSIONS: Dict[UserRole, List[str]] = {
         UserRole.OPERATOR: [
-            "inspection.execute",
-            "inspection.view_results",
+            "tension.execute",
+            "tension.view_results",
             "stencil.select",
             "program.select",
             "session.log"
         ],
         UserRole.ENGINEERING: [
-            "inspection.execute",
-            "inspection.view_results",
-            "inspection.configure_parameters",
+            "tension.execute",
+            "tension.view_results",
+            "tension.configure_parameters",
             "stencil.select",
             "stencil.create",
             "stencil.edit",
@@ -71,9 +71,9 @@ class RoleManager(QObject):
             "settings.engineering"
         ],
         UserRole.QUALITY: [
-            "inspection.execute",
-            "inspection.view_results",
-            "inspection.view_history",
+            "tension.execute",
+            "tension.view_results",
+            "tension.view_history",
             "stencil.select",
             "program.select",
             "report.generate",
@@ -81,9 +81,9 @@ class RoleManager(QObject):
             "statistics.view"
         ],
         UserRole.ADMIN: [
-            "inspection.execute",
-            "inspection.view_results",
-            "inspection.configure_parameters",
+            "tension.execute",
+            "tension.view_results",
+            "tension.configure_parameters",
             "stencil.select",
             "stencil.create",
             "stencil.edit",
@@ -168,7 +168,7 @@ class RoleManager(QObject):
         Verifica se a role atual tem uma permissão específica.
 
         Args:
-            permission: Permissão a verificar (e.g., "inspection.execute")
+            permission: Permissão a verificar (e.g., "tension.execute")
 
         Returns:
             True se role tem a permissão, False caso contrário
@@ -224,12 +224,12 @@ class RoleManager(QObject):
 
     def can_execute_inspection(self) -> bool:
         """
-        Verifica se role atual pode executar inspeções.
+        Verifica se role atual pode executar medições de tensão.
 
         Returns:
             True se tem permissão de execução
         """
-        return self.has_permission("inspection.execute")
+        return self.has_permission("tension.execute")
 
     def can_manage_recipes(self) -> bool:
         """

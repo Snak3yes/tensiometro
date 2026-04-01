@@ -5,7 +5,6 @@ Gerencia handlers de eventos da MainWindow (AOIControllerApp).
 
 Responsabilidades:
 - Handlers de autenticação (on_login_result, apply_role_permissions)
-- Handlers de inspeção (on_inspect_requested, on_inspection_complete, on_mode_selected)
 - Handlers de sequência (on_sequence_completed, on_sequence_error, on_sequence_image_captured)
 - Handlers de conexão (on_connect_btn_clicked)
 - Handlers de timer (on_update_timer)
@@ -16,7 +15,7 @@ Author: Refactoring (2026-01-14)
 import logging
 import time
 from typing import Dict, Any
-from PyQt6.QtWidgets import QMessageBox, QTableWidget, QTableWidgetItem
+from PyQt6.QtWidgets import QTableWidget, QTableWidgetItem
 
 logger = logging.getLogger(__name__)
 
@@ -74,70 +73,6 @@ class MainWindowEventHandlers:
             self.state.apply_role_permissions()
         else:
             logger.warning("MainWindowState não disponível, não aplicando permissões")
-
-    # =========================================================================
-    # HANDLERS DE INSPEÇÃO
-    # =========================================================================
-
-    def on_inspect_requested(self, stencil: Dict[str, Any]):
-        """
-        Handler legado para inspeção visual descontinuada.
-
-        Args:
-            stencil: Dicionário com dados do stencil
-        """
-        logger.info(
-            "Solicitação de inspeção ignorada: funcionalidade descontinuada (%s)",
-            stencil.get('code', 'N/A')
-        )
-        QMessageBox.information(
-            self.main_window,
-            "Indisponível",
-            "A inspeção visual foi descontinuada."
-        )
-
-    def on_inspection_complete(self, success: bool, message: str, stencil: Dict[str, Any]):
-        """
-        Handler legado para inspeção visual descontinuada.
-
-        Args:
-            success: True se sucesso
-            message: Mensagem de resultado
-            stencil: Dados do stencil
-        """
-        logger.info(
-            "Conclusão de inspeção ignorada: funcionalidade descontinuada (%s)",
-            stencil.get('code', 'N/A')
-        )
-
-    def show_inspection_results(self, stencil: Dict[str, Any]):
-        """
-        Exibe aviso de funcionalidade descontinuada.
-
-        Args:
-            stencil: Dicionário com dados do stencil
-        """
-        logger.info(
-            "Visualização de resultados de inspeção ignorada: funcionalidade descontinuada (%s)",
-            stencil.get('code', 'N/A')
-        )
-        QMessageBox.information(
-            self.main_window,
-            "Indisponível",
-            "Os resultados de inspeção visual foram descontinuados."
-        )
-
-    def on_mode_selected(self, data: Dict[str, Any]):
-        """
-        Handler legado para seleção de modo de inspeção descontinuada.
-
-        Args:
-            data: Dict com "mode" e "stencil_code"
-        """
-        logger.info(
-            "Seleção de modo de inspeção ignorada: funcionalidade descontinuada (%s)",
-            data.get("stencil_code", "N/A")
-        )
 
     # =========================================================================
     # HANDLERS DE SEQUÊNCIA

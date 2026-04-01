@@ -4,7 +4,7 @@ Módulo: app_state.py
 Gerencia o estado da MainWindow (AOIControllerApp).
 
 Responsabilidades:
-- Armazenar estado da aplicação (modo de inspeção, resultados, sequências)
+- Armazenar estado da aplicação (sequências e runtime)
 - Gerenciar permissões baseadas em roles
 - Atualizar displays de posição
 - Fornecer acesso ao usuário atual
@@ -14,7 +14,7 @@ Author: Refactoring (2026-01-14)
 """
 
 import logging
-from typing import Optional, Dict, Any
+from typing import Optional, Any
 from weakref import WeakSet
 
 logger = logging.getLogger(__name__)
@@ -74,16 +74,12 @@ class MainWindowState:
     facilitando gerenciamento e teste.
 
     Attributes:
-        selected_inspection_mode: Modo de inspeção selecionado ("tension", "inspection", "both")
-        inspection_results: Resultados da última inspeção
         current_sequence: Sequência de posições atual
         is_running_sequence: Flag indicando se sequência está em execução
     """
 
     def __init__(self):
         """Inicializa o estado da aplicação."""
-        self.selected_inspection_mode: str = "tension"
-        self.inspection_results: Dict[str, Any] = {}
         self.current_sequence: Optional[Any] = None
         self.is_running_sequence: bool = False
 
@@ -234,26 +230,6 @@ class MainWindowState:
     # ─────────────────────────────────────────────────────────────────────────
     # Getters e Setters para estado
     # ─────────────────────────────────────────────────────────────────────────
-
-    @property
-    def inspection_mode(self) -> str:
-        """Retorna o modo de inspeção selecionado."""
-        return self.selected_inspection_mode
-
-    @inspection_mode.setter
-    def inspection_mode(self, mode: str):
-        """Define o modo de inspeção."""
-        self.selected_inspection_mode = mode
-
-    @property
-    def results(self) -> Dict[str, Any]:
-        """Retorna os resultados da última inspeção."""
-        return self.inspection_results
-
-    @results.setter
-    def results(self, results: Dict[str, Any]):
-        """Define os resultados da inspeção."""
-        self.inspection_results = results
 
     @property
     def sequence(self) -> Optional[Any]:

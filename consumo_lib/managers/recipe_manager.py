@@ -239,8 +239,8 @@ class RecipeManagerWrapper(QObject):
             ValueError: Se conversão falhar
         """
         error_msg = (
-            "A criação de receita a partir do Engineering Wizard foi descontinuada "
-            "junto com a inspeção visual."
+            "A criação de receita a partir do Engineering Wizard "
+            "não está disponível nesta versão."
         )
         logger.warning(error_msg)
         self.recipe_error.emit(error_msg)
@@ -257,8 +257,8 @@ class RecipeManagerWrapper(QObject):
             Recipe carregada ou None se falhar
         """
         error_msg = (
-            "O carregamento de programas do Engineering Wizard foi descontinuado "
-            "junto com a inspeção visual."
+            "O carregamento de programas do Engineering Wizard "
+            "não está disponível nesta versão."
         )
         logger.warning("%s: %s", error_msg, program_name)
         self.recipe_error.emit(error_msg)

@@ -45,11 +45,6 @@ class IDialogManager(ABC):
         pass
 
     @abstractmethod
-    def show_inspection_settings(self) -> None:
-        """Exibe as configurações de inspeção."""
-        pass
-
-    @abstractmethod
     def show_fov_calibration(self) -> None:
         """Exibe o diálogo de calibração FOV."""
         pass
@@ -62,11 +57,6 @@ class IDialogManager(ABC):
         Returns:
             True se login bem-sucedido, False caso contrário
         """
-        pass
-
-    @abstractmethod
-    def show_engineering_wizard(self) -> None:
-        """Exibe o wizard de engenharia."""
         pass
 
     @abstractmethod

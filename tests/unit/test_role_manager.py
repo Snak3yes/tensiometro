@@ -97,11 +97,11 @@ class TestPermissionChecking:
     """Testa verificação de permissões."""
 
     def test_operator_can_execute_inspection(self):
-        """Operator deve ter permissão para executar inspeção."""
+        """Operator deve ter permissão para executar medição."""
         manager = RoleManager()
         manager.set_role("operator")
 
-        assert manager.has_permission("inspection.execute") is True
+        assert manager.has_permission("tension.execute") is True
 
     def test_operator_cannot_access_engineering_settings(self):
         """Operator NÃO deve ter permissão para configurações de engenharia."""
@@ -139,7 +139,7 @@ class TestPermissionChecking:
         manager.set_role("admin")
 
         # Verifica algumas permissões críticas
-        assert manager.has_permission("inspection.execute") is True
+        assert manager.has_permission("tension.execute") is True
         assert manager.has_permission("settings.engineering") is True
         assert manager.has_permission("recipe.edit") is True
         assert manager.has_permission("user.manage") is True
@@ -197,12 +197,12 @@ class TestPermissionMethods:
         assert manager.can_view_advanced_controls() is True
 
     def test_can_execute_inspection_for_all_roles(self):
-        """Todas as roles devem conseguir executar inspeção."""
+        """Todas as roles devem conseguir executar medição."""
         manager = RoleManager()
 
         for role in ["operator", "engineering", "quality", "admin"]:
             manager.set_role(role)
-            assert manager.can_execute_inspection(), f"{role} deve executar inspeção"
+            assert manager.can_execute_inspection(), f"{role} deve executar medição"
 
 
 class TestPermissionLists:
@@ -215,7 +215,7 @@ class TestPermissionLists:
         permissions = manager.get_all_permissions_for_role("operator")
 
         assert len(permissions) > 0
-        assert "inspection.execute" in permissions
+        assert "tension.execute" in permissions
         assert "stencil.select" in permissions
         # Não deve ter permissões de engenharia
         assert "settings.engineering" not in permissions

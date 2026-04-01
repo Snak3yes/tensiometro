@@ -38,16 +38,6 @@ from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from aoi_lib.fov_calibration import FOVCalibration, CameraFOVConverter, ClickableVideoLabel
 
-# External
-try:
-    from tools.mosaic_builder import compose_mosaic_from_folder
-except ImportError:
-    try:
-        from mosaic_builder import compose_mosaic_from_folder
-    except ImportError:
-        compose_mosaic_from_folder = None
-        logger.warning("mosaic_builder.py não encontrado - funcionalidade de mosaico desabilitada")
-
 # Consumo lib - barrier packages
 from consumo_lib.dialogs import (
     StencilManagerDialog, StencilCreateDialog,
@@ -215,11 +205,7 @@ class AOIControllerApp(QMainWindow):
         # Componente 3: Event handlers
         self._event_handlers = MainWindowEventHandlers(self, self._app_state)
 
-        # Componente 4: Workflow de engenharia descontinuado
-        self._engineering_workflow = None
 
-        # Componente 5: Workflow de inspeção visual descontinuado
-        self._inspection_workflow = None
 
         # ─────────────────────────────────────────────────────────────────────
         # NOVO (Fase 4): Factories para criar componentes
@@ -425,82 +411,6 @@ class AOIControllerApp(QMainWindow):
             # Fallback para implementação legada
             self._app_state.apply_role_permissions()
 
-    # =========================================================================
-    # WORKFLOWS (Delegação para componentes modulares)
-    # =========================================================================
-
-    # Workflow de Inspeção
-    def _on_inspect_requested(self, stencil: dict):
-        """Inspeção visual descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "A funcionalidade de inspeção visual foi descontinuada."
-        )
-
-    def run_inspection(self, stencil: dict):
-        """Inspeção visual descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "A funcionalidade de inspeção visual foi descontinuada."
-        )
-
-    def on_inspection_complete(self, success: bool, message: str, stencil: dict):
-        """Inspeção visual descontinuada."""
-        logger.info("Callback de inspeção ignorado: fluxo descontinuado")
-
-    def show_inspection_results(self, stencil: dict):
-        """Inspeção visual descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "A visualização de resultados de inspeção visual foi descontinuada."
-        )
-
-    def save_inspection_to_history(self, stencil: dict, results: dict, mode: str) -> bool:
-        """Inspeção visual descontinuada."""
-        logger.info("Salvamento de histórico de inspeção ignorado: fluxo descontinuado")
-        return False
-
-    def show_positioning_confirmation(self, stencil: dict) -> bool:
-        """Inspeção visual descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "A confirmação de posicionamento para inspeção visual foi descontinuada."
-        )
-        return False
-
-    def show_mode_selection(self, stencil: dict) -> bool:
-        """Inspeção visual descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "A seleção de modo de inspeção visual foi descontinuada."
-        )
-        return False
-
-    def on_mode_selected(self, data: dict):
-        """Inspeção visual descontinuada."""
-        logger.info("Seleção de modo de inspeção ignorada: fluxo descontinuado")
-
-    def show_inspection_history(self, stencil_code: str):
-        """Abre histórico de medições do stencil para compatibilidade."""
-        from consumo_lib.dialogs.stencil import StencilFullHistoryDialog
-
-        dialog = StencilFullHistoryDialog(self.stencil_tracker, stencil_code, self)
-        dialog.exec()
-
-    # Workflow de Engenharia
-    def open_engineering_wizard(self):
-        """Engineering Wizard descontinuado."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "O Engineering Wizard foi descontinuado junto com a inspeção visual."
-        )
-
     def show_auth_settings(self):
         """
         Exibe diálogo de configurações de autenticação.
@@ -651,26 +561,6 @@ class AOIControllerApp(QMainWindow):
         logger.info("Configuração de autenticação foi alterada")
         # TODO: Implementar lógica de atualização se necessário
         # Por exemplo, atualizar label de usuário atual, etc.
-
-    def _on_engineering_program_completed(self, program_data: dict):
-        """Engineering Wizard descontinuado."""
-        logger.info("Conclusão de programa de engenharia ignorada: fluxo descontinuado")
-
-    def show_saved_programs(self):
-        """Lista de programas de inspeção descontinuada."""
-        QMessageBox.information(
-            self,
-            "Indisponível",
-            "Os programas de inspeção visual foram descontinuados."
-        )
-
-    def _load_selected_program(self, table, dialog):
-        """Carregamento de programa de inspeção descontinuado."""
-        logger.info("Carregamento de programa de engenharia ignorado: fluxo descontinuado")
-
-    def _delete_selected_program(self, table, dialog):
-        """Exclusão de programa de inspeção descontinuada."""
-        logger.info("Exclusão de programa de engenharia ignorada: fluxo descontinuado")
 
     # =========================================================================
     # EVENT HANDLERS (Delegação para MainWindowEventHandlers)
@@ -1041,26 +931,6 @@ class AOIControllerApp(QMainWindow):
     # =========================================================================
     # PROPRIEDADES PARA COMPATIBILIDADE (Acesso via _app_state)
     # =========================================================================
-
-    @property
-    def selected_inspection_mode(self) -> str:
-        """Retorna o modo de inspeção selecionado."""
-        return self._app_state.inspection_mode
-
-    @selected_inspection_mode.setter
-    def selected_inspection_mode(self, mode: str):
-        """Define o modo de inspeção."""
-        self._app_state.inspection_mode = mode
-
-    @property
-    def inspection_results(self) -> dict:
-        """Retorna os resultados da última inspeção."""
-        return self._app_state.results
-
-    @inspection_results.setter
-    def inspection_results(self, results: dict):
-        """Define os resultados da inspeção."""
-        self._app_state.results = results
 
     @property
     def current_sequence(self):

@@ -118,14 +118,6 @@ class DialogRouter:
     # FERRAMENTAS DE CALIBRAÇÃO
     # =========================================================================
 
-    def show_mosaic_builder(self):
-        """Mosaico visual descontinuado."""
-        QMessageBox.information(
-            self.window,
-            "Indisponível",
-            "A funcionalidade de mosaico foi descontinuada junto com a inspeção visual."
-        )
-
     def show_camera_calibration_dialog(self):
         """Abre diálogo para calibração de câmera (correção de distorção)"""
         if not hasattr(self.main_window.controller.camera, 'is_connected') or \
@@ -252,34 +244,6 @@ class DialogRouter:
             QMessageBox.warning(self.window, "Erro", "ReportDialogController não está disponível")
 
     # =========================================================================
-    # SISTEMA DE INSPEÇÃO VISUAL
-    # =========================================================================
-
-    def show_inspection_settings(self):
-        """Configuração de inspeção visual descontinuada."""
-        QMessageBox.information(
-            self.window,
-            "Indisponível",
-            "A configuração de inspeção visual foi descontinuada."
-        )
-
-    def show_inspection_dialog(self):
-        """Execução de inspeção visual descontinuada."""
-        QMessageBox.information(
-            self.window,
-            "Indisponível",
-            "A execução de inspeção visual foi descontinuada."
-        )
-
-    def show_last_inspection_result(self):
-        """Mostra o último resultado de inspeção."""
-        QMessageBox.information(
-            self.window,
-            "Indisponível",
-            "A visualização do último resultado de inspeção visual foi descontinuada."
-        )
-
-    # =========================================================================
     # DIÁLOGOS GERAIS
     # =========================================================================
 
@@ -315,20 +279,6 @@ class DialogRouter:
             from consumo_lib.dialogs import AboutDialog
             dialog = AboutDialog(self.window)
             dialog.exec()
-
-    # =========================================================================
-    # WORKFLOW DE OPERADOR (NOVO - FASE 3)
-    # =========================================================================
-
-    def show_operator_workflow(self):
-        """
-        Workflow de operador da inspeção visual descontinuado.
-        """
-        QMessageBox.information(
-            self.window,
-            "Indisponível",
-            "O workflow de operador da inspeção visual foi descontinuado."
-        )
 
     def show_permissions_info(self):
         """
