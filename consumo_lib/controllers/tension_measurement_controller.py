@@ -301,7 +301,12 @@ class TensionMeasurementController(QObject):
         session_data = results.get("session") if isinstance(results, dict) else None
         if not isinstance(session_data, dict):
             raise ValueError("Resultado da medição não contém sessão válida para persistência.")
-        return self._save_measurement_data(current_stencil, current_recipe, session_data)
+        return self._save_measurement_data(
+            current_stencil,
+            current_recipe,
+            session_data,
+            emit_signals=False,
+        )
 
     def open_simple_dialog(self):
         """
@@ -489,6 +494,8 @@ class TensionMeasurementController(QObject):
         recipe = self._active_recipe
         saved_path = results.get("saved_to")
 
+        self._close_progress_dialog()
+
         try:
             record = self.save_measurement_results(stencil, recipe, results)
             self.parent_window.statusBar().showMessage(
@@ -502,7 +509,6 @@ class TensionMeasurementController(QObject):
             QMessageBox.critical(self._active_ui_parent or self.parent_window, "Erro", error_msg)
             self.measurement_failed.emit(error_msg)
         finally:
-            self._close_progress_dialog()
             self._cleanup_runtime_measurement()
 
     def _on_runtime_error(self, error_message: str):
@@ -567,7 +573,23 @@ class TensionMeasurementController(QObject):
                 except Exception:
                     logger.debug("Falha ao carregar arquivo salvo na aba de tensão", exc_info=True)
 
-    def _save_measurement_data(self, current_stencil: Stencil, current_recipe, tension_data: dict):
+        stencil_identification = getattr(self.parent_window, "stencil_identification", None)
+        active_stencil = self._active_stencil
+        if stencil_identification is not None and active_stencil is not None:
+            try:
+                refreshed_stencil = self.stencil_manager_wrapper.get_stencil(active_stencil.code)
+                if refreshed_stencil is not None:
+                    stencil_identification._select_stencil(refreshed_stencil)
+            except Exception:
+                logger.debug("Falha ao atualizar widget de rastreabilidade apos medicao", exc_info=True)
+
+    def _save_measurement_data(
+        self,
+        current_stencil: Stencil,
+        current_recipe,
+        tension_data: dict,
+        emit_signals: bool = True
+    ):
         """Cria e persiste o registro de tensão no histórico do stencil."""
         classified_data = self._classify_measurements_by_recipe(tension_data, current_recipe)
         record = TensionRecord.from_tension_data(
@@ -583,7 +605,8 @@ class TensionMeasurementController(QObject):
         added = self.stencil_manager_wrapper.add_tension_record(
             current_stencil.code,
             record,
-            recipe_acceptance=recipe_acceptance
+            recipe_acceptance=recipe_acceptance,
+            emit_signals=emit_signals,
         )
         if not added:
             raise RuntimeError("O histórico do stencil recusou o registro da medição.")

@@ -121,7 +121,13 @@ class StencilManagerWrapper(QObject):
         """
         return self.current_stencil is not None
 
-    def add_tension_record(self, stencil_code: str, record: TensionRecord, recipe_acceptance=None):
+    def add_tension_record(
+        self,
+        stencil_code: str,
+        record: TensionRecord,
+        recipe_acceptance=None,
+        emit_signals: bool = True
+    ):
         """
         Adiciona um registro de tensão ao histórico do stencil.
 
@@ -143,11 +149,12 @@ class StencilManagerWrapper(QObject):
                     stencil_code,
                     warning_low=recipe_acceptance.warning_low
                 )
-                if alert:
+                if alert and emit_signals:
                     self.degradation_alert.emit(alert)
 
             # Emite signal
-            self.tension_record_added.emit(stencil_code, record)
+            if emit_signals:
+                self.tension_record_added.emit(stencil_code, record)
 
             logger.info(
                 f"Medição de tensão salva no histórico do stencil "
