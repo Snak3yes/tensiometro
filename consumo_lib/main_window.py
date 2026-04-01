@@ -874,6 +874,30 @@ class AOIControllerApp(QMainWindow):
         self._plc_monitor_dialog.activateWindow()
         logger.debug("PLCMonitorDialog aberto")
 
+    def open_tensiometer_calibration_dialog(self):
+        """
+        Abre dialogo de calibracao do medidor de tensao.
+
+        O dialogo e nao-modal e permanece acima da janela principal.
+        """
+        from consumo_lib.dialogs import TensiometerCalibrationDialog
+
+        if (
+            not hasattr(self, '_tensiometer_calibration_dialog')
+            or self._tensiometer_calibration_dialog is None
+        ):
+            config = getattr(self, "config_manager", None) or getattr(self, "config", None)
+            self._tensiometer_calibration_dialog = TensiometerCalibrationDialog(
+                self.controller,
+                config=config,
+                parent=self,
+            )
+
+        self._tensiometer_calibration_dialog.show()
+        self._tensiometer_calibration_dialog.raise_()
+        self._tensiometer_calibration_dialog.activateWindow()
+        logger.debug("TensiometerCalibrationDialog aberto")
+
     def open_tracking_dialog(self):
         """
         Abre diálogo de rastreabilidade (identificação de stencil).

@@ -166,6 +166,7 @@ Implication:
 8. Check `CLAUDE.md` and `conductor/workflow.md` when the task touches process, architecture history, or coding conventions.
 9. When a task involves the Delta PLC, ladder logic, Modbus addresses, axis movement, homing, registers, memories, inputs, or outputs, read `MAPA.txt` in the repository root first and use it as the primary local reference for CLP addressing before inferring anything from code.
 10. Do not create `build/` or `dist/` inside this worktree. All packaging and executable build outputs must be written to a sibling or parent folder outside the repository checkout. Prefer `tools/build_app.ps1` when generating application builds.
+11. Before finishing any change that touches user-facing text, check for mojibake, broken UTF-8 PT-BR characters, or replacement glyphs, and fix them before delivery.
 
 ## Recommended First Files To Read
 

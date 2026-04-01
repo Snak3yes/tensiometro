@@ -81,3 +81,7 @@ __all__.append('TensionCriteriaDialog')
 # Tracking dialog (NOVO - 2026-03-29 - substitui aba Rastreabilidade)
 from .tracking_dialog import TrackingDialog
 __all__.append('TrackingDialog')
+
+# Tensiometer calibration dialog
+from .tensiometer_calibration_dialog import TensiometerCalibrationDialog
+__all__.append('TensiometerCalibrationDialog')

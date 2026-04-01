@@ -203,6 +203,16 @@ class MenuHandler(QObject):
         menu.addAction(plc_monitor_action)
         self._register_action('tools.plc_monitor', plc_monitor_action)
 
+        tensiometer_calibration_action = QAction('Calibrar medidor de tensao', self.main_window)
+        tensiometer_calibration_action.setToolTip(
+            'Abre a tela de calibracao automatica e manual do medidor de tensao'
+        )
+        tensiometer_calibration_action.triggered.connect(
+            self.main_window.open_tensiometer_calibration_dialog
+        )
+        menu.addAction(tensiometer_calibration_action)
+        self._register_action('tools.tensiometer_calibration', tensiometer_calibration_action)
+
         menu.addSeparator()
 
         # Calibração CNC

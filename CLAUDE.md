@@ -204,6 +204,8 @@ tensiometro/
 | **Design System** | PROIBIDO estilo inline/hardcoded - usar tokens |
 | **Window Size** | Tamanho FIXO 1200×800px - monitor predefinido da máquina |
 
+| **Encoding PT-BR** | Sempre revisar textos novos para mojibake e caracteres especiais quebrados antes de entregar |
+
 ### Main Window Dimensions
 
 **REGRA FIXA:** A janela principal deve ter tamanho **1200×800 pixels**.
