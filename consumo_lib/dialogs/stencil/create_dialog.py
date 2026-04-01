@@ -126,6 +126,7 @@ class StencilCreateDialog(QDialog):
                 description=self.txt_description.text().strip(),
                 recipe_name=self.cmb_recipe.currentText().strip() or None,
             )
+            self._notify_stencil_changed(self.created_stencil.code)
             self.accept()
 
         except Exception as e:
@@ -136,6 +137,16 @@ class StencilCreateDialog(QDialog):
 
     def get_created_stencil(self) -> Optional[Stencil]:
         return self.created_stencil
+
+    def _notify_stencil_changed(self, stencil_code: str):
+        """Notifica o wrapper principal para atualizar a UI em tempo real."""
+        widget = self.parentWidget()
+        while widget is not None:
+            wrapper = getattr(widget, "stencil_manager_wrapper", None)
+            if wrapper is not None and hasattr(wrapper, "stencil_changed"):
+                wrapper.stencil_changed.emit(stencil_code)
+                return
+            widget = widget.parentWidget()
 
     def _refresh_recipe_options(self, selected_name: str = ""):
         """Atualiza combo de receitas disponíveis."""

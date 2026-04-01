@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel,
     QFrame, QSizePolicy, QPushButton, QLineEdit, QTableWidget, QTableWidgetItem,
-    QHeaderView
+    QHeaderView, QMessageBox, QSpinBox
 )
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QIntValidator
@@ -18,9 +18,10 @@ class PLCMonitorWidget(QWidget):
     Mostra valores lidos e permite gravar holdings ou pulsar coils.
     """
 
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, config_manager=None, parent=None):
         super().__init__(parent)
         self.controller = controller
+        self.config_manager = config_manager
         self.rows = self._build_rows()
 
         layout = QVBoxLayout(self)
@@ -34,6 +35,26 @@ class PLCMonitorWidget(QWidget):
         self.status_label = QLabel("Conecte o PLC e clique em Atualizar.")
         header_layout.addWidget(self.status_label)
         layout.addLayout(header_layout)
+
+        # Parâmetro operacional do fluxo de medição
+        delay_group = QGroupBox("Parâmetros de Medição")
+        delay_layout = QHBoxLayout(delay_group)
+        delay_layout.addWidget(QLabel("Delay_Medidor (ms):"))
+
+        self.delay_medidor_spin = QSpinBox()
+        self.delay_medidor_spin.setRange(0, 10000)
+        self.delay_medidor_spin.setSingleStep(50)
+        self.delay_medidor_spin.setValue(self._get_delay_medidor_ms())
+        self.delay_medidor_spin.setToolTip(
+            "Tempo de estabilização aplicado após o eixo Z atingir a altura de medição."
+        )
+        delay_layout.addWidget(self.delay_medidor_spin)
+
+        self.save_delay_btn = StandardButton("Salvar Delay")
+        self.save_delay_btn.clicked.connect(self.save_delay_medidor)
+        delay_layout.addWidget(self.save_delay_btn)
+        delay_layout.addStretch()
+        layout.addWidget(delay_group)
 
         # Tabela principal
         self.table = QTableWidget(len(self.rows), 4)
@@ -66,6 +87,30 @@ class PLCMonitorWidget(QWidget):
 
         # Configura estado inicial dos botões
         self._on_row_changed(0, 0, 0, 0)
+
+    def _get_delay_medidor_ms(self) -> int:
+        """Lê o delay global do medidor salvo na configuração da aplicação."""
+        if self.config_manager is None:
+            return 500
+        if hasattr(self.config_manager, "get_delay_medidor_ms"):
+            return self.config_manager.get_delay_medidor_ms()
+        return int(self.config_manager.get("tension", "delay_medidor_ms", default=500))
+
+    def save_delay_medidor(self):
+        """Persiste o Delay_Medidor para o fluxo operacional de medição."""
+        if self.config_manager is None:
+            QMessageBox.warning(self, "Erro", "Configuração da aplicação não disponível.")
+            return
+
+        value = int(self.delay_medidor_spin.value())
+        try:
+            if hasattr(self.config_manager, "set_delay_medidor_ms"):
+                self.config_manager.set_delay_medidor_ms(value)
+            else:
+                self.config_manager.set("tension", "delay_medidor_ms", value=value)
+            self.status_label.setText(f"Delay_Medidor salvo: {value} ms.")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro", f"Falha ao salvar Delay_Medidor: {e}")
 
     def _build_rows(self):
         """Lista os registradores/coils relevantes já mapeados no controlador."""

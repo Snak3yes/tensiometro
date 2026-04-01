@@ -26,6 +26,8 @@ class StencilManagerWrapper(QObject):
     # Signals
     stencil_selected = pyqtSignal(object)  # Stencil
     stencil_cleared = pyqtSignal()
+    stencil_changed = pyqtSignal(str)  # stencil_code
+    stencil_deleted = pyqtSignal(str)  # stencil_code
     tension_record_added = pyqtSignal(str, object)  # stencil_code, TensionRecord
     degradation_alert = pyqtSignal(str)  # alert_message
     stencil_error = pyqtSignal(str)  # error_message
@@ -195,6 +197,46 @@ class StencilManagerWrapper(QObject):
         """
         return self.stencil_tracker.list_stencils()
 
+    def refresh_stencil_views(self, stencil_code: str = None, select_stencil: bool = False):
+        """
+        Atualiza as views de stencil da aplicação em tempo real.
+
+        Args:
+            stencil_code: Código do stencil alterado (opcional)
+            select_stencil: Se True, força reseleção do stencil atualizado
+        """
+        main_window = getattr(self, "main_window", None)
+        if main_window is None:
+            return
+
+        tension_tab = getattr(main_window, "tension_measurement_tab", None)
+        if tension_tab is not None and hasattr(tension_tab, "load_stencils"):
+            try:
+                tension_tab.load_stencils()
+            except Exception:
+                logger.debug("Falha ao recarregar lista de stencils da aba principal", exc_info=True)
+
+        if not stencil_code:
+            return
+
+        refreshed_stencil = self.get_stencil(stencil_code)
+        current_selected = getattr(self.current_stencil, "code", None)
+        main_selected = getattr(getattr(main_window, "current_stencil", None), "code", None)
+        should_reselect = select_stencil or current_selected == stencil_code or main_selected == stencil_code
+
+        if refreshed_stencil is None:
+            if should_reselect:
+                self.clear_selection()
+            return
+
+        if should_reselect:
+            self.select_stencil(refreshed_stencil)
+        elif hasattr(main_window, "statusBar"):
+            main_window.statusBar().showMessage(
+                f"Stencil atualizado: {refreshed_stencil.code}",
+                3000
+            )
+
     def check_degradation_alert(self, stencil_code: str, warning_low: float = None):
         """
         Verifica se há alerta de degradação para um stencil.
@@ -233,6 +275,8 @@ class StencilManagerWrapper(QObject):
         # Conectar signals a handlers de UI
         self.stencil_selected.connect(self._on_stencil_selected_update_ui)
         self.stencil_cleared.connect(self._on_stencil_cleared_update_ui)
+        self.stencil_changed.connect(self._on_stencil_changed_refresh_ui)
+        self.stencil_deleted.connect(self._on_stencil_deleted_refresh_ui)
         self.tension_record_added.connect(self._on_tension_record_added_show_message)
         self.degradation_alert.connect(self._on_degradation_alert_show_message)
         self.stencil_error.connect(self._on_stencil_error_show_message)
@@ -306,6 +350,14 @@ class StencilManagerWrapper(QObject):
         stencil = self.get_stencil(stencil_code)
         if stencil and hasattr(self.main_window, 'stencil_identification'):
             self.main_window.stencil_identification._select_stencil(stencil)
+
+    def _on_stencil_changed_refresh_ui(self, stencil_code: str):
+        """Recarrega lista e detalhes de stencil após criação/edição."""
+        self.refresh_stencil_views(stencil_code=stencil_code)
+
+    def _on_stencil_deleted_refresh_ui(self, stencil_code: str):
+        """Recarrega lista e limpa seleção se stencil removido."""
+        self.refresh_stencil_views(stencil_code=stencil_code)
 
     def _on_degradation_alert_show_message(self, alert: str):
         """

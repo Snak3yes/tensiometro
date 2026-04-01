@@ -864,6 +864,7 @@ class AOIControllerApp(QMainWindow):
         if not hasattr(self, '_plc_monitor_dialog') or self._plc_monitor_dialog is None:
             self._plc_monitor_dialog = PLCMonitorDialog(
                 self.controller,
+                config_manager=self.config_manager,
                 parent=self
             )
 

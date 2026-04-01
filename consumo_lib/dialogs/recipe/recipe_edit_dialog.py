@@ -31,6 +31,8 @@ from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternM
 
 logger = logging.getLogger(__name__)
 
+TENSION_COORDINATE_LIMIT = 100000.0
+
 
 class RecipeEditorDialog(QDialog):
     """
@@ -227,25 +229,29 @@ class RecipeEditorDialog(QDialog):
 
         grid_layout.addWidget(QLabel("Ponto Inicial X:"), 2, 0)
         self.spin_tension_start_x = QDoubleSpinBox()
-        self.spin_tension_start_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
+        self.spin_tension_start_x.setRange(0, TENSION_COORDINATE_LIMIT)
+        self.spin_tension_start_x.setDecimals(3)
         self.spin_tension_start_x.setValue(50)
         grid_layout.addWidget(self.spin_tension_start_x, 2, 1)
 
         grid_layout.addWidget(QLabel("Y:"), 2, 2)
         self.spin_tension_start_y = QDoubleSpinBox()
-        self.spin_tension_start_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
+        self.spin_tension_start_y.setRange(0, TENSION_COORDINATE_LIMIT)
+        self.spin_tension_start_y.setDecimals(3)
         self.spin_tension_start_y.setValue(50)
         grid_layout.addWidget(self.spin_tension_start_y, 2, 3)
 
         grid_layout.addWidget(QLabel("Ponto Final X:"), 3, 0)
         self.spin_tension_end_x = QDoubleSpinBox()
-        self.spin_tension_end_x.setRange(0, MACHINE_LIMITS["max_width_mm"])
+        self.spin_tension_end_x.setRange(0, TENSION_COORDINATE_LIMIT)
+        self.spin_tension_end_x.setDecimals(3)
         self.spin_tension_end_x.setValue(350)
         grid_layout.addWidget(self.spin_tension_end_x, 3, 1)
 
         grid_layout.addWidget(QLabel("Y:"), 3, 2)
         self.spin_tension_end_y = QDoubleSpinBox()
-        self.spin_tension_end_y.setRange(0, MACHINE_LIMITS["max_height_mm"])
+        self.spin_tension_end_y.setRange(0, TENSION_COORDINATE_LIMIT)
+        self.spin_tension_end_y.setDecimals(3)
         self.spin_tension_end_y.setValue(250)
         grid_layout.addWidget(self.spin_tension_end_y, 3, 3)
 

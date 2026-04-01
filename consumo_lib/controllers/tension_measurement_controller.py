@@ -371,6 +371,8 @@ class TensionMeasurementController(QObject):
             if recipe_feed_rate is not None and recipe_feed_rate <= 0:
                 recipe_feed_rate = None
 
+        stabilization_time_ms = self._get_global_delay_medidor_ms()
+
         if pattern is not None:
             grid_parameters = pattern.grid_parameters
             source_description = f"padrão '{pattern.name}'"
@@ -378,11 +380,6 @@ class TensionMeasurementController(QObject):
             # A velocidade deve vir da receita quando explicitamente configurada;
             # caso contrário, preservamos a velocidade já ativa no PLC.
             feed_rate = recipe_feed_rate
-            stabilization_time_ms = (
-                int(tension.stabilization_time_ms)
-                if getattr(tension, "stabilization_time_ms", None)
-                else int(pattern.stabilization_time_ms)
-            )
             grid_size = int(grid_parameters.grid_size)
             start_point = tuple(grid_parameters.start_point)
             end_point = tuple(grid_parameters.end_point)
@@ -406,7 +403,6 @@ class TensionMeasurementController(QObject):
 
             source_description = "campos de tensão da receita"
             feed_rate = recipe_feed_rate
-            stabilization_time_ms = int(getattr(tension, "stabilization_time_ms", 0) or 500)
             start_point = (float(tension.start_point.x), float(tension.start_point.y))
             end_point = (float(tension.end_point.x), float(tension.end_point.y))
             z_height = float(tension.measurement_height)
@@ -422,6 +418,16 @@ class TensionMeasurementController(QObject):
             "stabilization_time_ms": stabilization_time_ms,
             "source_description": source_description,
         }
+
+    def _get_global_delay_medidor_ms(self) -> int:
+        """Retorna o Delay_Medidor configurado na aplicação."""
+        if hasattr(self.config, "get_delay_medidor_ms"):
+            return self.config.get_delay_medidor_ms()
+
+        try:
+            return max(0, int(self.config.get("tension", "delay_medidor_ms", default=500)))
+        except (TypeError, ValueError):
+            return 500
 
     def _connect_tensiometer_for_operator_flow(self) -> TensiometerSerialManager:
         """Conecta automaticamente o tensiômetro para o fluxo operacional."""

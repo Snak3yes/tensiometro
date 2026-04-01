@@ -216,9 +216,20 @@ class StencilManagerDialog(QDialog):
 
         if reply == QMessageBox.StandardButton.Yes:
             if self.tracker.delete_stencil(code):
+                self._notify_stencil_deleted(code)
                 self._load_stencils()
             else:
                 QMessageBox.critical(
                     self, "Erro",
                     "Não foi possível excluir o stencil."
                 )
+
+    def _notify_stencil_deleted(self, stencil_code: str):
+        """Notifica o wrapper principal para atualizar a UI após exclusão."""
+        widget = self.parentWidget()
+        while widget is not None:
+            wrapper = getattr(widget, "stencil_manager_wrapper", None)
+            if wrapper is not None and hasattr(wrapper, "stencil_deleted"):
+                wrapper.stencil_deleted.emit(stencil_code)
+                return
+            widget = widget.parentWidget()

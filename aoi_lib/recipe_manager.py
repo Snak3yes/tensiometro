@@ -370,15 +370,16 @@ class Recipe:
             if acc.min_tension >= acc.max_tension:
                 errors.append("Tensão mínima deve ser menor que máxima")
             
-            # Valida área de tensão dentro do stencil
+            # Os pontos de medição são coordenadas absolutas da máquina.
+            # Portanto, validamos apenas consistência geométrica básica.
             sp = self.tension.start_point
             ep = self.tension.end_point
             if sp.x < 0 or sp.y < 0 or ep.x < 0 or ep.y < 0:
                 errors.append("Pontos de medição não podem ser negativos")
-            if sp.x > self.stencil.width_mm or ep.x > self.stencil.width_mm:
-                errors.append("Área de tensão excede largura do stencil")
-            if sp.y > self.stencil.height_mm or ep.y > self.stencil.height_mm:
-                errors.append("Área de tensão excede altura do stencil")
+            if ep.x <= sp.x:
+                errors.append("Ponto final X deve ser maior que o ponto inicial X")
+            if ep.y <= sp.y:
+                errors.append("Ponto final Y deve ser maior que o ponto inicial Y")
         
         # 4. Validação Captura
         if self.capture.step_x < MACHINE_LIMITS["min_step_mm"] or self.capture.step_y < MACHINE_LIMITS["min_step_mm"]:

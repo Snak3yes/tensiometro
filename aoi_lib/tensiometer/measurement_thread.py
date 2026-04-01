@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 TENSIOMETER_POWER_COIL = 20
 TENSIOMETER_POWER_ON_PULSE_MS = 100
 TENSIOMETER_POWER_OFF_PULSE_MS = 3000
+POST_MEASUREMENT_DELAY_SEC = 0.1
 
 
 class TensionMeasurementThread(QThread):
@@ -76,14 +77,35 @@ class TensionMeasurementThread(QThread):
                 logger.debug(f"Ponto {idx}/{total_points}: ({point.x:.3f}, {point.y:.3f})")
                 self.progress_updated.emit(idx, total_points, f"Medindo ponto {idx}/{total_points}")
 
+                point_cycle_started = time.perf_counter()
+
+                move_xy_started = time.perf_counter()
                 self._move_abs(x=point.x, y=point.y, z=self.z_move, feed=self.user_feed)
+                move_xy_elapsed = time.perf_counter() - move_xy_started
+
+                z_descend_started = time.perf_counter()
                 self._move_abs(z=self.z_height, feed=self.user_feed)
+                z_descend_elapsed = time.perf_counter() - z_descend_started
 
-                stabilization_sec = self.stabilization_time_ms / 1000.0
-                logger.debug(f"Estabilizando por {stabilization_sec:.1f}s...")
-                time.sleep(stabilization_sec)
+                stabilization_sec = max(0.0, self.stabilization_time_ms / 1000.0)
+                if stabilization_sec > 0:
+                    logger.info(
+                        "Ponto %s/%s: Delay_Medidor aplicado por %.3fs antes da leitura",
+                        idx,
+                        total_points,
+                        stabilization_sec,
+                    )
+                    time.sleep(stabilization_sec)
+                else:
+                    logger.info(
+                        "Ponto %s/%s: Delay_Medidor zerado, leitura sem espera adicional",
+                        idx,
+                        total_points,
+                    )
 
+                read_started = time.perf_counter()
                 tension_value = self.tensiometer.read_tension_value()
+                read_elapsed = time.perf_counter() - read_started
                 logger.debug(f"Tensao lida: {tension_value}")
 
                 measurement = TensionMeasurement(
@@ -94,8 +116,24 @@ class TensionMeasurementThread(QThread):
                 self.session.add_measurement(measurement)
                 self.measurement_completed.emit(measurement.to_dict())
 
+                z_retract_started = time.perf_counter()
                 self._move_abs(z=self.z_move, feed=self.user_feed)
-                time.sleep(0.1)
+                z_retract_elapsed = time.perf_counter() - z_retract_started
+
+                time.sleep(POST_MEASUREMENT_DELAY_SEC)
+                point_cycle_elapsed = time.perf_counter() - point_cycle_started
+                logger.info(
+                    "Ponto %s/%s concluido: XY/Z seguro=%.3fs, descida Z=%.3fs, delay=%.3fs, leitura=%.3fs, subida Z=%.3fs, pausa pos-leitura=%.3fs, total=%.3fs",
+                    idx,
+                    total_points,
+                    move_xy_elapsed,
+                    z_descend_elapsed,
+                    stabilization_sec,
+                    read_elapsed,
+                    z_retract_elapsed,
+                    POST_MEASUREMENT_DELAY_SEC,
+                    point_cycle_elapsed,
+                )
 
             logger.info("Medicao concluida com sucesso")
             logger.info(f"Total medido: {len(self.session.measurements)} pontos")

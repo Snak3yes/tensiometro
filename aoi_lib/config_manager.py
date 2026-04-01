@@ -102,6 +102,10 @@ class AOIConfigManager:
             "max_tension": 45.0,     # N/cm² máximo aceitável (NOK acima deste)
             "warning_low": 28.0,     # N/cm² limite warning inferior
             "warning_high": 42.0     # N/cm² limite warning superior
+        },
+        # ---------- CONFIGURAÇÕES OPERACIONAIS DE TENSÃO -----------
+        "tension": {
+            "delay_medidor_ms": 500  # Tempo de estabilização após atingir Z de medição
         }
     }
 
@@ -251,6 +255,28 @@ class AOIConfigManager:
             value: True para habilitar navegação livre, False para desabilitar.
         """
         self.set("engineering_wizard", "free_navigation_enabled", value=value)
+
+    def get_delay_medidor_ms(self) -> int:
+        """
+        Retorna o delay global do medidor em milissegundos.
+
+        Returns:
+            int: Delay de estabilização após o movimento para altura de medição.
+                 Padrão: 500 ms
+        """
+        try:
+            return max(0, int(self.get("tension", "delay_medidor_ms", default=500)))
+        except (TypeError, ValueError):
+            return 500
+
+    def set_delay_medidor_ms(self, value: int):
+        """
+        Define o delay global do medidor em milissegundos.
+
+        Args:
+            value: Delay em milissegundos.
+        """
+        self.set("tension", "delay_medidor_ms", value=max(0, int(value)))
 
     def __init__(self, cfg_path: str | None = None):
         self.log = logging.getLogger("AOIConfig")

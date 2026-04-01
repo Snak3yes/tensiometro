@@ -28,7 +28,7 @@ class PLCMonitorDialog(QDialog):
     - Sem botões: apenas o widget de monitor CLP
     """
 
-    def __init__(self, controller, parent=None):
+    def __init__(self, controller, config_manager=None, parent=None):
         """
         Inicializa o diálogo de monitor CLP.
 
@@ -39,6 +39,7 @@ class PLCMonitorDialog(QDialog):
         super().__init__(parent)
 
         self.controller = controller
+        self.config_manager = config_manager
 
         # Configurações do diálogo
         self.setWindowTitle("Monitor CLP")
@@ -71,6 +72,7 @@ class PLCMonitorDialog(QDialog):
         # Widget de monitor CLP
         self.plc_monitor_widget = PLCMonitorWidget(
             self.controller,
+            config_manager=self.config_manager,
             parent=self
         )
 
