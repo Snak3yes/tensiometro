@@ -61,6 +61,8 @@ class PLCAxisController:
             'pos_reg':        3400     # D3400_Z (feedback posição atual)
         }
     }
+    FIXED_Z_SPEED_MM_MIN = 5000.0
+    FIXED_Z_SPEED_REGISTER = ADDRESSES['Z']['speed']
     
     def __init__(self, host: str='192.168.1.5', port: int=502, auto_connect: bool=True):
         """
@@ -97,6 +99,32 @@ class PLCAxisController:
         # Conecta automaticamente se solicitado
         if auto_connect:
             self.connect()
+
+    def _fixed_z_speed_pulses(self) -> int:
+        """Retorna a velocidade fixa do eixo Z em pulsos/min."""
+        return int(round(self.FIXED_Z_SPEED_MM_MIN * self.pulses_per_mm))
+
+    def _normalize_register_write(self, address: int, value: int) -> int:
+        """
+        Normaliza escritas em registradores protegidos.
+
+        O registrador D21500 deve permanecer fixo para o eixo Z.
+        """
+        if address == self.FIXED_Z_SPEED_REGISTER:
+            fixed_value = self._fixed_z_speed_pulses()
+            if int(value) != fixed_value:
+                logger.info(
+                    "Ignorando tentativa de sobrescrever D%d com %s; mantendo Z fixo em %s pulsos/min",
+                    address,
+                    value,
+                    fixed_value,
+                )
+            return fixed_value
+        return int(value)
+
+    def _enforce_fixed_z_speed(self):
+        """Regrava no PLC a velocidade fixa do eixo Z."""
+        self._write_dword(self.FIXED_Z_SPEED_REGISTER, self._fixed_z_speed_pulses())
 
     # =========================================================================
     # Helpers internos de movimento
@@ -140,9 +168,10 @@ class PLCAxisController:
             cfg = self.ADDRESSES[ax]
             logger.info(f"🎯 Eixo {ax}: escrevendo target={tgt} pulsos em pos_input (endereco {cfg['pos_input']})")
             self._write_dword(cfg['pos_input'], int(tgt))
-            if speed_pulses is not None:
-                logger.info(f"🎯 Eixo {ax}: escrevendo speed={speed_pulses} pulsos/min em speed (endereco {cfg['speed']})")
-                self._write_dword(cfg['speed'], int(speed_pulses))
+            axis_speed_pulses = self._fixed_z_speed_pulses() if ax == 'Z' else speed_pulses
+            if axis_speed_pulses is not None:
+                logger.info(f"🎯 Eixo {ax}: escrevendo speed={axis_speed_pulses} pulsos/min em speed (endereco {cfg['speed']})")
+                self._write_dword(cfg['speed'], int(axis_speed_pulses))
             self._targets[ax] = int(tgt)
 
             # Lê posicao atual ANTES do movimento para verificar
@@ -219,6 +248,10 @@ class PLCAxisController:
                 raise ConnectionError(f"Falha ao conectar ao CLP em {self.host}:{self.port}")
             self.is_connected = True
             self.machine_status = "Idle"
+            try:
+                self._enforce_fixed_z_speed()
+            except Exception as e:
+                logger.warning("Nao foi possivel aplicar a velocidade fixa do eixo Z na conexao: %s", e)
             return True
         except Exception as e:
             self.is_connected = False
@@ -365,7 +398,9 @@ class PLCAxisController:
             raise ValueError(f"Eixo inválido: {axis}")
         cfg = self.ADDRESSES[axis]
         # Converte feed_rate (mm/min) para pulsos/min se fornecido
-        if feed_rate is not None:
+        if axis == 'Z':
+            self._write_dword(cfg['speed'], self._fixed_z_speed_pulses())
+        elif feed_rate is not None:
             fr = self._clamp_feed_rate(feed_rate)
             speed_pulses = int(round(fr * self.pulses_per_mm))
             self._write_dword(cfg['speed'], speed_pulses)
@@ -645,7 +680,7 @@ class PLCAxisController:
         """Escreve um registrador double-word (32 bits)."""
         if not self.client or not self.is_connected:
             raise IOError("PLC não conectado")
-        self._write_dword(address, int(value))
+        self._write_dword(address, self._normalize_register_write(address, value))
         return True
 
     def snapshot_registers(self) -> dict:

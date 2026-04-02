@@ -7,10 +7,11 @@ from pathlib import Path
 #  AOIConfigManager  –  gerencia arquivo JSON de preferências
 # ------------------------------------------------------------
 class AOIConfigManager:
+    FIXED_Z_SPEED_MM_MIN = 5000.0
     _DEFAULT_CFG = {
         "cnc": {
             "system_type": "cartesian",          # cartesian  |  corexy
-            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},   # + $112
+            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 5000.0},   # + $112
             "max_acc":  {"x": 120.0,  "y": 120.0,  "z": 60.0},   # + $122
             "invert_y": True,                         # sentido lógico (+Y frente)
             "invert_z": False,                        # novo – (+Z = cima)
@@ -340,7 +341,7 @@ class AOIConfigManager:
         if hasattr(cnc, 'max_feed'):
             cnc.max_feed['x'] = maxf.get('x', 5000)
             cnc.max_feed['y'] = maxf.get('y', 5000)
-            cnc.max_feed['z'] = maxf.get('z', 800)
+            cnc.max_feed['z'] = self.FIXED_Z_SPEED_MM_MIN
         
         # Aplica fator de conversão pulsos/mm
         ppr = self.get("calibration", "pulses_per_rev", default=1000)
@@ -360,7 +361,13 @@ class AOIConfigManager:
         bl_addr = self.get("connections", "backlight_coil", default=5)
         if hasattr(cnc, 'backlight_coil_address'):
             cnc.backlight_coil_address = bl_addr
-        
+
+        if hasattr(cnc, '_enforce_fixed_z_speed'):
+            try:
+                cnc._enforce_fixed_z_speed()
+            except Exception as e:
+                self.log.warning("Falha ao reaplicar velocidade fixa do eixo Z: %s", e)
+
         ppm_info = ppr / pitch if ppr > 0 and pitch > 0 else 'N/A'
         self.log.info(f"Configurações aplicadas ao PLC: max_feed={maxf}, pulses_per_mm={ppm_info}")
 
@@ -405,7 +412,9 @@ class SettingsDialog(QDialog):
         
         self.spin_f_z = QDoubleSpinBox()
         self.spin_f_z.setRange(1, 30000)
-        self.spin_f_z.setValue(cfg.get("cnc", "max_feed", "z", default=800))
+        self.spin_f_z.setValue(AOIConfigManager.FIXED_Z_SPEED_MM_MIN)
+        self.spin_f_z.setEnabled(False)
+        self.spin_f_z.setToolTip("Eixo Z fixo em 5000 mm/min.")
         speed_layout.addRow("Eixo Z:", self.spin_f_z)
         
         mov_layout.addRow(speed_group)
@@ -486,7 +495,7 @@ class SettingsDialog(QDialog):
         # Velocidades
         self.cfg.set("cnc", "max_feed", "x", value=self.spin_f_x.value())
         self.cfg.set("cnc", "max_feed", "y", value=self.spin_f_y.value())
-        self.cfg.set("cnc", "max_feed", "z", value=self.spin_f_z.value())
+        self.cfg.set("cnc", "max_feed", "z", value=AOIConfigManager.FIXED_Z_SPEED_MM_MIN)
         
         # Calibração
         self.cfg.set("calibration", "pulses_per_rev", value=self.spin_pulses_rev.value())

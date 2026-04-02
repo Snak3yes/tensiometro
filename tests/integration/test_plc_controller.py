@@ -263,6 +263,24 @@ class TestPLCControllerMovement:
 
             assert mock_client.write_registers.called
 
+    def test_move_absolute_z_enforces_fixed_speed(self):
+        """Testa que o eixo Z sempre escreve a velocidade fixa em D21500."""
+        mock_client = MagicMock()
+        mock_client.connect.return_value = True
+        mock_client.read_holding_registers.return_value = MockModbusResponse([0, 0])
+
+        with patch('aoi_lib.plc_axis_controller.ModbusTcpClient', return_value=mock_client):
+            controller = PLCAxisController(auto_connect=True)
+            mock_client.write_registers.reset_mock()
+
+            controller.move_absolute('Z', 200)
+
+            expected_speed = int(controller.FIXED_Z_SPEED_MM_MIN * controller.pulses_per_mm)
+            assert any(
+                call.args[0] == controller.FIXED_Z_SPEED_REGISTER and call.args[1] == [expected_speed, 0]
+                for call in mock_client.write_registers.call_args_list
+            )
+
     def test_move_relative_single_axis(self):
         """Testa movimento relativo em um eixo."""
         mock_client = MagicMock()
@@ -769,6 +787,24 @@ class TestPLCControllerRegisterOperations:
             result = controller.write_register(1100, 1000)
 
             assert result is True
+
+    def test_write_register_protects_fixed_z_speed(self):
+        """Testa que D21500 nao aceita sobrescrita fora do valor fixo."""
+        mock_client = MagicMock()
+        mock_client.connect.return_value = True
+
+        with patch('aoi_lib.plc_axis_controller.ModbusTcpClient', return_value=mock_client):
+            controller = PLCAxisController(auto_connect=True)
+            mock_client.write_registers.reset_mock()
+
+            result = controller.write_register(controller.FIXED_Z_SPEED_REGISTER, 1234)
+
+            assert result is True
+            expected_speed = int(controller.FIXED_Z_SPEED_MM_MIN * controller.pulses_per_mm)
+            mock_client.write_registers.assert_called_once_with(
+                controller.FIXED_Z_SPEED_REGISTER,
+                [expected_speed, 0]
+            )
 
 
 @pytest.mark.integration

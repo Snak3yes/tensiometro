@@ -39,7 +39,7 @@ def temp_config_file(tmp_path):
     default_config = {
         "cnc": {
             "system_type": "cartesian",
-            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},
+            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 5000.0},
             "max_acc": {"x": 120.0, "y": 120.0, "z": 60.0},
             "invert_y": True,
             "invert_z": False,
@@ -134,7 +134,7 @@ def sample_config_data():
     return {
         "cnc": {
             "system_type": "cartesian",
-            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 800.0},
+            "max_feed": {"x": 2500.0, "y": 2500.0, "z": 5000.0},
             "invert_y": True
         },
         "connections": {
@@ -158,7 +158,7 @@ def mock_cnc():
     """Mock de controlador CNC."""
     cnc = Mock()
     cnc.is_connected = True
-    cnc.max_feed = {"x": 5000, "y": 5000, "z": 800}
+    cnc.max_feed = {"x": 5000, "y": 5000, "z": 5000}
     cnc.pulses_per_mm = 80.0
     cnc.backlight_coil_address = 1
     return cnc
@@ -586,7 +586,7 @@ class TestAOIConfigManagerApplyToCNC:
         # Verifica que max_feed foi aplicado
         assert mock_cnc.max_feed["x"] == 2500.0
         assert mock_cnc.max_feed["y"] == 2500.0
-        assert mock_cnc.max_feed["z"] == 800.0
+        assert mock_cnc.max_feed["z"] == 5000.0
 
         # Verifica pulses_per_mm
         # ppr=400, pitch=5 -> 400/5 = 80
@@ -637,7 +637,7 @@ class TestAOIConfigManagerApplyToCNC:
         """Testa aplicação quando CNC não tem atributo backlight."""
         cnc = Mock()
         cnc.is_connected = True
-        cnc.max_feed = {"x": 5000, "y": 5000, "z": 800}
+        cnc.max_feed = {"x": 5000, "y": 5000, "z": 5000}
         cnc.pulses_per_mm = 80.0
         # Não tem backlight_coil_address
 

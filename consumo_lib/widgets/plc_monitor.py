@@ -116,10 +116,20 @@ class PLCMonitorWidget(QWidget):
         """Lista os registradores/coils relevantes já mapeados no controlador."""
         rows = []
         for axis, cfg in PLCAxisController.ADDRESSES.items():
+            z_speed_is_locked = axis == "Z" and cfg["speed"] == PLCAxisController.FIXED_Z_SPEED_REGISTER
+            speed_name = f"{axis} velocidade (D{cfg['speed']})"
+            if z_speed_is_locked:
+                speed_name = f"{axis} velocidade fixa (D{cfg['speed']})"
             rows.extend([
                 {"name": f"{axis} alvo (D{cfg['pos_input']})", "type": "holding", "address": cfg["pos_input"]},
                 {"name": f"{axis} posição atual (D{cfg['pos_reg']})", "type": "holding", "address": cfg["pos_reg"]},
-                {"name": f"{axis} velocidade (D{cfg['speed']})", "type": "holding", "address": cfg["speed"]},
+                {
+                    "name": speed_name,
+                    "type": "holding",
+                    "address": cfg["speed"],
+                    "readonly": z_speed_is_locked,
+                    "readonly_reason": "Velocidade do eixo Z fixa em 5000 mm/min.",
+                },
                 {"name": f"{axis} Jog + (M{cfg['jog_plus']})", "type": "coil", "address": cfg["jog_plus"]},
                 {"name": f"{axis} Jog - (M{cfg['jog_minus']})", "type": "coil", "address": cfg["jog_minus"]},
                 {"name": f"{axis} Move abs (M{cfg['move_abs']})", "type": "coil", "address": cfg["move_abs"]},
@@ -178,6 +188,13 @@ class PLCMonitorWidget(QWidget):
         if row["type"] != "holding":
             QMessageBox.warning(self, "Tipo inválido", "Somente holdings (D...) aceitam gravação.")
             return
+        if row.get("readonly", False):
+            QMessageBox.information(
+                self,
+                "Registro protegido",
+                row.get("readonly_reason", "Este registrador não pode ser alterado."),
+            )
+            return
 
         try:
             value = int(self.value_input.text())
@@ -225,6 +242,13 @@ class PLCMonitorWidget(QWidget):
 
         row = self.rows[row_idx]
         is_holding = row["type"] == "holding"
-        self.write_btn.setEnabled(is_holding)
-        self.value_input.setEnabled(is_holding)
+        is_writable_holding = is_holding and not row.get("readonly", False)
+        self.write_btn.setEnabled(is_writable_holding)
+        self.value_input.setEnabled(is_writable_holding)
+        if row.get("readonly", False):
+            self.value_input.setPlaceholderText(row.get("readonly_reason", "Registro protegido"))
+        elif is_holding:
+            self.value_input.setPlaceholderText("Inteiro (holding D...)")
+        else:
+            self.value_input.setPlaceholderText("")
         self.pulse_btn.setEnabled(row["type"] == "coil")
