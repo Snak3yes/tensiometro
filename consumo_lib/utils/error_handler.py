@@ -400,3 +400,34 @@ def show_error_dialog(
         QMessageBox.warning(parent, title, full_message)
     else:
         QMessageBox.information(parent, title, full_message)
+
+
+def is_motion_interlock_error(message: Optional[str]) -> bool:
+    """Retorna True quando a mensagem representa bloqueio por M137/M138."""
+    normalized = (message or "").lower()
+    return (
+        "movimento absoluto bloqueado pelo clp" in normalized
+        and ("m137" in normalized or "m138" in normalized)
+    )
+
+
+def show_motion_interlock_dialog(
+    parent: Optional[QWidget],
+    message: str,
+    operation: str = "movimento",
+) -> bool:
+    """
+    Exibe um dialogo padronizado para bloqueio de movimento pelo CLP.
+
+    Retorna True quando o dialogo especializado foi exibido.
+    """
+    if parent is None or not is_motion_interlock_error(message):
+        return False
+
+    user_message = (
+        f"O {operation} foi bloqueado pelo CLP.\n\n"
+        f"{message}\n\n"
+        "Verifique os sensores X1.0/M137 e X1.1/M138 antes de tentar novamente."
+    )
+    QMessageBox.critical(parent, "Intertravamento de Movimento", user_message)
+    return True

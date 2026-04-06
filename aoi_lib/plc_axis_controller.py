@@ -9,6 +9,11 @@ from pymodbus.client import ModbusTcpClient
 
 logger = logging.getLogger(__name__)
 
+
+class PLCMovementSensorInterlockError(RuntimeError):
+    """Erro de movimento causado pelos sensores de intertravamento do CLP."""
+    pass
+
 class PLCAxisController:
     """
     Controller para 3 eixos (X, Y, Z) usando Modbus TCP.
@@ -63,6 +68,20 @@ class PLCAxisController:
     }
     FIXED_Z_SPEED_MM_MIN = 5000.0
     FIXED_Z_SPEED_REGISTER = ADDRESSES['Z']['speed']
+    MOTION_INTERLOCKS = {
+        "presence_sensor": {
+            "coil": 137,
+            "label": "sensor de presenca",
+            "input": "X1.0",
+            "memory": "M137",
+        },
+        "position_sensor": {
+            "coil": 138,
+            "label": "sensor de posicao",
+            "input": "X1.1",
+            "memory": "M138",
+        },
+    }
     
     def __init__(self, host: str='192.168.1.5', port: int=502, auto_connect: bool=True):
         """
@@ -95,6 +114,7 @@ class PLCAxisController:
         self.backlight_coil_address = 5
         # destinos ativos (usado para wait_for_idle inspirado na adesivadora)
         self._targets: dict[str, int] = {}
+        self.last_motion_error: str | None = None
         
         # Conecta automaticamente se solicitado
         if auto_connect:
@@ -154,6 +174,9 @@ class PLCAxisController:
             return True
         if not self.client or not self.is_connected:
             raise IOError("PLC não conectado")
+
+        self.last_motion_error = None
+        self._validate_absolute_motion_interlocks()
 
         fr = self._clamp_feed_rate(feed_rate)
         speed_pulses = int(round(fr * self.pulses_per_mm)) if fr is not None else None
@@ -480,6 +503,7 @@ class PLCAxisController:
             if all_idle:
                 logger.info("🔄 Todos os eixos estão idle, resetando status de 'Alarm' para 'Idle'")
                 self.machine_status = "Idle"
+                self.last_motion_error = None
             else:
                 logger.warning("⚠️ Status é 'Alarm' e máquina ainda está em movimento, impossível resetar automaticamente")
 
@@ -532,6 +556,7 @@ class PLCAxisController:
                 self._targets.clear()
                 self.machine_status = "Idle"
                 logger.info(f"✅ Todos os eixos atingiram targets após {elapsed:.1f}s")
+                self.last_motion_error = None
                 return True
 
             if should_log:
@@ -551,8 +576,59 @@ class PLCAxisController:
         # Isso permite que o usuário possa tentar novamente sem precisar resetar
         logger.warning(f"⏱️ Status mantido como '{self.machine_status}' (não mudou para Alarm)")
         # REMOVIDO: self.machine_status = "Alarm" if self.machine_status == "Run" else self.machine_status
+        interlock_message = self._build_absolute_motion_interlock_message()
+        if interlock_message:
+            self.last_motion_error = interlock_message
+            logger.warning(interlock_message)
+
         return False
     
+    def _read_motion_interlocks(self) -> dict[str, bool]:
+        """Le o espelhamento dos sensores que liberam o movimento absoluto."""
+        interlocks = {}
+        for sensor_name, sensor_cfg in self.MOTION_INTERLOCKS.items():
+            interlocks[sensor_name] = self.read_coil(sensor_cfg["coil"])
+        return interlocks
+
+    def _build_absolute_motion_interlock_message(self) -> str | None:
+        """Monta uma mensagem clara quando M137/M138 bloquearem o movimento."""
+        try:
+            interlocks = self._read_motion_interlocks()
+        except Exception as exc:
+            logger.debug("Falha ao ler intertravamentos de movimento absoluto: %s", exc)
+            return None
+
+        inactive_sensors = []
+        for sensor_name, sensor_cfg in self.MOTION_INTERLOCKS.items():
+            if interlocks.get(sensor_name):
+                continue
+            inactive_sensors.append(
+                f"{sensor_cfg['label']} ({sensor_cfg['input']} -> {sensor_cfg['memory']})"
+            )
+
+        if not inactive_sensors:
+            return None
+
+        sensors_text = "; ".join(inactive_sensors)
+        return (
+            "Movimento absoluto bloqueado pelo CLP: "
+            f"{sensors_text} desacionado(s). "
+            "Verifique os sensores antes de repetir o movimento."
+        )
+
+    def _validate_absolute_motion_interlocks(self) -> None:
+        """Aborta o movimento quando o CLP informa sensores de liberacao abertos."""
+        error_message = self._build_absolute_motion_interlock_message()
+        if error_message is None:
+            return
+
+        self.last_motion_error = error_message
+        raise PLCMovementSensorInterlockError(error_message)
+
+    def get_last_motion_error(self) -> str | None:
+        """Retorna a ultima falha de movimento registrada pelo backend."""
+        return self.last_motion_error
+
     def _wait_for_idle_axis(self, axis: str, tolerance: int=1, timeout: int=10) -> bool:
         """
         Aguarda até um eixo específico atingir o alvo.

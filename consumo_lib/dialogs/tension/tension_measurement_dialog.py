@@ -25,6 +25,7 @@ from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.movement_control import MovementControlWidget
 from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
+from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 
 # Import refactored modules
 from aoi_lib.tensiometer import (
@@ -1182,7 +1183,8 @@ class TensionMeasurementDialog(QDialog):
             text_color=COLORS.BACKGROUND,
             bg_color=COLORS.ERROR,
         )
-        QMessageBox.critical(self, "Erro na Medicao", error_message)
+        if not show_motion_interlock_dialog(self, error_message, operation="medicao"):
+            QMessageBox.critical(self, "Erro na Medicao", error_message)
 
     # ==================== LIFECYCLE ====================
 

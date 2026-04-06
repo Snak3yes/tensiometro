@@ -23,6 +23,7 @@ class _FakeCNC:
 
     def wait_for_idle(self):
         self.wait_calls += 1
+        return True
 
     def pulse_coil(self, coil, duration_ms):
         self.coils.append((coil, duration_ms))
@@ -78,6 +79,7 @@ def test_run_measures_all_points_and_toggles_tensiometer(monkeypatch):
         {"x": 3.0, "y": 4.0, "z": 8.0, "feed_rate": 900.0},
         {"z": 1.5, "feed_rate": 900.0},
         {"z": 8.0, "feed_rate": 900.0},
+        {"z": 0.0, "feed_rate": 900.0},
     ]
     assert [item["tension"] for item in measurements] == ["30.0", "31.5"]
     assert [item["index"] for item in measurements] == [0, 1]

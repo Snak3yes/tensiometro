@@ -115,6 +115,17 @@ class PLCMonitorWidget(QWidget):
     def _build_rows(self):
         """Lista os registradores/coils relevantes já mapeados no controlador."""
         rows = []
+        for sensor_cfg in PLCAxisController.MOTION_INTERLOCKS.values():
+            rows.append(
+                {
+                    "name": (
+                        f"{sensor_cfg['label'].capitalize()} "
+                        f"({sensor_cfg['input']} -> {sensor_cfg['memory']})"
+                    ),
+                    "type": "coil",
+                    "address": sensor_cfg["coil"],
+                }
+            )
         for axis, cfg in PLCAxisController.ADDRESSES.items():
             z_speed_is_locked = axis == "Z" and cfg["speed"] == PLCAxisController.FIXED_Z_SPEED_REGISTER
             speed_name = f"{axis} velocidade (D{cfg['speed']})"

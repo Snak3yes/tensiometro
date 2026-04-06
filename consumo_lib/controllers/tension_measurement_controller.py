@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import QMessageBox, QDialog, QProgressDialog
 from aoi_lib.stencil_tracker import Stencil, TensionRecord
 from aoi_lib.tensiometer import MeasurementOrchestrator, TensiometerSerialManager
 from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
+from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 from consumo_lib.utils.tension_measurement_data import load_tension_measurement_data
 
 logger = logging.getLogger("consumo_lib")
@@ -526,8 +527,13 @@ class TensionMeasurementController(QObject):
             self.parent_window.statusBar().showMessage("Medição interrompida pelo operador.", 5000)
         else:
             logger.error("Erro na medição operacional: %s", error_message)
+            parent = self._active_ui_parent or self.parent_window
+            if show_motion_interlock_dialog(parent, error_message, operation="medicao automatica"):
+                self.measurement_failed.emit(error_message)
+                self._cleanup_runtime_measurement()
+                return
             QMessageBox.critical(
-                self._active_ui_parent or self.parent_window,
+                parent,
                 "Erro na Medição",
                 error_message,
             )

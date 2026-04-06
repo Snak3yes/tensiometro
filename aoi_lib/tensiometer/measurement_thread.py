@@ -177,10 +177,19 @@ class TensionMeasurementThread(QThread):
         timeout = self._calculate_timeout_seconds(x=x, y=y, z=z, feed=feed)
         self.cnc.move_to_absolute_position(**kwargs)
 
-        if not self.cnc.wait_for_idle(timeout=timeout):
+        try:
+            movement_completed = self.cnc.wait_for_idle(timeout=timeout)
+        except TypeError:
+            movement_completed = self.cnc.wait_for_idle()
+
+        if not movement_completed:
             target_desc = ", ".join(f"{axis}={value}" for axis, value in kwargs.items() if axis != "feed_rate")
+            detailed_error = None
+            if hasattr(self.cnc, "get_last_motion_error"):
+                detailed_error = self.cnc.get_last_motion_error()
             raise RuntimeError(
-                f"Movimento nao concluiu dentro do timeout para {target_desc or 'destino desconhecido'}"
+                detailed_error
+                or f"Movimento nao concluiu dentro do timeout para {target_desc or 'destino desconhecido'}"
             )
 
     def _calculate_timeout_seconds(

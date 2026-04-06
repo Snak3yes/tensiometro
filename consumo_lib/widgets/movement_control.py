@@ -8,6 +8,7 @@ from PyQt6.QtGui import QFont, QDoubleValidator, QIntValidator
 from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.movement_orchestrator import MovementOrchestrator
+from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 import logging
 
 # Design System imports
@@ -354,7 +355,8 @@ class MovementControlWidget(QWidget):
             
         if not result.success:
             logger.error(f"⌨️ ERRO no movimento: {result.error_message}")
-            QMessageBox.warning(self, "Erro", result.error_message)
+            if not show_motion_interlock_dialog(self, result.error_message, operation="movimento manual"):
+                QMessageBox.warning(self, "Erro", result.error_message)
 
     def _on_direction_release(self):
         if self.mode_relative.isChecked():
@@ -491,7 +493,8 @@ class MovementControlWidget(QWidget):
     def go_to_zero(self):
         result = self.orchestrator.home()
         if not result.success:
-            QMessageBox.warning(self, "Erro", result.error_message)
+            if not show_motion_interlock_dialog(self, result.error_message, operation="homing"):
+                QMessageBox.warning(self, "Erro", result.error_message)
             return
 
         self._show_status_message("Homing iniciado/concluido")
@@ -506,7 +509,8 @@ class MovementControlWidget(QWidget):
             self._show_status_message(f"Movendo para {x},{y}")
             return
 
-        QMessageBox.warning(self, "Erro", result.error_message)
+        if not show_motion_interlock_dialog(self, result.error_message, operation="movimento absoluto"):
+            QMessageBox.warning(self, "Erro", result.error_message)
 
     def on_emergency_stop_toggle(self, checked):
         if checked:

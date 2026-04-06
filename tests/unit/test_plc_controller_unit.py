@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from aoi_lib.plc_axis_controller import PLCAxisController
+from aoi_lib.plc_axis_controller import PLCAxisController, PLCMovementSensorInterlockError
 
 @pytest.fixture
 def mock_modbus_client():
@@ -14,6 +14,11 @@ def mock_modbus_client():
         read_response.isError.return_value = False
         read_response.registers = [0, 0, 0, 0]
         client_instance.read_holding_registers.return_value = read_response
+
+        read_coils_response = Mock()
+        read_coils_response.isError.return_value = False
+        read_coils_response.bits = [True]
+        client_instance.read_coils.return_value = read_coils_response
         
         # Simula escrita
         write_response = Mock()
@@ -56,6 +61,27 @@ def test_move_absolute(mock_modbus_client):
     success = plc.move_absolute('X', 100.0)
     assert success is True
     mock_modbus_client.write_registers.assert_called()
+
+
+def test_move_absolute_reports_sensor_interlock_error(mock_modbus_client):
+    """Testa erro explicito quando M137/M138 bloqueiam o movimento absoluto."""
+    plc = PLCAxisController(auto_connect=True)
+
+    def read_coils_side_effect(address, count=1):
+        response = Mock()
+        response.isError.return_value = False
+        response.bits = [address != 137]
+        return response
+
+    mock_modbus_client.read_coils.side_effect = read_coils_side_effect
+
+    with pytest.raises(PLCMovementSensorInterlockError) as exc_info:
+        plc.move_absolute('X', 100.0)
+
+    message = str(exc_info.value)
+    assert "Movimento absoluto bloqueado pelo CLP" in message
+    assert "X1.0 -> M137" in message
+    assert plc.get_last_motion_error() == message
 
 def test_read_position(mock_modbus_client):
     """Testa leitura de posição."""

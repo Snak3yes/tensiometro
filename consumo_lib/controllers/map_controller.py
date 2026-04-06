@@ -26,6 +26,7 @@ from consumo_lib.threads.map_generator import MapGeneratorThread
 from consumo_lib.widgets.preview_suspender import _PreviewSuspender
 from consumo_lib.services.map_program_manager import MapProgramManager, MAP_PROGRAMS_FOLDER
 from consumo_lib.dialogs.map_settings_dialog import MapSettingsDialog
+from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 
 # Import compose_mosaic_from_folder with fallback
 try:
@@ -599,4 +600,6 @@ class MapController(QObject):
     def _on_map_error_show_message(self, error_message):
         """Show error message when map generation fails."""
         logger.error(f"Erro no mapa: {error_message}")
+        if show_motion_interlock_dialog(self.parent(), error_message, operation="geracao de mapa"):
+            return
         QMessageBox.critical(self.parent(), "Erro na Geração do Mapa", error_message)
