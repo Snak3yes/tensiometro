@@ -273,6 +273,33 @@ class TestTrackingDialogReuse:
         current = dialog.stencil_identification.get_current_stencil()
         assert current == mock_stencil, "Stencil deve ser preservado ao reabrir"
 
+    def test_dialog_close_clears_loaded_stencil(self, qapp, mock_stencil_tracker):
+        """
+        Testa se fechar o diálogo limpa o stencil carregado.
+        """
+        tracker, mock_stencil = mock_stencil_tracker
+
+        try:
+            from consumo_lib.dialogs import TrackingDialog
+        except ImportError:
+            pytest.skip("TrackingDialog ainda não criado")
+
+        dialog = TrackingDialog(tracker, parent=None)
+        captured = []
+        dialog.stencil_cleared.connect(lambda: captured.append(True))
+
+        dialog.stencil_identification._select_stencil(mock_stencil)
+
+        dialog.close()
+        dialog.show()
+
+        assert dialog.get_current_stencil() is None, \
+            "Fechar o dialogo deve limpar o stencil carregado"
+        assert dialog.stencil_identification.code_input.text() == "", \
+            "Fechar o dialogo deve limpar o codigo digitado"
+        assert len(captured) == 1, \
+            "Fechar o dialogo deve emitir stencil_cleared quando houver stencil carregado"
+
 
 class TestStencilIdentificationReference:
     """Testes de referência global stencil_identification."""

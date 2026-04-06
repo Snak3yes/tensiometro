@@ -252,6 +252,11 @@ class StencilIdentificationWidget(QWidget):
 
     def _clear_selection(self):
         """Limpa a seleção atual."""
+        self.reset_state(emit_signal=True)
+
+    def reset_state(self, emit_signal: bool = True):
+        """Reseta a sessão local de identificação do stencil."""
+        had_selection = self.current_stencil is not None
         self.current_stencil = None
         self.code_input.clear()
         self.info_frame.setVisible(False)
@@ -259,8 +264,11 @@ class StencilIdentificationWidget(QWidget):
         self.btn_clear.setEnabled(False)
         self.btn_run_tension.setEnabled(False)
         self.alert_frame.setVisible(False)
+        self.code_input.clearFocus()
+        self.code_input.setFocus()
 
-        self.stencil_cleared.emit()
+        if emit_signal and had_selection:
+            self.stencil_cleared.emit()
         log.info("Seleção de stencil limpa")
 
     def _show_history(self):

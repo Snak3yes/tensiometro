@@ -100,8 +100,11 @@ class TrackingDialog(QDialog):
         """
         Handler para fechamento do diálogo.
 
-        Apenas aceita o evento, permitindo reabertura rápida.
+        Ao fechar, limpa o stencil carregado para evitar reutilizar
+        a última leitura na próxima abertura do diálogo.
         """
+        if hasattr(self, "stencil_identification") and self.stencil_identification is not None:
+            self.stencil_identification.reset_state(emit_signal=True)
         if a0:
             a0.accept()
         logger.debug("TrackingDialog fechado")
