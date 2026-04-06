@@ -32,7 +32,8 @@ class StencilCreateDialog(QDialog):
         super().__init__(parent)
         self.tracker = tracker
         self.created_stencil: Optional[Stencil] = None
-        self.recipe_manager = RecipeManager()
+        config_manager = getattr(parent, "config_manager", None) or getattr(parent, "config", None)
+        self.recipe_manager = RecipeManager(config_manager=config_manager)
 
         self.setWindowTitle("Cadastrar Novo Stencil")
         self.setMinimumWidth(400)

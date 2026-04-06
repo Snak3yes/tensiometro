@@ -27,9 +27,11 @@ from typing import Optional, Any
 from PyQt6.QtCore import QObject, pyqtSignal, Qt
 from PyQt6.QtWidgets import QMessageBox, QDialog, QProgressDialog
 
+from aoi_lib.recipe_manager import TensionAcceptance
 from aoi_lib.stencil_tracker import Stencil, TensionRecord
 from aoi_lib.tensiometer import MeasurementOrchestrator, TensiometerSerialManager
 from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
+from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
 from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 from consumo_lib.utils.tension_measurement_data import load_tension_measurement_data
 
@@ -67,6 +69,7 @@ class TensionMeasurementController(QObject):
         self.stencil_manager_wrapper = stencil_manager_wrapper
         self.parent_window = parent
         self.pattern_manager = MeasurementPatternManager()
+        self.criteria_manager = TensionCriteriaManager(config_manager)
 
         self._active_progress_dialog: Optional[QProgressDialog] = None
         self._active_tensiometer: Optional[TensiometerSerialManager] = None
@@ -610,9 +613,7 @@ class TensionMeasurementController(QObject):
             operator=None,
         )
 
-        recipe_acceptance = None
-        if current_recipe and getattr(current_recipe, "tension", None) and current_recipe.tension.acceptance:
-            recipe_acceptance = current_recipe.tension.acceptance
+        recipe_acceptance = self._get_global_acceptance_criteria()
 
         added = self.stencil_manager_wrapper.add_tension_record(
             current_stencil.code,
@@ -629,14 +630,12 @@ class TensionMeasurementController(QObject):
         return record
 
     def _classify_measurements_by_recipe(self, tension_data: dict, current_recipe) -> dict:
-        """Anota o status OK/WARNING/NOK de cada leitura usando os critérios da receita."""
+        """Anota o status OK/WARNING/NOK usando os critérios globais de tensão."""
         measurements = tension_data.get("measurements", [])
         if not measurements:
             return tension_data
 
-        acceptance = None
-        if current_recipe and getattr(current_recipe, "tension", None):
-            acceptance = getattr(current_recipe.tension, "acceptance", None)
+        acceptance = self._get_global_acceptance_criteria()
         if acceptance is None:
             return tension_data
 
@@ -655,6 +654,21 @@ class TensionMeasurementController(QObject):
         enriched_data = dict(tension_data)
         enriched_data["measurements"] = enriched_measurements
         return enriched_data
+
+    def _get_global_acceptance_criteria(self) -> TensionAcceptance | None:
+        """Retorna os critérios globais ativos para classificação e alertas."""
+        try:
+            criteria = self.criteria_manager.get_criteria()
+        except Exception:
+            logger.exception("Falha ao carregar criterios globais de tensao")
+            return None
+
+        return TensionAcceptance(
+            min_tension=criteria.min_tension,
+            max_tension=criteria.max_tension,
+            warning_low=criteria.warning_low,
+            warning_high=criteria.warning_high,
+        )
 
     def setup_ui_handlers(self):
         """

@@ -17,9 +17,10 @@ from PyQt6.QtWidgets import (
     QDialog, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QTextEdit, QComboBox,
     QSpinBox, QDoubleSpinBox, QCheckBox, QGroupBox,
-    QTabWidget, QMessageBox, QDialogButtonBox
+    QTabWidget, QMessageBox, QDialogButtonBox, QAbstractSpinBox
 )
 from PyQt6.QtCore import Qt
+from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.recipe_manager import (
     Recipe, StencilInfo, TensionConfig,
     TensionAcceptance, CaptureConfig,
@@ -28,6 +29,7 @@ from aoi_lib.recipe_manager import (
 from consumo_lib.ui import COLORS, SPACE
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
+from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +64,8 @@ class RecipeEditorDialog(QDialog):
         self.recipe = recipe or Recipe(name="Nova Receita")
         self.is_new = recipe is None
         self.pattern_manager = MeasurementPatternManager()
+        config = getattr(parent, "config_manager", None) or getattr(parent, "config", None) or AOIConfigManager()
+        self.criteria_manager = TensionCriteriaManager(config)
 
         if self.is_new:
             self.recipe.tension.enabled = True
@@ -272,7 +276,7 @@ class RecipeEditorDialog(QDialog):
         layout.addWidget(grid_group)
 
         # Critérios de aceitação
-        acc_group = QGroupBox("Critérios de Aceitação (N/cm²)")
+        acc_group = QGroupBox("Critérios Globais de Aceitação (N/cm²)")
         acc_layout = QGridLayout(acc_group)
 
         acc_layout.addWidget(QLabel("Tensão Mínima:"), 0, 0)
@@ -299,6 +303,16 @@ class RecipeEditorDialog(QDialog):
         self.spin_warning_high.setValue(42)
         acc_layout.addWidget(self.spin_warning_high, 1, 3)
 
+        for spin_box in (
+            self.spin_tension_min,
+            self.spin_tension_max,
+            self.spin_warning_low,
+            self.spin_warning_high,
+        ):
+            spin_box.setReadOnly(True)
+            spin_box.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+            spin_box.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
         # Legenda
         legend = QLabel(
             "💚 OK: Entre Warning Baixo e Warning Alto\n"
@@ -307,6 +321,14 @@ class RecipeEditorDialog(QDialog):
         )
         legend.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 10px;")
         acc_layout.addWidget(legend, 2, 0, 1, 4)
+
+        criteria_info = QLabel(
+            "Os limites exibidos abaixo são definidos em Ferramentas > Critérios de Tensão "
+            "e não podem mais ser alterados por receita."
+        )
+        criteria_info.setWordWrap(True)
+        criteria_info.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 10px;")
+        acc_layout.addWidget(criteria_info, 3, 0, 1, 4)
 
         layout.addWidget(acc_group)
         layout.addStretch()
@@ -388,6 +410,7 @@ class RecipeEditorDialog(QDialog):
     def load_recipe_data(self):
         """Carrega dados da receita nos widgets."""
         r = self.recipe
+        criteria = self.criteria_manager.get_criteria()
 
         # Info
         self.edit_name.setText(r.name)
@@ -412,10 +435,10 @@ class RecipeEditorDialog(QDialog):
         self._set_pattern_combo_value(r.tension.measurement_pattern_name)
         self.spin_tension_move_height.setValue(r.tension.movement_height)
         self.spin_tension_measurement_height.setValue(r.tension.measurement_height)
-        self.spin_tension_min.setValue(r.tension.acceptance.min_tension)
-        self.spin_tension_max.setValue(r.tension.acceptance.max_tension)
-        self.spin_warning_low.setValue(r.tension.acceptance.warning_low)
-        self.spin_warning_high.setValue(r.tension.acceptance.warning_high)
+        self.spin_tension_min.setValue(criteria.min_tension)
+        self.spin_tension_max.setValue(criteria.max_tension)
+        self.spin_warning_low.setValue(criteria.warning_low)
+        self.spin_warning_high.setValue(criteria.warning_high)
 
         # Captura
         self.spin_capture_origin_x.setValue(r.capture.origin.x)
@@ -431,6 +454,7 @@ class RecipeEditorDialog(QDialog):
     def save_recipe_data(self) -> Recipe:
         """Salva dados dos widgets na receita."""
         r = self.recipe
+        criteria = self.criteria_manager.get_criteria()
 
         # Info
         r.name = self.edit_name.text().strip()
@@ -459,10 +483,10 @@ class RecipeEditorDialog(QDialog):
         r.tension.movement_height = self.spin_tension_move_height.value()
         r.tension.measurement_height = self.spin_tension_measurement_height.value()
         r.tension.acceptance = TensionAcceptance(
-            min_tension=self.spin_tension_min.value(),
-            max_tension=self.spin_tension_max.value(),
-            warning_low=self.spin_warning_low.value(),
-            warning_high=self.spin_warning_high.value()
+            min_tension=criteria.min_tension,
+            max_tension=criteria.max_tension,
+            warning_low=criteria.warning_low,
+            warning_high=criteria.warning_high,
         )
 
         # Captura

@@ -1,11 +1,24 @@
 
 import pytest
 from pathlib import Path
+from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.recipe_manager import RecipeManager, Recipe, StencilInfo, TensionConfig, CaptureConfig, MACHINE_LIMITS
 
 @pytest.fixture
 def recipe_manager(tmp_path):
     return RecipeManager(recipes_dir=str(tmp_path))
+
+
+@pytest.fixture
+def recipe_manager_with_custom_criteria(tmp_path):
+    config_path = tmp_path / "aoi_config.json"
+    config = AOIConfigManager(cfg_path=str(config_path))
+    config.set("tension_criteria", "min_tension", value=31.0)
+    config.set("tension_criteria", "max_tension", value=43.0)
+    config.set("tension_criteria", "warning_low", value=33.0)
+    config.set("tension_criteria", "warning_high", value=41.0)
+    recipes_dir = tmp_path / "recipes"
+    return RecipeManager(recipes_dir=str(recipes_dir), config_manager=config), config
 
 def test_validate_valid_recipe(recipe_manager):
     recipe = recipe_manager.create_recipe("Valid Recipe")
@@ -75,6 +88,59 @@ def test_crud_operations(recipe_manager):
     # Delete
     assert recipe_manager.delete_recipe(recipe.recipe_id) is True
     assert len(recipe_manager.list_recipes()) == 0
+
+
+def test_create_recipe_uses_global_tension_criteria(recipe_manager_with_custom_criteria):
+    manager, _ = recipe_manager_with_custom_criteria
+
+    recipe = manager.create_recipe("Global Criteria")
+
+    assert recipe.tension.acceptance.min_tension == 31.0
+    assert recipe.tension.acceptance.max_tension == 43.0
+    assert recipe.tension.acceptance.warning_low == 33.0
+    assert recipe.tension.acceptance.warning_high == 41.0
+
+
+def test_load_recipe_overrides_stored_acceptance_with_global_criteria(recipe_manager_with_custom_criteria, tmp_path):
+    manager, _ = recipe_manager_with_custom_criteria
+    recipe = Recipe(name="Stored Criteria")
+    recipe.tension.enabled = True
+    recipe.tension.acceptance.min_tension = 10.0
+    recipe.tension.acceptance.max_tension = 90.0
+    recipe.tension.acceptance.warning_low = 20.0
+    recipe.tension.acceptance.warning_high = 80.0
+
+    raw_file = Path(manager.recipes_dir) / "stored_recipe.json"
+    raw_file.parent.mkdir(parents=True, exist_ok=True)
+    raw_file.write_text(recipe.to_json(indent=2), encoding="utf-8")
+
+    loaded = manager.load_recipe("stored_recipe")
+
+    assert loaded is not None
+    assert loaded.tension.acceptance.min_tension == 31.0
+    assert loaded.tension.acceptance.max_tension == 43.0
+    assert loaded.tension.acceptance.warning_low == 33.0
+    assert loaded.tension.acceptance.warning_high == 41.0
+
+
+def test_save_recipe_persists_global_tension_criteria(recipe_manager_with_custom_criteria):
+    manager, _ = recipe_manager_with_custom_criteria
+    recipe = manager.create_recipe("Persist Global Criteria")
+    recipe.tension.enabled = True
+    recipe.tension.acceptance.min_tension = 5.0
+    recipe.tension.acceptance.max_tension = 95.0
+    recipe.tension.acceptance.warning_low = 10.0
+    recipe.tension.acceptance.warning_high = 90.0
+
+    assert manager.save_recipe(recipe) is True
+
+    saved_data = Path(manager.recipes_dir, f"{recipe.recipe_id}.json").read_text(encoding="utf-8")
+    loaded = Recipe.from_json(saved_data)
+
+    assert loaded.tension.acceptance.min_tension == 31.0
+    assert loaded.tension.acceptance.max_tension == 43.0
+    assert loaded.tension.acceptance.warning_low == 33.0
+    assert loaded.tension.acceptance.warning_high == 41.0
 
 def test_duplicate_recipe(recipe_manager):
     original = recipe_manager.create_recipe("Original")

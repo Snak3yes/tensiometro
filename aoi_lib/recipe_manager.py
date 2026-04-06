@@ -23,6 +23,8 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
+from aoi_lib.config_manager import AOIConfigManager
+
 logger = logging.getLogger(__name__)
 
 # Diretório padrão para receitas
@@ -398,7 +400,7 @@ class RecipeManager:
     Responsável por salvar, carregar e listar receitas em disco.
     """
     
-    def __init__(self, recipes_dir: str = None):
+    def __init__(self, recipes_dir: str = None, config_manager: AOIConfigManager | None = None):
         """
         Inicializa o RecipeManager.
         
@@ -413,11 +415,34 @@ class RecipeManager:
         
         self.recipes_dir = Path(recipes_dir)
         self._ensure_directory()
+        self.config_manager = config_manager or AOIConfigManager()
         
         self.current_recipe: Optional[Recipe] = None
         self._recipes_cache: Dict[str, Recipe] = {}
         
         logger.info(f"RecipeManager inicializado em: {self.recipes_dir}")
+
+    def get_global_tension_acceptance(self) -> TensionAcceptance:
+        """Retorna os critérios globais de tensão configurados na aplicação."""
+        return TensionAcceptance(
+            min_tension=float(
+                self.config_manager.get("tension_criteria", "min_tension", default=25.0)
+            ),
+            max_tension=float(
+                self.config_manager.get("tension_criteria", "max_tension", default=45.0)
+            ),
+            warning_low=float(
+                self.config_manager.get("tension_criteria", "warning_low", default=28.0)
+            ),
+            warning_high=float(
+                self.config_manager.get("tension_criteria", "warning_high", default=42.0)
+            ),
+        )
+
+    def _apply_global_tension_acceptance(self, recipe: Recipe) -> Recipe:
+        """Sincroniza a receita com os critérios globais de tensão."""
+        recipe.tension.acceptance = self.get_global_tension_acceptance()
+        return recipe
     
     def _ensure_directory(self):
         """Cria o diretório de receitas se não existir."""
@@ -484,7 +509,7 @@ class RecipeManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 data = json.load(f)
             
-            recipe = Recipe.from_dict(data)
+            recipe = self._apply_global_tension_acceptance(Recipe.from_dict(data))
             self.current_recipe = recipe
             self._recipes_cache[recipe.recipe_id] = recipe
             
@@ -509,6 +534,7 @@ class RecipeManager:
         """
         # Atualiza timestamp de modificação
         recipe.update_modified()
+        self._apply_global_tension_acceptance(recipe)
         
         # Valida
         errors = recipe.validate()
@@ -550,7 +576,7 @@ class RecipeManager:
             name=name,
             **kwargs
         )
-        return recipe
+        return self._apply_global_tension_acceptance(recipe)
     
     def delete_recipe(self, recipe_id: str) -> bool:
         """

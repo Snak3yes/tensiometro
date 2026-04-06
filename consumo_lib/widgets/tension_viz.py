@@ -4,7 +4,8 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox, QLabel, QPushButton,
-    QGridLayout, QFileDialog, QDoubleSpinBox, QSpinBox, QFrame, QMessageBox
+    QGridLayout, QFileDialog, QDoubleSpinBox, QSpinBox, QFrame, QMessageBox,
+    QAbstractSpinBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QPen, QBrush, QPainter, QFont
@@ -12,15 +13,17 @@ from typing import List, Dict
 import logging
 
 from aoi_lib.config_manager import AOIConfigManager
+from aoi_lib.recipe_manager import TensionAcceptance
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
+from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
 
 logger = logging.getLogger(__name__)
 class TensionVisualizationWidget(QWidget):
     """
     Widget para visualizar os resultados de medição de tensão do stencil.
     
-    Suporta critérios de aceitação (OK/WARNING/NOK) vindos de receitas.
+    Suporta critérios globais de aceitação (OK/WARNING/NOK).
     """
     
     def __init__(self, parent=None):
@@ -31,6 +34,8 @@ class TensionVisualizationWidget(QWidget):
         self.canvas_margin = 50
         self.point_radius = 15
         self.acceptance_criteria = None  # TensionAcceptance object
+        config = getattr(parent, "config_manager", None) or getattr(parent, "config", None) or AOIConfigManager()
+        self.criteria_manager = TensionCriteriaManager(config)
         
         # Agora inicializa a UI
         self.setup_ui()
@@ -61,7 +66,7 @@ class TensionVisualizationWidget(QWidget):
         layout.addLayout(title_layout)
         
         # ============ CRITÉRIOS DE ACEITAÇÃO ============
-        criteria_group = QGroupBox("Critérios de Aceitação (N/cm²)")
+        criteria_group = QGroupBox("Critérios Globais de Aceitação (N/cm²)")
         criteria_layout = QGridLayout(criteria_group)
         
         # Tensão mínima
@@ -69,7 +74,6 @@ class TensionVisualizationWidget(QWidget):
         self.spin_min = QDoubleSpinBox()
         self.spin_min.setRange(0, 100)
         self.spin_min.setValue(25.0)
-        self.spin_min.valueChanged.connect(self._on_criteria_changed)
         criteria_layout.addWidget(self.spin_min, 0, 1)
         
         # Warning baixo
@@ -77,7 +81,6 @@ class TensionVisualizationWidget(QWidget):
         self.spin_warn_low = QDoubleSpinBox()
         self.spin_warn_low.setRange(0, 100)
         self.spin_warn_low.setValue(28.0)
-        self.spin_warn_low.valueChanged.connect(self._on_criteria_changed)
         criteria_layout.addWidget(self.spin_warn_low, 0, 3)
         
         # Warning alto
@@ -85,7 +88,6 @@ class TensionVisualizationWidget(QWidget):
         self.spin_warn_high = QDoubleSpinBox()
         self.spin_warn_high.setRange(0, 100)
         self.spin_warn_high.setValue(42.0)
-        self.spin_warn_high.valueChanged.connect(self._on_criteria_changed)
         criteria_layout.addWidget(self.spin_warn_high, 0, 5)
         
         # Tensão máxima
@@ -93,14 +95,29 @@ class TensionVisualizationWidget(QWidget):
         self.spin_max = QDoubleSpinBox()
         self.spin_max.setRange(0, 100)
         self.spin_max.setValue(45.0)
-        self.spin_max.valueChanged.connect(self._on_criteria_changed)
         criteria_layout.addWidget(self.spin_max, 0, 7)
-        
-        # Carregar da receita
-        self.btn_load_recipe = StandardButton("Usar Receita")
-        self.btn_load_recipe.setToolTip("Carrega critérios da receita atual")
-        self.btn_load_recipe.clicked.connect(self.load_criteria_from_recipe)
+
+        for spin_box in (
+            self.spin_min,
+            self.spin_warn_low,
+            self.spin_warn_high,
+            self.spin_max,
+        ):
+            spin_box.setReadOnly(True)
+            spin_box.setButtonSymbols(QAbstractSpinBox.ButtonSymbols.NoButtons)
+            spin_box.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+
+        self.btn_load_recipe = StandardButton("Atualizar Critérios")
+        self.btn_load_recipe.setToolTip("Recarrega os critérios globais configurados no sistema")
+        self.btn_load_recipe.clicked.connect(self.refresh_global_criteria)
         criteria_layout.addWidget(self.btn_load_recipe, 0, 8)
+
+        self.criteria_info_label = QLabel(
+            "Os limites abaixo são globais e podem ser alterados somente em Ferramentas > Critérios de Tensão."
+        )
+        self.criteria_info_label.setWordWrap(True)
+        self.criteria_info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;")
+        criteria_layout.addWidget(self.criteria_info_label, 1, 0, 1, 9)
         
         layout.addWidget(criteria_group)
         
@@ -145,8 +162,8 @@ class TensionVisualizationWidget(QWidget):
         
         self.last_file_path = None
         
-        # Inicializa TensionAcceptance
-        self._on_criteria_changed()
+        # Inicializa critérios globais
+        self.refresh_global_criteria()
         
     def load_tension_file(self):
         """Carrega arquivo JSON com dados de tensão"""
@@ -299,10 +316,8 @@ class TensionVisualizationWidget(QWidget):
         # Passa critérios para o canvas
         self.canvas.set_acceptance_criteria(self.acceptance_criteria)
     
-    def _on_criteria_changed(self, value=None):
-        """Callback quando os critérios de aceitação são alterados"""
-        from aoi_lib.recipe_manager import TensionAcceptance
-        
+    def _on_criteria_changed(self):
+        """Atualiza a classificação usando os critérios já carregados."""
         self.acceptance_criteria = TensionAcceptance(
             min_tension=self.spin_min.value(),
             max_tension=self.spin_max.value(),
@@ -315,51 +330,27 @@ class TensionVisualizationWidget(QWidget):
             self.canvas.set_acceptance_criteria(self.acceptance_criteria)
             self.canvas.update()
             self.update_legend()
-    
-    def load_criteria_from_recipe(self):
-        """Carrega critérios da receita atualmente selecionada"""
-        # Tenta obter a receita do pai (AOIControllerApp)
-        parent = self.parent()
-        while parent and not hasattr(parent, 'current_recipe'):
-            parent = parent.parent()
-        
-        if parent and hasattr(parent, 'current_recipe') and parent.current_recipe:
-            recipe = parent.current_recipe
-            acc = recipe.tension.acceptance
-            
-            # Bloqueia sinais para evitar múltiplas atualizações
-            self.spin_min.blockSignals(True)
-            self.spin_max.blockSignals(True)
-            self.spin_warn_low.blockSignals(True)
-            self.spin_warn_high.blockSignals(True)
-            
-            self.spin_min.setValue(acc.min_tension)
-            self.spin_max.setValue(acc.max_tension)
-            self.spin_warn_low.setValue(acc.warning_low)
-            self.spin_warn_high.setValue(acc.warning_high)
-            
-            self.spin_min.blockSignals(False)
-            self.spin_max.blockSignals(False)
-            self.spin_warn_low.blockSignals(False)
-            self.spin_warn_high.blockSignals(False)
-            
-            # Atualiza manualmente
-            self._on_criteria_changed()
-            
-            QMessageBox.information(
-                self, "Critérios Carregados",
-                f"Critérios da receita '{recipe.name}' aplicados:\n\n"
-                f"Mínimo: {acc.min_tension} N/cm²\n"
-                f"Máximo: {acc.max_tension} N/cm²\n"
-                f"Warning ↓: {acc.warning_low} N/cm²\n"
-                f"Warning ↑: {acc.warning_high} N/cm²"
-            )
-        else:
-            QMessageBox.warning(
-                self, "Receita Não Encontrada",
-                "Nenhuma receita está carregada.\n\n"
-                "Acesse 'Receitas → Gerenciar Receitas' para carregar uma."
-            )
+
+    def refresh_global_criteria(self):
+        """Recarrega os critérios globais configurados no sistema."""
+        criteria = self.criteria_manager.get_criteria()
+
+        self.spin_min.blockSignals(True)
+        self.spin_max.blockSignals(True)
+        self.spin_warn_low.blockSignals(True)
+        self.spin_warn_high.blockSignals(True)
+
+        self.spin_min.setValue(criteria.min_tension)
+        self.spin_max.setValue(criteria.max_tension)
+        self.spin_warn_low.setValue(criteria.warning_low)
+        self.spin_warn_high.setValue(criteria.warning_high)
+
+        self.spin_min.blockSignals(False)
+        self.spin_max.blockSignals(False)
+        self.spin_warn_low.blockSignals(False)
+        self.spin_warn_high.blockSignals(False)
+
+        self._on_criteria_changed()
 
 
 

@@ -30,7 +30,8 @@ class StencilEditDialog(QDialog):
         super().__init__(parent)
         self.tracker = tracker
         self.stencil = stencil
-        self.recipe_manager = RecipeManager()
+        config_manager = getattr(parent, "config_manager", None) or getattr(parent, "config", None)
+        self.recipe_manager = RecipeManager(config_manager=config_manager)
 
         self.setWindowTitle(f"Editar Stencil - {stencil.code}")
         self.setMinimumWidth(400)

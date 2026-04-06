@@ -253,7 +253,7 @@ class RecipeManagerController(QObject):
         Emits:
             Nenhum signal adicional (já emitido em apply_recipe_to_tension)
         """
-        # Mostra informações dos critérios de aceitação
+        # Mostra informações dos critérios globais de aceitação
         acc = settings['acceptance']
         QMessageBox.information(
             self.parent_window,
@@ -265,12 +265,12 @@ class RecipeManagerController(QObject):
             f"({settings['end_point']['x']}, {settings['end_point']['y']})\n\n"
             f"Altura movimento: {settings.get('movement_height')} mm\n"
             f"Altura medição: {settings.get('measurement_height')} mm\n\n"
-            f"Critérios de Aceitação:\n"
+            f"Critérios Globais de Tensão:\n"
             f"  • Mínimo: {acc['min_tension']} N/cm²\n"
             f"  • Máximo: {acc['max_tension']} N/cm²\n"
             f"  • Warning baixo: {acc['warning_low']} N/cm²\n"
             f"  • Warning alto: {acc['warning_high']} N/cm²\n\n"
-            "Estes critérios serão usados para classificar as medições."
+            "Estes critérios são configurados em Ferramentas > Critérios de Tensão."
         )
 
         logger.info(f"Configurações de tensão aplicadas da receita '{current_recipe.name}'")

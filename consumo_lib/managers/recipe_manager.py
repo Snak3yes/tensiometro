@@ -31,7 +31,8 @@ class RecipeManagerWrapper(QObject):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.recipe_manager = RecipeManager()
+        config_manager = getattr(parent, "config_manager", None) or getattr(parent, "config", None)
+        self.recipe_manager = RecipeManager(config_manager=config_manager)
         self.current_recipe = None
 
         logger.info(f"RecipeManager inicializado. Diretório: {self.recipe_manager.recipes_dir}")
@@ -144,6 +145,8 @@ class RecipeManagerWrapper(QObject):
             return None
 
         r = self.current_recipe
+        acceptance = self.recipe_manager.get_global_tension_acceptance()
+        r.tension.acceptance = acceptance
 
         if not r.tension.enabled:
             error_msg = "Medição de tensão desabilitada nesta receita"
@@ -169,10 +172,10 @@ class RecipeManagerWrapper(QObject):
             'stabilization_time_ms': r.tension.stabilization_time_ms,
             'feed_rate': r.tension.feed_rate,
             'acceptance': {
-                'min_tension': r.tension.acceptance.min_tension,
-                'max_tension': r.tension.acceptance.max_tension,
-                'warning_low': r.tension.acceptance.warning_low,
-                'warning_high': r.tension.acceptance.warning_high
+                'min_tension': acceptance.min_tension,
+                'max_tension': acceptance.max_tension,
+                'warning_low': acceptance.warning_low,
+                'warning_high': acceptance.warning_high
             }
         }
 

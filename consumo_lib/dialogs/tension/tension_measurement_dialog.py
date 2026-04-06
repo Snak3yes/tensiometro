@@ -794,7 +794,7 @@ class TensionMeasurementDialog(QDialog):
             return
 
         self.active_recipe_name = recipe.name
-        self.criteria_override = recipe.tension.acceptance
+        self.criteria_override = None
 
         pattern_name = getattr(recipe.tension, "measurement_pattern_name", "") or ""
         if pattern_name and self._load_pattern(pattern_name, show_message=False):
