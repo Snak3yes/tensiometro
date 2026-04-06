@@ -30,6 +30,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import QObject, pyqtSignal
 
 from aoi_lib import InspectionPosition
+from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 
 logger = logging.getLogger("consumo_lib")
 
@@ -530,11 +531,16 @@ class SequenceController(QObject):
 
         # Exibe mensagem
         if self.parent_window:
-            QMessageBox.critical(
+            if not show_motion_interlock_dialog(
                 self.parent_window,
-                "Erro na Sequência",
-                error_message
-            )
+                error_message,
+                operation="sequencia automatica",
+            ):
+                QMessageBox.critical(
+                    self.parent_window,
+                    "Erro na Sequência",
+                    error_message
+                )
 
         logger.error(f"Erro na execução da sequência: {error_message}")
 
