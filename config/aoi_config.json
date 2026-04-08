@@ -182,5 +182,13 @@
     "max_tension": 45.0,
     "warning_low": 28.0,
     "warning_high": 42.0
+  },
+  "integration": {
+    "enabled": true,
+    "endpoint_url": "http://147.1.0.100:3075/sfcs-print/stencil/stencil_tensiometro",
+    "timeout_sec": 10.0,
+    "line_name": "IMC4-LM03",
+    "user_id": 1,
+    "stencil_status_id": null
   }
 }

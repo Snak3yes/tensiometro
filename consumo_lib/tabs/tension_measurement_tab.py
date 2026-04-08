@@ -521,43 +521,25 @@ class TensionMeasurementTab(QWidget):
 
         # Items horizontais
         items_layout = QHBoxLayout()
-        items_layout.setSpacing(16)
+        items_layout.setSpacing(10)
 
         # Item OK - círculo + texto
         ok_indicator = QLabel("●")
         ok_indicator.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 12px; font-weight: bold;")
-        self.ok_label = QLabel(f"OK ({self.criteria_warn_low}-{self.criteria_warn_high})")
-        self.ok_label.setStyleSheet(f"color: {COLORS.SUCCESS}; font-size: 9px;")
-        ok_layout = QHBoxLayout()
-        ok_layout.setSpacing(4)
-        ok_layout.addWidget(ok_indicator)
-        ok_layout.addWidget(self.ok_label)
-        ok_layout.addStretch()
-        items_layout.addLayout(ok_layout)
+        self.ok_label = self._create_status_badge("Aprovado", "#2E7D32", "#FFFFFF")
+        items_layout.addWidget(self.ok_label)
 
         # Item WARN - círculo + texto
         warn_indicator = QLabel("●")
         warn_indicator.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 12px; font-weight: bold;")
-        self.warn_label = QLabel("WARN")
-        self.warn_label.setStyleSheet(f"color: {COLORS.WARNING}; font-size: 9px;")
-        warn_layout = QHBoxLayout()
-        warn_layout.setSpacing(4)
-        warn_layout.addWidget(warn_indicator)
-        warn_layout.addWidget(self.warn_label)
-        warn_layout.addStretch()
-        items_layout.addLayout(warn_layout)
+        self.warn_label = self._create_status_badge("Warning", "#F9A825", "#1F2937")
+        items_layout.addWidget(self.warn_label)
 
         # Item NOK - círculo + texto
         nok_indicator = QLabel("●")
         nok_indicator.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 12px; font-weight: bold;")
-        self.nok_label = QLabel("NOK")
-        self.nok_label.setStyleSheet(f"color: {COLORS.ERROR}; font-size: 9px;")
-        nok_layout = QHBoxLayout()
-        nok_layout.setSpacing(4)
-        nok_layout.addWidget(nok_indicator)
-        nok_layout.addWidget(self.nok_label)
-        nok_layout.addStretch()
-        items_layout.addLayout(nok_layout)
+        self.nok_label = self._create_status_badge("Reprovado", "#C62828", "#FFFFFF")
+        items_layout.addWidget(self.nok_label)
 
         items_layout.addStretch()
         layout.addLayout(items_layout)
@@ -566,7 +548,47 @@ class TensionMeasurementTab(QWidget):
 
     def _update_legend(self):
         """Atualiza textos da legenda com valores dos critérios."""
-        self.ok_label.setText(f"OK ({self.criteria_warn_low}-{self.criteria_warn_high})")
+        self.ok_label.setText("Aprovado")
+        self.warn_label.setText("Warning")
+        self.nok_label.setText("Reprovado")
+
+    def _create_status_badge(self, text: str, background_color: str, text_color: str) -> QLabel:
+        """Cria um badge compacto para status."""
+        badge = QLabel(text)
+        badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        badge.setStyleSheet(
+            self._status_badge_stylesheet(
+                background_color=background_color,
+                text_color=text_color,
+            )
+        )
+        return badge
+
+    def _status_badge_stylesheet(
+        self,
+        background_color: str,
+        text_color: str,
+        min_width: int = 96,
+    ) -> str:
+        return f"""
+            font-size: 11px;
+            font-weight: bold;
+            color: {text_color};
+            background-color: {background_color};
+            padding: 4px 10px;
+            border-radius: 6px;
+            min-width: {min_width}px;
+        """
+
+    def _status_display_config(self, status: str) -> tuple[str, str, str]:
+        """Mapeia status interno para badge visivel ao operador."""
+        status_config = {
+            "active": ("Aprovado", "#2E7D32", "#FFFFFF"),
+            "warning": ("Warning", "#F9A825", "#1F2937"),
+            "retired": ("Reprovado", "#C62828", "#FFFFFF"),
+            "pending": ("Pendente", COLORS.SURFACE_VARIANT, COLORS.TEXT_PRIMARY),
+        }
+        return status_config.get(status, status_config["pending"])
 
     def create_file_info_group(self) -> QGroupBox:
         """Cria grupo de informações do arquivo."""
@@ -665,6 +687,8 @@ class TensionMeasurementTab(QWidget):
                 font-size: 11px;
                 font-weight: bold;
             """)
+            status_text, status_bg, status_fg = self._status_display_config(status)
+            status_label = self._create_status_badge(status_text, status_bg, status_fg)
             self.tree_widget.setItemWidget(item, 2, status_label)
 
             # Tensão média
@@ -752,24 +776,16 @@ class TensionMeasurementTab(QWidget):
         self.field_code_label.setText(code)
         self.field_desc_label.setText(desc)
 
-        # Status badge com cor
-        status_config = {
-            'active': ('OK', COLORS.SUCCESS),
-            'warning': ('ALERTA', COLORS.WARNING),
-            'retired': ('RETIRADO', COLORS.TEXT_HINT),
-            'pending': ('PENDENTE', COLORS.TEXT_SECONDARY),
-        }
-        status_text, status_color = status_config.get(status, ('PENDENTE', COLORS.TEXT_SECONDARY))
+        # Status badge com fundo colorido
+        status_text, status_bg, status_fg = self._status_display_config(status)
         self.field_status_badge.setText(status_text)
-        self.field_status_badge.setStyleSheet(f"""
-            font-size: 11px;
-            font-weight: bold;
-            color: {status_color};
-            background-color: {COLORS.BACKGROUND};
-            padding: 4px 8px;
-            border-radius: 4px;
-            border: 1px solid {status_color};
-        """)
+        self.field_status_badge.setStyleSheet(
+            self._status_badge_stylesheet(
+                background_color=status_bg,
+                text_color=status_fg,
+                min_width=110,
+            )
+        )
 
         # Preenche campos da Linha 2: Receita, Tensão Média, Total Medições
         recipe = stencil.get('recipe', '-') or '-'
@@ -802,9 +818,9 @@ class TensionMeasurementTab(QWidget):
     def _get_status_label(self, status: str) -> str:
         """Retorna label formatada do status."""
         labels = {
-            "active": "Ativo",
-            "warning": "Alerta",
-            "retired": "Retirado",
+            "active": "Aprovado",
+            "warning": "Warning",
+            "retired": "Reprovado",
             "pending": "Pendente",
         }
         return labels.get(status, status.upper())
@@ -961,21 +977,21 @@ class TensionMeasurementTab(QWidget):
                     font-weight: bold;
                     padding: {SPACE.SM}px;
                     border-radius: {DIM.RADIUS_MD}px;
-                    background-color: {COLORS.ERROR};
-                    color: {COLORS.BACKGROUND};
+                    background-color: #C62828;
+                    color: #FFFFFF;
                     min-height: 40px;
                 }}
             """)
-        elif warn_pct > 20:
-            self.result_badge.setText("ATENÇÃO")
+        elif warn_pct > 0:
+            self.result_badge.setText("WARNING")
             self.result_badge.setStyleSheet(f"""
                 QLabel {{
                     font-size: {TYPO.TITLE_SMALL}px;
                     font-weight: bold;
                     padding: {SPACE.SM}px;
                     border-radius: {DIM.RADIUS_MD}px;
-                    background-color: {COLORS.WARNING};
-                    color: {COLORS.TEXT_PRIMARY};
+                    background-color: #F9A825;
+                    color: #1F2937;
                     min-height: 40px;
                 }}
             """)
@@ -987,8 +1003,8 @@ class TensionMeasurementTab(QWidget):
                     font-weight: bold;
                     padding: {SPACE.SM}px;
                     border-radius: {DIM.RADIUS_MD}px;
-                    background-color: {COLORS.SUCCESS};
-                    color: {COLORS.BACKGROUND};
+                    background-color: #2E7D32;
+                    color: #FFFFFF;
                     min-height: 40px;
                 }}
             """)

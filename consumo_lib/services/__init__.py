@@ -15,6 +15,7 @@ from .movement_service import MovementService, MovementResult
 from .click_to_move_service import ClickToMoveService, ClickMoveResult
 from .sequence_execution_service import SequenceExecutionService
 from .resource_manager import ResourceManager
+from .tension_external_payload_service import TensionExternalPayloadService
 
 __all__ = [
     'MovementService',
@@ -23,4 +24,5 @@ __all__ = [
     'ClickMoveResult',
     'SequenceExecutionService',
     'ResourceManager',
+    'TensionExternalPayloadService',
 ]

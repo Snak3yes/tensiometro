@@ -274,7 +274,11 @@ class StencilTracker:
         stencil.last_inspection = record.timestamp
         stencil.inspection_count += 1
         if record.result == "NOK":
+            stencil.status = "retired"
+        elif record.result == "WARNING":
             stencil.status = "warning"
+        elif record.result == "OK":
+            stencil.status = "active"
 
         self._save_stencil(stencil)
         log.info(f"Registro de tensão adicionado para {code}: {record.result}")

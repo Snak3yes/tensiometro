@@ -32,6 +32,7 @@ from aoi_lib.stencil_tracker import Stencil, TensionRecord
 from aoi_lib.tensiometer import MeasurementOrchestrator, TensiometerSerialManager
 from consumo_lib.managers.measurement_pattern_manager import MeasurementPatternManager
 from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
+from consumo_lib.services.tension_external_payload_service import TensionExternalPayloadService
 from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 from consumo_lib.utils.tension_measurement_data import load_tension_measurement_data
 
@@ -70,6 +71,7 @@ class TensionMeasurementController(QObject):
         self.parent_window = parent
         self.pattern_manager = MeasurementPatternManager()
         self.criteria_manager = TensionCriteriaManager(config_manager)
+        self.external_payload_service = TensionExternalPayloadService()
 
         self._active_progress_dialog: Optional[QProgressDialog] = None
         self._active_tensiometer: Optional[TensiometerSerialManager] = None
@@ -78,6 +80,7 @@ class TensionMeasurementController(QObject):
         self._active_recipe = None
         self._active_ui_parent = None
         self._cancel_requested = False
+        self._last_external_send_attempt: Optional[dict] = None
 
         logger.debug("TensionMeasurementController inicializado")
 
@@ -508,10 +511,36 @@ class TensionMeasurementController(QObject):
 
         try:
             record = self.save_measurement_results(stencil, recipe, results)
+            send_status = self._build_external_send_status_text()
             self.parent_window.statusBar().showMessage(
                 f"Medição concluída: {stencil.code} | Resultado {record.result}",
                 10000,
             )
+            self.parent_window.statusBar().showMessage(
+                f"Medição concluída: {stencil.code} | Resultado {record.result} | {send_status}",
+                12000,
+            )
+            if self._is_stencil_approved(record):
+                self.parent_window.statusBar().showMessage(
+                    f"Stencil Aprovado: {stencil.code} | {send_status}",
+                    12000,
+                )
+                self._show_stencil_approved_feedback(
+                    self._active_ui_parent or self.parent_window,
+                    stencil.code,
+                    record,
+                )
+            elif self._is_stencil_rejected(record):
+                self.parent_window.statusBar().showMessage(
+                    f"Stencil Reprovado: {stencil.code} | {send_status}",
+                    12000,
+                )
+                self._show_stencil_rejected_feedback(
+                    self._active_ui_parent or self.parent_window,
+                    stencil.code,
+                    record,
+                )
+            self._show_external_send_failure_feedback(self._active_ui_parent or self.parent_window)
             self._refresh_runtime_views(saved_path)
         except Exception as exc:
             error_msg = f"Erro ao finalizar a medição do stencil: {exc}"
@@ -567,6 +596,7 @@ class TensionMeasurementController(QObject):
         self._active_recipe = None
         self._active_ui_parent = None
         self._cancel_requested = False
+        self._last_external_send_attempt = None
 
     def _disconnect_tensiometer(self, tensiometer: Optional[TensiometerSerialManager]) -> None:
         if tensiometer is None:
@@ -624,10 +654,241 @@ class TensionMeasurementController(QObject):
         if not added:
             raise RuntimeError("O histórico do stencil recusou o registro da medição.")
 
+        payload_path = self._save_external_integration_payload(
+            current_stencil=current_stencil,
+            tension_data=classified_data,
+            timestamp=record.timestamp,
+        )
+        if payload_path is not None:
+            logger.info("Payload externo de tensão salvo em %s", payload_path)
+
         logger.info(f"Medição de tensão salva para stencil {current_stencil.code}")
         self.measurement_completed.emit(record)
         self.measurement_saved.emit(current_stencil.code, record)
         return record
+
+    def _save_external_integration_payload(
+        self,
+        *,
+        current_stencil: Stencil,
+        tension_data: dict,
+        timestamp: Optional[str] = None,
+    ):
+        """Gera um JSON de integraÃ§Ã£o externa com todos os pontos medidos."""
+        self._last_external_send_attempt = None
+        try:
+            payload = self.external_payload_service.build_payload(
+                stencil_code=current_stencil.code,
+                measurements=tension_data.get("measurements", []),
+                user_id=self._resolve_external_user_id(),
+                line_name=self._resolve_external_line_name(),
+                stencil_status=self._resolve_external_stencil_status(),
+            )
+            payload_path = self.external_payload_service.save_payload(
+                payload,
+                stencil_code=current_stencil.code,
+                timestamp=timestamp,
+            )
+            self._send_external_integration_payload(payload, payload_path)
+            return payload_path
+        except Exception:
+            self._last_external_send_attempt = {
+                "success": False,
+                "error": "Falha ao gerar ou enviar payload externo.",
+                "payload_path": None,
+                "send_log_path": None,
+                "status_code": None,
+            }
+            logger.exception(
+                "Falha ao gerar payload externo de tensÃ£o para o stencil %s",
+                current_stencil.code,
+            )
+            return None
+
+    def _send_external_integration_payload(self, payload: dict, payload_path) -> dict:
+        """Envia o payload para a API externa e registra a tentativa em arquivo."""
+        if not self._is_external_integration_enabled():
+            attempt = {
+                "success": None,
+                "skipped": True,
+                "error": None,
+                "status_code": None,
+                "payload_path": str(payload_path) if payload_path is not None else None,
+                "send_log_path": None,
+            }
+            self._last_external_send_attempt = attempt
+            logger.info("Integracao externa de tensao desabilitada; envio nao realizado.")
+            return attempt
+
+        endpoint_url = self._get_external_endpoint_url()
+        timeout_sec = self._get_external_timeout_sec()
+        attempt = self.external_payload_service.send_payload(
+            payload,
+            endpoint_url=endpoint_url,
+            payload_path=payload_path,
+            timeout_sec=timeout_sec,
+        )
+        self._last_external_send_attempt = attempt
+
+        if attempt.get("success"):
+            logger.info(
+                "Payload externo enviado com sucesso para %s (status=%s, log=%s)",
+                endpoint_url,
+                attempt.get("status_code"),
+                attempt.get("send_log_path"),
+            )
+        else:
+            logger.warning(
+                "Tentativa de envio do payload externo falhou para %s: %s (log=%s)",
+                endpoint_url,
+                attempt.get("error") or f"status={attempt.get('status_code')}",
+                attempt.get("send_log_path"),
+            )
+        return attempt
+
+    def _is_external_integration_enabled(self) -> bool:
+        """Retorna se o envio externo deve ser executado."""
+        return bool(self.config.get("integration", "enabled", default=True))
+
+    def _get_external_endpoint_url(self) -> str:
+        """Retorna a URL configurada para envio do payload externo."""
+        return str(self.config.get("integration", "endpoint_url", default="") or "").strip()
+
+    def _get_external_timeout_sec(self) -> float:
+        """Retorna o timeout configurado para o envio externo."""
+        try:
+            return max(0.1, float(self.config.get("integration", "timeout_sec", default=10.0)))
+        except (TypeError, ValueError):
+            return 10.0
+
+    def _build_external_send_status_text(self) -> str:
+        """Monta um texto curto para exibir o resultado do envio externo na UI."""
+        attempt = self._last_external_send_attempt
+        if not attempt:
+            return "Envio API: nao executado"
+
+        if attempt.get("skipped"):
+            return "Envio API: desabilitado"
+
+        if attempt.get("success"):
+            status_code = attempt.get("status_code")
+            return f"Envio API: OK ({status_code})" if status_code else "Envio API: OK"
+
+        status_code = attempt.get("status_code")
+        if status_code:
+            return f"Envio API: falhou ({status_code})"
+        return "Envio API: falhou"
+
+    def _show_external_send_failure_feedback(self, parent) -> None:
+        """Mostra um aviso visível quando o envio externo falha."""
+        attempt = self._last_external_send_attempt
+        if not attempt or attempt.get("success") is not False:
+            return
+
+        details = [
+            "Falha ao enviar o payload de integracao externa.",
+            "",
+            f"Erro: {attempt.get('error') or 'desconhecido'}",
+        ]
+
+        if attempt.get("status_code") is not None:
+            details.append(f"HTTP status: {attempt.get('status_code')}")
+        if attempt.get("payload_path"):
+            details.append(f"Payload: {attempt.get('payload_path')}")
+        if attempt.get("send_log_path"):
+            details.append(f"Log envio: {attempt.get('send_log_path')}")
+
+        QMessageBox.warning(parent, "Falha no Envio Externo", "\n".join(details))
+
+    def _is_stencil_approved(self, record: TensionRecord) -> bool:
+        """Confirma aprovacao quando nao houver NOK e a API aceitar o envio."""
+        attempt = self._last_external_send_attempt or {}
+        measurements = getattr(record, "measurements", []) or []
+        total_measurements = len(measurements)
+        approved_measurements = (
+            total_measurements > 0
+            and record.nok_count == 0
+            and (record.ok_count + record.warning_count) == total_measurements
+            and record.result in ("OK", "WARNING")
+        )
+        return approved_measurements and attempt.get("success") is True
+
+    def _is_stencil_rejected(self, record: TensionRecord) -> bool:
+        """Confirma reprovacao quando houver ao menos um ponto NOK."""
+        measurements = getattr(record, "measurements", []) or []
+        return bool(measurements) and record.nok_count > 0 and record.result == "NOK"
+
+    def _show_stencil_approved_feedback(self, parent, stencil_code: str, record: TensionRecord) -> None:
+        """Mostra confirmacao explicita de aprovacao do stencil."""
+        attempt = self._last_external_send_attempt or {}
+        details = [
+            "Stencil Aprovado",
+            "",
+            f"Stencil: {stencil_code}",
+            f"Media: {record.average_tension:.2f} N/cm2",
+            f"Pontos OK: {record.ok_count}/{len(record.measurements)}",
+            self._build_external_send_status_text(),
+        ]
+        if attempt.get("payload_path"):
+            details.append(f"Payload: {attempt.get('payload_path')}")
+        if attempt.get("send_log_path"):
+            details.append(f"Log envio: {attempt.get('send_log_path')}")
+
+        QMessageBox.information(parent, "Stencil Aprovado", "\n".join(details))
+
+    def _show_stencil_rejected_feedback(self, parent, stencil_code: str, record: TensionRecord) -> None:
+        """Mostra confirmacao explicita de reprovacao do stencil."""
+        attempt = self._last_external_send_attempt or {}
+        details = [
+            "Stencil Reprovado",
+            "",
+            f"Stencil: {stencil_code}",
+            f"Media: {record.average_tension:.2f} N/cm2",
+            f"Pontos NOK: {record.nok_count}/{len(record.measurements)}",
+            self._build_external_send_status_text(),
+        ]
+        if attempt.get("payload_path"):
+            details.append(f"Payload: {attempt.get('payload_path')}")
+        if attempt.get("send_log_path"):
+            details.append(f"Log envio: {attempt.get('send_log_path')}")
+
+        QMessageBox.warning(parent, "Stencil Reprovado", "\n".join(details))
+
+    def _resolve_external_user_id(self) -> Any:
+        """Resolve o identificador do usuÃ¡rio para o payload externo."""
+        configured_user_id = self.config.get("integration", "user_id", default=None)
+        if configured_user_id not in (None, ""):
+            return configured_user_id
+
+        auth_service = getattr(self.parent_window, "auth_service", None)
+        if auth_service is None or not hasattr(auth_service, "get_current_user"):
+            return None
+
+        current_user = auth_service.get_current_user()
+        if current_user is None:
+            return None
+
+        username = getattr(current_user, "username", None)
+        if username not in (None, ""):
+            return username
+
+        return getattr(current_user, "full_name", None)
+
+    def _resolve_external_line_name(self) -> str:
+        """Resolve o nome da linha de produÃ§Ã£o para o payload externo."""
+        for section_name, key_name in (
+            ("integration", "line_name"),
+            ("external_validation", "line_name"),
+            ("production", "line_name"),
+        ):
+            value = self.config.get(section_name, key_name, default=None)
+            if isinstance(value, str) and value.strip():
+                return value.strip()
+        return ""
+
+    def _resolve_external_stencil_status(self) -> Any:
+        """Resolve o identificador externo do status do stencil."""
+        return self.config.get("integration", "stencil_status_id", default=None)
 
     def _classify_measurements_by_recipe(self, tension_data: dict, current_recipe) -> dict:
         """Anota o status OK/WARNING/NOK usando os critérios globais de tensão."""
@@ -697,7 +958,32 @@ class TensionMeasurementController(QObject):
         )
 
         from PyQt6.QtWidgets import QMessageBox
-        QMessageBox.information(
+        send_status = self._build_external_send_status_text()
+        approved = self._is_stencil_approved(record)
+        rejected = self._is_stencil_rejected(record)
+        details = [
+            "Stencil Aprovado." if approved else "Stencil Reprovado." if rejected else "Resultado da medicao salvo no historico.",
+            "",
+            f"Stencil: {stencil_code}",
+            f"Resultado: {record.result}",
+            f"Media: {record.average_tension:.2f} N/cm2",
+            f"Status envio: {send_status}",
+        ]
+
+        attempt = self._last_external_send_attempt or {}
+        if attempt.get("payload_path"):
+            details.append(f"Payload: {attempt.get('payload_path')}")
+        if attempt.get("send_log_path"):
+            details.append(f"Log envio: {attempt.get('send_log_path')}")
+        title = "Stencil Aprovado" if approved else "Stencil Reprovado" if rejected else "Medicao Salva"
+        message_box = QMessageBox.information if approved else QMessageBox.warning if rejected else QMessageBox.information
+        message_box(
+            self.parent_window,
+            title,
+            "\n".join(details),
+        )
+        if False:
+            QMessageBox.information(
             self.parent_window, "Medição Salva",
             f"Resultado da medição salvo no histórico.\n\n"
             f"Stencil: {stencil_code}\n"

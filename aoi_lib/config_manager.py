@@ -107,6 +107,14 @@ class AOIConfigManager:
         # ---------- CONFIGURAÇÕES OPERACIONAIS DE TENSÃO -----------
         "tension": {
             "delay_medidor_ms": 500  # Tempo de estabilização após atingir Z de medição
+        },
+        "integration": {
+            "enabled": True,
+            "endpoint_url": "http://147.1.0.100:3075/sfcs-print/stencil/stencil_tensiometro",
+            "timeout_sec": 10.0,
+            "line_name": "IMC4-LM03",
+            "user_id": 1,
+            "stencil_status_id": None
         }
     }
 
