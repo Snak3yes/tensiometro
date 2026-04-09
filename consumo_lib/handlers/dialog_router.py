@@ -318,6 +318,10 @@ class DialogRouter:
         # Cria mensagem
         message = f"Usuário: {user.username}\n"
         message += f"Role: {role_name}\n\n"
+        if hasattr(self.main_window.auth_service, "get_current_mode"):
+            current_mode = self.main_window.auth_service.get_current_mode()
+            if current_mode == "eng_admin":
+                message += "Modo: Eng/Admin\n\n"
         message += "Permissões:\n"
         for perm in permissions:
             message += f"  • {perm}\n"

@@ -61,21 +61,18 @@ class AuthenticationManager:
             dialog = LoginDialog(self.auth_service, parent=self.main_window)
 
             if dialog.exec() == dialog.DialogCode.Accepted:
-                username = self.auth_service.get_current_user().username
-                role = self.auth_service.get_current_user().role.name
+                user = self.auth_service.get_current_user()
+                username = user.username if user else "N/A"
+                role = user.role.value if user else "desconhecido"
                 logger.info(f"Login bem-sucedido: {username} ({role})")
-                self.main_window.statusBar().showMessage(
-                    f"Bem-vindo, {username} ({role})", 3000
-                )
+                if hasattr(self.main_window, "_sync_authenticated_user_state"):
+                    self.main_window._sync_authenticated_user_state()
                 return True
             else:
                 logger.info("Login cancelado pelo usuário")
                 return False
         except Exception as e:
             logger.error(f"Erro ao exibir diálogo de login: {e}")
-            self.main_window.statusBar().showMessage(
-                f"Erro ao fazer login: {e}", 3000
-            )
             return False
 
     def perform_auto_login(self, default_role: str) -> bool:
@@ -148,6 +145,9 @@ class AuthenticationManager:
             self._apply_button_permissions(user_role)
             self._apply_tab_permissions(user_role)
 
+            if hasattr(self.main_window, "_sync_authenticated_user_state"):
+                self.main_window._sync_authenticated_user_state()
+
             logger.info(f"Permissões aplicadas para role: {user_role.name}")
         except Exception as e:
             logger.error(f"Erro ao aplicar permissões: {e}")
@@ -160,10 +160,17 @@ class AuthenticationManager:
             user_role: Role do usuário
         """
         try:
+            can_access_tools = self.role_manager.can_access_engineering_settings()
+
+            if hasattr(self.main_window, "menu_handler") and self.main_window.menu_handler:
+                self.main_window.menu_handler.set_menu_visible("tools", can_access_tools)
+                for key, action in self.main_window.menu_handler.get_all_actions().items():
+                    if key.startswith("tools."):
+                        action.setEnabled(can_access_tools)
+
             # Menu Engenharia - apenas engineering+ (usa permissão correta)
             if hasattr(self.main_window, 'engineering_menu'):
-                can_access = self.role_manager.can_access_engineering_settings()
-                self.main_window.engineering_menu.setEnabled(can_access)
+                self.main_window.engineering_menu.setEnabled(can_access_tools)
 
             # Menu Admin - apenas admin (verifica role diretamente)
             if hasattr(self.main_window, 'admin_menu'):

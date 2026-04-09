@@ -65,6 +65,10 @@ class MainUIBuilder:
 
         # Layout principal
         main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+        main_layout.setSpacing(10)
+
+        self._build_top_banner(main_layout)
 
         # Cria grupos principais (calibração oculto)
         self._build_calibration_group(main_layout)
@@ -80,6 +84,29 @@ class MainUIBuilder:
 
         # Barra de status
         self.window.statusBar().showMessage("Pronto para conectar")
+
+    def _build_top_banner(self, main_layout):
+        """Cria faixa superior para indicadores de modo."""
+        banner_layout = QHBoxLayout()
+        banner_layout.addStretch()
+
+        self.window.login_mode_badge = QLabel("Modo: Eng/Admin")
+        self.window.login_mode_badge.setVisible(False)
+        self.window.login_mode_badge.setStyleSheet(
+            """
+            QLabel {
+                border: 2px solid #F28C28;
+                border-radius: 8px;
+                background: #FFF4E8;
+                color: #A65100;
+                font-weight: 700;
+                padding: 8px 14px;
+            }
+            """
+        )
+        banner_layout.addWidget(self.window.login_mode_badge)
+
+        main_layout.addLayout(banner_layout)
 
     def _build_calibration_group(self, main_layout):
         """Cria grupo de calibração (oculto por padrão)."""

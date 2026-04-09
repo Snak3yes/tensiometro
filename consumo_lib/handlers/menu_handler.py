@@ -9,8 +9,8 @@ o método setup_menu() do main_window.py.
 """
 
 import logging
-from typing import Dict, Callable
-from PyQt6.QtWidgets import QMenuBar
+from typing import Dict
+from PyQt6.QtWidgets import QMenu, QMenuBar
 from PyQt6.QtGui import QAction
 from PyQt6.QtCore import QObject
 
@@ -48,6 +48,7 @@ class MenuHandler(QObject):
         super().__init__()
         self.main_window = main_window
         self.actions: Dict[str, QAction] = {}
+        self.menus: Dict[str, QMenu] = {}
 
         # Referências para actions dinâmicos (atualizados em runtime)
         self.current_recipe_action = None
@@ -66,8 +67,8 @@ class MenuHandler(QObject):
 
         logger.info("Criando menus da aplicação")
 
-        # Menu Arquivo (simplificado)
-        self._create_file_menu(menubar)
+        # Menu Login
+        self._create_login_menu(menubar)
 
         # Menu Cadastros (NOVO - Receitas + Stencils como submenus)
         self._create_cadastros_menu(menubar)
@@ -85,21 +86,30 @@ class MenuHandler(QObject):
 
     # ==================== CRIAÇÃO DE MENUS ====================
 
-    def _create_file_menu(self, menubar: QMenuBar):
-        """Cria o menu Arquivo (simplificado)."""
-        menu = menubar.addMenu('&Arquivo')
+    def _create_login_menu(self, menubar: QMenuBar):
+        """Cria o menu Login."""
+        menu = menubar.addMenu("&Login")
+        self._register_menu("login", menu)
+
+        change_user_action = QAction("Trocar Usuário", self.main_window)
+        change_user_action.triggered.connect(self.main_window.change_user)
+        menu.addAction(change_user_action)
+        self._register_action("login.change_user", change_user_action)
+
+        menu.addSeparator()
 
         # Sair
-        exit_action = QAction('Sair', self.main_window)
-        exit_action.setShortcut('Ctrl+Q')
+        exit_action = QAction("Sair", self.main_window)
+        exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.main_window.close)
         menu.addAction(exit_action)
 
-        self._register_action('file.exit', exit_action)
+        self._register_action("login.exit", exit_action)
 
     def _create_cadastros_menu(self, menubar: QMenuBar):
         """Cria o menu Cadastros com Stencils."""
-        menu = menubar.addMenu('&Cadastros')
+        menu = menubar.addMenu("&Cadastros")
+        self._register_menu("cadastros", menu)
 
         # ========== Stencils ==========
         # Gerenciar Stencils
@@ -119,7 +129,8 @@ class MenuHandler(QObject):
 
     def _create_reports_menu(self, menubar: QMenuBar):
         """Cria o menu Relatórios."""
-        menu = menubar.addMenu('&Relatórios')
+        menu = menubar.addMenu("&Relatórios")
+        self._register_menu("reports", menu)
 
         # Relatório de Tensão
         tension_action = QAction('Relatório de Tensão...', self.main_window)
@@ -154,7 +165,9 @@ class MenuHandler(QObject):
 
     def _create_tools_menu(self, menubar: QMenuBar):
         """Cria o menu Ferramentas (inclui Nova Medição de Tensão)."""
-        menu = menubar.addMenu('&Ferramentas')
+        menu = menubar.addMenu("&Ferramentas")
+        self._register_menu("tools", menu)
+        menu.menuAction().setVisible(False)
 
         # Rastreabilidade (NOVO - 2026-03-29 - substitui aba)
         tracking_action = QAction('Rastreabilidade...', self.main_window)
@@ -241,7 +254,8 @@ class MenuHandler(QObject):
 
     def _create_system_menu(self, menubar: QMenuBar):
         """Cria o menu Sistema (inclui Sobre)."""
-        menu = menubar.addMenu('&Sistema')
+        menu = menubar.addMenu("&Sistema")
+        self._register_menu("system", menu)
 
         # Configurações de Autenticação (NOVO - 2026-01-15)
         auth_settings_action = QAction('Configurações de Autenticação...', self.main_window)
@@ -295,6 +309,17 @@ class MenuHandler(QObject):
         self.actions[key] = action
         logger.debug(f"Action registrada: {key}")
 
+    def _register_menu(self, key: str, menu: QMenu):
+        """
+        Registra um menu no dicionario interno.
+
+        Args:
+            key: Chave unica do menu
+            menu: Instancia do menu
+        """
+        self.menus[key] = menu
+        logger.debug(f"Menu registrado: {key}")
+
     def get_action(self, key: str) -> QAction:
         """
         Retorna uma action registrada.
@@ -306,6 +331,18 @@ class MenuHandler(QObject):
             QAction ou None se não existir
         """
         return self.actions.get(key)
+
+    def get_menu(self, key: str) -> QMenu | None:
+        """
+        Retorna um menu registrado.
+
+        Args:
+            key: Chave do menu
+
+        Returns:
+            QMenu ou None se nao existir
+        """
+        return self.menus.get(key)
 
     def update_current_recipe_text(self, text: str):
         """
@@ -358,6 +395,20 @@ class MenuHandler(QObject):
         if action and action.isCheckable():
             action.setChecked(checked)
             logger.debug(f"Action {key} checked = {checked}")
+
+    def set_menu_visible(self, key: str, visible: bool):
+        """
+        Mostra ou oculta um menu.
+
+        Args:
+            key: Chave do menu
+            visible: True para exibir, False para ocultar
+        """
+        menu = self.get_menu(key)
+        if menu:
+            menu.menuAction().setVisible(visible)
+            menu.setEnabled(visible)
+            logger.debug(f"Menu {key} {'visivel' if visible else 'oculto'}")
 
     # ==================== HANDLERS PARA CONTROLLERS ====================
 

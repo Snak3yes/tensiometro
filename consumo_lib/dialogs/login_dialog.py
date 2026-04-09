@@ -1,15 +1,21 @@
 """
-Dialog de Login do Sistema
-
-Implementa interface de autenticação com validação de campos.
+Dialogo de login do sistema.
 """
 
 import logging
-from PyQt6.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QMessageBox
-)
+
 from PyQt6.QtCore import Qt, pyqtSignal
+from PyQt6.QtGui import QGuiApplication
+from PyQt6.QtWidgets import (
+    QCheckBox,
+    QDialog,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QVBoxLayout,
+    QWidget,
+)
 
 from aoi_lib.auth.auth_service import AuthService
 from consumo_lib.ui import COLORS, TYPO
@@ -20,164 +26,182 @@ logger = logging.getLogger(__name__)
 
 class LoginDialog(QDialog):
     """
-    Dialog de login do sistema Tensiômetro
+    Dialogo de login baseado em DRT.
 
-    Sinais:
-        login_successful: Emitido quando login é bem-sucedido
+    Modos:
+    - Operador: valida o DRT no sistema interno da Digiboard
+    - Eng/Admin: usa senha mestre e registra o DRT localmente
     """
 
     login_successful = pyqtSignal()
 
     def __init__(self, auth_service: AuthService, parent=None):
-        """
-        Inicializa dialog de login
-
-        Args:
-            auth_service: Instância do serviço de autenticação
-            parent: Widget pai
-        """
         super().__init__(parent)
         self.auth_service = auth_service
         self.setup_ui()
 
     def setup_ui(self):
-        """Configura interface do dialog"""
-        self.setWindowTitle("TENSIO METRO - Login")
+        """Configura a interface do dialogo."""
+        self.setWindowTitle("Tensiometro - Login")
         self.setModal(True)
-        self.setFixedSize(450, 480)  # Aumentado de 350 para 480 para não cortar conteúdo
+        self.setFixedSize(460, 360)
+        self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
+
+        screen = QGuiApplication.primaryScreen()
+        if screen:
+            available = screen.availableGeometry()
+            self.move(
+                available.center().x() - self.width() // 2,
+                available.center().y() - self.height() // 2,
+            )
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(20)
-        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(16)
+        layout.setContentsMargins(32, 28, 32, 28)
 
-        # Logo/Título
-        title_label = QLabel("TENSIO METRO")
+        title_label = QLabel("TENSIOMETRO")
         title_label.setFont(TYPO.get_font(24, bold=True))
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(title_label)
 
-        subtitle_label = QLabel("Sistema de Tensão e Rastreabilidade")
+        subtitle_label = QLabel("Identificacao de usuario")
         subtitle_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        subtitle_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         layout.addWidget(subtitle_label)
 
-        layout.addSpacing(20)
+        layout.addSpacing(4)
 
-        # Campo de usuário
-        self.username_input = QLineEdit()
-        self.username_input.setPlaceholderText("Usuário")
-        self.username_input.setMinimumHeight(40)
-        layout.addWidget(QLabel("Usuário:"))
-        layout.addWidget(self.username_input)
+        layout.addWidget(QLabel("DRT:"))
+        self.drt_input = QLineEdit()
+        self.drt_input.setPlaceholderText("Informe o DRT")
+        self.drt_input.setMinimumHeight(40)
+        layout.addWidget(self.drt_input)
 
-        # Campo de senha
+        mode_box = QWidget()
+        mode_layout = QVBoxLayout(mode_box)
+        mode_layout.setContentsMargins(14, 12, 14, 12)
+        mode_layout.setSpacing(8)
+        mode_box.setStyleSheet(
+            """
+            QWidget {
+                border: 1px solid #D9DEE7;
+                border-radius: 8px;
+                background: #F8FAFC;
+            }
+            """
+        )
+
+        self.eng_admin_checkbox = QCheckBox("Engenharia/ADMIN")
+        self.eng_admin_checkbox.toggled.connect(self._on_mode_toggled)
+        mode_layout.addWidget(self.eng_admin_checkbox)
+
+        helper_label = QLabel(
+            "Desmarcado: valida o DRT no sistema interno.\n"
+            "Marcado: libera o campo de senha para o modo Eng/Admin."
+        )
+        helper_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 11px;")
+        mode_layout.addWidget(helper_label)
+        layout.addWidget(mode_box)
+
+        layout.addWidget(QLabel("Senha:"))
         self.password_input = QLineEdit()
-        self.password_input.setPlaceholderText("Senha")
+        self.password_input.setPlaceholderText("Senha habilitada apenas no modo Eng/Admin")
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.password_input.setMinimumHeight(40)
-        layout.addWidget(QLabel("Senha:"))
         layout.addWidget(self.password_input)
 
-        layout.addSpacing(10)
+        self.mode_feedback_label = QLabel("Modo operador: apenas DRT.")
+        self.mode_feedback_label.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
+        layout.addWidget(self.mode_feedback_label)
 
-        # Botões
         buttons_layout = QHBoxLayout()
 
-        # Botão primário (Entrar) - dialog-primary (48×120px)
         self.login_button = StandardButton(
             "Entrar",
             variant="primary-green",
-            semantic_size="dialog-primary"
+            semantic_size="dialog-primary",
         )
         self.login_button.clicked.connect(self.on_login_clicked)
         buttons_layout.addWidget(self.login_button)
 
-        # Botão secundário (Cancelar) - dialog-secondary (40×100px)
         self.cancel_button = StandardButton(
             "Cancelar",
             variant="secondary",
-            semantic_size="dialog-secondary"
+            semantic_size="dialog-secondary",
         )
         self.cancel_button.clicked.connect(self.reject)
         buttons_layout.addWidget(self.cancel_button)
 
+        layout.addSpacing(4)
         layout.addLayout(buttons_layout)
 
-        # Versão e informação
-        version_label = QLabel("Versão 0.4.1")
-        version_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        version_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: {TYPO.LABEL_SMALL}px;")
-        layout.addWidget(version_label)
-
-        info_label = QLabel(
-            "Usuários padrão:\n"
-            "operator / operator123\n"
-            "eng / eng123\n"
-            "admin / admin123"
-        )
-        info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        info_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 10px;")
-        layout.addWidget(info_label)
-
-        # Conexões
+        self.drt_input.returnPressed.connect(self.on_login_clicked)
         self.password_input.returnPressed.connect(self.on_login_clicked)
 
-        # Focus inicial
-        self.username_input.setFocus()
+        self._on_mode_toggled(False)
+        self.drt_input.setFocus()
+
+    def _on_mode_toggled(self, checked: bool):
+        """Atualiza a tela conforme o modo selecionado."""
+        self.password_input.setEnabled(checked)
+        if checked:
+            self.password_input.setPlaceholderText("Informe a senha de Eng/Admin")
+            self.mode_feedback_label.setText("Modo Eng/Admin: DRT local + senha mestre.")
+        else:
+            self.password_input.clear()
+            self.password_input.setPlaceholderText("Senha habilitada apenas no modo Eng/Admin")
+            self.mode_feedback_label.setText("Modo operador: apenas DRT.")
 
     def on_login_clicked(self):
-        """
-        Processa clique no botão Entrar
-
-        Valida campos e tenta autenticar usuário.
-        """
-        username = self.username_input.text().strip()
+        """Processa o login conforme o modo selecionado."""
+        drt = self.drt_input.text().strip()
+        eng_admin_mode = self.eng_admin_checkbox.isChecked()
         password = self.password_input.text()
 
-        # Validação de campos vazios
-        if not username:
-            QMessageBox.warning(
-                self,
-                "Campo Vazio",
-                "Por favor, informe o nome de usuário.",
-                QMessageBox.StandardButton.Ok
-            )
-            self.username_input.setFocus()
+        if not drt:
+            QMessageBox.warning(self, "Campo vazio", "Informe o DRT.")
+            self.drt_input.setFocus()
             return
 
-        if not password:
-            QMessageBox.warning(
-                self,
-                "Campo Vazio",
-                "Por favor, informe a senha.",
-                QMessageBox.StandardButton.Ok
-            )
+        if eng_admin_mode and not password:
+            QMessageBox.warning(self, "Campo vazio", "Informe a senha de Eng/Admin.")
             self.password_input.setFocus()
             return
 
-        # Tenta autenticar
-        if self.auth_service.authenticate(username, password):
-            # Login bem-sucedido
-            logger.info(f"Login bem-sucedido: {username}")
+        self.setCursor(Qt.CursorShape.WaitCursor)
+        self.login_button.setEnabled(False)
+        self.cancel_button.setEnabled(False)
+        try:
+            if eng_admin_mode:
+                success = self.auth_service.authenticate_eng_admin(drt, password)
+            else:
+                success = self.auth_service.authenticate_operator(drt)
+        finally:
+            self.unsetCursor()
+            self.login_button.setEnabled(True)
+            self.cancel_button.setEnabled(True)
+
+        if success:
+            logger.info(
+                "Login realizado com sucesso: DRT=%s modo=%s",
+                drt,
+                self.auth_service.get_current_mode(),
+            )
             self.login_successful.emit()
             self.accept()
-        else:
-            # Login falhou
-            logger.warning(f"Tentativa de login falhou: {username}")
-            QMessageBox.critical(
-                self,
-                "Erro de Autenticação",
-                "Usuário ou senha incorretos.\n\n"
-                "Verifique suas credenciais e tente novamente.",
-                QMessageBox.StandardButton.Ok
-            )
+            return
+
+        error_message = self.auth_service.get_last_error() or "Falha ao autenticar."
+        logger.warning("Falha no login: DRT=%s erro=%s", drt, error_message)
+        QMessageBox.critical(self, "Erro de autenticacao", error_message)
+
+        if eng_admin_mode:
             self.password_input.clear()
             self.password_input.setFocus()
+        else:
+            self.drt_input.selectAll()
+            self.drt_input.setFocus()
 
     def show_error(self, message: str):
-        """
-        Exibe mensagem de erro genérica
-
-        Args:
-            message: Mensagem de erro
-        """
+        """Exibe erro generico."""
         QMessageBox.critical(self, "Erro", message)

@@ -133,21 +133,11 @@ class AOIControllerApp(QMainWindow):
         self.role_manager = RoleManager()
         logger.info(f"RoleManager criado: role={self.role_manager.get_current_role()}")
 
-        # NOVO - FASE 1: Autenticação de usuário (com auto-login)
+        # NOVO - FASE 1: Autenticação de usuário
         self.auth_service = AuthService()
-
-        # Verifica se deve fazer auto-login
-        require_login = self.config_manager.get_require_login_on_startup()
-
-        if require_login:
-            # Login obrigatório - mostra dialog
-            if not self.show_login_dialog():
-                logger.info("Login cancelado pelo usuário, fechando aplicação")
-                sys.exit(0)
-        else:
-            # Auto-login habilitado
-            default_role = self.config_manager.get_default_role()
-            self._perform_auto_login(default_role)
+        if not self.show_login_dialog():
+            logger.info("Login cancelado pelo usuário, fechando aplicação")
+            sys.exit(0)
 
         # ─────────────────────────────────────────────────────────────────────
         # NOVO: Inicializa componentes modulares ANTES do SetupCoordinator
@@ -175,7 +165,7 @@ class AOIControllerApp(QMainWindow):
         self._setup_modular_components(setup_coordinator)
 
         # Aplica permissões baseadas no role do usuário
-        QTimer.singleShot(500, self._apply_role_permissions)
+        self._apply_role_permissions()
 
         # Conecta cleanup ao evento de fechamento
         QApplication.instance().aboutToQuit.connect(self._cleanup_resources)
@@ -341,7 +331,7 @@ class AOIControllerApp(QMainWindow):
             if result == QDialog.DialogCode.Accepted:
                 user = self.auth_service.get_current_user()
                 logger.info(f"Usuário logado: {user}")
-                QTimer.singleShot(100, self._apply_role_permissions)
+                self._sync_authenticated_user_state()
                 return True
             else:
                 return False
@@ -410,57 +400,73 @@ class AOIControllerApp(QMainWindow):
         else:
             # Fallback para implementação legada
             self._app_state.apply_role_permissions()
+            self._sync_authenticated_user_state()
+
+    def _sync_authenticated_user_state(self):
+        """Atualiza UI e estado local com base no usuário autenticado."""
+        user = self.auth_service.get_current_user()
+        current_mode = self.auth_service.get_current_mode()
+
+        if hasattr(self, "role_manager"):
+            if user is not None:
+                self.role_manager.set_role(user.role.value)
+                self.role_manager.set_operator_id(user.username)
+            else:
+                self.role_manager.set_role("operator")
+                self.role_manager.set_operator_id("")
+
+        can_access_tools = bool(
+            hasattr(self, "role_manager")
+            and self.role_manager is not None
+            and self.role_manager.can_access_engineering_settings()
+        )
+
+        if hasattr(self, "menu_handler") and self.menu_handler is not None:
+            self.menu_handler.set_menu_visible("tools", can_access_tools)
+            for key, action in self.menu_handler.get_all_actions().items():
+                if key.startswith("tools."):
+                    action.setEnabled(can_access_tools)
+
+        if hasattr(self, "login_mode_badge") and self.login_mode_badge is not None:
+            self.login_mode_badge.setVisible(current_mode == "eng_admin")
+            self.login_mode_badge.setText("Modo: Eng/Admin")
+
+        if user is None:
+            return
+
+        mode_suffix = " | Modo: Eng/Admin" if current_mode == "eng_admin" else ""
+        self.statusBar().showMessage(
+            f"DRT: {user.username} | Usuário: {user.full_name}{mode_suffix}"
+        )
+
+    def change_user(self):
+        """Permite trocar o usuário autenticado sem fechar o aplicativo."""
+        previous_user = self.auth_service.get_current_user()
+        previous_mode = self.auth_service.get_current_mode()
+
+        if self.show_login_dialog():
+            self._apply_role_permissions()
+            return
+
+        if previous_user is not None:
+            self.statusBar().showMessage(
+                f"Troca de usuário cancelada. Mantido DRT: {previous_user.username}"
+                + (" | Modo: Eng/Admin" if previous_mode == "eng_admin" else "")
+            )
 
     def show_auth_settings(self):
         """
         Exibe diálogo de configurações de autenticação.
 
-        Permite usuários engineering+ configurar:
-        - Exigência de login ao iniciar
-        - Papel padrão para auto-login
+        O fluxo atual usa login obrigatório por DRT ou modo Eng/Admin.
         """
-        from consumo_lib.dialogs.auth_settings_dialog import AuthenticationSettingsDialog
-
-        # Verifica se usuário está autenticado
-        if not self.auth_service.is_authenticated():
-            QMessageBox.warning(
-                self,
-                "Usuário Não Autenticado",
-                "Você precisa estar autenticado para acessar configurações de autenticação.",
-                QMessageBox.StandardButton.Ok
-            )
-            return
-
-        # Verifica permissões
-        current_role = self.role_manager.get_current_role()
-        if not current_role:
-            QMessageBox.warning(
-                self,
-                "Permissão Negada",
-                "Não foi possível identificar seu papel (role) no sistema.",
-                QMessageBox.StandardButton.Ok
-            )
-            return
-
-        # Cria gerenciador de configuração de autenticação
-        from consumo_lib.managers.auth_config_manager import AuthConfigManager
-        auth_config_mgr = AuthConfigManager(
-            config_manager=self.config_manager,
-            role_manager=self.role_manager,
-            auth_service=self.auth_service
+        QMessageBox.information(
+            self,
+            "Autenticação",
+            "O aplicativo está configurado para sempre iniciar com login por DRT.\n\n"
+            "Para acesso avançado, use o modo Eng/Admin na tela de login.",
+            QMessageBox.StandardButton.Ok,
         )
-
-        # Cria e executa diálogo
-        dialog = AuthenticationSettingsDialog(
-            auth_config_manager=auth_config_mgr,
-            current_role=current_role,
-            parent=self
-        )
-
-        # Conecta sinal de mudança para atualizar menu se necessário
-        dialog.config_changed.connect(self._on_auth_config_changed)
-
-        dialog.exec()
 
     def show_theme_settings(self):
         """
