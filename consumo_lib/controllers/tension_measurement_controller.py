@@ -868,23 +868,25 @@ class TensionMeasurementController(QObject):
 
     def _resolve_external_user_id(self) -> Any:
         """Resolve o identificador do usuÃ¡rio para o payload externo."""
+        auth_service = getattr(self.parent_window, "auth_service", None)
+        if auth_service is not None:
+            if hasattr(auth_service, "get_external_user_id"):
+                external_user_id = auth_service.get_external_user_id()
+                if external_user_id not in (None, ""):
+                    return external_user_id
+
+            if hasattr(auth_service, "get_current_user"):
+                current_user = auth_service.get_current_user()
+                if current_user is not None:
+                    username = getattr(current_user, "username", None)
+                    if username not in (None, ""):
+                        return username
+
         configured_user_id = self.config.get("integration", "user_id", default=None)
         if configured_user_id not in (None, ""):
             return configured_user_id
 
-        auth_service = getattr(self.parent_window, "auth_service", None)
-        if auth_service is None or not hasattr(auth_service, "get_current_user"):
-            return None
-
-        current_user = auth_service.get_current_user()
-        if current_user is None:
-            return None
-
-        username = getattr(current_user, "username", None)
-        if username not in (None, ""):
-            return username
-
-        return getattr(current_user, "full_name", None)
+        return None
 
     def _resolve_external_line_name(self) -> str:
         """Resolve o nome da linha de produÃ§Ã£o para o payload externo."""

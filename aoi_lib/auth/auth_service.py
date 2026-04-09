@@ -229,6 +229,15 @@ class AuthService:
         """Retorna metadados do usuario autenticado."""
         return dict(self.current_user_metadata)
 
+    def get_external_user_id(self) -> Any:
+        """Retorna o idusuario obtido da validacao do DRT, quando existir."""
+        metadata = self.current_user_metadata or {}
+        if isinstance(metadata, dict):
+            external_user_id = metadata.get("idusuario")
+            if external_user_id not in (None, "", 0):
+                return external_user_id
+        return None
+
     def _lookup_user_by_drt(self, drt: str) -> DigiboardLookupResult:
         """Consulta o endpoint interno para validar o DRT informado."""
         if not drt:
