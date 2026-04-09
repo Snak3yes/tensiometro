@@ -148,6 +148,7 @@ class MeasurementSession:
         end_time: Session end timestamp (None until complete)
         user_feed: Optional feed rate for CNC movements (mm/min)
         stabilization_time_ms: Stabilization delay after Z movement (ms)
+        initial_movement_delay_sec: Delay before the first automatic move starts
     """
     parameters: GridParameters
     measurements: List[TensionMeasurement] = field(default_factory=list)
@@ -155,6 +156,7 @@ class MeasurementSession:
     end_time: Optional[datetime] = None
     user_feed: Optional[float] = None  # None preserves the current PLC speed
     stabilization_time_ms: int = 500  # milliseconds
+    initial_movement_delay_sec: float = 0.0
 
     @property
     def is_complete(self) -> bool:
@@ -225,7 +227,8 @@ class MeasurementSession:
                 "z_height": self.parameters.z_height,
                 "z_move": self.parameters.z_move,
                 "feed_rate": self.user_feed,
-                "stabilization_time_ms": self.stabilization_time_ms
+                "stabilization_time_ms": self.stabilization_time_ms,
+                "initial_movement_delay_sec": self.initial_movement_delay_sec,
             },
             "statistics": {
                 "total_points": self.parameters.total_points,

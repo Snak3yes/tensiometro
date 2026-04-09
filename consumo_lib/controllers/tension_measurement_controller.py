@@ -37,6 +37,7 @@ from consumo_lib.utils.error_handler import show_motion_interlock_dialog
 from consumo_lib.utils.tension_measurement_data import load_tension_measurement_data
 
 logger = logging.getLogger("consumo_lib")
+AUTOMATIC_MEASUREMENT_START_DELAY_SEC = 10.0
 
 
 class TensionMeasurementController(QObject):
@@ -218,6 +219,7 @@ class TensionMeasurementController(QObject):
             z_move=params["z_move"],
             user_feed=params["feed_rate"],
             stabilization_time_ms=params["stabilization_time_ms"],
+            initial_movement_delay_sec=AUTOMATIC_MEASUREMENT_START_DELAY_SEC,
         )
 
         if not prepared["success"]:
@@ -820,21 +822,31 @@ class TensionMeasurementController(QObject):
 
     def _show_stencil_approved_feedback(self, parent, stencil_code: str, record: TensionRecord) -> None:
         """Mostra confirmacao explicita de aprovacao do stencil."""
-        attempt = self._last_external_send_attempt or {}
-        details = [
-            "Stencil Aprovado",
-            "",
-            f"Stencil: {stencil_code}",
-            f"Media: {record.average_tension:.2f} N/cm2",
-            f"Pontos OK: {record.ok_count}/{len(record.measurements)}",
-            self._build_external_send_status_text(),
-        ]
-        if attempt.get("payload_path"):
-            details.append(f"Payload: {attempt.get('payload_path')}")
-        if attempt.get("send_log_path"):
-            details.append(f"Log envio: {attempt.get('send_log_path')}")
-
-        QMessageBox.information(parent, "Stencil Aprovado", "\n".join(details))
+        message_box = QMessageBox(parent)
+        message_box.setWindowTitle("Stencil Aprovado")
+        message_box.setIcon(QMessageBox.Icon.NoIcon)
+        message_box.setText("APROVADO")
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        message_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #F2F4F7;
+            }
+            QLabel {
+                background-color: #2E7D32;
+                color: #FFFFFF;
+                font-size: 24px;
+                font-weight: bold;
+                padding: 18px 36px;
+                border-radius: 8px;
+                min-width: 240px;
+                qproperty-alignment: AlignCenter;
+            }
+            QPushButton {
+                min-width: 90px;
+                padding: 6px 14px;
+            }
+        """)
+        message_box.exec()
 
     def _show_stencil_rejected_feedback(self, parent, stencil_code: str, record: TensionRecord) -> None:
         """Mostra confirmacao explicita de reprovacao do stencil."""
@@ -961,8 +973,12 @@ class TensionMeasurementController(QObject):
         send_status = self._build_external_send_status_text()
         approved = self._is_stencil_approved(record)
         rejected = self._is_stencil_rejected(record)
+        if approved:
+            self._show_stencil_approved_feedback(self.parent_window, stencil_code, record)
+            return
+
         details = [
-            "Stencil Aprovado." if approved else "Stencil Reprovado." if rejected else "Resultado da medicao salvo no historico.",
+            "Stencil Reprovado." if rejected else "Resultado da medicao salvo no historico.",
             "",
             f"Stencil: {stencil_code}",
             f"Resultado: {record.result}",
@@ -975,8 +991,8 @@ class TensionMeasurementController(QObject):
             details.append(f"Payload: {attempt.get('payload_path')}")
         if attempt.get("send_log_path"):
             details.append(f"Log envio: {attempt.get('send_log_path')}")
-        title = "Stencil Aprovado" if approved else "Stencil Reprovado" if rejected else "Medicao Salva"
-        message_box = QMessageBox.information if approved else QMessageBox.warning if rejected else QMessageBox.information
+        title = "Stencil Reprovado" if rejected else "Medicao Salva"
+        message_box = QMessageBox.warning if rejected else QMessageBox.information
         message_box(
             self.parent_window,
             title,

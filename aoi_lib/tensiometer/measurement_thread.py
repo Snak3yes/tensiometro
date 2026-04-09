@@ -39,6 +39,7 @@ class TensionMeasurementThread(QThread):
         z_move: float = 5.0,
         user_feed: Optional[float] = None,
         stabilization_time_ms: int = 500,
+        initial_movement_delay_sec: float = 0.0,
     ):
         super().__init__()
         self.cnc = cnc
@@ -48,11 +49,13 @@ class TensionMeasurementThread(QThread):
         self.z_move = z_move
         self.user_feed = user_feed
         self.stabilization_time_ms = stabilization_time_ms
+        self.initial_movement_delay_sec = max(0.0, float(initial_movement_delay_sec or 0.0))
         self.session = MeasurementSession(
             parameters=None,
             measurements=[],
             user_feed=user_feed,
             stabilization_time_ms=stabilization_time_ms,
+            initial_movement_delay_sec=self.initial_movement_delay_sec,
         )
         self._stop_requested = False
 
@@ -65,6 +68,8 @@ class TensionMeasurementThread(QThread):
             logger.info(f"Iniciando medicao de {len(self.points)} pontos")
             self._setup_absolute_mode()
             self._enable_tension_sensor()
+            if not self._wait_before_initial_movement():
+                return
             self._move_abs(z=self.z_move, feed=self.user_feed)
 
             total_points = len(self.points)
@@ -191,6 +196,31 @@ class TensionMeasurementThread(QThread):
                 detailed_error
                 or f"Movimento nao concluiu dentro do timeout para {target_desc or 'destino desconhecido'}"
             )
+
+    def _wait_before_initial_movement(self) -> bool:
+        """Aplica um atraso antes do primeiro movimento automatico."""
+        if self.initial_movement_delay_sec <= 0:
+            return True
+
+        total_points = len(self.points)
+        self.progress_updated.emit(
+            0,
+            total_points,
+            f"Aguardando {self.initial_movement_delay_sec:.0f}s antes de iniciar a movimentacao",
+        )
+        logger.info(
+            "Aguardando %.1fs antes de iniciar o primeiro movimento da medicao",
+            self.initial_movement_delay_sec,
+        )
+
+        deadline = time.perf_counter() + self.initial_movement_delay_sec
+        while time.perf_counter() < deadline:
+            if self._stop_requested:
+                logger.info("Medicao interrompida pelo usuario durante atraso inicial")
+                self.error_occurred.emit("Medicao interrompida pelo usuario")
+                return False
+            time.sleep(0.1)
+        return True
 
     def _calculate_timeout_seconds(
         self,

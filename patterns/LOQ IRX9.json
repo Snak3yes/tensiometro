@@ -1,0 +1,22 @@
+{
+  "name": "LOQ IRX9",
+  "description": "",
+  "parameters": {
+    "start": {
+      "x": 6569.0,
+      "y": 0.0
+    },
+    "end": {
+      "x": 28933.0,
+      "y": 20799.0
+    },
+    "grid_size": 4,
+    "measurement_height": 21000.0,
+    "movement_height": 15000.0,
+    "stabilization_time": 500,
+    "movement_feed": 1000.0
+  },
+  "created_at": "2026-04-01T14:48:13.572747",
+  "modified_at": "2026-04-01T14:48:13.572767",
+  "created_by": ""
+}

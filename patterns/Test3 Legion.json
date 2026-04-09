@@ -1,0 +1,22 @@
+{
+  "name": "Test3 Legion",
+  "description": "",
+  "parameters": {
+    "start": {
+      "x": 4829.0,
+      "y": 2040.0
+    },
+    "end": {
+      "x": 31000.0,
+      "y": 16578.0
+    },
+    "grid_size": 4,
+    "measurement_height": 17703.0,
+    "movement_height": 14000.0,
+    "stabilization_time": 500,
+    "movement_feed": 1000.0
+  },
+  "created_at": "2026-03-31T11:03:28.846378",
+  "modified_at": "2026-03-31T11:03:28.846395",
+  "created_by": ""
+}

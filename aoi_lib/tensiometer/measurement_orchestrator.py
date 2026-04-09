@@ -90,7 +90,8 @@ class MeasurementOrchestrator:
         z_height: float,
         z_move: float = 5.0,
         user_feed: Optional[float] = None,
-        stabilization_time_ms: int = 500
+        stabilization_time_ms: int = 500,
+        initial_movement_delay_sec: float = 0.0,
     ) -> Dict[str, Any]:
         """
         Prepare measurement parameters and validate.
@@ -103,6 +104,7 @@ class MeasurementOrchestrator:
             z_move: Safe Z height for movement
             user_feed: Feed rate in mm/min. None preserves the current PLC speed.
             stabilization_time_ms: Stabilization delay in ms
+            initial_movement_delay_sec: Delay before starting the first move
 
         Returns:
             Dictionary with preparation results:
@@ -143,7 +145,8 @@ class MeasurementOrchestrator:
                 parameters=parameters,
                 measurements=[],
                 user_feed=user_feed,
-                stabilization_time_ms=stabilization_time_ms
+                stabilization_time_ms=stabilization_time_ms,
+                initial_movement_delay_sec=initial_movement_delay_sec,
             )
 
             # Store session
@@ -163,7 +166,8 @@ class MeasurementOrchestrator:
                     "z_height": z_height,
                     "z_move": z_move,
                     "feed": user_feed,
-                    "stabilization_ms": stabilization_time_ms
+                    "stabilization_ms": stabilization_time_ms,
+                    "initial_movement_delay_sec": initial_movement_delay_sec,
                 }
             }
 
@@ -233,7 +237,8 @@ class MeasurementOrchestrator:
                 z_height=self.session.parameters.z_height,
                 z_move=self.session.parameters.z_move,
                 user_feed=self.session.user_feed,
-                stabilization_time_ms=self.session.stabilization_time_ms
+                stabilization_time_ms=self.session.stabilization_time_ms,
+                initial_movement_delay_sec=self.session.initial_movement_delay_sec,
             )
 
             # Connect signals
