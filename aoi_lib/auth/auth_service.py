@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any, Optional
 from urllib import error, parse, request
 
+from aoi_lib.runtime_paths import get_runtime_path
 from .user import User, UserRole
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ class AuthService:
         Args:
             users_file: Caminho para o arquivo JSON de usuarios legados
         """
-        self.users_file = users_file or Path("data/users/users.json")
+        self.users_file = users_file or get_runtime_path("data", "users", "users.json")
         self.current_user: Optional[User] = None
         self.current_mode: str = "logged_out"
         self.current_user_metadata: dict[str, Any] = {}

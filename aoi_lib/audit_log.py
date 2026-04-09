@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 from dataclasses import dataclass, asdict
+from .runtime_paths import get_runtime_path
 
 logger = logging.getLogger(__name__)
 
@@ -74,8 +75,7 @@ class AuditLog:
             log_dir: Diretório para armazenar logs (default: data/audit/)
         """
         if log_dir is None:
-            # Default: data/audit/
-            log_dir = Path(__file__).parent.parent / "data" / "audit"
+            log_dir = get_runtime_path("data", "audit")
 
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)

@@ -10,11 +10,12 @@ import numpy as np
 from pathlib import Path
 from datetime import datetime
 from typing import List, Tuple, Dict, Optional
+from aoi_lib.runtime_paths import get_runtime_path
 
 logger = logging.getLogger(__name__)
 
 # Pasta para salvar rotinas de medição
-ROUTINES_FOLDER = Path(__file__).parent.parent.parent / "tension_routines"
+ROUTINES_FOLDER = get_runtime_path("tension_routines")
 ROUTINES_FOLDER.mkdir(exist_ok=True)
 
 

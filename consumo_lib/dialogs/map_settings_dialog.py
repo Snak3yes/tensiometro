@@ -38,7 +38,9 @@ from aoi_lib import CNCAOIController
 logger = logging.getLogger(__name__)
 
 # Default folder for map programs
-MAP_PROGRAMS_FOLDER = Path(__file__).parent.parent.parent / "map_programs"
+from aoi_lib.runtime_paths import get_runtime_path
+
+MAP_PROGRAMS_FOLDER = get_runtime_path("map_programs")
 
 
 class MapSettingsDialog(QDialog):

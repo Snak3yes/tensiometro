@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Optional, List, Dict, Any
 
 from .stencil_tracker import Stencil, TensionRecord, TrendAnalysis
+from .runtime_paths import get_runtime_path
 from .database.connection import SqliteConnection
 from .database.repositories import SqliteStencilRepository, SqliteTensionRepository
 from .database.migrators import JsonToSqliteMigrator
@@ -27,8 +28,7 @@ class StencilDatabase:
 
     def __init__(self, db_path: str = None):
         if db_path is None:
-            base = Path(__file__).parent.parent
-            self.db_path = base / "data" / "stencils.db"
+            self.db_path = get_runtime_path("data", "stencils.db")
         else:
             self.db_path = Path(db_path)
 
@@ -184,8 +184,7 @@ class StencilDatabase:
 
 def migrate_json_to_sqlite(json_dir: str = None, db_path: str = None) -> Dict[str, int]:
     if json_dir is None:
-        base = Path(__file__).parent.parent
-        json_dir = base / "data" / "stencils"
+        json_dir = get_runtime_path("data", "stencils")
 
     db = StencilDatabase(db_path)
     return db.migrate_from_json(str(json_dir))

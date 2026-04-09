@@ -10,6 +10,7 @@ from datetime import datetime
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Optional, List, Dict, Any
+from .runtime_paths import get_runtime_path
 
 log = logging.getLogger(__name__)
 
@@ -152,8 +153,7 @@ class StencilTracker:
 
     def __init__(self, data_dir: str = None):
         if data_dir is None:
-            base = Path(__file__).parent.parent
-            self.data_dir = base / "data" / "stencils"
+            self.data_dir = get_runtime_path("data", "stencils")
         else:
             self.data_dir = Path(data_dir)
 

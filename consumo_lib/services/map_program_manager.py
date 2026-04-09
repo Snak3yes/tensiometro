@@ -13,10 +13,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
+from aoi_lib.runtime_paths import get_runtime_path
+
 logger = logging.getLogger(__name__)
 
 # Default folder for map programs
-MAP_PROGRAMS_FOLDER = Path(__file__).parent.parent.parent / "map_programs"
+MAP_PROGRAMS_FOLDER = get_runtime_path("map_programs")
 
 
 @dataclass

@@ -26,6 +26,7 @@ import warnings
 import sys
 import logging
 from pathlib import Path
+from aoi_lib.runtime_paths import get_runtime_path
 
 # Show deprecation warning on module import
 warnings.warn(
@@ -188,7 +189,7 @@ except ImportError:
 # ============================================================================
 
 # Legacy constant for routines folder location
-ROUTINES_FOLDER = Path(__file__).parent.parent / "tension_routines"
+ROUTINES_FOLDER = get_runtime_path("tension_routines")
 # Ensure directory exists
 ROUTINES_FOLDER.mkdir(parents=True, exist_ok=True)
 

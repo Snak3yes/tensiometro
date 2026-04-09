@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator, Optional
+from aoi_lib.runtime_paths import get_runtime_path
 
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -115,9 +116,7 @@ class SqliteConnection(DatabaseConnection):
             db_path: Path to .db file. If None, uses default: ./data/stencils.db
         """
         if db_path is None:
-            # Default path: ./data/stencils.db
-            base = Path(__file__).parent.parent.parent
-            db_path = base / "data" / "stencils.db"
+            db_path = get_runtime_path("data", "stencils.db")
 
         super().__init__(db_path)
 

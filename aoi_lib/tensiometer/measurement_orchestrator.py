@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 from typing import Callable, Optional, Dict, Any
 from datetime import datetime
+from aoi_lib.runtime_paths import get_runtime_path
 
 from .models import (
     GridPoint,
@@ -67,7 +68,7 @@ class MeasurementOrchestrator:
 
         # Default save directory
         if save_directory is None:
-            save_directory = Path(__file__).parent.parent.parent / "tension_routines"
+            save_directory = get_runtime_path("tension_routines")
 
         self.save_directory = Path(save_directory)
         self.save_directory.mkdir(parents=True, exist_ok=True)

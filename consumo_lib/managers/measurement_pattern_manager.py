@@ -19,6 +19,7 @@ from typing import List, Optional, Dict
 
 from PyQt6.QtCore import QObject, pyqtSignal
 
+from aoi_lib.runtime_paths import get_runtime_path
 from aoi_lib.tensiometer.models import MeasurementPattern, GridParameters
 
 logger = logging.getLogger(__name__)
@@ -61,8 +62,7 @@ class MeasurementPatternManager(QObject):
 
         if patterns_dir is None:
             # Usa diretório relativo ao projeto
-            base = Path(__file__).parent.parent.parent
-            patterns_dir = str(base / "patterns")
+            patterns_dir = str(get_runtime_path("patterns"))
 
         self.patterns_dir = Path(patterns_dir)
         self._ensure_directory()

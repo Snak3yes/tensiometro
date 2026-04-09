@@ -2,6 +2,7 @@
 
 import os, json, logging, copy
 from pathlib import Path
+from aoi_lib.runtime_paths import get_runtime_path
 
 # ------------------------------------------------------------
 #  AOIConfigManager  –  gerencia arquivo JSON de preferências
@@ -291,7 +292,7 @@ class AOIConfigManager:
         self.log = logging.getLogger("AOIConfig")
         # Se o caminho não for informado, grava ao lado do executável
         # Nota: Após reorganização (2026-01-07), config está em config/aoi_config.json
-        default_path = Path(__file__).resolve().parent.parent / "config" / "aoi_config.json"
+        default_path = get_runtime_path("config", "aoi_config.json")
         self.cfg_path = Path(cfg_path) if cfg_path else default_path
         self.data = {}
         self.load()

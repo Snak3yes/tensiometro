@@ -10,11 +10,13 @@ from pathlib import Path
 from typing import Any, Optional
 from urllib import error, request
 
+from aoi_lib.runtime_paths import get_runtime_path
+
 
 class TensionExternalPayloadService:
     """Create JSON payloads compatible with the external tension API."""
 
-    BASE_OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent / "tension_routines"
+    BASE_OUTPUT_DIR = get_runtime_path("tension_routines")
     DEFAULT_PAYLOAD_DIR = BASE_OUTPUT_DIR / "integration_payloads"
     DEFAULT_SEND_LOG_DIR = BASE_OUTPUT_DIR / "integration_send_logs"
 

@@ -24,6 +24,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 from aoi_lib.config_manager import AOIConfigManager
+from aoi_lib.runtime_paths import get_runtime_path
 
 logger = logging.getLogger(__name__)
 
@@ -410,8 +411,7 @@ class RecipeManager:
         """
         if recipes_dir is None:
             # Usa diretório relativo ao projeto
-            base = Path(__file__).parent.parent
-            recipes_dir = base / DEFAULT_RECIPES_DIR
+            recipes_dir = get_runtime_path(DEFAULT_RECIPES_DIR)
         
         self.recipes_dir = Path(recipes_dir)
         self._ensure_directory()
