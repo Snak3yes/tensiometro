@@ -23,6 +23,49 @@ from aoi_lib.runtime_paths import get_runtime_path
 from .user import User, UserRole
 
 logger = logging.getLogger(__name__)
+_current_auth_context: dict[str, Any] = {
+    "mode": "logged_out",
+    "drt": None,
+    "username": None,
+    "full_name": None,
+    "role": None,
+    "external_user_id": None,
+}
+
+
+def _build_auth_context(
+    user: Optional[User],
+    mode: str,
+    metadata: Optional[dict[str, Any]],
+) -> dict[str, Any]:
+    """Monta um snapshot serializavel do usuario autenticado atual."""
+    metadata = metadata or {}
+    username = user.username if user else None
+    full_name = user.full_name if user else None
+    role = user.role.value if user else None
+
+    drt = (
+        metadata.get("nmcracha")
+        or metadata.get("drt")
+        or username
+    )
+
+    if metadata.get("nmnomeusuario"):
+        full_name = str(metadata.get("nmnomeusuario")).strip() or full_name
+
+    return {
+        "mode": mode or "logged_out",
+        "drt": str(drt).strip() if drt not in (None, "") else None,
+        "username": username,
+        "full_name": full_name,
+        "role": role,
+        "external_user_id": metadata.get("idusuario"),
+    }
+
+
+def get_current_auth_context() -> dict[str, Any]:
+    """Retorna um snapshot do contexto atual de autenticacao."""
+    return dict(_current_auth_context)
 
 
 @dataclass
@@ -57,6 +100,7 @@ class AuthService:
         self.last_error_message: str = ""
         self._users: dict[str, dict[str, Any]] = {}
         self._load_users()
+        self._sync_auth_context()
 
     def _load_users(self):
         """Carrega usuarios legados do arquivo JSON."""
@@ -161,6 +205,7 @@ class AuthService:
         )
         self.current_mode = "legacy"
         self.current_user_metadata = {}
+        self._sync_auth_context()
         logger.info("Usuario autenticado via fluxo legado: %s", self.current_user)
         return True
 
@@ -185,6 +230,7 @@ class AuthService:
         )
         self.current_mode = "operator"
         self.current_user_metadata = payload
+        self._sync_auth_context()
         logger.info("Usuario autenticado via Digiboard: DRT=%s nome=%s", drt, full_name)
         return True
 
@@ -211,6 +257,7 @@ class AuthService:
         )
         self.current_mode = "eng_admin"
         self.current_user_metadata = {"drt": drt, "mode": "eng_admin"}
+        self._sync_auth_context()
         logger.info("Usuario autenticado em modo Eng/Admin: DRT=%s", drt)
         return True
 
@@ -310,6 +357,7 @@ class AuthService:
         self.current_mode = "logged_out"
         self.current_user_metadata = {}
         self.last_error_message = ""
+        self._sync_auth_context()
 
     def is_authenticated(self) -> bool:
         """Verifica se ha usuario autenticado."""
@@ -322,3 +370,12 @@ class AuthService:
     def get_user_list(self) -> list[str]:
         """Retorna a lista de usuarios legados conhecidos."""
         return list(self._users.keys())
+
+    def _sync_auth_context(self):
+        """Atualiza o snapshot global do usuario autenticado."""
+        global _current_auth_context
+        _current_auth_context = _build_auth_context(
+            self.current_user,
+            self.current_mode,
+            self.current_user_metadata,
+        )

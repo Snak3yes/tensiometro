@@ -25,6 +25,7 @@ from pathlib import Path
 
 from aoi_lib.config_manager import AOIConfigManager
 from aoi_lib.runtime_paths import get_runtime_path
+from aoi_lib.system_change_log import get_system_change_log
 
 logger = logging.getLogger(__name__)
 
@@ -546,14 +547,34 @@ class RecipeManager:
         if filename is None:
             # Sanitiza o recipe_id para nome de arquivo
             filename = "".join(c for c in recipe.recipe_id if c.isalnum() or c in ('_', '-'))
-        
+
         file_path = self.recipes_dir / f"{filename}.json"
-        
+        old_data = None
+        action = "created"
+        description = f"Receita criada: {recipe.name}"
+        if file_path.exists():
+            action = "updated"
+            description = f"Receita atualizada: {recipe.name}"
+            try:
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    old_data = json.load(f)
+            except Exception as e:
+                logger.warning(f"Erro ao ler receita anterior para auditoria: {e}")
+
         try:
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(recipe.to_json(indent=2))
-            
+
             self._recipes_cache[recipe.recipe_id] = recipe
+            get_system_change_log().log_event(
+                category="recipe",
+                action=action,
+                target_type="recipe",
+                target_id=recipe.recipe_id,
+                description=description,
+                changes={"old": old_data, "new": recipe.to_dict()},
+                metadata={"file_path": str(file_path), "recipe_name": recipe.name},
+            )
             logger.info(f"Receita salva: {file_path}")
             return True
         
@@ -611,10 +632,25 @@ class RecipeManager:
         
         if file_path.exists():
             try:
+                old_data = None
+                try:
+                    with open(file_path, 'r', encoding='utf-8') as f:
+                        old_data = json.load(f)
+                except Exception as e:
+                    logger.warning(f"Erro ao ler receita para auditoria antes da exclusao: {e}")
                 os.remove(file_path)
                 self._recipes_cache.pop(recipe_id, None)
                 if self.current_recipe and self.current_recipe.recipe_id == recipe_id:
                     self.current_recipe = None
+                get_system_change_log().log_event(
+                    category="recipe",
+                    action="deleted",
+                    target_type="recipe",
+                    target_id=recipe_id,
+                    description=f"Receita removida: {recipe_id}",
+                    changes={"old": old_data, "new": None},
+                    metadata={"file_path": str(file_path)},
+                )
                 logger.info(f"Receita removida: {recipe_id}")
                 return True
             except Exception as e:

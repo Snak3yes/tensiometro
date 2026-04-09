@@ -21,7 +21,9 @@ Signals Emitidos:
 - measurement_saved(stencil_code, record) - Medição salva no histórico
 """
 
+import json
 import logging
+from pathlib import Path
 from typing import Optional, Any
 
 from PyQt6.QtCore import QObject, pyqtSignal, Qt
@@ -308,6 +310,7 @@ class TensionMeasurementController(QObject):
     def save_measurement_results(self, current_stencil: Stencil, current_recipe, results: dict):
         """Salva no histórico um resultado vindo do fluxo operacional."""
         session_data = results.get("session") if isinstance(results, dict) else None
+        saved_path = results.get("saved_to") if isinstance(results, dict) else None
         if not isinstance(session_data, dict):
             raise ValueError("Resultado da medição não contém sessão válida para persistência.")
         return self._save_measurement_data(
@@ -315,6 +318,7 @@ class TensionMeasurementController(QObject):
             current_recipe,
             session_data,
             emit_signals=False,
+            saved_path=saved_path,
         )
 
     def open_simple_dialog(self):
@@ -635,17 +639,26 @@ class TensionMeasurementController(QObject):
         current_stencil: Stencil,
         current_recipe,
         tension_data: dict,
-        emit_signals: bool = True
+        emit_signals: bool = True,
+        saved_path: Optional[str] = None,
     ):
         """Cria e persiste o registro de tensão no histórico do stencil."""
+        recipe_acceptance = self._get_global_acceptance_criteria()
+        operator = self._resolve_report_operator()
         classified_data = self._classify_measurements_by_recipe(tension_data, current_recipe)
+        classified_data = self._enrich_report_tension_data(
+            classified_data,
+            current_stencil=current_stencil,
+            current_recipe=current_recipe,
+            operator=operator,
+            acceptance=recipe_acceptance,
+        )
+
         record = TensionRecord.from_tension_data(
             classified_data,
             recipe_name=current_recipe.name if current_recipe else None,
-            operator=None,
+            operator=operator,
         )
-
-        recipe_acceptance = self._get_global_acceptance_criteria()
 
         added = self.stencil_manager_wrapper.add_tension_record(
             current_stencil.code,
@@ -663,6 +676,8 @@ class TensionMeasurementController(QObject):
         )
         if payload_path is not None:
             logger.info("Payload externo de tensão salvo em %s", payload_path)
+
+        self._persist_measurement_session_report_data(saved_path, classified_data)
 
         logger.info(f"Medição de tensão salva para stencil {current_stencil.code}")
         self.measurement_completed.emit(record)
@@ -903,6 +918,80 @@ class TensionMeasurementController(QObject):
     def _resolve_external_stencil_status(self) -> Any:
         """Resolve o identificador externo do status do stencil."""
         return self.config.get("integration", "stencil_status_id", default=None)
+
+    def _resolve_report_operator(self) -> Optional[str]:
+        """Resolve o operador autenticado para persistência e relatórios."""
+        auth_service = getattr(self.parent_window, "auth_service", None)
+        if auth_service is None:
+            return None
+
+        if hasattr(auth_service, "get_current_user_metadata"):
+            metadata = auth_service.get_current_user_metadata() or {}
+            full_name = str(metadata.get("nmnomeusuario") or "").strip()
+            badge = str(metadata.get("nmcracha") or metadata.get("drt") or "").strip()
+            if full_name and badge:
+                return f"{full_name} ({badge})"
+            if full_name:
+                return full_name
+            if badge:
+                return f"DRT {badge}"
+
+        if hasattr(auth_service, "get_current_user"):
+            current_user = auth_service.get_current_user()
+            if current_user is not None:
+                full_name = str(getattr(current_user, "full_name", "") or "").strip()
+                username = str(getattr(current_user, "username", "") or "").strip()
+                if full_name:
+                    return full_name
+                if username:
+                    return username
+
+        return None
+
+    def _enrich_report_tension_data(
+        self,
+        tension_data: dict,
+        *,
+        current_stencil: Stencil,
+        current_recipe,
+        operator: Optional[str],
+        acceptance: Optional[TensionAcceptance],
+    ) -> dict:
+        """Adiciona metadados úteis para geração de relatórios."""
+        enriched_data = dict(tension_data)
+        enriched_data["stencil_code"] = current_stencil.code
+        enriched_data["stencil_description"] = getattr(current_stencil, "description", "")
+        enriched_data["recipe_name"] = getattr(current_recipe, "name", None) if current_recipe else None
+        enriched_data["operator"] = operator
+
+        if acceptance is not None:
+            enriched_data["acceptance_criteria"] = {
+                "ok_min": float(acceptance.min_tension),
+                "ok_max": float(acceptance.max_tension),
+                "warning_low": float(acceptance.warning_low),
+                "warning_high": float(acceptance.warning_high),
+            }
+
+        return enriched_data
+
+    def _persist_measurement_session_report_data(self, saved_path: Optional[str], tension_data: dict) -> None:
+        """Regrava o JSON bruto da sessão com dados normalizados para relatórios."""
+        if not saved_path:
+            return
+
+        try:
+            target = Path(saved_path)
+            if not target.exists():
+                return
+
+            with open(target, "w", encoding="utf-8") as stream:
+                json.dump(tension_data, stream, indent=4, ensure_ascii=False)
+        except Exception:
+            logger.warning(
+                "Falha ao atualizar o JSON da última medição para relatórios: %s",
+                saved_path,
+                exc_info=True,
+            )
 
     def _classify_measurements_by_recipe(self, tension_data: dict, current_recipe) -> dict:
         """Anota o status OK/WARNING/NOK usando os critérios globais de tensão."""

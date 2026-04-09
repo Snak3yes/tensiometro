@@ -11,6 +11,7 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 from .runtime_paths import get_runtime_path
+from .system_change_log import get_system_change_log
 
 log = logging.getLogger(__name__)
 
@@ -211,6 +212,18 @@ class StencilTracker:
         self._get_stencil_dir(code).mkdir(parents=True, exist_ok=True)
         self._get_history_dir(code).mkdir(parents=True, exist_ok=True)
         self._save_stencil(stencil)
+        get_system_change_log().log_event(
+            category="stencil",
+            action="created",
+            target_type="stencil",
+            target_id=code,
+            description=f"Stencil criado: {code}",
+            metadata={
+                "description": description,
+                "recipe_name": recipe_name,
+                "stencil_dir": str(self._get_stencil_dir(code)),
+            },
+        )
 
         log.info(f"Stencil criado: {code}")
         return stencil
@@ -219,7 +232,23 @@ class StencilTracker:
         if not self.stencil_exists(stencil.code):
             raise ValueError(f"Stencil '{stencil.code}' não existe")
 
+        previous_data = None
+        info_path = self._get_stencil_info_path(stencil.code)
+        if info_path.exists():
+            try:
+                with open(info_path, "r", encoding="utf-8") as file:
+                    previous_data = json.load(file)
+            except Exception as exc:
+                log.warning(f"Erro ao ler estado anterior do stencil {stencil.code}: {exc}")
         self._save_stencil(stencil)
+        get_system_change_log().log_event(
+            category="stencil",
+            action="updated",
+            target_type="stencil",
+            target_id=stencil.code,
+            description=f"Stencil atualizado: {stencil.code}",
+            changes={"old": previous_data, "new": stencil.to_dict()},
+        )
         log.info(f"Stencil atualizado: {stencil.code}")
 
     def _save_stencil(self, stencil: Stencil) -> None:
@@ -252,6 +281,14 @@ class StencilTracker:
         try:
             shutil.rmtree(stencil_dir)
             self._cache.pop(code, None)
+            get_system_change_log().log_event(
+                category="stencil",
+                action="deleted",
+                target_type="stencil",
+                target_id=code,
+                description=f"Stencil removido: {code}",
+                metadata={"stencil_dir": str(stencil_dir)},
+            )
             log.info(f"Stencil removido: {code}")
             return True
         except Exception as exc:

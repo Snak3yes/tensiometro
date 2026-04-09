@@ -318,8 +318,28 @@ class MainUIBuilder:
         if hasattr(tab, "measure_stencil_requested"):
             tab.measure_stencil_requested.connect(self.window.open_tracking_dialog)
 
+        if hasattr(tab, "program_selected"):
+            tab.program_selected.connect(self._sync_selected_stencil_from_tension_tab)
+
         # NOTA: stencil_identification é definido em open_tracking_dialog()
         # TensionMeasurementTab usa stencil_manager internamente, não precisa de conexões
 
         logger.debug("TensionMeasurementTab criada")
         return tab
+
+    def _sync_selected_stencil_from_tension_tab(self, stencil_data):
+        """Sincroniza a seleção da tela inicial com o estado global da aplicação."""
+        if not stencil_data:
+            return
+
+        stencil_code = stencil_data.get("code")
+        if not stencil_code:
+            return
+
+        wrapper = getattr(self.window, "stencil_manager_wrapper", None)
+        if wrapper is None:
+            return
+
+        stencil = wrapper.get_stencil(stencil_code)
+        if stencil is not None:
+            wrapper.select_stencil(stencil)

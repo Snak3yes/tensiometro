@@ -47,7 +47,108 @@ import matplotlib.patches as patches
 from matplotlib.colors import LinearSegmentedColormap
 import numpy as np
 
+from aoi_lib.runtime_paths import get_runtime_path
+
 log = logging.getLogger(__name__)
+
+
+def _resolve_report_output_dir(output_dir: str, section: str) -> Path:
+    """Resolve o diretório final do relatório, aceitando paths relativos."""
+    base_dir = Path(output_dir)
+    if not base_dir.is_absolute():
+        base_dir = get_runtime_path(output_dir)
+
+    final_dir = base_dir / section
+    final_dir.mkdir(parents=True, exist_ok=True)
+    return final_dir
+
+
+def _coerce_float(value: Any, default: Any = 0.0) -> Any:
+    """Converte valores numéricos ou textuais para float."""
+    if value in (None, ""):
+        return default
+    if isinstance(value, (int, float)):
+        return float(value)
+
+    text = str(value).strip().replace(",", ".")
+    try:
+        return float(text)
+    except (TypeError, ValueError):
+        return default
+
+
+def _coerce_int(value: Any, default: int = 0) -> int:
+    """Converte valores numéricos para inteiro com fallback seguro."""
+    numeric = _coerce_float(value, default=None)
+    if numeric is None:
+        return default
+    return int(numeric)
+
+
+def _coerce_text(value: Any, default: str = "-") -> str:
+    """Normaliza campos textuais para exibição."""
+    if value is None:
+        return default
+
+    text = str(value).strip()
+    return text or default
+
+
+def _normalize_status(status: Any, default: str = "OK") -> str:
+    """Normaliza rótulos de status usados nos relatórios."""
+    text = _coerce_text(status, default=default).upper()
+    if text == "WARN":
+        return "WARNING"
+    return text
+
+
+def _get_acceptance_criteria(tension_data: Dict[str, Any]) -> Dict[str, float]:
+    """Retorna critérios de aceitação completos com fallback padrão."""
+    raw = tension_data.get("acceptance_criteria", {}) or {}
+    criteria = {
+        "min_tension": _coerce_float(raw.get("min_tension", raw.get("ok_min")), 25.0),
+        "max_tension": _coerce_float(raw.get("max_tension", raw.get("ok_max")), 45.0),
+        "warning_low": _coerce_float(raw.get("warning_low", raw.get("min_tension")), 28.0),
+        "warning_high": _coerce_float(raw.get("warning_high"), 42.0),
+    }
+    return criteria
+
+
+def _classify_tension_value(value: float, criteria: Dict[str, float]) -> str:
+    """Classifica uma tensão de acordo com os limites informados."""
+    if value < criteria["min_tension"] or value > criteria["max_tension"]:
+        return "NOK"
+    if value <= criteria["warning_high"]:
+        return "WARNING"
+    return "OK"
+
+
+def _normalize_tension_data(tension_data: Dict[str, Any]) -> Dict[str, Any]:
+    """Normaliza payloads de tensão vindos do orquestrador ou do histórico."""
+    normalized = dict(tension_data)
+    criteria = _get_acceptance_criteria(tension_data)
+    normalized_measurements: List[Dict[str, Any]] = []
+
+    for measurement in tension_data.get("measurements", []) or []:
+        item = dict(measurement)
+        item["x"] = _coerce_float(item.get("x"), default=0.0)
+        item["y"] = _coerce_float(item.get("y"), default=0.0)
+        item["z"] = _coerce_float(item.get("z"), default=0.0)
+        numeric_tension = _coerce_float(
+            item.get("parsed_value", item.get("tension")),
+            default=0.0,
+        )
+        item["parsed_value"] = numeric_tension
+        item["tension"] = numeric_tension
+        item["status"] = _normalize_status(
+            item.get("status"),
+            default=_classify_tension_value(numeric_tension, criteria),
+        )
+        normalized_measurements.append(item)
+
+    normalized["measurements"] = normalized_measurements
+    normalized["acceptance_criteria"] = criteria
+    return normalized
 
 
 # ============================================================================
@@ -244,11 +345,11 @@ class TensionReportBuilder:
         Returns:
             Caminho do arquivo PDF gerado
         """
+        tension_data = _normalize_tension_data(tension_data)
+
         # Determinar caminho de saída
         if output_path is None:
-            output_dir = Path(self.config.output_dir) / "tension"
-            output_dir.mkdir(parents=True, exist_ok=True)
-            
+            output_dir = _resolve_report_output_dir(self.config.output_dir, "tension")
             timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             stencil_part = f"_{stencil_code}" if stencil_code else ""
             filename = f"{timestamp}{stencil_part}_tension_report.pdf"
@@ -424,10 +525,10 @@ class TensionReportBuilder:
         
         try:
             # Extrair dados
-            xs = [m.get('x', 0) for m in measurements]
-            ys = [m.get('y', 0) for m in measurements]
-            tensions = [m.get('tension', 0) for m in measurements]
-            statuses = [m.get('status', 'OK').upper() for m in measurements]
+            xs = [_coerce_float(m.get('x'), 0.0) for m in measurements]
+            ys = [_coerce_float(m.get('y'), 0.0) for m in measurements]
+            tensions = [_coerce_float(m.get('tension'), 0.0) for m in measurements]
+            statuses = [_normalize_status(m.get('status'), default='OK') for m in measurements]
             
             # Criar figura
             fig, ax = plt.subplots(figsize=(4, 3), dpi=100)
@@ -490,15 +591,16 @@ class TensionReportBuilder:
         # Obter critérios do tension_data ou usar padrões
         criteria = tension_data.get('acceptance_criteria', {})
         
-        ok_min = criteria.get('ok_min', 26.0)
-        ok_max = criteria.get('ok_max', 32.0)
-        warn_low = criteria.get('warning_low', 24.0)
-        warn_high = criteria.get('warning_high', 35.0)
+        min_tension = _coerce_float(criteria.get('min_tension', criteria.get('ok_min')), 25.0)
+        max_tension = _coerce_float(criteria.get('max_tension', criteria.get('ok_max')), 45.0)
+        warn_low = _coerce_float(criteria.get('warning_low', min_tension), min_tension)
+        warn_high = _coerce_float(criteria.get('warning_high'), 42.0)
+        ok_start = min(max_tension, warn_high + 0.1)
         
         criteria_text = f"""
-        <b>✅ OK:</b> {ok_min:.1f} - {ok_max:.1f} N/cm<br/>
-        <b>⚠️ WARNING:</b> {warn_low:.1f} - {ok_min:.1f} N/cm ou {ok_max:.1f} - {warn_high:.1f} N/cm<br/>
-        <b>❌ NOK:</b> &lt; {warn_low:.1f} N/cm ou &gt; {warn_high:.1f} N/cm
+        <b>❌ NOK:</b> &lt; {min_tension:.1f} N/cm ou &gt; {max_tension:.1f} N/cm<br/>
+        <b>⚠️ WARNING:</b> {warn_low:.1f} - {warn_high:.1f} N/cm<br/>
+        <b>✅ OK:</b> {ok_start:.1f} - {max_tension:.1f} N/cm
         """
         
         elements.append(Paragraph(criteria_text, self.styles['Normal']))
@@ -604,7 +706,8 @@ class StencilHistoryReportBuilder:
         self,
         stencil: Dict[str, Any],
         history: List[Dict[str, Any]],
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        report_title: Optional[str] = None,
     ) -> str:
         """
         Gera relatório de histórico do stencil.
@@ -619,9 +722,7 @@ class StencilHistoryReportBuilder:
         """
         # Determinar caminho de saída
         if output_path is None:
-            output_dir = Path(self.config.output_dir) / "stencil"
-            output_dir.mkdir(parents=True, exist_ok=True)
-            
+            output_dir = _resolve_report_output_dir(self.config.output_dir, "stencil")
             stencil_code = stencil.get('code', 'unknown')
             timestamp = datetime.now().strftime("%Y-%m-%d")
             filename = f"{stencil_code}_history_{timestamp}.pdf"
@@ -639,11 +740,12 @@ class StencilHistoryReportBuilder:
         story = []
         
         # Cabeçalho
-        story.extend(self._build_header(stencil))
+        story.extend(self._build_header(stencil, report_title=report_title))
+        story.extend(self._build_criteria_section(stencil))
         
         # Gráfico de tendência
         if self.config.include_charts and history:
-            story.extend(self._build_trend_section(history))
+            story.extend(self._build_trend_section(stencil, history))
         
         # Resumo estatístico
         story.extend(self._build_stats_section(history))
@@ -660,12 +762,12 @@ class StencilHistoryReportBuilder:
         
         return output_path
     
-    def _build_header(self, stencil: Dict) -> List:
+    def _build_header(self, stencil: Dict, report_title: Optional[str] = None) -> List:
         """Constrói cabeçalho com dados do stencil."""
         elements = []
         
         elements.append(Paragraph(self.config.company_name, self.styles['Title']))
-        elements.append(Paragraph("RELATÓRIO DE HISTÓRICO DO STENCIL", self.styles['Heading1']))
+        elements.append(Paragraph(report_title or "RELATÓRIO DE HISTÓRICO DO STENCIL", self.styles['Heading1']))
         elements.append(Spacer(1, 5*mm))
         
         # Dados do stencil
@@ -694,48 +796,137 @@ class StencilHistoryReportBuilder:
         elements.append(Spacer(1, 5*mm))
         
         return elements
+
+    def _build_criteria_section(self, stencil: Dict[str, Any]) -> List:
+        """Constrói seção de critérios para o relatório histórico."""
+        elements = []
+        criteria = stencil.get("acceptance_criteria", {}) or {}
+
+        if not criteria:
+            return elements
+
+        elements.append(Paragraph("CRITÉRIOS DE ACEITAÇÃO", self.styles['Heading2']))
+
+        min_tension = _coerce_float(criteria.get('min_tension', criteria.get('ok_min')), 25.0)
+        max_tension = _coerce_float(criteria.get('max_tension', criteria.get('ok_max')), 45.0)
+        warn_low = _coerce_float(criteria.get('warning_low', min_tension), min_tension)
+        warn_high = _coerce_float(criteria.get('warning_high'), 42.0)
+        ok_start = min(max_tension, warn_high + 0.1)
+
+        criteria_text = f"""
+        <b>❌ NOK:</b> &lt; {min_tension:.1f} N/cm ou &gt; {max_tension:.1f} N/cm<br/>
+        <b>⚠️ WARNING:</b> {warn_low:.1f} - {warn_high:.1f} N/cm<br/>
+        <b>✅ OK:</b> {ok_start:.1f} - {max_tension:.1f} N/cm
+        """
+        elements.append(Paragraph(criteria_text, self.styles['Normal']))
+        elements.append(Spacer(1, 5*mm))
+        return elements
     
-    def _build_trend_section(self, history: List[Dict]) -> List:
+    def _build_trend_section(self, stencil: Dict[str, Any], history: List[Dict]) -> List:
         """Constrói seção com gráfico de tendência."""
         elements = []
         
         elements.append(Paragraph("TENDÊNCIA DE TENSÃO", self.styles['Heading2']))
         
         try:
-            # Extrair dados para gráfico
-            dates = []
-            averages = []
-            
-            for record in history[-20:]:  # Últimas 20 medições
+            criteria = _get_acceptance_criteria(stencil or {})
+            min_tension = _coerce_float(criteria.get("min_tension"), 25.0)
+            max_tension = _coerce_float(criteria.get("max_tension"), 45.0)
+            warning_low = _coerce_float(criteria.get("warning_low", min_tension), min_tension)
+            warning_high = _coerce_float(criteria.get("warning_high"), 42.0)
+
+            plot_records = []
+            for record in history:
                 ts = record.get('timestamp', '')
-                avg = record.get('average_tension', 0)
-                if ts and avg:
-                    try:
-                        dt = datetime.fromisoformat(ts)
-                        dates.append(dt)
-                        averages.append(avg)
-                    except:
-                        pass
-            
-            if len(dates) >= 2:
-                # Criar gráfico
+                avg = _coerce_float(record.get('average_tension'), default=None)
+                if avg is None:
+                    continue
+                try:
+                    dt = datetime.fromisoformat(ts) if ts else None
+                except Exception:
+                    dt = None
+                plot_records.append((dt, avg))
+
+            if plot_records:
+                plot_records.sort(key=lambda item: item[0] or datetime.min)
+                averages = [item[1] for item in plot_records]
+                x_values = list(range(1, len(averages) + 1))
+
+                y_min_data = min(averages)
+                y_max_data = max(averages)
+                y_padding = max(1.0, (max_tension - min_tension) * 0.08)
+                y_lower = min(y_min_data, min_tension) - y_padding
+                y_upper = max(y_max_data, max_tension) + y_padding
+
                 fig, ax = plt.subplots(figsize=(7, 3), dpi=100)
-                
-                ax.plot(range(len(averages)), averages, 'b-o', linewidth=2, markersize=6)
-                ax.fill_between(range(len(averages)), averages, alpha=0.3)
-                
-                ax.set_xlabel('Medição', fontsize=9)
+
+                # Faixas de aceitação
+                ax.axhspan(y_lower, min_tension, facecolor='#E74C3C', alpha=0.12, zorder=0)
+                ax.axhspan(min_tension, warning_high, facecolor='#F1C40F', alpha=0.16, zorder=0)
+                ax.axhspan(warning_high, max_tension, facecolor='#2ECC71', alpha=0.12, zorder=0)
+                ax.axhspan(max_tension, y_upper, facecolor='#E74C3C', alpha=0.12, zorder=0)
+
+                ax.plot(
+                    x_values,
+                    averages,
+                    color='#1F4E79',
+                    marker='o',
+                    linewidth=2.2,
+                    markersize=6,
+                    zorder=3,
+                )
+                ax.fill_between(x_values, averages, y_lower, color='#5B8CC0', alpha=0.08, zorder=1)
+
+                # Linhas de critério
+                ax.axhline(min_tension, color='#C0392B', linestyle='--', linewidth=1, alpha=0.75)
+                ax.axhline(warning_high, color='#B7950B', linestyle='--', linewidth=1, alpha=0.75)
+                ax.axhline(max_tension, color='#C0392B', linestyle='--', linewidth=1, alpha=0.75)
+
+                ax.set_xlabel('Quantidade de vezes testadas', fontsize=9)
                 ax.set_ylabel('Tensão Média (N/cm)', fontsize=9)
-                ax.set_title('Evolução da Tensão Média', fontsize=10, fontweight='bold')
-                ax.grid(True, alpha=0.3)
-                
+                ax.set_title('Evolução da Tensão Média por Teste', fontsize=10, fontweight='bold')
+                if len(x_values) == 1:
+                    ax.set_xlim(0.5, 1.5)
+                else:
+                    ax.set_xlim(1, len(x_values))
+                ax.set_ylim(y_lower, y_upper)
+                ax.set_xticks(x_values)
+
+                y_ticks = sorted({
+                    round(y_lower, 1),
+                    round(min_tension, 1),
+                    round(warning_low, 1),
+                    round(warning_high, 1),
+                    round(max_tension, 1),
+                    round(y_upper, 1),
+                })
+                ax.set_yticks(y_ticks)
+                ax.grid(True, alpha=0.22, linestyle=':')
+
                 # Linha de tendência
                 if len(averages) >= 3:
-                    z = np.polyfit(range(len(averages)), averages, 1)
+                    z = np.polyfit(x_values, averages, 1)
                     p = np.poly1d(z)
-                    ax.plot(range(len(averages)), p(range(len(averages))), 
-                           'r--', alpha=0.7, label='Tendência')
-                    ax.legend(fontsize=8)
+                    ax.plot(
+                        x_values,
+                        p(x_values),
+                        linestyle='--',
+                        color='#7F8C8D',
+                        alpha=0.85,
+                        linewidth=1.5,
+                        label='Tendência',
+                        zorder=2,
+                    )
+
+                legend_handles = [
+                    patches.Patch(color='#E74C3C', alpha=0.18, label='NOK'),
+                    patches.Patch(color='#F1C40F', alpha=0.22, label='WARNING'),
+                    patches.Patch(color='#2ECC71', alpha=0.18, label='OK'),
+                ]
+                if len(averages) >= 3:
+                    ax.legend(handles=legend_handles, fontsize=8, loc='best')
+                else:
+                    ax.legend(handles=legend_handles, fontsize=8, loc='best')
                 
                 plt.tight_layout()
                 
@@ -767,12 +958,16 @@ class StencilHistoryReportBuilder:
             return elements
         
         # Calcular estatísticas
-        all_averages = [r.get('average_tension', 0) for r in history if r.get('average_tension')]
+        all_averages = [
+            value
+            for value in (_coerce_float(r.get('average_tension'), default=None) for r in history)
+            if value is not None
+        ]
         
         total_measurements = len(history)
-        total_ok = sum(r.get('ok_count', 0) for r in history)
-        total_warn = sum(r.get('warning_count', 0) for r in history)
-        total_nok = sum(r.get('nok_count', 0) for r in history)
+        total_ok = sum(_coerce_int(r.get('ok_count'), 0) for r in history)
+        total_warn = sum(_coerce_int(r.get('warning_count'), 0) for r in history)
+        total_nok = sum(_coerce_int(r.get('nok_count'), 0) for r in history)
         total_points = total_ok + total_warn + total_nok
         
         avg_of_avgs = sum(all_averages) / len(all_averages) if all_averages else 0
@@ -821,16 +1016,17 @@ class StencilHistoryReportBuilder:
             except:
                 ts_formatted = ts
             
-            result = record.get('result', 'OK').upper()
+            result = _normalize_status(record.get('result', 'OK'))
             result_symbol = {'OK': '✅', 'WARNING': '⚠️', 'NOK': '❌'}.get(result, '❓')
+            operator = _coerce_text(record.get('operator'), '-')[:15]
             
             table_data.append([
                 ts_formatted,
-                f"{record.get('average_tension', 0):.2f}",
-                f"{record.get('min_tension', 0):.2f}",
-                f"{record.get('max_tension', 0):.2f}",
+                f"{_coerce_float(record.get('average_tension'), 0.0):.2f}",
+                f"{_coerce_float(record.get('min_tension'), 0.0):.2f}",
+                f"{_coerce_float(record.get('max_tension'), 0.0):.2f}",
                 f"{result_symbol} {result}",
-                record.get('operator', '-')[:15]  # Truncar nome
+                operator
             ])
         
         # Criar tabela
@@ -920,7 +1116,8 @@ class ReportGenerator:
         self,
         stencil: Dict[str, Any],
         history: List[Dict[str, Any]],
-        output_path: Optional[str] = None
+        output_path: Optional[str] = None,
+        report_title: Optional[str] = None,
     ) -> str:
         """
         Gera relatório de histórico do stencil.
@@ -932,7 +1129,8 @@ class ReportGenerator:
         return builder.build(
             stencil=stencil,
             history=history,
-            output_path=output_path
+            output_path=output_path,
+            report_title=report_title,
         )
     
     def update_config(self, **kwargs):

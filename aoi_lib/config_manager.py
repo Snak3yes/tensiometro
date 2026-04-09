@@ -3,6 +3,7 @@
 import os, json, logging, copy
 from pathlib import Path
 from aoi_lib.runtime_paths import get_runtime_path
+from aoi_lib.system_change_log import get_system_change_log
 
 # ------------------------------------------------------------
 #  AOIConfigManager  –  gerencia arquivo JSON de preferências
@@ -314,11 +315,14 @@ class AOIConfigManager:
 
     def save(self):
         try:
+            self.cfg_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.cfg_path, "w", encoding="utf-8") as fp:
                 json.dump(self.data, fp, indent=2)
             self.log.debug("Config salva em %s", self.cfg_path)
+            return True
         except Exception as e:
             self.log.error("Erro salvando config: %s", e)
+            return False
 
     # ------------- API simples -------------
     def get(self, *path, default=None):
@@ -330,11 +334,21 @@ class AOIConfigManager:
         return ref
 
     def set(self, *path, value):
+        old_value = self.get(*path, default=None)
         ref = self.data
         for p in path[:-1]:
             ref = ref.setdefault(p, {})
         ref[path[-1]] = value
-        self.save()
+        saved = self.save()
+
+        if saved and old_value != value:
+            config_path = ".".join(str(part) for part in path)
+            get_system_change_log().log_config_change(
+                config_path=config_path,
+                old_value=old_value,
+                new_value=value,
+                metadata={"config_file": str(self.cfg_path)},
+            )
 
     # -------- aplica configurações ao controlador de eixos -------
     def apply_to_cnc(self, cnc):

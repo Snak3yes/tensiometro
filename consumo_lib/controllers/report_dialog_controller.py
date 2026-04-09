@@ -27,10 +27,6 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QObject, pyqtSignal, QDate
 
-from consumo_lib.utils.tension_measurement_data import (
-    find_latest_tension_measurement_file,
-    load_tension_measurement_data,
-)
 from consumo_lib.ui.widget_standards import StandardButton
 
 logger = logging.getLogger("consumo_lib")
@@ -74,31 +70,44 @@ class ReportDialogController(QObject):
     # =========================================================================
 
     def show_tension_report_dialog(self):
-        """Gera relatório de tensão da última medição."""
-        tension_file = find_latest_tension_measurement_file()
-
-        if tension_file is None:
-            QMessageBox.warning(
-                self.parent_window, "Sem Dados",
-                "Nenhuma medição de tensão disponível.\n\n"
-                "Execute uma medição de tensão primeiro."
-            )
-            return
-
+        """Gera relatório de tensão da medição mais recente do stencil selecionado."""
         try:
-            tension_data = load_tension_measurement_data()
+            current_stencil = self._get_current_stencil()
+            if current_stencil is None:
+                QMessageBox.warning(
+                    self.parent_window,
+                    "Stencil Não Selecionado",
+                    "Clique em um stencil disponível na tela inicial para gerar o relatório de tensão."
+                )
+                return
 
-            # Obter informações do stencil atual
-            # Nota: O parent_window deve fornecer current_stencil
-            stencil_code = None
-            if hasattr(self.parent_window, 'current_stencil') and self.parent_window.current_stencil:
-                stencil_code = self.parent_window.current_stencil.code
+            history = self.stencil_manager.get_tension_history(current_stencil.code) or []
+            if not history:
+                QMessageBox.warning(
+                    self.parent_window,
+                    "Sem Histórico",
+                    f"O stencil {current_stencil.code} não possui medições de tensão registradas."
+                )
+                return
 
-            # Gerar relatório via manager
+            latest_record = history[0]
+            tension_data = (
+                latest_record.to_dict()
+                if hasattr(latest_record, "to_dict")
+                else dict(latest_record)
+            )
+            operator = (
+                getattr(latest_record, "operator", None)
+                if hasattr(latest_record, "operator")
+                else tension_data.get("operator")
+            )
+
             output_path = self.report_manager.generate_tension_report(
                 tension_data=tension_data,
-                stencil_code=stencil_code,
-                operator=None  # TODO: Implementar campo de operador
+                stencil_code=current_stencil.code,
+                stencil_description=getattr(current_stencil, "description", ""),
+                recipe_name=getattr(current_stencil, "recipe_name", None),
+                operator=operator,
             )
 
             if output_path:
@@ -126,7 +135,8 @@ class ReportDialogController(QObject):
 
     def show_stencil_report_dialog(self):
         """Gera relatório de histórico do stencil selecionado."""
-        if not hasattr(self.parent_window, 'current_stencil') or not self.parent_window.current_stencil:
+        current_stencil = self._get_current_stencil()
+        if current_stencil is None:
             QMessageBox.warning(
                 self.parent_window, "Stencil Não Selecionado",
                 "Selecione um stencil primeiro usando a aba de Rastreabilidade."
@@ -134,7 +144,6 @@ class ReportDialogController(QObject):
             return
 
         # Obter histórico do stencil via manager
-        current_stencil = self.parent_window.current_stencil
         history = self.stencil_manager.get_tension_history(current_stencil.code)
 
         if not history:
@@ -191,6 +200,25 @@ class ReportDialogController(QObject):
                 self.parent_window, "Erro",
                 error_msg
             )
+
+    def _get_current_stencil(self):
+        """Resolve o stencil selecionado tanto no main_window quanto no manager."""
+        if hasattr(self.parent_window, "current_stencil") and self.parent_window.current_stencil:
+            return self.parent_window.current_stencil
+
+        if hasattr(self.stencil_manager, "get_current_stencil"):
+            current = self.stencil_manager.get_current_stencil()
+            if current is not None:
+                return current
+
+        tension_tab = getattr(self.parent_window, "tension_measurement_tab", None)
+        selected_stencil = getattr(tension_tab, "selected_stencil", None)
+        if selected_stencil and hasattr(self.stencil_manager, "get_stencil"):
+            stencil_code = selected_stencil.get("code")
+            if stencil_code:
+                return self.stencil_manager.get_stencil(stencil_code)
+
+        return None
 
     def show_period_query_dialog(self):
         """Abre diálogo para consultar medições por período."""

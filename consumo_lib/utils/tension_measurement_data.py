@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 from typing import Any, Optional
 
+from aoi_lib.runtime_paths import get_app_root
 
 LEGACY_MEASUREMENT_FILE = "stencil_tension_measurements.json"
 TENSION_ROUTINES_DIR = "tension_routines"
@@ -41,7 +42,7 @@ def _extract_session_from_dialog(tension_dialog: Optional[Any]) -> Optional[dict
 
 def find_latest_tension_measurement_file(base_path: Optional[Path] = None) -> Optional[Path]:
     """Locate the most recent persisted tension measurement file."""
-    root = Path(base_path) if base_path is not None else Path.cwd()
+    root = Path(base_path) if base_path is not None else get_app_root()
 
     legacy_file = root / LEGACY_MEASUREMENT_FILE
     if legacy_file.exists():
