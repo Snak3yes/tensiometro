@@ -9,6 +9,7 @@ from PyQt6.QtGui import QGuiApplication
 from PyQt6.QtWidgets import (
     QCheckBox,
     QDialog,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
@@ -44,7 +45,8 @@ class LoginDialog(QDialog):
         """Configura a interface do dialogo."""
         self.setWindowTitle("Tensiometro - Login")
         self.setModal(True)
-        self.setFixedSize(460, 360)
+        self.setMinimumSize(480, 420)
+        self.resize(500, 430)
         self.setWindowFlag(Qt.WindowType.WindowContextHelpButtonHint, False)
 
         screen = QGuiApplication.primaryScreen()
@@ -77,31 +79,53 @@ class LoginDialog(QDialog):
         self.drt_input.setMinimumHeight(40)
         layout.addWidget(self.drt_input)
 
-        mode_box = QWidget()
-        mode_layout = QVBoxLayout(mode_box)
-        mode_layout.setContentsMargins(14, 12, 14, 12)
-        mode_layout.setSpacing(8)
-        mode_box.setStyleSheet(
+        mode_title = QLabel("Modo:")
+        mode_title.setStyleSheet("font-weight: 700;")
+        layout.addWidget(mode_title)
+
+        mode_row_widget = QWidget()
+        mode_row_layout = QHBoxLayout(mode_row_widget)
+        mode_row_layout.setContentsMargins(0, 0, 0, 0)
+        mode_row_layout.setSpacing(8)
+
+        self.eng_admin_checkbox = QCheckBox("Engenharia/ADMIN")
+        self.eng_admin_checkbox.setStyleSheet(
             """
-            QWidget {
-                border: 1px solid #D9DEE7;
-                border-radius: 8px;
-                background: #F8FAFC;
+            QCheckBox {
+                border: none;
+                background: transparent;
+                spacing: 8px;
+                font-weight: 600;
+            }
+            QCheckBox::indicator {
+                width: 16px;
+                height: 16px;
+                border: 2px solid #F28C28;
+                border-radius: 3px;
+                background: #FFFFFF;
+            }
+            QCheckBox::indicator:checked {
+                background: #F28C28;
+                border-color: #F28C28;
+                image: none;
+            }
+            QCheckBox::indicator:unchecked:hover {
+                border-color: #D97706;
             }
             """
         )
-
-        self.eng_admin_checkbox = QCheckBox("Engenharia/ADMIN")
         self.eng_admin_checkbox.toggled.connect(self._on_mode_toggled)
-        mode_layout.addWidget(self.eng_admin_checkbox)
+        mode_row_layout.addWidget(self.eng_admin_checkbox)
+        mode_row_layout.addStretch()
+        layout.addWidget(mode_row_widget)
 
         helper_label = QLabel(
             "Desmarcado: valida o DRT no sistema interno.\n"
             "Marcado: libera o campo de senha para o modo Eng/Admin."
         )
+        helper_label.setWordWrap(True)
         helper_label.setStyleSheet(f"color: {COLORS.TEXT_HINT}; font-size: 11px;")
-        mode_layout.addWidget(helper_label)
-        layout.addWidget(mode_box)
+        layout.addWidget(helper_label)
 
         layout.addWidget(QLabel("Senha:"))
         self.password_input = QLineEdit()
