@@ -14,6 +14,11 @@ import sys
 import importlib
 from pathlib import Path
 
+from aoi_lib.app_icon import (
+    apply_application_icon,
+    configure_windows_app_user_model_id,
+)
+
 # Adiciona diretório raiz ao sys.path para garantir imports funcionem
 # Isso é necessário porque consumo_lib/ agora é um pacote
 root_dir = Path(__file__).resolve().parent
@@ -98,7 +103,11 @@ def main():
     # Importa QApplication DEPOIS do warmup
     from PyQt6.QtWidgets import QApplication
 
+    configure_windows_app_user_model_id()
     app = QApplication(sys.argv)
+    app.setApplicationName("Tenciometro")
+    app.setApplicationDisplayName("Tenciometro")
+    apply_application_icon(app)
 
     # Inicializa ThemeManager do Design System PRIMEIRO
     # Isso inicializa COLORS antes que qualquer widget seja importado

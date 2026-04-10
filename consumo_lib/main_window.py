@@ -34,6 +34,7 @@ from aoi_lib import (
     CNCAOIController, InspectionPosition,
     StencilTracker, Stencil, TensionRecord
 )
+from aoi_lib.app_icon import apply_window_icon
 from aoi_lib.plc_axis_controller import PLCAxisController
 from aoi_lib.config_manager import AOIConfigManager, SettingsDialog
 from aoi_lib.fov_calibration import FOVCalibration, CameraFOVConverter, ClickableVideoLabel
@@ -124,6 +125,7 @@ class AOIControllerApp(QMainWindow):
         """
         # Inicialização básica da janela
         super().__init__()
+        apply_window_icon(self)
 
         # NOVO - Carrega configuração primeiro (para auto-login)
         self.config_manager = AOIConfigManager()
