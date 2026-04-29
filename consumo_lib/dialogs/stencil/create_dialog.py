@@ -15,7 +15,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
 
 from aoi_lib.recipe_manager import RecipeManager
-from aoi_lib.stencil_tracker import StencilTracker, Stencil
+from aoi_lib.stencil_tracker import StencilTracker, Stencil, normalize_stencil_code
 from consumo_lib.dialogs.recipe.recipe_edit_dialog import RecipeEditorDialog
 from consumo_lib.ui import COLORS, TYPO, SPACE
 from consumo_lib.ui.widget_standards import StandardButton
@@ -41,7 +41,7 @@ class StencilCreateDialog(QDialog):
         self._setup_ui()
 
         if initial_code:
-            self.txt_code.setText(initial_code)
+            self.txt_code.setText(normalize_stencil_code(initial_code))
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -62,6 +62,7 @@ class StencilCreateDialog(QDialog):
         font = QFont("Consolas", TYPO.BODY_MEDIUM)
         self.txt_code.setFont(font)
         self.txt_code.setPlaceholderText("Código de barras (obrigatório)")
+        self.txt_code.textEdited.connect(self._normalize_code_input)
         form.addRow("Código*:", self.txt_code)
 
         # Descrição
@@ -104,7 +105,8 @@ class StencilCreateDialog(QDialog):
 
     def _create(self):
         """Cria o stencil."""
-        code = self.txt_code.text().strip()
+        code = normalize_stencil_code(self.txt_code.text())
+        self.txt_code.setText(code)
 
         if not code:
             QMessageBox.warning(
@@ -138,6 +140,18 @@ class StencilCreateDialog(QDialog):
 
     def get_created_stencil(self) -> Optional[Stencil]:
         return self.created_stencil
+
+    def _normalize_code_input(self, text: str):
+        """Mantem o codigo de stencil em maiusculas durante o cadastro."""
+        normalized = normalize_stencil_code(text)
+        if text == normalized:
+            return
+
+        cursor_position = self.txt_code.cursorPosition()
+        self.txt_code.blockSignals(True)
+        self.txt_code.setText(normalized)
+        self.txt_code.setCursorPosition(min(cursor_position, len(normalized)))
+        self.txt_code.blockSignals(False)
 
     def _notify_stencil_changed(self, stencil_code: str):
         """Notifica o wrapper principal para atualizar a UI em tempo real."""

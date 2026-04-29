@@ -865,21 +865,31 @@ class TensionMeasurementController(QObject):
 
     def _show_stencil_rejected_feedback(self, parent, stencil_code: str, record: TensionRecord) -> None:
         """Mostra confirmacao explicita de reprovacao do stencil."""
-        attempt = self._last_external_send_attempt or {}
-        details = [
-            "Stencil Reprovado",
-            "",
-            f"Stencil: {stencil_code}",
-            f"Media: {record.average_tension:.2f} N/cm2",
-            f"Pontos NOK: {record.nok_count}/{len(record.measurements)}",
-            self._build_external_send_status_text(),
-        ]
-        if attempt.get("payload_path"):
-            details.append(f"Payload: {attempt.get('payload_path')}")
-        if attempt.get("send_log_path"):
-            details.append(f"Log envio: {attempt.get('send_log_path')}")
-
-        QMessageBox.warning(parent, "Stencil Reprovado", "\n".join(details))
+        message_box = QMessageBox(parent)
+        message_box.setWindowTitle("Stencil Reprovado")
+        message_box.setIcon(QMessageBox.Icon.NoIcon)
+        message_box.setText("REPROVADO")
+        message_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        message_box.setStyleSheet("""
+            QMessageBox {
+                background-color: #F2F4F7;
+            }
+            QLabel {
+                background-color: #C62828;
+                color: #FFFFFF;
+                font-size: 24px;
+                font-weight: bold;
+                padding: 18px 36px;
+                border-radius: 8px;
+                min-width: 240px;
+                qproperty-alignment: AlignCenter;
+            }
+            QPushButton {
+                min-width: 90px;
+                padding: 6px 14px;
+            }
+        """)
+        message_box.exec()
 
     def _resolve_external_user_id(self) -> Any:
         """Resolve o identificador do usuÃ¡rio para o payload externo."""
@@ -1067,9 +1077,12 @@ class TensionMeasurementController(QObject):
         if approved:
             self._show_stencil_approved_feedback(self.parent_window, stencil_code, record)
             return
+        if rejected:
+            self._show_stencil_rejected_feedback(self.parent_window, stencil_code, record)
+            return
 
         details = [
-            "Stencil Reprovado." if rejected else "Resultado da medicao salvo no historico.",
+            "Resultado da medicao salvo no historico.",
             "",
             f"Stencil: {stencil_code}",
             f"Resultado: {record.result}",
@@ -1082,11 +1095,9 @@ class TensionMeasurementController(QObject):
             details.append(f"Payload: {attempt.get('payload_path')}")
         if attempt.get("send_log_path"):
             details.append(f"Log envio: {attempt.get('send_log_path')}")
-        title = "Stencil Reprovado" if rejected else "Medicao Salva"
-        message_box = QMessageBox.warning if rejected else QMessageBox.information
-        message_box(
+        QMessageBox.information(
             self.parent_window,
-            title,
+            "Medicao Salva",
             "\n".join(details),
         )
         if False:

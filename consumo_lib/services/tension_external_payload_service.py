@@ -11,6 +11,7 @@ from typing import Any, Optional
 from urllib import error, request
 
 from aoi_lib.runtime_paths import get_runtime_path
+from aoi_lib.stencil_tracker import normalize_stencil_code
 
 
 class TensionExternalPayloadService:
@@ -43,7 +44,7 @@ class TensionExternalPayloadService:
         tension_log = [self._build_log_entry(measurement) for measurement in ordered_measurements]
 
         return {
-            "codigo_stencil": stencil_code,
+            "codigo_stencil": normalize_stencil_code(stencil_code),
             "idusuario": self._normalize_user_id(user_id),
             "nmlinha": (line_name or "").strip(),
             "idstencil_status": stencil_status,

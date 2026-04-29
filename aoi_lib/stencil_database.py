@@ -9,7 +9,7 @@ import shutil
 from pathlib import Path
 from typing import Optional, List, Dict, Any
 
-from .stencil_tracker import Stencil, TensionRecord, TrendAnalysis
+from .stencil_tracker import Stencil, TensionRecord, TrendAnalysis, normalize_stencil_code
 from .runtime_paths import get_runtime_path
 from .database.connection import SqliteConnection
 from .database.repositories import SqliteStencilRepository, SqliteTensionRepository
@@ -48,18 +48,23 @@ class StencilDatabase:
         log.debug("Banco de dados inicializado")
 
     def stencil_exists(self, code: str) -> bool:
+        code = normalize_stencil_code(code)
         return self._stencil_repo.exists(code)
 
     def get_stencil(self, code: str) -> Optional[Stencil]:
+        code = normalize_stencil_code(code)
         return self._stencil_repo.get(code)
 
     def create_stencil(self, code: str, description: str = "", recipe_name: str = None) -> Stencil:
+        code = normalize_stencil_code(code)
         return self._stencil_repo.create(code, description, recipe_name)
 
     def update_stencil(self, stencil: Stencil) -> None:
+        stencil.code = normalize_stencil_code(stencil.code)
         self._stencil_repo.update(stencil)
 
     def delete_stencil(self, code: str) -> bool:
+        code = normalize_stencil_code(code)
         return self._stencil_repo.delete(code)
 
     def list_stencils(self, status: str = None) -> List[Stencil]:
@@ -72,9 +77,11 @@ class StencilDatabase:
         return self._stencil_repo.get_by_recipe(recipe_name)
 
     def add_tension_record(self, code: str, record: TensionRecord) -> None:
+        code = normalize_stencil_code(code)
         self._tension_repo.add(code, record)
 
     def get_tension_history(self, code: str, limit: int = 50) -> List[TensionRecord]:
+        code = normalize_stencil_code(code)
         return self._tension_repo.get_history(code, limit)
 
     def get_tension_records_by_period(
@@ -86,9 +93,11 @@ class StencilDatabase:
         return self._tension_repo.get_by_period(start_date, end_date, code)
 
     def get_latest_tension(self, code: str) -> Optional[TensionRecord]:
+        code = normalize_stencil_code(code)
         return self._tension_repo.get_latest(code)
 
     def get_trend_analysis(self, code: str, warning_low: float = None) -> TrendAnalysis:
+        code = normalize_stencil_code(code)
         history = self.get_tension_history(code, limit=20)
 
         if not history:

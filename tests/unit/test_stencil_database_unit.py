@@ -19,6 +19,16 @@ def test_create_and_get_stencil(db):
     assert retrieved.description == "Test Stencil"
 
 
+def test_create_and_get_stencil_normalizes_lowercase_code(db):
+    created = db.create_stencil(code="stencil_abc", description="Test Stencil")
+
+    retrieved = db.get_stencil("stencil_abc")
+
+    assert created.code == "STENCIL_ABC"
+    assert retrieved is not None
+    assert retrieved.code == "STENCIL_ABC"
+
+
 def test_stencil_exists(db):
     db.create_stencil(code="EXISTS_001")
 

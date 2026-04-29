@@ -208,13 +208,27 @@ class TestStencilIdentificationWidgetIntegration:
         # Inicialmente None
         assert widget.get_current_stencil() is None
 
-        # Após seleção
+        # Apos selecao
         widget._select_stencil(mock_stencil)
         assert widget.get_current_stencil() == mock_stencil
 
-        # Após limpar
+        # Apos limpar
         widget._clear_selection()
         assert widget.get_current_stencil() is None
+
+    def test_widget_uppercases_scanned_stencil_code_before_lookup(self, qapp, mock_stencil_tracker, mock_stencil):
+        """
+        Testa se codigo bipado em minusculas e normalizado antes da busca.
+        """
+        from consumo_lib.widgets.stencil.identification_widget import StencilIdentificationWidget
+
+        widget = StencilIdentificationWidget(mock_stencil_tracker, parent=None)
+        widget.code_input.setText("75b01a849403741")
+
+        widget._load_stencil()
+
+        assert widget.code_input.text() == "75B01A849403741"
+        mock_stencil_tracker.get_stencil.assert_called_with("75B01A849403741")
 
 
 class TestTabFactoryAfterTrackingRemoval:

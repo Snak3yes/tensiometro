@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
-from aoi_lib.stencil_tracker import StencilTracker, Stencil
+from aoi_lib.stencil_tracker import StencilTracker, Stencil, normalize_stencil_code
 from consumo_lib.ui import COLORS, TYPO, SPACE
 from consumo_lib.ui.widget_standards import StandardButton
 
@@ -164,13 +164,27 @@ class StencilIdentificationWidget(QWidget):
         layout.addStretch()
 
     def _connect_signals(self):
+        self.code_input.textEdited.connect(self._normalize_code_input)
         self.code_input.returnPressed.connect(self._load_stencil)
         self.btn_load.clicked.connect(self._load_stencil)
         self.btn_clear.clicked.connect(self._clear_selection)
 
+    def _normalize_code_input(self, text: str):
+        """Mantem o codigo bipado/digitado em maiusculas no campo."""
+        normalized = normalize_stencil_code(text)
+        if text == normalized:
+            return
+
+        cursor_position = self.code_input.cursorPosition()
+        self.code_input.blockSignals(True)
+        self.code_input.setText(normalized)
+        self.code_input.setCursorPosition(min(cursor_position, len(normalized)))
+        self.code_input.blockSignals(False)
+
     def _load_stencil(self):
         """Carrega stencil pelo código digitado."""
-        code = self.code_input.text().strip()
+        code = normalize_stencil_code(self.code_input.text())
+        self.code_input.setText(code)
 
         if not code:
             QMessageBox.warning(
@@ -321,5 +335,5 @@ class StencilIdentificationWidget(QWidget):
 
     def set_stencil_code(self, code: str):
         """Define código programaticamente e carrega."""
-        self.code_input.setText(code)
+        self.code_input.setText(normalize_stencil_code(code))
         self._load_stencil()

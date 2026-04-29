@@ -16,6 +16,11 @@ from .system_change_log import get_system_change_log
 log = logging.getLogger(__name__)
 
 
+def normalize_stencil_code(code: Any) -> str:
+    """Normaliza codigos de stencil vindos de leitura manual ou leitor USB."""
+    return str(code or "").strip().upper()
+
+
 @dataclass
 class Stencil:
     """Representa um stencil físico individual."""
@@ -30,6 +35,7 @@ class Stencil:
     notes: str = ""
 
     def __post_init__(self):
+        self.code = normalize_stencil_code(self.code)
         if not self.created_at:
             self.created_at = datetime.now().isoformat()
 
@@ -165,22 +171,35 @@ class StencilTracker:
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
     def _get_stencil_dir(self, code: str) -> Path:
+        code = normalize_stencil_code(code)
         return self.data_dir / code
 
     def _get_stencil_info_path(self, code: str) -> Path:
+        code = normalize_stencil_code(code)
         return self._get_stencil_dir(code) / "info.json"
 
     def _get_history_dir(self, code: str) -> Path:
+        code = normalize_stencil_code(code)
         return self._get_stencil_dir(code) / "history"
 
     def stencil_exists(self, code: str) -> bool:
-        return self._get_stencil_info_path(code).exists()
+        raw_code = str(code or "").strip()
+        code = normalize_stencil_code(code)
+        return self._get_stencil_info_path(code).exists() or (
+            bool(raw_code) and (self.data_dir / raw_code / "info.json").exists()
+        )
 
     def get_stencil(self, code: str) -> Optional[Stencil]:
+        raw_code = str(code or "").strip()
+        code = normalize_stencil_code(code)
         if code in self._cache:
             return self._cache[code]
 
         info_path = self._get_stencil_info_path(code)
+        if not info_path.exists() and raw_code:
+            legacy_info_path = self.data_dir / raw_code / "info.json"
+            if legacy_info_path.exists():
+                info_path = legacy_info_path
         if not info_path.exists():
             return None
 
@@ -200,6 +219,7 @@ class StencilTracker:
         description: str = "",
         recipe_name: str = None
     ) -> Stencil:
+        code = normalize_stencil_code(code)
         if self.stencil_exists(code):
             raise ValueError(f"Stencil '{code}' já existe")
 
@@ -229,6 +249,7 @@ class StencilTracker:
         return stencil
 
     def update_stencil(self, stencil: Stencil) -> None:
+        stencil.code = normalize_stencil_code(stencil.code)
         if not self.stencil_exists(stencil.code):
             raise ValueError(f"Stencil '{stencil.code}' não existe")
 
@@ -252,6 +273,7 @@ class StencilTracker:
         log.info(f"Stencil atualizado: {stencil.code}")
 
     def _save_stencil(self, stencil: Stencil) -> None:
+        stencil.code = normalize_stencil_code(stencil.code)
         with open(self._get_stencil_info_path(stencil.code), "w", encoding="utf-8") as file:
             json.dump(stencil.to_dict(), file, indent=2, ensure_ascii=False)
         self._cache[stencil.code] = stencil
@@ -274,6 +296,7 @@ class StencilTracker:
     def delete_stencil(self, code: str) -> bool:
         import shutil
 
+        code = normalize_stencil_code(code)
         stencil_dir = self._get_stencil_dir(code)
         if not stencil_dir.exists():
             return False
@@ -296,6 +319,7 @@ class StencilTracker:
             return False
 
     def add_tension_record(self, code: str, record: TensionRecord) -> None:
+        code = normalize_stencil_code(code)
         stencil = self.get_stencil(code)
         if not stencil:
             raise ValueError(f"Stencil '{code}' não encontrado")
@@ -321,6 +345,7 @@ class StencilTracker:
         log.info(f"Registro de tensão adicionado para {code}: {record.result}")
 
     def get_tension_history(self, code: str, limit: int = 50) -> List[TensionRecord]:
+        code = normalize_stencil_code(code)
         history_dir = self._get_history_dir(code)
         if not history_dir.exists():
             return []
@@ -338,6 +363,7 @@ class StencilTracker:
         return records
 
     def get_trend_analysis(self, code: str, warning_low: float = None) -> TrendAnalysis:
+        code = normalize_stencil_code(code)
         history = self.get_tension_history(code, limit=20)
 
         if not history:
