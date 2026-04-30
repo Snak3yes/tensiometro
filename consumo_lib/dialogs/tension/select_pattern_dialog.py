@@ -227,7 +227,7 @@ class SelectPatternDialog(QDialog):
 
         # Selecionar
         self.btn_select = StandardButton(
-            "Selecionar Padrão",
+            "Aplicar",
             variant="primary-green",
             semantic_size="dialog-primary"
         )

@@ -300,7 +300,7 @@ class StencilManagerWrapper(QObject):
         if hasattr(self.main_window, 'statusBar'):
             self.main_window.statusBar().showMessage(
                 f"Stencil selecionado: {stencil.code} | "
-                f"Receita: {stencil.recipe_name or 'Nenhuma'} | "
+                f"Padrão de medição: {stencil.recipe_name or 'Nenhum'} | "
                 f"Medições: {stencil.inspection_count}"
             )
 

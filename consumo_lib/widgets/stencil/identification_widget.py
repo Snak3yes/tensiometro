@@ -95,8 +95,8 @@ class StencilIdentificationWidget(QWidget):
         self.lbl_description.setStyleSheet(f"color: {COLORS.TEXT_HINT};")
         info_layout.addWidget(self.lbl_description, 0, 2)
 
-        # Receita
-        info_layout.addWidget(QLabel("Receita:"), 1, 0)
+        # Padrão de medição
+        info_layout.addWidget(QLabel("Padrão de medição:"), 1, 0)
         self.lbl_recipe = QLabel()
         self.lbl_recipe.setStyleSheet("font-weight: bold;")
         info_layout.addWidget(self.lbl_recipe, 1, 1, 1, 2)
@@ -230,7 +230,7 @@ class StencilIdentificationWidget(QWidget):
         # Informações
         self.lbl_code.setText(stencil.code)
         self.lbl_description.setText(stencil.description or "(sem descrição)")
-        self.lbl_recipe.setText(stencil.recipe_name or "(nenhuma receita)")
+        self.lbl_recipe.setText(stencil.recipe_name or "(nenhum padrão)")
 
         if stencil.last_inspection:
             try:
@@ -257,10 +257,6 @@ class StencilIdentificationWidget(QWidget):
 
         # Emite sinal
         self.stencil_selected.emit(stencil)
-
-        # Solicita carregamento da receita
-        if stencil.recipe_name:
-            self.recipe_requested.emit(stencil.recipe_name)
 
         log.info(f"Stencil selecionado: {stencil.code}")
 

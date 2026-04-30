@@ -184,22 +184,29 @@ class TensionMeasurementController(QObject):
             return False
 
         recipe = self._resolve_recipe_for_stencil(current_stencil, current_recipe)
-        if recipe is None:
-            recipe_name = current_stencil.recipe_name or "(sem receita)"
-            error_msg = (
-                f"O stencil '{current_stencil.code}' não possui uma receita válida carregada.\n\n"
-                f"Receita vinculada: {recipe_name}"
-            )
-            QMessageBox.warning(ui_parent, "Receita Não Encontrada", error_msg)
-            self.measurement_failed.emit(error_msg)
-            return False
+        measurement_name = getattr(recipe, "name", None)
 
         try:
-            params = self._build_measurement_parameters_from_recipe(recipe)
+            if recipe is not None:
+                params = self._build_measurement_parameters_from_recipe(recipe)
+            else:
+                pattern_name = (current_stencil.recipe_name or "").strip()
+                pattern = self.pattern_manager.load_pattern(pattern_name) if pattern_name else None
+                if pattern is None:
+                    error_msg = (
+                        f"O stencil '{current_stencil.code}' não possui um padrão de medição válido.\n\n"
+                        f"Padrão vinculado: {pattern_name or '(nenhum)'}"
+                    )
+                    QMessageBox.warning(ui_parent, "Padrão de Medição Não Encontrado", error_msg)
+                    self.measurement_failed.emit(error_msg)
+                    return False
+                params = self._build_measurement_parameters_from_pattern(pattern)
+                measurement_name = pattern.name
         except Exception as exc:
-            error_msg = f"Erro ao preparar os parâmetros da receita '{recipe.name}': {exc}"
-            logger.exception("Falha ao resolver parâmetros de medição da receita")
-            QMessageBox.critical(ui_parent, "Erro na Receita", error_msg)
+            target_name = measurement_name or (current_stencil.recipe_name or "")
+            error_msg = f"Erro ao preparar os parâmetros de medição '{target_name}': {exc}"
+            logger.exception("Falha ao resolver parâmetros de medição")
+            QMessageBox.critical(ui_parent, "Erro na Medição", error_msg)
             self.measurement_failed.emit(error_msg)
             return False
 
@@ -242,18 +249,18 @@ class TensionMeasurementController(QObject):
         self._show_progress_dialog(
             total_points=total_points,
             stencil_code=current_stencil.code,
-            recipe_name=recipe.name,
+            recipe_name=measurement_name,
             source_description=params["source_description"],
         )
 
         self.measurement_started.emit()
         self.parent_window.statusBar().showMessage(
-            f"Iniciando medição do stencil {current_stencil.code} com receita {recipe.name}"
+            f"Iniciando medição do stencil {current_stencil.code} com padrão {measurement_name}"
         )
         logger.info(
-            "Iniciando medição operacional do stencil %s com receita %s (%s)",
+            "Iniciando medição operacional do stencil %s com padrão %s (%s)",
             current_stencil.code,
-            recipe.name,
+            measurement_name,
             params["source_description"],
         )
 
@@ -366,6 +373,11 @@ class TensionMeasurementController(QObject):
 
         return None
 
+    def _resolve_measurement_name(self, current_stencil: Stencil, current_recipe) -> Optional[str]:
+        """Resolve o nome gravado no historico da medicao."""
+        recipe_name = getattr(current_recipe, "name", None) if current_recipe else None
+        return recipe_name or (current_stencil.recipe_name or None)
+
     def _build_measurement_parameters_from_recipe(self, recipe) -> dict:
         """Monta os parâmetros operacionais a partir da receita ou do padrão vinculado."""
         if recipe is None or not getattr(recipe, "tension", None):
@@ -432,6 +444,20 @@ class TensionMeasurementController(QObject):
             "source_description": source_description,
         }
 
+    def _build_measurement_parameters_from_pattern(self, pattern) -> dict:
+        """Monta os parâmetros operacionais diretamente de um padrão de medição."""
+        grid_parameters = pattern.grid_parameters
+        return {
+            "grid_size": int(grid_parameters.grid_size),
+            "start_point": tuple(grid_parameters.start_point),
+            "end_point": tuple(grid_parameters.end_point),
+            "z_height": float(grid_parameters.z_height),
+            "z_move": float(grid_parameters.z_move),
+            "feed_rate": None,
+            "stabilization_time_ms": self._get_global_delay_medidor_ms(),
+            "source_description": f"padrão '{pattern.name}'",
+        }
+
     def _get_global_delay_medidor_ms(self) -> int:
         """Retorna o Delay_Medidor configurado na aplicação."""
         if hasattr(self.config, "get_delay_medidor_ms"):
@@ -467,7 +493,7 @@ class TensionMeasurementController(QObject):
         dialog.setWindowTitle("Medição do Stencil")
         dialog.setLabelText(
             f"Preparando medição de {stencil_code}\n"
-            f"Receita: {recipe_name}\n"
+            f"Padrão: {recipe_name}\n"
             f"Base: {source_description}"
         )
         dialog.setCancelButtonText("Parar")
@@ -656,7 +682,7 @@ class TensionMeasurementController(QObject):
 
         record = TensionRecord.from_tension_data(
             classified_data,
-            recipe_name=current_recipe.name if current_recipe else None,
+            recipe_name=self._resolve_measurement_name(current_stencil, current_recipe),
             operator=operator,
         )
 
@@ -694,7 +720,7 @@ class TensionMeasurementController(QObject):
         tension_data: dict,
         timestamp: Optional[str] = None,
     ):
-        """Gera um JSON de integraÃ§Ã£o externa com todos os pontos medidos."""
+        """Gera um JSON de integração externa com todos os pontos medidos."""
         self._last_external_send_attempt = None
         try:
             payload = self.external_payload_service.build_payload(
@@ -720,7 +746,7 @@ class TensionMeasurementController(QObject):
                 "status_code": None,
             }
             logger.exception(
-                "Falha ao gerar payload externo de tensÃ£o para o stencil %s",
+                "Falha ao gerar payload externo de tensão para o stencil %s",
                 current_stencil.code,
             )
             return None
@@ -917,7 +943,7 @@ class TensionMeasurementController(QObject):
         message_box.exec()
 
     def _resolve_external_user_id(self) -> Any:
-        """Resolve o identificador do usuÃ¡rio para o payload externo."""
+        """Resolve o identificador do usuário para o payload externo."""
         auth_service = getattr(self.parent_window, "auth_service", None)
         if auth_service is not None:
             if hasattr(auth_service, "get_external_user_id"):
@@ -939,7 +965,7 @@ class TensionMeasurementController(QObject):
         return None
 
     def _resolve_external_line_name(self) -> str:
-        """Resolve o nome da linha de produÃ§Ã£o para o payload externo."""
+        """Resolve o nome da linha de produção para o payload externo."""
         for section_name, key_name in (
             ("integration", "line_name"),
             ("external_validation", "line_name"),
@@ -996,7 +1022,7 @@ class TensionMeasurementController(QObject):
         enriched_data = dict(tension_data)
         enriched_data["stencil_code"] = current_stencil.code
         enriched_data["stencil_description"] = getattr(current_stencil, "description", "")
-        enriched_data["recipe_name"] = getattr(current_recipe, "name", None) if current_recipe else None
+        enriched_data["recipe_name"] = self._resolve_measurement_name(current_stencil, current_recipe)
         enriched_data["operator"] = operator
 
         if acceptance is not None:

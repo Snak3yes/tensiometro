@@ -1,7 +1,7 @@
 """
 dialogs/stencil/manager_dialog.py
 ---------------------------------
-Diálogo para gerenciamento de stencils cadastrados.
+Dialogo para gerenciamento de stencils cadastrados.
 """
 
 import logging
@@ -10,11 +10,9 @@ from typing import Optional
 
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout,
-    QLabel, QPushButton, QComboBox, QTableWidget,
+    QLabel, QComboBox, QTableWidget,
     QTableWidgetItem, QHeaderView, QMessageBox
 )
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QColor
 
 from aoi_lib.stencil_tracker import StencilTracker
 from consumo_lib.ui import COLORS
@@ -25,7 +23,7 @@ log = logging.getLogger(__name__)
 
 class StencilManagerDialog(QDialog):
     """
-    Diálogo para gerenciamento de stencils cadastrados.
+    Dialogo para gerenciamento de stencils cadastrados.
 
     Permite:
     - Listar todos os stencils
@@ -47,7 +45,6 @@ class StencilManagerDialog(QDialog):
     def _setup_ui(self):
         layout = QVBoxLayout(self)
 
-        # ================== FILTROS ==================
         filter_layout = QHBoxLayout()
 
         filter_layout.addWidget(QLabel("Filtrar por status:"))
@@ -69,11 +66,15 @@ class StencilManagerDialog(QDialog):
 
         layout.addLayout(filter_layout)
 
-        # ================== TABELA ==================
         self.table = QTableWidget()
         self.table.setColumnCount(6)
         self.table.setHorizontalHeaderLabels([
-            "Código", "Descrição", "Receita", "Última Medição", "Medições", "Status"
+            "Código",
+            "Nome do modelo",
+            "Padrão de medição",
+            "Última Medição",
+            "Medições",
+            "Status",
         ])
         self.table.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Stretch
@@ -86,7 +87,6 @@ class StencilManagerDialog(QDialog):
 
         layout.addWidget(self.table, 1)
 
-        # ================== BOTÕES ==================
         btn_layout = QHBoxLayout()
 
         self.btn_edit = StandardButton("Editar")
@@ -113,7 +113,7 @@ class StencilManagerDialog(QDialog):
     def _load_stencils(self):
         """Carrega lista de stencils."""
         filter_map = {
-            0: None,  # Todos
+            0: None,
             1: "active",
             2: "warning",
             3: "retired",
@@ -125,9 +125,9 @@ class StencilManagerDialog(QDialog):
         self.table.setRowCount(len(stencils))
 
         status_display = {
-            "active": ("🟢 Ativo", COLORS.SUCCESS),
-            "warning": ("🟡 Alerta", COLORS.WARNING),
-            "retired": ("🔴 Retirado", COLORS.ERROR),
+            "active": ("Ativo", COLORS.SUCCESS),
+            "warning": ("Alerta", COLORS.WARNING),
+            "retired": ("Retirado", COLORS.ERROR),
         }
 
         for row, stencil in enumerate(stencils):
@@ -135,12 +135,11 @@ class StencilManagerDialog(QDialog):
             self.table.setItem(row, 1, QTableWidgetItem(stencil.description))
             self.table.setItem(row, 2, QTableWidgetItem(stencil.recipe_name or ""))
 
-            # Última medição
             if stencil.last_inspection:
                 try:
                     dt = datetime.fromisoformat(stencil.last_inspection)
                     dt_str = dt.strftime("%d/%m/%Y %H:%M")
-                except:
+                except Exception:
                     dt_str = stencil.last_inspection
             else:
                 dt_str = "-"
@@ -148,7 +147,6 @@ class StencilManagerDialog(QDialog):
 
             self.table.setItem(row, 4, QTableWidgetItem(str(stencil.inspection_count)))
 
-            # Status com cor
             status_text, status_color = status_display.get(
                 stencil.status, ("?", COLORS.SURFACE)
             )
@@ -157,7 +155,7 @@ class StencilManagerDialog(QDialog):
             self.table.setItem(row, 5, status_item)
 
     def _get_selected_code(self) -> Optional[str]:
-        """Retorna código do stencil selecionado."""
+        """Retorna codigo do stencil selecionado."""
         row = self.table.currentRow()
         if row < 0:
             return None
@@ -165,7 +163,7 @@ class StencilManagerDialog(QDialog):
         return item.text() if item else None
 
     def _create_new(self):
-        """Abre diálogo para criar novo stencil."""
+        """Abre dialogo para criar novo stencil."""
         from consumo_lib.dialogs.stencil import StencilCreateDialog
 
         dialog = StencilCreateDialog(self.tracker, parent=self)
@@ -188,7 +186,7 @@ class StencilManagerDialog(QDialog):
                 self._load_stencils()
 
     def _show_history(self):
-        """Mostra histórico do stencil selecionado."""
+        """Mostra historico do stencil selecionado."""
         code = self._get_selected_code()
         if not code:
             QMessageBox.warning(self, "Seleção", "Selecione um stencil.")
@@ -207,11 +205,12 @@ class StencilManagerDialog(QDialog):
             return
 
         reply = QMessageBox.question(
-            self, "Confirmar Exclusão",
+            self,
+            "Confirmar Exclusão",
             f"Tem certeza que deseja excluir o stencil '{code}'?\n\n"
-            "⚠️ Esta ação é irreversível e removerá todo o histórico!",
+            "Esta ação é irreversível e removerá todo o histórico.",
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
+            QMessageBox.StandardButton.No,
         )
 
         if reply == QMessageBox.StandardButton.Yes:
@@ -220,12 +219,13 @@ class StencilManagerDialog(QDialog):
                 self._load_stencils()
             else:
                 QMessageBox.critical(
-                    self, "Erro",
-                    "Não foi possível excluir o stencil."
+                    self,
+                    "Erro",
+                    "Não foi possível excluir o stencil.",
                 )
 
     def _notify_stencil_deleted(self, stencil_code: str):
-        """Notifica o wrapper principal para atualizar a UI após exclusão."""
+        """Notifica o wrapper principal para atualizar a UI apos exclusao."""
         widget = self.parentWidget()
         while widget is not None:
             wrapper = getattr(widget, "stencil_manager_wrapper", None)

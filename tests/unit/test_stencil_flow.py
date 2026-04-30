@@ -176,9 +176,9 @@ class TestStencilIdentificationWidgetIntegration:
 
         assert len(captured) == 1, "signal stencil_cleared deve ser emitido"
 
-    def test_widget_recipe_requested_signal(self, qapp, mock_stencil_tracker, mock_stencil):
+    def test_widget_does_not_load_recipe_when_pattern_is_selected(self, qapp, mock_stencil_tracker, mock_stencil):
         """
-        Testa se StencilIdentificationWidget emite recipe_requested corretamente.
+        Testa que o nome salvo no stencil nao tenta carregar receita automaticamente.
         """
         from consumo_lib.widgets.stencil.identification_widget import StencilIdentificationWidget
 
@@ -194,8 +194,7 @@ class TestStencilIdentificationWidgetIntegration:
         # Seleciona stencil com receita
         widget._select_stencil(mock_stencil)
 
-        assert len(captured) == 1, "signal recipe_requested deve ser emitido"
-        assert captured[0] == mock_stencil.recipe_name
+        assert captured == []
 
     def test_widget_get_current_stencil(self, qapp, mock_stencil_tracker, mock_stencil):
         """
