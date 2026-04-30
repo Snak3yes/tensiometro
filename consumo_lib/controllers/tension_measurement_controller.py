@@ -669,13 +669,16 @@ class TensionMeasurementController(QObject):
         if not added:
             raise RuntimeError("O histórico do stencil recusou o registro da medição.")
 
-        payload_path = self._save_external_integration_payload(
-            current_stencil=current_stencil,
-            tension_data=classified_data,
-            timestamp=record.timestamp,
-        )
-        if payload_path is not None:
-            logger.info("Payload externo de tensão salvo em %s", payload_path)
+        if self._should_send_external_integration(record):
+            payload_path = self._save_external_integration_payload(
+                current_stencil=current_stencil,
+                tension_data=classified_data,
+                timestamp=record.timestamp,
+            )
+            if payload_path is not None:
+                logger.info("Payload externo de tensão salvo em %s", payload_path)
+        else:
+            self._mark_external_integration_skipped_for_rejected_measurement(current_stencil)
 
         self._persist_measurement_session_report_data(saved_path, classified_data)
 
@@ -763,6 +766,33 @@ class TensionMeasurementController(QObject):
             )
         return attempt
 
+    def _should_send_external_integration(self, record: TensionRecord) -> bool:
+        """Permite envio externo apenas para medições sem pontos NOK."""
+        measurements = getattr(record, "measurements", []) or []
+        total_measurements = len(measurements)
+        return (
+            total_measurements > 0
+            and record.nok_count == 0
+            and (record.ok_count + record.warning_count) == total_measurements
+            and record.result in ("OK", "WARNING")
+        )
+
+    def _mark_external_integration_skipped_for_rejected_measurement(self, current_stencil: Stencil) -> None:
+        """Registra que a medição reprovada ficou apenas no armazenamento local."""
+        self._last_external_send_attempt = {
+            "success": None,
+            "skipped": True,
+            "skip_reason": "rejected_measurement",
+            "error": None,
+            "status_code": None,
+            "payload_path": None,
+            "send_log_path": None,
+        }
+        logger.info(
+            "Medição NOK do stencil %s salva localmente; envio externo não realizado.",
+            current_stencil.code,
+        )
+
     def _is_external_integration_enabled(self) -> bool:
         """Retorna se o envio externo deve ser executado."""
         return bool(self.config.get("integration", "enabled", default=True))
@@ -783,6 +813,9 @@ class TensionMeasurementController(QObject):
         attempt = self._last_external_send_attempt
         if not attempt:
             return "Envio API: nao executado"
+
+        if attempt.get("skipped") and attempt.get("skip_reason") == "rejected_measurement":
+            return "Envio API: não executado (NOK)"
 
         if attempt.get("skipped"):
             return "Envio API: desabilitado"
@@ -820,15 +853,7 @@ class TensionMeasurementController(QObject):
     def _is_stencil_approved(self, record: TensionRecord) -> bool:
         """Confirma aprovacao quando nao houver NOK e a API aceitar o envio."""
         attempt = self._last_external_send_attempt or {}
-        measurements = getattr(record, "measurements", []) or []
-        total_measurements = len(measurements)
-        approved_measurements = (
-            total_measurements > 0
-            and record.nok_count == 0
-            and (record.ok_count + record.warning_count) == total_measurements
-            and record.result in ("OK", "WARNING")
-        )
-        return approved_measurements and attempt.get("success") is True
+        return self._should_send_external_integration(record) and attempt.get("success") is True
 
     def _is_stencil_rejected(self, record: TensionRecord) -> bool:
         """Confirma reprovacao quando houver ao menos um ponto NOK."""
