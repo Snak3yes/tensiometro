@@ -2,6 +2,7 @@ from aoi_lib.tensiometer.measurement_thread import (
     TENSIOMETER_POWER_COIL,
     TENSIOMETER_POWER_OFF_PULSE_MS,
     TENSIOMETER_POWER_ON_PULSE_MS,
+    TENSIOMETER_READ_RETRIES,
     TensionMeasurementThread,
 )
 from aoi_lib.tensiometer.models import GridPoint
@@ -33,10 +34,13 @@ class _FakeTensiometer:
     def __init__(self, values):
         self.values = list(values)
         self.read_calls = 0
+        self.last_error = ""
 
     def read_tension_value(self):
         self.read_calls += 1
-        return self.values.pop(0)
+        value = self.values.pop(0)
+        self.last_error = "" if value else "Frame incompleto"
+        return value
 
 
 def test_run_measures_all_points_and_toggles_tensiometer(monkeypatch):
@@ -115,3 +119,61 @@ def test_run_disables_tensiometer_even_when_stop_is_requested(monkeypatch):
     ]
     assert errors == ["Medicao interrompida pelo usuario"]
     assert tensiometer.read_calls == 0
+
+
+def test_run_retries_tensiometer_read_before_recording_measurement(monkeypatch):
+    monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
+
+    cnc = _FakeCNC()
+    tensiometer = _FakeTensiometer(["", "31.5"])
+    thread = TensionMeasurementThread(
+        cnc=cnc,
+        tensiometer=tensiometer,
+        points=[GridPoint(x=1.0, y=2.0, index=0, grid_position=(0, 0))],
+        z_height=1.5,
+        z_move=8.0,
+        user_feed=900.0,
+        stabilization_time_ms=0,
+    )
+
+    measurements = []
+    errors = []
+    thread.measurement_completed.connect(measurements.append)
+    thread.error_occurred.connect(errors.append)
+
+    thread.run()
+
+    assert errors == []
+    assert tensiometer.read_calls == 2
+    assert [item["tension"] for item in measurements] == ["31.5"]
+
+
+def test_run_reports_error_when_tensiometer_read_never_succeeds(monkeypatch):
+    monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
+
+    cnc = _FakeCNC()
+    tensiometer = _FakeTensiometer([""] * TENSIOMETER_READ_RETRIES)
+    thread = TensionMeasurementThread(
+        cnc=cnc,
+        tensiometer=tensiometer,
+        points=[GridPoint(x=1.0, y=2.0, index=0, grid_position=(0, 0))],
+        z_height=1.5,
+        z_move=8.0,
+        user_feed=900.0,
+        stabilization_time_ms=0,
+    )
+
+    measurements = []
+    finished_payload = []
+    errors = []
+    thread.measurement_completed.connect(measurements.append)
+    thread.finished.connect(finished_payload.append)
+    thread.error_occurred.connect(errors.append)
+
+    thread.run()
+
+    assert measurements == []
+    assert finished_payload == []
+    assert tensiometer.read_calls == TENSIOMETER_READ_RETRIES
+    assert len(errors) == 1
+    assert "Falha ao capturar medicao no ponto 1/1" in errors[0]

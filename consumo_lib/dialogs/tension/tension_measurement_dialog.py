@@ -530,6 +530,15 @@ class TensionMeasurementDialog(QDialog):
             return
 
         value = self.tensiometer.read_tension_value()
+        if not value:
+            error = self.tensiometer.last_error or "falha de leitura"
+            QMessageBox.warning(
+                self,
+                "Leitura Teste",
+                f"Não foi possível ler o tensiômetro: {error}"
+            )
+            logger.warning(f"Falha na leitura teste do tensiômetro: {error}")
+            return
         QMessageBox.information(
             self,
             "Leitura Teste",
@@ -1069,7 +1078,7 @@ class TensionMeasurementDialog(QDialog):
 
     def _on_measurement(self, measurement_dict: dict):
         """Handle individual measurement."""
-        value = measurement_dict.get('tension', '0')
+        value = measurement_dict.get('tension') or "--"
         self.current_value_label.setText(f"Última leitura: {value} N/cm²")
         logger.debug(f"Medição: {value} N/cm²")
 

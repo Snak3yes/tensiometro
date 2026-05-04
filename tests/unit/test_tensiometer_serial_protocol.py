@@ -99,10 +99,10 @@ def test_connect_and_disconnect_manage_serial_state(monkeypatch):
     assert created[0].is_open is False
 
 
-def test_read_tension_value_returns_zero_when_not_connected():
+def test_read_tension_value_returns_empty_when_not_connected():
     manager = TensiometerSerialManager()
 
-    assert manager.read_tension_value() == "0"
+    assert manager.read_tension_value() == ""
     assert manager.last_error == "Nao conectado"
 
 
@@ -129,7 +129,7 @@ def test_read_tension_value_reads_and_formats_sensor_response(monkeypatch):
     assert created[0].written == [manager.REQ_COMMAND]
 
 
-def test_read_tension_value_returns_zero_for_incomplete_frame(monkeypatch):
+def test_read_tension_value_returns_empty_for_incomplete_frame(monkeypatch):
     created = []
 
     def _serial_factory(*args, **kwargs):
@@ -144,5 +144,5 @@ def test_read_tension_value_returns_zero_for_incomplete_frame(monkeypatch):
     manager = TensiometerSerialManager()
     assert manager.connect("COM4") is True
 
-    assert manager.read_tension_value() == "0"
+    assert manager.read_tension_value() == ""
     assert manager.last_error == "Frame incompleto"

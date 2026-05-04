@@ -635,12 +635,17 @@ class TensionMeasurementTab(QWidget):
             for stencil in self.stencil_manager.list_stencils():
                 # Busca histórico de tensão para obter tensão média
                 tension_avg = None
+                latest_result = None
+                latest_timestamp = stencil.last_inspection or "-"
                 try:
                     history = self.stencil_manager.get_tension_history(
                         stencil.code, limit=1
                     )
                     if history and len(history) > 0:
-                        tension_avg = history[0].average_tension
+                        latest_record = history[0]
+                        tension_avg = latest_record.average_tension
+                        latest_result = latest_record.result
+                        latest_timestamp = latest_record.timestamp
                 except Exception:
                     pass
 
@@ -648,7 +653,8 @@ class TensionMeasurementTab(QWidget):
                     "code": stencil.code,
                     "description": stencil.description or "",
                     "status": stencil.status,
-                    "last_measurement": stencil.last_inspection or "-",
+                    "latest_result": latest_result,
+                    "last_measurement": latest_timestamp,
                     "recipe": stencil.recipe_name or "",
                     "tension_avg": tension_avg,
                     "measurements_count": stencil.inspection_count,
@@ -671,23 +677,10 @@ class TensionMeasurementTab(QWidget):
             item = QTreeWidgetItem()
             item.setText(0, stencil["code"])
             item.setText(1, stencil["description"])
+            item.setData(0, Qt.ItemDataRole.UserRole, stencil)
+            self.tree_widget.addTopLevelItem(item)
 
-            # Status com círculo colorido + texto (conforme proposta)
-            status = stencil.get("status", "pending")
-            status_config = {
-                "active": ("Ativo", COLORS.SUCCESS),
-                "warning": ("Alerta", COLORS.WARNING),
-                "retired": ("Retirado", COLORS.ERROR),
-                "pending": ("Pendente", COLORS.TEXT_SECONDARY),
-            }
-            status_text, status_color = status_config.get(status, ("Pendente", COLORS.TEXT_SECONDARY))
-            status_label = QLabel(f"● {status_text}")
-            status_label.setStyleSheet(f"""
-                color: {status_color};
-                font-size: 11px;
-                font-weight: bold;
-            """)
-            status_text, status_bg, status_fg = self._status_display_config(status)
+            status_text, status_bg, status_fg = self._approval_display_config(stencil)
             status_label = self._create_status_badge(status_text, status_bg, status_fg)
             self.tree_widget.setItemWidget(item, 2, status_label)
 
@@ -719,10 +712,6 @@ class TensionMeasurementTab(QWidget):
             btn_layout.addWidget(btn_view)
 
             self.tree_widget.setItemWidget(item, 5, btn_container)
-
-            # Dados do stencil
-            item.setData(0, Qt.ItemDataRole.UserRole, stencil)
-            self.tree_widget.addTopLevelItem(item)
 
             if selected_code and stencil.get("code") == selected_code:
                 item_to_select = item
@@ -771,13 +760,11 @@ class TensionMeasurementTab(QWidget):
         # Preenche campos da Linha 1: Código, Descrição, Status
         code = stencil.get('code', '-')
         desc = stencil.get('description', '-') or '-'
-        status = stencil.get('status', 'pending')
-
         self.field_code_label.setText(code)
         self.field_desc_label.setText(desc)
 
-        # Status badge com fundo colorido
-        status_text, status_bg, status_fg = self._status_display_config(status)
+        # Badge com o resultado da ultima medicao.
+        status_text, status_bg, status_fg = self._approval_display_config(stencil)
         self.field_status_badge.setText(status_text)
         self.field_status_badge.setStyleSheet(
             self._status_badge_stylesheet(
@@ -824,6 +811,18 @@ class TensionMeasurementTab(QWidget):
             "pending": "Pendente",
         }
         return labels.get(status, status.upper())
+
+    def _approval_display_config(self, stencil: Dict) -> tuple[str, str, str]:
+        """Mapeia a ultima medicao do stencil para o badge visivel ao operador."""
+        latest_result = (stencil.get("latest_result") or "").upper()
+        if latest_result == "OK":
+            return "Aprovado", "#2E7D32", "#FFFFFF"
+        if latest_result == "WARNING":
+            return "Warning", "#F9A825", "#1F2937"
+        if latest_result == "NOK":
+            return "Reprovado", "#C62828", "#FFFFFF"
+
+        return "Sem medicao", COLORS.SURFACE_VARIANT, COLORS.TEXT_PRIMARY
 
     def _is_tension_ok(self, tension: float) -> bool:
         """Verifica se tensão está dentro dos critérios OK."""
@@ -1199,6 +1198,11 @@ class TensionMeasurementTab(QWidget):
             return
 
         latest_record = history[0]
+        stencil["latest_result"] = latest_record.result
+        stencil["last_measurement"] = latest_record.timestamp
+        stencil["tension_avg"] = latest_record.average_tension
+        self.show_details(stencil)
+
         self.measurements_data = self._build_visualization_payload(latest_record.to_dict())
         self.last_file_path = None
         self.btn_reload.setEnabled(True)

@@ -99,7 +99,7 @@ class TensiometerSerialManager:
     def read_tension_value(self) -> str:
         if not self.is_connected or not self.serial_connection:
             self.last_error = "Nao conectado"
-            return "0"
+            return ""
         
         try:
             self.serial_connection.reset_input_buffer()
@@ -109,18 +109,23 @@ class TensiometerSerialManager:
             
             raw_data = self.serial_connection.read(self.FRAME_LEN)
             
-            if not raw_data or len(raw_data) != self.FRAME_LEN:
+            if not raw_data:
+                self.last_error = "Sem resposta"
+                return ""
+
+            if len(raw_data) != self.FRAME_LEN:
                 self.last_error = "Frame incompleto"
-                return "0"
+                return ""
             
             value = self._decode_frame(raw_data)
             if value is None:
                 self.last_error = "Frame invalido"
-                return "0"
+                return ""
             
+            self.last_error = ""
             return f"{value:.2f}"
         except Exception as e:
             self.last_error = str(e)
             logger.error(f"Erro na leitura: {e}")
-            return "0"
+            return ""
     

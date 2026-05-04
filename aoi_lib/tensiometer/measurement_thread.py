@@ -18,6 +18,8 @@ TENSIOMETER_POWER_COIL = 20
 TENSIOMETER_POWER_ON_PULSE_MS = 100
 TENSIOMETER_POWER_OFF_PULSE_MS = 3000
 POST_MEASUREMENT_DELAY_SEC = 0.1
+TENSIOMETER_READ_RETRIES = 3
+TENSIOMETER_READ_RETRY_DELAY_SEC = 0.2
 
 
 class TensionMeasurementThread(QThread):
@@ -109,7 +111,7 @@ class TensionMeasurementThread(QThread):
                     )
 
                 read_started = time.perf_counter()
-                tension_value = self.tensiometer.read_tension_value()
+                tension_value = self._read_tension_value_with_retries(idx, total_points)
                 read_elapsed = time.perf_counter() - read_started
                 logger.debug(f"Tensao lida: {tension_value}")
 
@@ -161,6 +163,47 @@ class TensionMeasurementThread(QThread):
                 logger.warning("Nao foi possivel configurar modo absoluto")
         except Exception as e:
             logger.error(f"Erro ao configurar modo absoluto: {e}")
+
+    def _read_tension_value_with_retries(self, point_index: int, total_points: int) -> str:
+        """Read the tensiometer without converting communication failures into zero."""
+        last_error = ""
+        for attempt in range(1, TENSIOMETER_READ_RETRIES + 1):
+            value = self.tensiometer.read_tension_value()
+            if self._is_valid_tension_value(value):
+                return value
+
+            last_error = getattr(self.tensiometer, "last_error", "") or "leitura vazia"
+            logger.warning(
+                "Falha na leitura do ponto %s/%s (tentativa %s/%s): %s",
+                point_index,
+                total_points,
+                attempt,
+                TENSIOMETER_READ_RETRIES,
+                last_error,
+            )
+
+            if self._stop_requested:
+                raise RuntimeError("Medicao interrompida pelo usuario")
+
+            if attempt < TENSIOMETER_READ_RETRIES:
+                self.progress_updated.emit(
+                    point_index,
+                    total_points,
+                    f"Tentando ler novamente o ponto {point_index}/{total_points}",
+                )
+                time.sleep(TENSIOMETER_READ_RETRY_DELAY_SEC)
+
+        raise RuntimeError(
+            f"Falha ao capturar medicao no ponto {point_index}/{total_points}: {last_error}"
+        )
+
+    @staticmethod
+    def _is_valid_tension_value(value: str) -> bool:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return False
+        return math.isfinite(parsed)
 
     def _move_abs(
         self,

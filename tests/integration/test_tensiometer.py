@@ -463,8 +463,8 @@ class TestTensiometerReading:
 
             value = manager.read_tension_value()
 
-            assert value == "0"
-            assert "não conectado" in manager.last_error.lower()
+            assert value == ""
+            assert "nao conectado" in manager.last_error.lower()
 
     def test_read_tension_no_response(self, mock_serial):
         """Testa leitura sem resposta do tensiômetro."""
@@ -478,7 +478,7 @@ class TestTensiometerReading:
 
             value = manager.read_tension_value()
 
-            assert value == "0"
+            assert value == ""
             assert "sem resposta" in manager.last_error.lower()
 
     def test_read_tension_incomplete_frame(self, mock_serial):
@@ -493,7 +493,7 @@ class TestTensiometerReading:
 
             value = manager.read_tension_value()
 
-            assert value == "0"
+            assert value == ""
             assert "incompleto" in manager.last_error.lower()
 
     def test_read_tension_invalid_frame(self, mock_serial):
@@ -508,8 +508,8 @@ class TestTensiometerReading:
 
             value = manager.read_tension_value()
 
-            assert value == "0"
-            assert "inválido" in manager.last_error.lower()
+            assert value == ""
+            assert "invalido" in manager.last_error.lower()
 
     def test_read_tension_exception(self, mock_serial):
         """Testa tratamento de exceção na leitura."""
@@ -523,7 +523,7 @@ class TestTensiometerReading:
 
             value = manager.read_tension_value()
 
-            assert value == "0"
+            assert value == ""
             assert manager.last_error != ""
 
 
@@ -689,7 +689,7 @@ class TestTensiometerIntegration:
             # Simula erro na leitura
             mock.read.side_effect = serial.SerialException("Communication error")
             value = manager.read_tension_value()
-            assert value == "0"
+            assert value == ""
 
             # Desconecta e reconecta
             manager.disconnect()
