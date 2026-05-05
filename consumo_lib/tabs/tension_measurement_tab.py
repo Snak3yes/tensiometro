@@ -467,6 +467,10 @@ class TensionMeasurementTab(QWidget):
         self.legend_widget.setMinimumWidth(260)
         layout.addWidget(self.legend_widget)
 
+        self.criteria_group = self.create_criteria_group()
+        self.criteria_group.setMinimumWidth(260)
+        layout.addWidget(self.criteria_group)
+
         # BOTÃO HISTÓRICO: 310x35px
         self.btn_full_history = StandardButton(
             "Ver Histórico Completo",
@@ -553,6 +557,61 @@ class TensionMeasurementTab(QWidget):
         self.ok_label.setText("Aprovado")
         self.warn_label.setText("Warning")
         self.nok_label.setText("Reprovado")
+        self._update_criteria_summary()
+
+    def create_criteria_group(self) -> QGroupBox:
+        """Cria resumo compacto dos criterios de medicao atuais."""
+        group = QGroupBox("Critérios de Medição")
+        group.setStyleSheet(f"""
+            QGroupBox {{
+                font-size: 10px;
+                font-weight: bold;
+            }}
+            QGroupBox::title {{
+                subcontrol-origin: margin;
+                left: 10px;
+                padding: 0 5px;
+            }}
+        """)
+
+        layout = QVBoxLayout(group)
+        layout.setContentsMargins(10, 18, 10, 8)
+        layout.setSpacing(3)
+
+        self.criteria_ok_label = QLabel()
+        self.criteria_warning_label = QLabel()
+        self.criteria_nok_label = QLabel()
+
+        self.criteria_ok_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.SUCCESS};")
+        self.criteria_warning_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.WARNING};")
+        self.criteria_nok_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.ERROR};")
+
+        for label in (self.criteria_ok_label, self.criteria_warning_label, self.criteria_nok_label):
+            label.setWordWrap(True)
+            layout.addWidget(label)
+
+        self._update_criteria_summary()
+        return group
+
+    def _update_criteria_summary(self) -> None:
+        """Atualiza os valores visiveis dos criterios de medicao."""
+        labels_ready = all(
+            hasattr(self, attr)
+            for attr in ("criteria_ok_label", "criteria_warning_label", "criteria_nok_label")
+        )
+        if not labels_ready:
+            return
+
+        ok_start = min(self.criteria_max, self.criteria_warn_high + 0.1)
+        self.criteria_ok_label.setText(
+            f"OK: {ok_start:.1f} a {self.criteria_max:.1f} N/cm"
+        )
+        self.criteria_warning_label.setText(
+            f"WARNING: {self.criteria_min:.1f} a {self.criteria_warn_high:.1f} N/cm"
+        )
+        self.criteria_nok_label.setText(
+            f"NOK: < {self.criteria_min:.1f} ou > {self.criteria_max:.1f} N/cm"
+        )
 
     def _create_status_badge(self, text: str, background_color: str, text_color: str) -> QLabel:
         """Cria um badge compacto para status."""

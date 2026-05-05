@@ -136,6 +136,26 @@ def test_measurement_summary_classifies_above_warning_high_as_approved(app):
         tab.close()
 
 
+def test_main_screen_displays_current_measurement_criteria(app):
+    tab = TensionMeasurementTab(stencil_manager=None)
+
+    try:
+        tab.update_criteria(
+            TensionCriteriaConfig(
+                min_tension=30.0,
+                max_tension=50.0,
+                warning_low=30.0,
+                warning_high=34.0,
+            )
+        )
+
+        assert tab.criteria_ok_label.text() == "OK: 34.1 a 50.0 N/cm"
+        assert tab.criteria_warning_label.text() == "WARNING: 30.0 a 34.0 N/cm"
+        assert tab.criteria_nok_label.text() == "NOK: < 30.0 ou > 50.0 N/cm"
+    finally:
+        tab.close()
+
+
 def test_heatmap_color_uses_saved_point_status(app):
     widget = MiniTensionHeatmapWidget()
 
