@@ -322,8 +322,8 @@ class TestTensionAcceptanceBehavior:
         acceptance = TensionAcceptance(min_tension=25.0, max_tension=45.0)
 
         # Verificações do COMPORTAMENTO:
-        assert acceptance.classify(30.0) == "OK", "Valor normal deve ser OK"
-        assert acceptance.classify(35.0) == "OK", "Valor normal deve ser OK"
+        assert acceptance.classify(42.1) == "OK", "Valor acima do warning deve ser OK"
+        assert acceptance.classify(45.0) == "OK", "Valor no maximo deve ser OK"
 
     def test_classify_returns_warning_for_boundary_values(self):
         """
@@ -341,8 +341,10 @@ class TestTensionAcceptanceBehavior:
         # Verificações do COMPORTAMENTO:
         assert acceptance.classify(26.0) == "WARNING", \
             "Abaixo do warning_low deve ser WARNING"
-        assert acceptance.classify(44.0) == "WARNING", \
-            "Acima do warning_high deve ser WARNING"
+        assert acceptance.classify(42.0) == "WARNING", \
+            "No warning_high deve ser WARNING"
+        assert acceptance.classify(44.0) == "OK", \
+            "Acima do warning_high e dentro do maximo deve ser OK"
 
     def test_classify_returns_nok_for_out_of_range(self):
         """

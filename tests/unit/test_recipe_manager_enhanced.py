@@ -183,17 +183,25 @@ def test_tension_acceptance_classify_warning_low(recipe_manager):
     assert result == "WARNING"
 
 def test_tension_acceptance_classify_warning_high(recipe_manager):
-    """Cobre linha 125: TensionAcceptance.classify() - WARNING alto"""
+    """Valores acima do warning_high e dentro do maximo devem ser OK."""
     from aoi_lib.recipe_manager import TensionAcceptance
     acc = TensionAcceptance(min_tension=25.0, max_tension=45.0, warning_high=42.0)
     result = acc.classify(44.0)  # Entre warning_high e max
-    assert result == "WARNING"
+    assert result == "OK"
+
+def test_tension_acceptance_classify_warning_boundary(recipe_manager):
+    """Valor no limite warning_high ainda deve ser WARNING."""
+    from aoi_lib.recipe_manager import TensionAcceptance
+    acc = TensionAcceptance(min_tension=30.0, max_tension=50.0, warning_high=34.0)
+    assert acc.classify(34.0) == "WARNING"
+    assert acc.classify(34.1) == "OK"
+    assert acc.classify(50.0) == "OK"
 
 def test_tension_acceptance_classify_ok(recipe_manager):
     """Cobre linha 127: TensionAcceptance.classify() - OK"""
     from aoi_lib.recipe_manager import TensionAcceptance
     acc = TensionAcceptance(min_tension=25.0, max_tension=45.0, warning_low=28.0, warning_high=42.0)
-    result = acc.classify(35.0)  # Dentro da faixa OK
+    result = acc.classify(42.1)  # Acima do warning_high e dentro do maximo
     assert result == "OK"
 
 def test_recipe_from_json(recipe_manager):

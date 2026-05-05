@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from aoi_lib.recipe_manager import TensionAcceptance
 from aoi_lib.stencil_tracker import Stencil, TensionRecord
 from consumo_lib.controllers.tension_measurement_controller import TensionMeasurementController
 
@@ -58,6 +59,31 @@ def test_rejected_measurement_skip_status_keeps_payload_local_only():
         "send_log_path": None,
     }
     assert controller._build_external_send_status_text() == "Envio API: não executado (NOK)"
+
+
+def test_classify_measurements_marks_values_above_warning_high_as_ok():
+    controller = _controller()
+    controller._get_global_acceptance_criteria = Mock(
+        return_value=TensionAcceptance(
+            min_tension=30.0,
+            max_tension=50.0,
+            warning_low=30.0,
+            warning_high=34.0,
+        )
+    )
+
+    classified = controller._classify_measurements_by_recipe(
+        {
+            "measurements": [
+                {"tension": 34.0},
+                {"tension": 34.1},
+                {"tension": 50.0},
+            ]
+        },
+        current_recipe=None,
+    )
+
+    assert [m["status"] for m in classified["measurements"]] == ["WARNING", "OK", "OK"]
 
 
 def test_save_measurement_keeps_nok_local_and_does_not_build_external_payload():

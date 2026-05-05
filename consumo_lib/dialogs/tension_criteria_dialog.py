@@ -186,8 +186,8 @@ class TensionCriteriaDialog(QDialog):
         # Nota sobre classificação
         note_label = QLabel(
             "<b>Classificação:</b><br>"
-            "• <span style='color: #27AE60;'>OK</span>: Entre warning_low e warning_high<br>"
-            "• <span style='color: #F1C40F;'>WARNING</span>: Entre min/warn_low ou warn_high/max<br>"
+            "• <span style='color: #27AE60;'>OK</span>: Acima de Warning ↑ até o máximo<br>"
+            "• <span style='color: #F1C40F;'>WARNING</span>: Entre o mínimo e Warning ↑<br>"
             "• <span style='color: #E74C3C;'>NOK</span>: Abaixo de min ou acima de max"
         )
         note_label.setWordWrap(True)

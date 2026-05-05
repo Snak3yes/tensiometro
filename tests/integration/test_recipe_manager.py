@@ -261,10 +261,10 @@ class TestTensionAcceptance:
 
     def test_classify_ok(self, sample_tension_acceptance):
         """Testa classificação OK."""
-        # Valores dentro da faixa warning
-        assert sample_tension_acceptance.classify(30.0) == 'OK'
-        assert sample_tension_acceptance.classify(35.0) == 'OK'
-        assert sample_tension_acceptance.classify(40.0) == 'OK'
+        # Valores acima do warning_high e dentro do maximo.
+        assert sample_tension_acceptance.classify(43.0) == 'OK'
+        assert sample_tension_acceptance.classify(44.5) == 'OK'
+        assert sample_tension_acceptance.classify(45.0) == 'OK'
 
     def test_classify_warning_low(self, sample_tension_acceptance):
         """Testa classificação WARNING (abaixo)."""
@@ -274,9 +274,8 @@ class TestTensionAcceptance:
 
     def test_classify_warning_high(self, sample_tension_acceptance):
         """Testa classificação WARNING (acima)."""
-        # Entre warning_high e max
-        assert sample_tension_acceptance.classify(43.0) == 'WARNING'
-        assert sample_tension_acceptance.classify(44.5) == 'WARNING'
+        assert sample_tension_acceptance.classify(42.0) == 'WARNING'
+        assert sample_tension_acceptance.classify(42.1) == 'OK'
 
     def test_classify_nok_below(self, sample_tension_acceptance):
         """Testa classificação NOK (abaixo do mínimo)."""

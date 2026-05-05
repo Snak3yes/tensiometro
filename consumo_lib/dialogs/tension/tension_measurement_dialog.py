@@ -711,7 +711,7 @@ class TensionMeasurementDialog(QDialog):
         for value in tensions:
             if value < criteria.min_tension or value > criteria.max_tension:
                 ng_count += 1
-            elif value < criteria.warning_low or value > criteria.warning_high:
+            elif value <= criteria.warning_high:
                 warning_count += 1
             else:
                 ok_count += 1

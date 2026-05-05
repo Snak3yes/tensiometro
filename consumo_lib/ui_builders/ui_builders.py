@@ -312,6 +312,7 @@ class MainUIBuilder:
 
         tab = TensionMeasurementTab(
             stencil_manager=self.window.stencil_tracker,
+            config_manager=self.window.config_manager,
             parent=self.window
         )
 

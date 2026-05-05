@@ -126,7 +126,7 @@ class MiniTensionHeatmapWidget(QWidget):
             center_y = margin + ((3 - cell_y) * cell_height) + (cell_height / 2)  # Inverte Y
 
             # Determina cor baseada na tensão
-            color = self._get_tension_color(tension)
+            color = self._get_tension_color(tension, measurement)
 
             # Desenha círculo (raio 14px conforme proposta)
             point_radius = 14
@@ -143,13 +143,21 @@ class MiniTensionHeatmapWidget(QWidget):
             text_y = center_y + text_rect.height() / 4
             painter.drawText(QPointF(text_x, text_y), text)
 
-    def _get_tension_color(self, tension: float) -> QColor:
+    def _get_tension_color(self, tension: float, measurement: Dict = None) -> QColor:
         """
         Retorna cor baseada no valor da tensão.
 
         Se há critérios de aceitação definidos, usa classificação OK/WARNING/NOK.
         Caso contrário, usa gradiente baseado no intervalo dos dados.
         """
+        saved_status = str((measurement or {}).get("status") or "").upper()
+        if saved_status == "OK":
+            return COLORS.to_qcolor(COLORS.SUCCESS)
+        if saved_status == "WARNING":
+            return COLORS.to_qcolor(COLORS.WARNING)
+        if saved_status == "NOK":
+            return COLORS.to_qcolor(COLORS.ERROR)
+
         if self.acceptance_criteria:
             result = self.acceptance_criteria.classify(tension)
             if result == 'OK':

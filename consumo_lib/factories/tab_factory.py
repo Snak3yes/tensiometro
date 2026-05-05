@@ -63,6 +63,7 @@ class TabFactory:
 
         tab = TensionMeasurementTab(
             stencil_manager=self.stencil_tracker,
+            config_manager=self.config,
             parent=self.main_window
         )
 

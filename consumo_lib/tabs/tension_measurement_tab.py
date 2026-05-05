@@ -36,9 +36,10 @@ class TensionMeasurementTab(QWidget):
     program_selected = pyqtSignal(dict)
     measure_stencil_requested = pyqtSignal()
 
-    def __init__(self, stencil_manager=None, parent=None):
+    def __init__(self, stencil_manager=None, config_manager=None, parent=None):
         super().__init__(parent)
         self.stencil_manager = stencil_manager
+        self.config_manager = config_manager
         self.current_stencils: List[Dict] = []
         self.selected_stencil: Optional[Dict] = None
         self.last_file_path: Optional[str] = None
@@ -52,6 +53,7 @@ class TensionMeasurementTab(QWidget):
         self.criteria_warn_high = 42.0
 
         self.setup_ui()
+        self._load_saved_criteria()
         self.load_stencils()
 
     def setup_ui(self):
@@ -826,7 +828,24 @@ class TensionMeasurementTab(QWidget):
 
     def _is_tension_ok(self, tension: float) -> bool:
         """Verifica se tensão está dentro dos critérios OK."""
-        return self.criteria_warn_low <= tension <= self.criteria_warn_high
+        if not self.acceptance_criteria:
+            self.on_criteria_changed()
+        return self.acceptance_criteria.classify(tension) == "OK"
+
+    def _load_saved_criteria(self) -> None:
+        """Carrega os criterios persistidos antes de calcular a visualizacao."""
+        if self.config_manager is None:
+            self.on_criteria_changed()
+            return
+
+        try:
+            from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
+
+            criteria = TensionCriteriaManager(self.config_manager).get_criteria()
+            self.update_criteria(criteria)
+        except Exception as exc:
+            logger.warning("Falha ao carregar criterios de tensao salvos: %s", exc)
+            self.on_criteria_changed()
 
     def load_tension_file(self):
         """Carrega arquivo JSON de tensão."""
@@ -942,10 +961,9 @@ class TensionMeasurementTab(QWidget):
 
         # Classifica medições
         counts = {'OK': 0, 'WARNING': 0, 'NOK': 0}
-        if self.acceptance_criteria:
-            for t in tensions:
-                result = self.acceptance_criteria.classify(t)
-                counts[result] = counts.get(result, 0) + 1
+        for measurement, tension in zip(measurements, tensions):
+            result = self._measurement_status(measurement, tension)
+            counts[result] = counts.get(result, 0) + 1
 
         total = len(tensions)
         ok_pct = (counts['OK'] / total * 100) if total > 0 else 0
@@ -968,7 +986,8 @@ class TensionMeasurementTab(QWidget):
         self.stats_total_label.setText(f"Total: {total} pontos medidos")
 
         # Atualiza resultado (badge)
-        if nok_pct > 0:
+        overall_result = self._overall_result_from_measurements(counts, total)
+        if overall_result == "NOK":
             self.result_badge.setText("REPROVADO")
             self.result_badge.setStyleSheet(f"""
                 QLabel {{
@@ -981,7 +1000,7 @@ class TensionMeasurementTab(QWidget):
                     min-height: 40px;
                 }}
             """)
-        elif warn_pct > 0:
+        elif overall_result == "WARNING":
             self.result_badge.setText("WARNING")
             self.result_badge.setStyleSheet(f"""
                 QLabel {{
@@ -1035,6 +1054,28 @@ class TensionMeasurementTab(QWidget):
                 )
             else:
                 self.file_details_label.setText(f"Grid: {grid_size}x{grid_size}")
+
+    def _measurement_status(self, measurement: Dict, tension: float) -> str:
+        """Retorna o status do ponto, preservando o valor salvo quando existir."""
+        saved_status = str(measurement.get("status") or "").upper()
+        if saved_status in {"OK", "WARNING", "NOK"}:
+            return saved_status
+
+        if not self.acceptance_criteria:
+            self.on_criteria_changed()
+        return self.acceptance_criteria.classify(tension)
+
+    def _overall_result_from_measurements(self, counts: Dict[str, int], total: int) -> str:
+        """Calcula o resultado agregado com a mesma regra do historico."""
+        saved_result = str((self.measurements_data or {}).get("result") or "").upper()
+        if saved_result in {"OK", "WARNING", "NOK"}:
+            return saved_result
+
+        if counts.get("NOK", 0) > 0:
+            return "NOK"
+        if total and counts.get("WARNING", 0) > total * 0.2:
+            return "WARNING"
+        return "OK"
 
     def filter_stencils(self, search_term: str = ""):
         """Filtra stencils por termo de busca."""

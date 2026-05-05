@@ -107,8 +107,8 @@ class TensionAcceptance:
     """Critérios de aceitação para tensão."""
     min_tension: float = 25.0  # N/cm² mínimo aceitável
     max_tension: float = 45.0  # N/cm² máximo aceitável
-    warning_low: float = 28.0  # Abaixo = warning
-    warning_high: float = 42.0  # Acima = warning
+    warning_low: float = 28.0  # Limite inferior historico do warning
+    warning_high: float = 42.0  # Ate este valor = warning
     
     def to_dict(self) -> Dict:
         return asdict(self)
@@ -126,7 +126,7 @@ class TensionAcceptance:
         """Classifica um valor de tensão."""
         if value < self.min_tension or value > self.max_tension:
             return "NOK"
-        if value < self.warning_low or value > self.warning_high:
+        if value <= self.warning_high:
             return "WARNING"
         return "OK"
 
