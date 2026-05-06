@@ -1,5 +1,5 @@
 MAPEAMENTO RELEVANTE DA LOGICA
-Fonte: imagens em Tenciometro_ISP\Imagens_logica
+Fonte: imagens em Tensiometro_ISP\Imagens_logica
 
 CRITERIO
 - Somente sinais relevantes para a aplicacao.
@@ -148,10 +148,10 @@ Y0.9 = tower red LED
 Y0.10 = TENCI calibrar
 Y0.11 = TENCI zerar
 
-M20 = liga tenciometro
-M22 = desliga tenciometro
-M23 = calibra tenciometro
-M24 = zera tenciometro
+M20 = liga tensiometro
+M22 = desliga tensiometro
+M23 = calibra tensiometro
+M24 = zera tensiometro
 
 Rede observada no programa TENCIOMETRO
 - M20 seta Y0.6 = TENCI ON/OFF

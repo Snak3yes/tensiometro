@@ -75,31 +75,65 @@ def test_selected_stencil_status_uses_latest_measurement_result(app):
 
 
 def test_tree_status_badge_uses_latest_measurement_result(app):
-    manager = _FakeStencilManager(_FakeTensionRecord(result="OK", average_tension=32.0))
+    manager = _FakeStencilManager(
+        _FakeTensionRecord(
+            result="OK",
+            average_tension=44.0,
+            measurements=({"x": 0, "y": 0, "tension": 44.0, "status": "OK"},),
+        )
+    )
     tab = TensionMeasurementTab(stencil_manager=manager)
 
     try:
         item = tab.tree_widget.topLevelItem(0)
         badge = tab.tree_widget.itemWidget(item, 2)
 
-        assert badge.text() == "Aprovado"
+        assert badge.text() == "OK"
+
+        tab.show_details(tab.current_stencils[0])
+        assert tab.field_status_badge.text() == "Aprovado"
     finally:
         tab.close()
 
 
-def test_latest_measurement_summary_uses_saved_point_statuses(app):
+def test_tree_status_badge_tracks_status_column_width(app):
+    manager = _FakeStencilManager(_FakeTensionRecord(result="OK", average_tension=32.0))
+    tab = TensionMeasurementTab(stencil_manager=manager)
+
+    try:
+        tab.tree_widget.setColumnWidth(2, 48)
+        tab._resize_tree_status_badges()
+
+        item = tab.tree_widget.topLevelItem(0)
+        badge = tab.tree_widget.itemWidget(item, 2)
+
+        assert badge.maximumWidth() <= 42
+        assert badge.sizePolicy().horizontalPolicy() == badge.sizePolicy().Policy.Ignored
+    finally:
+        tab.close()
+
+
+def test_latest_measurement_summary_reclassifies_stale_saved_statuses(app):
     record = _FakeTensionRecord(
-        result="OK",
+        result="WARNING",
         average_tension=46.5,
         measurements=(
-            {"x": 0, "y": 0, "tension": 46.0, "status": "OK"},
-            {"x": 1, "y": 0, "tension": 47.0, "status": "OK"},
+            {"x": 0, "y": 0, "tension": 46.0, "status": "WARNING"},
+            {"x": 1, "y": 0, "tension": 47.0, "status": "WARNING"},
         ),
     )
     manager = _FakeStencilManager(record)
     tab = TensionMeasurementTab(stencil_manager=manager)
 
     try:
+        tab.update_criteria(
+            TensionCriteriaConfig(
+                min_tension=30.0,
+                max_tension=50.0,
+                warning_low=30.0,
+                warning_high=34.0,
+            )
+        )
         tab._load_latest_measurement_for_stencil(tab.current_stencils[0])
 
         assert tab.stats_counts_label.text().startswith("OK: 2")
@@ -156,14 +190,14 @@ def test_main_screen_displays_current_measurement_criteria(app):
         tab.close()
 
 
-def test_heatmap_color_uses_saved_point_status(app):
+def test_heatmap_color_reclassifies_stale_saved_status(app):
     widget = MiniTensionHeatmapWidget()
 
     try:
         widget.set_acceptance_criteria(
-            TensionAcceptance(min_tension=30.0, max_tension=45.0, warning_high=34.0)
+            TensionAcceptance(min_tension=30.0, max_tension=50.0, warning_high=34.0)
         )
 
-        assert widget._get_tension_color(47.0, {"status": "OK"}) == COLORS.to_qcolor(COLORS.SUCCESS)
+        assert widget._get_tension_color(47.0, {"status": "WARNING"}) == COLORS.to_qcolor(COLORS.SUCCESS)
     finally:
         widget.close()

@@ -1,6 +1,6 @@
 param(
-    [string]$ExeName = "Tenciometro",
-    [string]$PackageName = "tenciometro_build_V0.1",
+    [string]$ExeName = "Tensiometro",
+    [string]$PackageName = "tensiometro_build_V0.1",
     [string]$EntryPoint = "main.py"
 )
 
@@ -54,6 +54,7 @@ try {
         "--noconfirm",
         "--clean",
         "--onedir",
+        "--windowed",
         "--name", $ExeName,
         "--workpath", $workPath,
         "--distpath", $pyInstallerDistRoot

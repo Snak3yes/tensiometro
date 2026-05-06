@@ -555,7 +555,7 @@ class TensionMeasurementDialog(QDialog):
 
         if not getattr(self.cnc, "is_connected", False):
             if show_message:
-                QMessageBox.warning(self, "Aviso", "Conecte o CLP antes de acionar o tenciômetro.")
+                QMessageBox.warning(self, "Aviso", "Conecte o CLP antes de acionar o tensiômetro.")
             return False
 
         if not hasattr(self.cnc, "pulse_coil") and not hasattr(self.cnc, "_pulse_coil"):
@@ -563,7 +563,7 @@ class TensionMeasurementDialog(QDialog):
                 QMessageBox.warning(
                     self,
                     "Aviso",
-                    "O controlador atual não expõe pulso de coil para o tenciômetro."
+                    "O controlador atual não expõe pulso de coil para o tensiômetro."
                 )
             return False
 
@@ -580,14 +580,14 @@ class TensionMeasurementDialog(QDialog):
             else:
                 self.cnc._pulse_coil(coil, duration_ms)
 
-            self.progress_label.setText(f"{action_name} enviado ao tenciômetro")
-            logger.info(f"Comando enviado ao tenciômetro: {action_name} (M{coil})")
+            self.progress_label.setText(f"{action_name} enviado ao tensiômetro")
+            logger.info(f"Comando enviado ao tensiômetro: {action_name} (M{coil})")
             return True
         except Exception as e:
-            logger.exception(f"Erro ao executar comando {action_name} no tenciômetro")
+            logger.exception(f"Erro ao executar comando {action_name} no tensiômetro")
             QMessageBox.critical(
                 self,
-                "Erro no Tenciômetro",
+                "Erro no Tensiômetro",
                 f"Falha ao executar '{action_name}':\n{e}"
             )
             return False
@@ -599,7 +599,7 @@ class TensionMeasurementDialog(QDialog):
             "Ligar",
             duration_ms=TENSIOMETER_POWER_ON_PULSE_MS,
         ):
-            QMessageBox.information(self, "Tenciômetro", "Comando de ligar enviado.")
+            QMessageBox.information(self, "Tensiômetro", "Comando de ligar enviado.")
 
     def _turn_off_tensiometer(self):
         """Turn off tensiometer via PLC."""
@@ -608,17 +608,17 @@ class TensionMeasurementDialog(QDialog):
             "Desligar",
             duration_ms=TENSIOMETER_POWER_OFF_PULSE_MS,
         ):
-            QMessageBox.information(self, "Tenciômetro", "Comando de desligar enviado.")
+            QMessageBox.information(self, "Tensiômetro", "Comando de desligar enviado.")
 
     def _calibrate_tensiometer(self):
         """Send calibration command to tensiometer via PLC."""
         if self._pulse_tensiometer_coil(TENSIOMETER_CALIBRATE_COIL, "Calibrar"):
-            QMessageBox.information(self, "Tenciômetro", "Comando de calibração enviado.")
+            QMessageBox.information(self, "Tensiômetro", "Comando de calibração enviado.")
 
     def _zero_tensiometer(self):
         """Send zero command to tensiometer via PLC."""
         if self._pulse_tensiometer_coil(TENSIOMETER_ZERO_COIL, "Zerar"):
-            QMessageBox.information(self, "Tenciômetro", "Comando de zerar enviado.")
+            QMessageBox.information(self, "Tensiômetro", "Comando de zerar enviado.")
 
     # ==================== POSITION CAPTURE ====================
 

@@ -17,6 +17,9 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QColor, QFont
 
 from aoi_lib.stencil_tracker import StencilTracker
+from aoi_lib.recipe_manager import TensionAcceptance
+from consumo_lib.managers.tension_criteria_manager import TensionCriteriaManager
+from consumo_lib.services.tension_reclassification_service import reclassify_tension_history
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 
@@ -36,6 +39,7 @@ class StencilFullHistoryDialog(QDialog):
         super().__init__(parent)
         self.tracker = tracker
         self.code = code
+        self.acceptance_criteria = self._load_acceptance_criteria()
 
         self.setWindowTitle(f"Histórico Completo - {code}")
         self.setMinimumSize(850, 600)
@@ -163,7 +167,7 @@ class StencilFullHistoryDialog(QDialog):
         self.lbl_tension_trend.setStyleSheet(f"color: {trend_color}; font-weight: bold;")
 
         # Tabela de tensão
-        history = self.tracker.get_tension_history(self.code, limit=50)
+        history = self._reclassified_history(limit=50)
         self.tension_table.setRowCount(len(history))
 
         for row, record in enumerate(history):
@@ -208,7 +212,7 @@ class StencilFullHistoryDialog(QDialog):
                 # Header
                 f.write("Data/Hora,Resultado,Media,Min,Max,OK,WARNING,NOK,Receita\n")
 
-                for record in self.tracker.get_tension_history(self.code, limit=1000):
+                for record in self._reclassified_history(limit=1000):
                     f.write(
                         f"{record.timestamp},"
                         f"{record.result},"
@@ -231,3 +235,21 @@ class StencilFullHistoryDialog(QDialog):
                 self, "Erro ao Exportar",
                 f"Erro: {str(e)}"
             )
+
+    def _reclassified_history(self, limit: int):
+        history = self.tracker.get_tension_history(self.code, limit=limit)
+        return reclassify_tension_history(history, self.acceptance_criteria)
+
+    def _load_acceptance_criteria(self):
+        parent = self.parent()
+        config_manager = getattr(parent, "config_manager", None)
+        if config_manager is None:
+            return None
+
+        criteria = TensionCriteriaManager(config_manager).get_criteria()
+        return TensionAcceptance(
+            min_tension=criteria.min_tension,
+            max_tension=criteria.max_tension,
+            warning_low=criteria.warning_low,
+            warning_high=criteria.warning_high,
+        )

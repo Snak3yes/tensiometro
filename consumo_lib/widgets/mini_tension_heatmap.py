@@ -150,14 +150,6 @@ class MiniTensionHeatmapWidget(QWidget):
         Se há critérios de aceitação definidos, usa classificação OK/WARNING/NOK.
         Caso contrário, usa gradiente baseado no intervalo dos dados.
         """
-        saved_status = str((measurement or {}).get("status") or "").upper()
-        if saved_status == "OK":
-            return COLORS.to_qcolor(COLORS.SUCCESS)
-        if saved_status == "WARNING":
-            return COLORS.to_qcolor(COLORS.WARNING)
-        if saved_status == "NOK":
-            return COLORS.to_qcolor(COLORS.ERROR)
-
         if self.acceptance_criteria:
             result = self.acceptance_criteria.classify(tension)
             if result == 'OK':
@@ -166,6 +158,14 @@ class MiniTensionHeatmapWidget(QWidget):
                 return COLORS.to_qcolor(COLORS.WARNING)
             else:  # NOK
                 return COLORS.to_qcolor(COLORS.ERROR)
+
+        saved_status = str((measurement or {}).get("status") or "").upper()
+        if saved_status == "OK":
+            return COLORS.to_qcolor(COLORS.SUCCESS)
+        if saved_status == "WARNING":
+            return COLORS.to_qcolor(COLORS.WARNING)
+        if saved_status == "NOK":
+            return COLORS.to_qcolor(COLORS.ERROR)
 
         # Fallback: gradiente baseado nos dados
         tensions = [float(m.get('tension', 0)) for m in self.measurements]

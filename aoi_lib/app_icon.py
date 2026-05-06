@@ -18,7 +18,7 @@ from aoi_lib.runtime_paths import get_runtime_path
 
 logger = logging.getLogger(__name__)
 
-APP_USER_MODEL_ID = "Digiboard.Tenciometro"
+APP_USER_MODEL_ID = "Digiboard.Tensiometro"
 
 
 def _get_icon_candidates() -> tuple[Path, ...]:

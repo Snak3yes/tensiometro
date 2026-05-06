@@ -1,5 +1,5 @@
 MAPEAMENTO RELEVANTE DA LOGICA
-Fonte: imagens em Tenciometro_ISP\Imagens_logica
+Fonte: imagens em Tensiometro_ISP\Imagens_logica
 
 CRITERIO
 - Somente sinais relevantes para a aplicacao.
@@ -148,14 +148,14 @@ Y0.9 = tower red LED
 Y0.10 = TENCI calibrar
 Y0.11 = TENCI zerar
 
-M20 = pulso de controle do tenciometro (pulso curto liga, pulso de 3 s desliga)
-M23 = calibra tenciometro
-M24 = zera tenciometro
+M20 = pulso de controle do tensiometro (pulso curto liga, pulso de 3 s desliga)
+M23 = calibra tensiometro
+M24 = zera tensiometro
 
 Rede observada no programa TENCIOMETRO
 - M20 controla Y0.6 = TENCI ON/OFF
-- pulso curto em M20 liga o tenciometro
-- pulso de aproximadamente 3 s em M20 desliga o tenciometro
+- pulso curto em M20 liga o tensiometro
+- pulso de aproximadamente 3 s em M20 desliga o tensiometro
 - M23 aciona Y0.10 = TENCI CALIBRAR
 - M24 aciona Y0.11 = TENCI ZERAR
 

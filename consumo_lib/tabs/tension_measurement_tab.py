@@ -20,6 +20,7 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from consumo_lib.ui import COLORS, TYPO, SPACE, DIM
 from consumo_lib.ui.widget_standards import StandardButton
 from consumo_lib.widgets.mini_tension_heatmap import MiniTensionHeatmapWidget
+from consumo_lib.services.tension_reclassification_service import reclassify_tension_record
 
 from aoi_lib.recipe_manager import TensionAcceptance
 
@@ -122,6 +123,7 @@ class TensionMeasurementTab(QWidget):
         self.tree_widget.setColumnWidth(4, 150)  # Última
         self.tree_widget.setColumnWidth(5, 80)   # Ações
         self.tree_widget.currentItemChanged.connect(self._on_current_item_changed)
+        self.tree_widget.header().sectionResized.connect(self._on_tree_column_resized)
 
         # Compact header and items (conforme proposta SVG)
         self.tree_widget.setStyleSheet(f"""
@@ -582,9 +584,9 @@ class TensionMeasurementTab(QWidget):
         self.criteria_warning_label = QLabel()
         self.criteria_nok_label = QLabel()
 
-        self.criteria_ok_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.SUCCESS};")
-        self.criteria_warning_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.WARNING};")
-        self.criteria_nok_label.setStyleSheet(f"font-size: 9px; font-weight: bold; color: {COLORS.ERROR};")
+        self.criteria_ok_label.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {COLORS.SUCCESS};")
+        self.criteria_warning_label.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {COLORS.WARNING};")
+        self.criteria_nok_label.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {COLORS.ERROR};")
 
         for label in (self.criteria_ok_label, self.criteria_warning_label, self.criteria_nok_label):
             label.setWordWrap(True)
@@ -613,7 +615,15 @@ class TensionMeasurementTab(QWidget):
             f"NOK: < {self.criteria_min:.1f} ou > {self.criteria_max:.1f} N/cm"
         )
 
-    def _create_status_badge(self, text: str, background_color: str, text_color: str) -> QLabel:
+    def _create_status_badge(
+        self,
+        text: str,
+        background_color: str,
+        text_color: str,
+        min_width: int = 96,
+        font_size: int = 11,
+        padding: str = "4px 10px",
+    ) -> QLabel:
         """Cria um badge compacto para status."""
         badge = QLabel(text)
         badge.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -621,6 +631,9 @@ class TensionMeasurementTab(QWidget):
             self._status_badge_stylesheet(
                 background_color=background_color,
                 text_color=text_color,
+                min_width=min_width,
+                font_size=font_size,
+                padding=padding,
             )
         )
         return badge
@@ -630,13 +643,15 @@ class TensionMeasurementTab(QWidget):
         background_color: str,
         text_color: str,
         min_width: int = 96,
+        font_size: int = 11,
+        padding: str = "4px 10px",
     ) -> str:
         return f"""
-            font-size: 11px;
+            font-size: {font_size}px;
             font-weight: bold;
             color: {text_color};
             background-color: {background_color};
-            padding: 4px 10px;
+            padding: {padding};
             border-radius: 6px;
             min-width: {min_width}px;
         """
@@ -650,6 +665,37 @@ class TensionMeasurementTab(QWidget):
             "pending": ("Pendente", COLORS.SURFACE_VARIANT, COLORS.TEXT_PRIMARY),
         }
         return status_config.get(status, status_config["pending"])
+
+    def _create_tree_status_badge(self, text: str, background_color: str, text_color: str) -> QLabel:
+        """Cria badge de status limitado ao tamanho da coluna da tabela."""
+        badge = self._create_status_badge(
+            text,
+            background_color,
+            text_color,
+            min_width=0,
+            font_size=10,
+            padding="2px 4px",
+        )
+        badge.setMinimumWidth(0)
+        badge.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Fixed)
+        badge.setMaximumWidth(self._tree_status_badge_width())
+        return badge
+
+    def _tree_status_badge_width(self) -> int:
+        return max(18, self.tree_widget.columnWidth(2) - 6)
+
+    def _on_tree_column_resized(self, logical_index: int, old_size: int, new_size: int) -> None:
+        del old_size, new_size
+        if logical_index == 2:
+            self._resize_tree_status_badges()
+
+    def _resize_tree_status_badges(self) -> None:
+        max_width = self._tree_status_badge_width()
+        for row in range(self.tree_widget.topLevelItemCount()):
+            item = self.tree_widget.topLevelItem(row)
+            badge = self.tree_widget.itemWidget(item, 2)
+            if badge is not None:
+                badge.setMaximumWidth(max_width)
 
     def create_file_info_group(self) -> QGroupBox:
         """Cria grupo de informações do arquivo."""
@@ -703,7 +749,7 @@ class TensionMeasurementTab(QWidget):
                         stencil.code, limit=1
                     )
                     if history and len(history) > 0:
-                        latest_record = history[0]
+                        latest_record = self._reclassify_record(history[0])
                         tension_avg = latest_record.average_tension
                         latest_result = latest_record.result
                         latest_timestamp = latest_record.timestamp
@@ -741,8 +787,8 @@ class TensionMeasurementTab(QWidget):
             item.setData(0, Qt.ItemDataRole.UserRole, stencil)
             self.tree_widget.addTopLevelItem(item)
 
-            status_text, status_bg, status_fg = self._approval_display_config(stencil)
-            status_label = self._create_status_badge(status_text, status_bg, status_fg)
+            status_text, status_bg, status_fg = self._tree_approval_display_config(stencil)
+            status_label = self._create_tree_status_badge(status_text, status_bg, status_fg)
             self.tree_widget.setItemWidget(item, 2, status_label)
 
             # Tensão média
@@ -781,6 +827,7 @@ class TensionMeasurementTab(QWidget):
             self.tree_widget.setCurrentItem(item_to_select)
         else:
             self._clear_visualization()
+        self._resize_tree_status_badges()
 
     def on_view_clicked(self, stencil: Dict):
         """Handle para clique no botão Ver."""
@@ -884,6 +931,13 @@ class TensionMeasurementTab(QWidget):
             return "Reprovado", "#C62828", "#FFFFFF"
 
         return "Sem medicao", COLORS.SURFACE_VARIANT, COLORS.TEXT_PRIMARY
+
+    def _tree_approval_display_config(self, stencil: Dict) -> tuple[str, str, str]:
+        """Mapeia a ultima medicao para a coluna Status da tabela."""
+        text, background, foreground = self._approval_display_config(stencil)
+        if (stencil.get("latest_result") or "").upper() == "OK":
+            text = "OK"
+        return text, background, foreground
 
     def _is_tension_ok(self, tension: float) -> bool:
         """Verifica se tensão está dentro dos critérios OK."""
@@ -1115,21 +1169,13 @@ class TensionMeasurementTab(QWidget):
                 self.file_details_label.setText(f"Grid: {grid_size}x{grid_size}")
 
     def _measurement_status(self, measurement: Dict, tension: float) -> str:
-        """Retorna o status do ponto, preservando o valor salvo quando existir."""
-        saved_status = str(measurement.get("status") or "").upper()
-        if saved_status in {"OK", "WARNING", "NOK"}:
-            return saved_status
-
+        """Retorna o status do ponto pelos criterios atuais."""
         if not self.acceptance_criteria:
             self.on_criteria_changed()
         return self.acceptance_criteria.classify(tension)
 
     def _overall_result_from_measurements(self, counts: Dict[str, int], total: int) -> str:
         """Calcula o resultado agregado com a mesma regra do historico."""
-        saved_result = str((self.measurements_data or {}).get("result") or "").upper()
-        if saved_result in {"OK", "WARNING", "NOK"}:
-            return saved_result
-
         if counts.get("NOK", 0) > 0:
             return "NOK"
         if total and counts.get("WARNING", 0) > total * 0.2:
@@ -1297,7 +1343,7 @@ class TensionMeasurementTab(QWidget):
             )
             return
 
-        latest_record = history[0]
+        latest_record = self._reclassify_record(history[0])
         stencil["latest_result"] = latest_record.result
         stencil["last_measurement"] = latest_record.timestamp
         stencil["tension_avg"] = latest_record.average_tension
@@ -1384,6 +1430,11 @@ class TensionMeasurementTab(QWidget):
         self.on_criteria_changed()
         self.file_name_label.setText(file_name)
         self.file_details_label.setText("Grid: -- | Area: --")
+
+    def _reclassify_record(self, record):
+        if not self.acceptance_criteria:
+            self.on_criteria_changed()
+        return reclassify_tension_record(record, self.acceptance_criteria)
 
     def _parse_datetime(self, value) -> Optional[datetime]:
         """Parse de datetime."""

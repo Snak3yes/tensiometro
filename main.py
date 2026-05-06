@@ -105,8 +105,8 @@ def main():
 
     configure_windows_app_user_model_id()
     app = QApplication(sys.argv)
-    app.setApplicationName("Tenciometro")
-    app.setApplicationDisplayName("Tenciometro")
+    app.setApplicationName("Tensiometro")
+    app.setApplicationDisplayName("Tensiometro")
     apply_application_icon(app)
 
     # Inicializa ThemeManager do Design System PRIMEIRO

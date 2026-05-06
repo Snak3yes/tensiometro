@@ -334,12 +334,12 @@ class TensionMeasurementThread(QThread):
         try:
             if hasattr(self.cnc, "pulse_coil"):
                 self.cnc.pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS)
-                logger.debug("Tenciometro ligado via M20 com pulso curto")
+                logger.debug("Tensiometro ligado via M20 com pulso curto")
             elif hasattr(self.cnc, "_pulse_coil"):
                 self.cnc._pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS)
-                logger.debug("Tenciometro ligado via M20 com pulso curto")
+                logger.debug("Tensiometro ligado via M20 com pulso curto")
             else:
-                logger.warning("Controlador CNC nao expoe interface para ligar o tenciometro")
+                logger.warning("Controlador CNC nao expoe interface para ligar o tensiometro")
         except Exception as e:
             logger.error(f"Erro ao ligar sensor: {e}")
 
@@ -347,12 +347,12 @@ class TensionMeasurementThread(QThread):
         try:
             if hasattr(self.cnc, "pulse_coil"):
                 self.cnc.pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_OFF_PULSE_MS)
-                logger.debug("Tenciometro desligado via M20 com pulso de 3s")
+                logger.debug("Tensiometro desligado via M20 com pulso de 3s")
             elif hasattr(self.cnc, "_pulse_coil"):
                 self.cnc._pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_OFF_PULSE_MS)
-                logger.debug("Tenciometro desligado via M20 com pulso de 3s")
+                logger.debug("Tensiometro desligado via M20 com pulso de 3s")
             else:
-                logger.warning("Controlador CNC nao expoe interface para desligar o tenciometro")
+                logger.warning("Controlador CNC nao expoe interface para desligar o tensiometro")
         except Exception as e:
             logger.error(f"Erro ao desligar sensor: {e}")
 
