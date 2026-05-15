@@ -16,7 +16,7 @@ def _controller():
     return controller
 
 
-def test_nok_measurement_is_not_eligible_for_external_send():
+def test_nok_measurement_is_eligible_for_external_send_with_rejected_flag():
     controller = _controller()
     record = TensionRecord(
         timestamp="2026-04-30T10:00:00",
@@ -27,7 +27,8 @@ def test_nok_measurement_is_not_eligible_for_external_send():
         nok_count=1,
     )
 
-    assert controller._should_send_external_integration(record) is False
+    assert controller._should_send_external_integration(record) is True
+    assert controller._is_external_payload_approved(record) is False
 
 
 def test_ok_measurement_is_eligible_for_external_send():
@@ -42,23 +43,24 @@ def test_ok_measurement_is_eligible_for_external_send():
     )
 
     assert controller._should_send_external_integration(record) is True
+    assert controller._is_external_payload_approved(record) is True
 
 
-def test_rejected_measurement_skip_status_keeps_payload_local_only():
+def test_empty_measurement_skip_status_keeps_payload_local_only():
     controller = _controller()
 
-    controller._mark_external_integration_skipped_for_rejected_measurement(Stencil(code="ABC123"))
+    controller._mark_external_integration_skipped_for_empty_measurement(Stencil(code="ABC123"))
 
     assert controller._last_external_send_attempt == {
         "success": None,
         "skipped": True,
-        "skip_reason": "rejected_measurement",
+        "skip_reason": "empty_measurement",
         "error": None,
         "status_code": None,
         "payload_path": None,
         "send_log_path": None,
     }
-    assert controller._build_external_send_status_text() == "Envio API: não executado (NOK)"
+    assert controller._build_external_send_status_text() == "Envio API: não executado (sem pontos)"
 
 
 def test_classify_measurements_marks_values_above_warning_high_as_ok():
@@ -86,7 +88,7 @@ def test_classify_measurements_marks_values_above_warning_high_as_ok():
     assert [m["status"] for m in classified["measurements"]] == ["WARNING", "OK", "OK"]
 
 
-def test_save_measurement_keeps_nok_local_and_does_not_build_external_payload():
+def test_save_measurement_sends_nok_to_external_payload_with_approved_false():
     controller = _controller()
     controller.stencil_manager_wrapper = Mock()
     controller.stencil_manager_wrapper.add_tension_record.return_value = True
@@ -113,5 +115,5 @@ def test_save_measurement_keeps_nok_local_and_does_not_build_external_payload():
     )
 
     assert record.result == "NOK"
-    controller._save_external_integration_payload.assert_not_called()
-    assert controller._last_external_send_attempt["skip_reason"] == "rejected_measurement"
+    controller._save_external_integration_payload.assert_called_once()
+    assert controller._save_external_integration_payload.call_args.kwargs["approved"] is False

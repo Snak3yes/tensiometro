@@ -168,6 +168,7 @@ Implication:
 10. Do not create `build/` or `dist/` inside this worktree. All packaging and executable build outputs must be written to a sibling or parent folder outside the repository checkout. Prefer `tools/build_app.ps1` when generating application builds.
 11. Before finishing any change that touches user-facing text, check for mojibake, broken UTF-8 PT-BR characters, or replacement glyphs, and fix them before delivery.
 12. When creating the first application build, use the branding assets from `resources/`: `resources/app_icon.ico` as the executable icon and `resources/app_icon.png` as the logo where the build process supports a logo/image asset.
+13. Commit messages must start with a change-type prefix such as `Feat:`, `Fix:`, `Refactor:`, `Docs:`, `Test:`, `Style:`, or `Chore:`. Follow the prefix with a concise descriptive subject, and do not use the `type(scope):` format.
 
 ## Recommended First Files To Read
 

@@ -30,7 +30,6 @@ class MenuHandler(QObject):
 
     Estrutura de Menus (v0.5-tension - Consolidada):
         - Arquivo (Sair)
-        - Cadastros (Stencils)
         - Relatórios (Tensão, Stencil, Período, Configurações)
         - Ferramentas (Movimento, CLP, Calibração, Conexões, Preferências)
         - Sistema (Autenticação, Tema, Permissões, Sobre)
@@ -70,9 +69,6 @@ class MenuHandler(QObject):
         # Menu Login
         self._create_login_menu(menubar)
 
-        # Menu Cadastros (NOVO - Receitas + Stencils como submenus)
-        self._create_cadastros_menu(menubar)
-
         # Menu Relatórios
         self._create_reports_menu(menubar)
 
@@ -107,25 +103,8 @@ class MenuHandler(QObject):
         self._register_action("login.exit", exit_action)
 
     def _create_cadastros_menu(self, menubar: QMenuBar):
-        """Cria o menu Cadastros com Stencils."""
-        menu = menubar.addMenu("&Cadastros")
-        self._register_menu("cadastros", menu)
-
-        # ========== Stencils ==========
-        # Gerenciar Stencils
-        manage_stencil_action = QAction('Gerenciar Stencils...', self.main_window)
-        manage_stencil_action.setShortcut('Ctrl+T')
-        manage_stencil_action.triggered.connect(self.main_window.show_stencil_manager)
-        menu.addAction(manage_stencil_action)
-        self._register_action('stencils.manage', manage_stencil_action)
-
-        # Novo Stencil
-        new_stencil_action = QAction('Novo Stencil...', self.main_window)
-        new_stencil_action.triggered.connect(self.main_window.show_new_stencil_dialog)
-        menu.addAction(new_stencil_action)
-        self._register_action('stencils.new', new_stencil_action)
-
-        # REMOVIDO (release/v0.5-tension): Stencil Atual (dinâmico) removido do menu
+        """Cadastro manual de stencils removido: dados vêm do SFCS."""
+        return
 
     def _create_reports_menu(self, menubar: QMenuBar):
         """Cria o menu Relatórios."""

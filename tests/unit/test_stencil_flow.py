@@ -229,6 +229,51 @@ class TestStencilIdentificationWidgetIntegration:
         assert widget.code_input.text() == "75B01A849403741"
         mock_stencil_tracker.get_stencil.assert_called_with("75B01A849403741")
 
+    def test_widget_loads_stencil_from_sfcs_and_syncs_local_cache(self, qapp):
+        """
+        Testa se a bipagem usa o SFCS e sincroniza o cache local do stencil.
+        """
+        from aoi_lib.stencil_tracker import Stencil
+        from consumo_lib.services.sfcs_stencil_lookup_service import SfcsStencilRecord
+        from consumo_lib.widgets.stencil.identification_widget import StencilIdentificationWidget
+
+        record = SfcsStencilRecord(
+            code="TESTE 123",
+            description="LEGIONS (R7) MB",
+            grid="4x4",
+            sfcs_id=745,
+            stencil_type=1,
+            sfcs_status="DISPONIVEL",
+            raw_payload={},
+        )
+        sfcs_service = Mock()
+        sfcs_service.is_enabled.return_value = True
+        sfcs_service.lookup.return_value = record
+        sfcs_service.resolve_recipe_name.return_value = "LOQ IRX9"
+
+        tracker = Mock()
+        tracker.get_stencil.return_value = None
+        tracker.create_stencil.return_value = Stencil(
+            code="TESTE 123",
+            description="LEGIONS (R7) MB",
+            recipe_name="LOQ IRX9",
+        )
+        tracker.check_degradation_alert.return_value = None
+
+        widget = StencilIdentificationWidget(tracker, parent=None, sfcs_service=sfcs_service)
+        widget.code_input.setText("teste 123")
+
+        widget._load_stencil()
+
+        sfcs_service.lookup.assert_called_once_with("TESTE 123")
+        tracker.create_stencil.assert_called_once_with(
+            "TESTE 123",
+            description="LEGIONS (R7) MB",
+            recipe_name="LOQ IRX9",
+        )
+        assert widget.current_stencil.code == "TESTE 123"
+        assert widget.current_stencil.description == "LEGIONS (R7) MB"
+
 
 class TestTabFactoryAfterTrackingRemoval:
     """Testes do TabFactory após remoção da aba Rastreabilidade."""

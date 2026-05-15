@@ -377,3 +377,24 @@ smoke_test*.log
 test_results*.txt
 all_tests.txt
 *.log
+
+# =============================================================================
+# GSD: runtime / ephemeral project state
+# =============================================================================
+.gsd/completed-units*.json
+.gsd/state-manifest.json
+.gsd/STATE.md
+.gsd/metrics.json
+.gsd/activity/
+.gsd/runtime/
+.gsd/worktrees/
+.gsd/parallel/
+.gsd/gsd.db*
+.gsd/journal/
+.gsd/doctor-history.jsonl
+.gsd/event-log.jsonl
+.gsd/reports/
+.gsd/notifications.jsonl
+.gsd/milestones/**/continue.md
+.gsd/milestones/**/*-CONTINUE.md
+.bg-shell/

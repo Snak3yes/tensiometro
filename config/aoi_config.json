@@ -179,7 +179,7 @@
   },
   "tension_criteria": {
     "min_tension": 30.0,
-    "max_tension": 45.0,
+    "max_tension": 49.0,
     "warning_low": 30.0,
     "warning_high": 34.0
   },
@@ -193,5 +193,11 @@
     "line_name": "IMC4-LM03",
     "user_id": 1,
     "stencil_status_id": null
+  },
+  "sfcs_stencil_lookup": {
+    "enabled": true,
+    "endpoint_url": "http://147.1.0.100:3075/sfcs-print/stencil/{codigo_barras}",
+    "timeout_sec": 10.0,
+    "grid_pattern_map": {}
   }
 }

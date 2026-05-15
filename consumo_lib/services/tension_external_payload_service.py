@@ -39,6 +39,7 @@ class TensionExternalPayloadService:
         user_id: Any = None,
         line_name: Optional[str] = None,
         stencil_status: Any = None,
+        approved: Optional[bool] = None,
     ) -> dict[str, Any]:
         ordered_measurements = sorted(measurements, key=self._measurement_sort_key)
         tension_log = [self._build_log_entry(measurement) for measurement in ordered_measurements]
@@ -46,8 +47,9 @@ class TensionExternalPayloadService:
         return {
             "codigo_stencil": normalize_stencil_code(stencil_code),
             "idusuario": self._normalize_user_id(user_id),
-            "nmlinha": (line_name or "").strip(),
+            "nmlinha": None,
             "idstencil_status": stencil_status,
+            "aprovado": bool(approved),
             "log_tensao": tension_log,
         }
 

@@ -14,6 +14,7 @@ Created: 2026-03-31
 
 import json
 import logging
+import re
 from pathlib import Path
 from typing import List, Optional, Dict
 
@@ -261,6 +262,63 @@ class MeasurementPatternManager(QObject):
             MeasurementPattern ou None
         """
         return self.load_pattern(name)
+
+    def resolve_pattern_for_grid(self, grid: str) -> Optional[MeasurementPattern]:
+        """
+        Resolve um padrão de medição a partir do valor de grid vindo do SFCS.
+
+        O valor pode ser o nome exato de um padrão ("LOQ IRX9") ou uma
+        dimensão ("4x4", "3 x 3", "4"). Quando houver mais de um padrão com
+        o mesmo grid_size, usa a ordenação de list_patterns(): mais recente.
+        """
+        grid_text = str(grid or "").strip()
+        if not grid_text:
+            return None
+
+        exact_pattern = self.load_pattern(grid_text)
+        if exact_pattern is not None:
+            return exact_pattern
+
+        grid_size = self.parse_grid_size(grid_text)
+        if grid_size is None:
+            return None
+
+        for pattern_info in self.list_patterns():
+            try:
+                pattern_grid_size = int(pattern_info.get("grid_size", 0) or 0)
+            except (TypeError, ValueError):
+                continue
+            if pattern_grid_size == grid_size:
+                pattern = self.load_pattern(pattern_info.get("name", ""))
+                if pattern is not None:
+                    logger.info(
+                        "Padrão '%s' resolvido pelo grid SFCS '%s'",
+                        pattern.name,
+                        grid_text,
+                    )
+                    return pattern
+
+        logger.warning("Nenhum padrão encontrado para o grid SFCS '%s'", grid_text)
+        return None
+
+    @staticmethod
+    def parse_grid_size(grid: str) -> Optional[int]:
+        """Extrai o tamanho NxN de valores como '4x4', '3 x 3' ou '4'."""
+        grid_text = str(grid or "").strip()
+        if not grid_text:
+            return None
+
+        match = re.search(r"(\d+)\s*[xX]\s*(\d+)", grid_text)
+        if match:
+            rows = int(match.group(1))
+            cols = int(match.group(2))
+            return max(rows, cols)
+
+        match = re.search(r"\d+", grid_text)
+        if match:
+            return int(match.group(0))
+
+        return None
 
     def pattern_exists(self, name: str) -> bool:
         """

@@ -191,11 +191,11 @@ class TensionMeasurementController(QObject):
                 params = self._build_measurement_parameters_from_recipe(recipe)
             else:
                 pattern_name = (current_stencil.recipe_name or "").strip()
-                pattern = self.pattern_manager.load_pattern(pattern_name) if pattern_name else None
+                pattern = self._resolve_pattern_for_stencil(current_stencil)
                 if pattern is None:
                     error_msg = (
                         f"O stencil '{current_stencil.code}' não possui um padrão de medição válido.\n\n"
-                        f"Padrão vinculado: {pattern_name or '(nenhum)'}"
+                        f"Grid/padrão vinculado: {pattern_name or '(nenhum)'}"
                     )
                     QMessageBox.warning(ui_parent, "Padrão de Medição Não Encontrado", error_msg)
                     self.measurement_failed.emit(error_msg)
@@ -372,6 +372,18 @@ class TensionMeasurementController(QObject):
             return recipe_manager.load_recipe(desired_name)
 
         return None
+
+    def _resolve_pattern_for_stencil(self, current_stencil: Stencil):
+        """Resolve o padrão de medição a partir do grid/nome vindo do SFCS."""
+        grid_or_pattern_name = (current_stencil.recipe_name or "").strip()
+        if not grid_or_pattern_name:
+            return None
+
+        pattern = self.pattern_manager.load_pattern(grid_or_pattern_name)
+        if pattern is not None:
+            return pattern
+
+        return self.pattern_manager.resolve_pattern_for_grid(grid_or_pattern_name)
 
     def _resolve_measurement_name(self, current_stencil: Stencil, current_recipe) -> Optional[str]:
         """Resolve o nome gravado no historico da medicao."""
@@ -700,11 +712,12 @@ class TensionMeasurementController(QObject):
                 current_stencil=current_stencil,
                 tension_data=classified_data,
                 timestamp=record.timestamp,
+                approved=self._is_external_payload_approved(record),
             )
             if payload_path is not None:
                 logger.info("Payload externo de tensão salvo em %s", payload_path)
         else:
-            self._mark_external_integration_skipped_for_rejected_measurement(current_stencil)
+            self._mark_external_integration_skipped_for_empty_measurement(current_stencil)
 
         self._persist_measurement_session_report_data(saved_path, classified_data)
 
@@ -719,6 +732,7 @@ class TensionMeasurementController(QObject):
         current_stencil: Stencil,
         tension_data: dict,
         timestamp: Optional[str] = None,
+        approved: bool = False,
     ):
         """Gera um JSON de integração externa com todos os pontos medidos."""
         self._last_external_send_attempt = None
@@ -729,6 +743,7 @@ class TensionMeasurementController(QObject):
                 user_id=self._resolve_external_user_id(),
                 line_name=self._resolve_external_line_name(),
                 stencil_status=self._resolve_external_stencil_status(),
+                approved=approved,
             )
             payload_path = self.external_payload_service.save_payload(
                 payload,
@@ -793,7 +808,12 @@ class TensionMeasurementController(QObject):
         return attempt
 
     def _should_send_external_integration(self, record: TensionRecord) -> bool:
-        """Permite envio externo apenas para medições sem pontos NOK."""
+        """Permite envio externo para toda medição com ao menos um ponto."""
+        measurements = getattr(record, "measurements", []) or []
+        return len(measurements) > 0
+
+    def _is_external_payload_approved(self, record: TensionRecord) -> bool:
+        """Calcula o campo aprovado enviado para a API externa."""
         measurements = getattr(record, "measurements", []) or []
         total_measurements = len(measurements)
         return (
@@ -803,21 +823,25 @@ class TensionMeasurementController(QObject):
             and record.result in ("OK", "WARNING")
         )
 
-    def _mark_external_integration_skipped_for_rejected_measurement(self, current_stencil: Stencil) -> None:
-        """Registra que a medição reprovada ficou apenas no armazenamento local."""
+    def _mark_external_integration_skipped_for_empty_measurement(self, current_stencil: Stencil) -> None:
+        """Registra que não havia pontos medidos para envio externo."""
         self._last_external_send_attempt = {
             "success": None,
             "skipped": True,
-            "skip_reason": "rejected_measurement",
+            "skip_reason": "empty_measurement",
             "error": None,
             "status_code": None,
             "payload_path": None,
             "send_log_path": None,
         }
         logger.info(
-            "Medição NOK do stencil %s salva localmente; envio externo não realizado.",
+            "Medição do stencil %s sem pontos válidos; envio externo não realizado.",
             current_stencil.code,
         )
+
+    def _mark_external_integration_skipped_for_rejected_measurement(self, current_stencil: Stencil) -> None:
+        """Compatibilidade com testes/código legado: NOK agora também é enviado."""
+        self._mark_external_integration_skipped_for_empty_measurement(current_stencil)
 
     def _is_external_integration_enabled(self) -> bool:
         """Retorna se o envio externo deve ser executado."""
@@ -840,8 +864,8 @@ class TensionMeasurementController(QObject):
         if not attempt:
             return "Envio API: nao executado"
 
-        if attempt.get("skipped") and attempt.get("skip_reason") == "rejected_measurement":
-            return "Envio API: não executado (NOK)"
+        if attempt.get("skipped") and attempt.get("skip_reason") == "empty_measurement":
+            return "Envio API: não executado (sem pontos)"
 
         if attempt.get("skipped"):
             return "Envio API: desabilitado"
@@ -879,7 +903,7 @@ class TensionMeasurementController(QObject):
     def _is_stencil_approved(self, record: TensionRecord) -> bool:
         """Confirma aprovacao quando nao houver NOK e a API aceitar o envio."""
         attempt = self._last_external_send_attempt or {}
-        return self._should_send_external_integration(record) and attempt.get("success") is True
+        return self._is_external_payload_approved(record) and attempt.get("success") is True
 
     def _is_stencil_rejected(self, record: TensionRecord) -> bool:
         """Confirma reprovacao quando houver ao menos um ponto NOK."""

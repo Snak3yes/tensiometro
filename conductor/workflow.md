@@ -169,7 +169,7 @@ Ao completar uma fase:
 2. **Criar Checkpoint Commit**
    ```bash
    git add .
-   git commit -m "feat(phaseX): Complete [Fase Name]
+   git commit -m "Feat: conclui [Nome da Fase]
 
    - Achievement 1
    - Achievement 2
@@ -337,26 +337,23 @@ tests/
 ### Commit Message Format
 
 ```
-<type>(<scope>): <subject>
+<Tipo>: <assunto descritivo>
 
-<body>
+<corpo opcional>
 
-<footer>
+<rodapé opcional>
 ```
 
-### Types
-- **feat:** Nova funcionalidade
-- **fix:** Bug fix
-- **refactor:** Refatoração (sem mudança de comportamento)
-- **test:** Adicionar/atualizar testes
-- **docs:** Documentação
-- **style:** Formatação, missing semicolons, etc (sem mudança de código)
-- **chore:** Atualizar tasks, config, etc
+### Rule
+- Sempre iniciar a primeira linha com um prefixo como `Feat:`, `Fix:`, `Refactor:`, `Docs:`, `Test:`, `Style:` ou `Chore:`
+- Após o prefixo, descrever a mudança de forma objetiva em linguagem natural
+- Não usar o formato `type(scope):`
+- O corpo é opcional e pode listar contexto, impacto, compatibilidade e referências
 
 ### Example
 
 ```bash
-git commit -m "feat(alignment): Add fiducial alignment service
+git commit -m "Feat: adiciona serviço de alinhamento por fiducial
 
 - Created FiducialAlignmentService for business logic
 - Created TemplateMatchingService for OpenCV operations
@@ -451,7 +448,7 @@ git checkout -b feature/xyz
 
 # Commits
 git add .
-git commit -m "type(scope): subject"
+git commit -m "Feat: descreve a mudança realizada"
 git push origin main
 
 # Tags

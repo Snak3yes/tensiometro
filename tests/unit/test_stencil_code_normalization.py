@@ -33,3 +33,27 @@ def test_external_payload_uppercases_stencil_code():
     )
 
     assert payload["codigo_stencil"] == "75B01A849403741"
+
+
+def test_external_payload_includes_approved_flag():
+    service = TensionExternalPayloadService()
+
+    payload = service.build_payload(
+        stencil_code="ABC123",
+        measurements=[{"index": 0, "tension": "33.1"}],
+        approved=False,
+    )
+
+    assert payload["aprovado"] is False
+
+
+def test_external_payload_always_sends_line_as_null():
+    service = TensionExternalPayloadService()
+
+    payload = service.build_payload(
+        stencil_code="ABC123",
+        measurements=[{"index": 0, "tension": "33.1"}],
+        line_name="IMC4-LM03",
+    )
+
+    assert payload["nmlinha"] is None

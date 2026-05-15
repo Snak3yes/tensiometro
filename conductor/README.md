@@ -158,7 +158,7 @@ Uma fase só é completa quando:
 ### Commit Guidelines
 
 ```bash
-git commit -m "feat(scope): Subject
+git commit -m "Feat: descreve a mudança realizada
 
 - Achievement 1
 - Achievement 2
@@ -322,7 +322,7 @@ git checkout -b feature/xyz
 
 # Commit
 git add .
-git commit -m "type(scope): subject"
+git commit -m "Feat: descreve a mudança realizada"
 
 # Tag
 git tag -a tag_name -m "Description"

@@ -117,6 +117,12 @@ class AOIConfigManager:
             "line_name": "IMC4-LM03",
             "user_id": 1,
             "stencil_status_id": None
+        },
+        "sfcs_stencil_lookup": {
+            "enabled": True,
+            "endpoint_url": "http://147.1.0.100:3075/sfcs-print/stencil/{codigo_barras}",
+            "timeout_sec": 10.0,
+            "grid_pattern_map": {}
         }
     }
 

@@ -921,6 +921,7 @@ class AOIControllerApp(QMainWindow):
         if not hasattr(self, '_tracking_dialog') or self._tracking_dialog is None:
             self._tracking_dialog = TrackingDialog(
                 self.stencil_tracker,
+                config_manager=getattr(self, "config_manager", None),
                 parent=self
             )
 

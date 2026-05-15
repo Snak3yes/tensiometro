@@ -16,6 +16,10 @@ from PyQt6.QtCore import Qt, pyqtSignal
 from PyQt6.QtGui import QFont
 
 from aoi_lib.stencil_tracker import StencilTracker, Stencil, normalize_stencil_code
+from consumo_lib.services.sfcs_stencil_lookup_service import (
+    SfcsStencilLookupError,
+    SfcsStencilNotFound,
+)
 from consumo_lib.ui import COLORS, TYPO, SPACE
 from consumo_lib.ui.widget_standards import StandardButton
 
@@ -41,10 +45,12 @@ class StencilIdentificationWidget(QWidget):
     recipe_requested = pyqtSignal(str)  # Nome da receita para carregar
     measurement_requested = pyqtSignal()
 
-    def __init__(self, tracker: StencilTracker, parent=None):
+    def __init__(self, tracker: StencilTracker, parent=None, sfcs_service=None):
         super().__init__(parent)
         self.tracker = tracker
+        self.sfcs_service = sfcs_service
         self.current_stencil: Optional[Stencil] = None
+        self._sfcs_lookup_error_shown = False
 
         self._setup_ui()
         self._connect_signals()
@@ -137,10 +143,6 @@ class StencilIdentificationWidget(QWidget):
         self.btn_history.clicked.connect(self._show_history)
         btn_layout.addWidget(self.btn_history)
 
-        self.btn_edit = StandardButton("Editar")
-        self.btn_edit.clicked.connect(self._edit_stencil)
-        btn_layout.addWidget(self.btn_edit)
-
         self.btn_run_tension = StandardButton("Iniciar Medição", variant="primary-green")
         self.btn_run_tension.setEnabled(False)
         self.btn_run_tension.clicked.connect(self._request_tension_measurement)
@@ -193,20 +195,67 @@ class StencilIdentificationWidget(QWidget):
             )
             return
 
-        # Verifica se stencil existe
-        stencil = self.tracker.get_stencil(code)
+        self._sfcs_lookup_error_shown = False
+        stencil = self._load_stencil_from_sfcs(code)
+        if self._sfcs_lookup_error_shown:
+            return
+        if stencil is None and not self._sfcs_lookup_enabled():
+            stencil = self.tracker.get_stencil(code)
 
         if not stencil:
             QMessageBox.warning(
-                self, "Stencil Não Existe",
-                f"O stencil '{code}' não existe no sistema.\n\n"
-                "Verifique o código ou faça o cadastro antes de continuar."
+                self, "Falha no Cadastro SFCS",
+                f"O stencil '{code}' não foi encontrado no cadastro do SFCS.\n\n"
+                "Cadastre o stencil no SFCS antes de iniciar o teste de medição."
             )
             self.code_input.selectAll()
             self.code_input.setFocus()
             return
 
         self._select_stencil(stencil)
+
+    def _sfcs_lookup_enabled(self) -> bool:
+        return bool(self.sfcs_service and self.sfcs_service.is_enabled())
+
+    def _load_stencil_from_sfcs(self, code: str) -> Optional[Stencil]:
+        if not self._sfcs_lookup_enabled():
+            return None
+
+        try:
+            record = self.sfcs_service.lookup(code)
+            recipe_name = self.sfcs_service.resolve_recipe_name(record)
+            return self._sync_sfcs_stencil(record.to_stencil(recipe_name=recipe_name))
+        except SfcsStencilNotFound:
+            return None
+        except SfcsStencilLookupError as exc:
+            self._sfcs_lookup_error_shown = True
+            QMessageBox.critical(
+                self,
+                "Falha de Comunicação SFCS",
+                f"Não foi possível consultar o cadastro do stencil no SFCS.\n\n{exc}"
+            )
+            self.code_input.selectAll()
+            self.code_input.setFocus()
+            return None
+
+    def _sync_sfcs_stencil(self, sfcs_stencil: Stencil) -> Stencil:
+        existing = self.tracker.get_stencil(sfcs_stencil.code)
+        if existing:
+            sfcs_stencil.created_at = existing.created_at
+            sfcs_stencil.last_inspection = existing.last_inspection
+            sfcs_stencil.inspection_count = existing.inspection_count
+            self.tracker.update_stencil(sfcs_stencil)
+            return self.tracker.get_stencil(sfcs_stencil.code) or sfcs_stencil
+
+        created = self.tracker.create_stencil(
+            sfcs_stencil.code,
+            description=sfcs_stencil.description,
+            recipe_name=sfcs_stencil.recipe_name,
+        )
+        created.status = sfcs_stencil.status
+        created.notes = sfcs_stencil.notes
+        self.tracker.update_stencil(created)
+        return created
 
     def _select_stencil(self, stencil: Stencil):
         """Seleciona um stencil e atualiza a interface."""

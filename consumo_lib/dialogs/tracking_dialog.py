@@ -44,7 +44,7 @@ class TrackingDialog(QDialog):
     recipe_requested = pyqtSignal(str)  # recipe_name
     measurement_requested = pyqtSignal()
 
-    def __init__(self, stencil_tracker, parent=None):
+    def __init__(self, stencil_tracker, config_manager=None, parent=None):
         """
         Inicializa o diálogo de rastreabilidade.
 
@@ -55,6 +55,7 @@ class TrackingDialog(QDialog):
         super().__init__(parent)
 
         self.stencil_tracker = stencil_tracker
+        self.config_manager = config_manager
 
         # Configurações do diálogo
         self.setWindowTitle("Rastreabilidade - Identificação de Stencil")
@@ -81,11 +82,13 @@ class TrackingDialog(QDialog):
 
         # Import tardio para evitar import circular
         from consumo_lib.widgets.stencil import StencilIdentificationWidget
+        from consumo_lib.services import SfcsStencilLookupService
 
         # Widget de identificação de stencil
         self.stencil_identification = StencilIdentificationWidget(
             self.stencil_tracker,
-            parent=self
+            parent=self,
+            sfcs_service=SfcsStencilLookupService(self.config_manager)
         )
 
         # Conecta sinais internos para repassar
