@@ -11,6 +11,8 @@ from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+PUBLIC_TOOL_ACTIONS = {"tools.tensiometer_calibration"}
+
 
 class AuthenticationManager:
     """
@@ -163,10 +165,13 @@ class AuthenticationManager:
             can_access_tools = self.role_manager.can_access_engineering_settings()
 
             if hasattr(self.main_window, "menu_handler") and self.main_window.menu_handler:
-                self.main_window.menu_handler.set_menu_visible("tools", can_access_tools)
-                for key, action in self.main_window.menu_handler.get_all_actions().items():
-                    if key.startswith("tools."):
-                        action.setEnabled(can_access_tools)
+                self.main_window.menu_handler.apply_tools_permissions(
+                    can_access_tools,
+                    public_action_keys=PUBLIC_TOOL_ACTIONS,
+                )
+                self.main_window.menu_handler.apply_system_permissions(
+                    self.role_manager.get_current_role() == "admin"
+                )
 
             # Menu Engenharia - apenas engineering+ (usa permissão correta)
             if hasattr(self.main_window, 'engineering_menu'):

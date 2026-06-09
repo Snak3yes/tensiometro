@@ -5,6 +5,7 @@ import logging
 
 # Configure logger
 logger = logging.getLogger(__name__)
+PUBLIC_TOOL_ACTIONS = {"tools.tensiometer_calibration"}
 
 # Autenticação
 from aoi_lib.auth import AuthService
@@ -424,10 +425,16 @@ class AOIControllerApp(QMainWindow):
         )
 
         if hasattr(self, "menu_handler") and self.menu_handler is not None:
-            self.menu_handler.set_menu_visible("tools", can_access_tools)
-            for key, action in self.menu_handler.get_all_actions().items():
-                if key.startswith("tools."):
-                    action.setEnabled(can_access_tools)
+            self.menu_handler.apply_tools_permissions(
+                can_access_tools,
+                public_action_keys=PUBLIC_TOOL_ACTIONS,
+            )
+            can_access_system_settings = bool(
+                hasattr(self, "role_manager")
+                and self.role_manager is not None
+                and self.role_manager.get_current_role() == "admin"
+            )
+            self.menu_handler.apply_system_permissions(can_access_system_settings)
 
         if hasattr(self, "login_mode_badge") and self.login_mode_badge is not None:
             self.login_mode_badge.setVisible(current_mode == "eng_admin")
@@ -467,6 +474,52 @@ class AOIControllerApp(QMainWindow):
             "Autenticação",
             "O aplicativo está configurado para sempre iniciar com login por DRT.\n\n"
             "Para acesso avançado, use o modo Eng/Admin na tela de login.",
+            QMessageBox.StandardButton.Ok,
+        )
+
+    def show_integration_endpoint_settings(self):
+        """Allows ADMIN users to edit only integration.endpoint_url."""
+        if not (
+            hasattr(self, "role_manager")
+            and self.role_manager is not None
+            and self.role_manager.get_current_role() == "admin"
+        ):
+            QMessageBox.warning(
+                self,
+                "Acesso negado",
+                "Apenas usuarios ADMIN podem alterar o endpoint da API.",
+                QMessageBox.StandardButton.Ok,
+            )
+            return
+
+        from consumo_lib.dialogs.integration_endpoint_dialog import IntegrationEndpointDialog
+
+        current_endpoint = self.config_manager.get(
+            "integration",
+            "endpoint_url",
+            default="",
+        )
+        dialog = IntegrationEndpointDialog(str(current_endpoint or ""), self)
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        new_endpoint = dialog.endpoint_url()
+        old_endpoint = str(current_endpoint or "").strip()
+        if new_endpoint == old_endpoint:
+            self.statusBar().showMessage("Endpoint da API sem alteracoes", 3000)
+            return
+
+        self.config_manager.set("integration", "endpoint_url", value=new_endpoint)
+        if hasattr(self, "config") and self.config is not self.config_manager:
+            self.config.set("integration", "endpoint_url", value=new_endpoint)
+
+        logger.info("Endpoint de integracao atualizado: %s", new_endpoint)
+        self.statusBar().showMessage("Endpoint da API salvo", 3000)
+        QMessageBox.information(
+            self,
+            "Endpoint salvo",
+            "A URL de envio dos resultados de tensao foi atualizada.",
             QMessageBox.StandardButton.Ok,
         )
 

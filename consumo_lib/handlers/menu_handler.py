@@ -246,6 +246,17 @@ class MenuHandler(QObject):
         menu.addAction(auth_settings_action)
         self._register_action('system.auth_settings', auth_settings_action)
 
+        integration_endpoint_action = QAction('Endpoint da API de Tensao...', self.main_window)
+        integration_endpoint_action.setToolTip(
+            'Configura a URL usada no envio externo dos resultados de tensao.\n'
+            'Disponivel apenas para usuarios ADMIN.'
+        )
+        integration_endpoint_action.triggered.connect(
+            self.main_window.show_integration_endpoint_settings
+        )
+        menu.addAction(integration_endpoint_action)
+        self._register_action('system.integration_endpoint', integration_endpoint_action)
+
         menu.addSeparator()
 
         # Configurações de Tema
@@ -388,6 +399,66 @@ class MenuHandler(QObject):
             menu.menuAction().setVisible(visible)
             menu.setEnabled(visible)
             logger.debug(f"Menu {key} {'visivel' if visible else 'oculto'}")
+
+    def apply_tools_permissions(
+        self,
+        restricted_actions_enabled: bool,
+        public_action_keys: set[str] | None = None,
+    ):
+        """
+        Aplica visibilidade/permissao do menu Ferramentas.
+
+        Actions publicas ficam disponiveis para todos os usuarios. As demais
+        continuam restritas a engenharia/admin.
+        """
+        public_action_keys = public_action_keys or set()
+        has_public_actions = any(key in self.actions for key in public_action_keys)
+        self.set_menu_visible("tools", restricted_actions_enabled or has_public_actions)
+
+        for key, action in self.get_all_actions().items():
+            if not key.startswith("tools."):
+                continue
+
+            is_public = key in public_action_keys
+            allowed = restricted_actions_enabled or is_public
+            action.setVisible(allowed)
+            action.setEnabled(allowed)
+
+        self._refresh_menu_separators("tools")
+
+    def apply_system_permissions(self, system_settings_enabled: bool):
+        """Applies role permissions to system-level settings actions."""
+        system_settings_actions = {
+            "system.integration_endpoint",
+        }
+
+        for key in system_settings_actions:
+            action = self.get_action(key)
+            if action is not None:
+                action.setVisible(system_settings_enabled)
+                action.setEnabled(system_settings_enabled)
+
+        self._refresh_menu_separators("system")
+
+    def _refresh_menu_separators(self, key: str):
+        menu = self.get_menu(key)
+        if menu is None:
+            return
+
+        actions = menu.actions()
+        for index, action in enumerate(actions):
+            if not action.isSeparator():
+                continue
+
+            has_visible_before = any(
+                previous.isVisible() and not previous.isSeparator()
+                for previous in actions[:index]
+            )
+            has_visible_after = any(
+                following.isVisible() and not following.isSeparator()
+                for following in actions[index + 1:]
+            )
+            action.setVisible(has_visible_before and has_visible_after)
 
     # ==================== HANDLERS PARA CONTROLLERS ====================
 
