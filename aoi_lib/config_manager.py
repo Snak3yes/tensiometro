@@ -112,7 +112,7 @@ class AOIConfigManager:
         },
         "integration": {
             "enabled": True,
-            "endpoint_url": "http://147.1.0.100:3075/sfcs-print/stencil/stencil_tensiometro",
+            "endpoint_url": "http://147.1.0.85:3075/sfcs-print/stencil/stencil_tensiometro",
             "timeout_sec": 10.0,
             "line_name": "IMC4-LM03",
             "user_id": 1,

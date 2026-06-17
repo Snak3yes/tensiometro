@@ -20,6 +20,11 @@ TENSIOMETER_POWER_OFF_PULSE_MS = 3000
 POST_MEASUREMENT_DELAY_SEC = 0.1
 TENSIOMETER_READ_RETRIES = 3
 TENSIOMETER_READ_RETRY_DELAY_SEC = 0.2
+ZERO_TENSION_RETEST_SETTLE_SEC = 0.2
+
+
+class ZeroTensionReadError(RuntimeError):
+    """Raised when the tensiometer keeps returning a zero reading."""
 
 
 class TensionMeasurementThread(QThread):
@@ -94,24 +99,14 @@ class TensionMeasurementThread(QThread):
                 self._move_abs(z=self.z_height, feed=self.user_feed)
                 z_descend_elapsed = time.perf_counter() - z_descend_started
 
-                stabilization_sec = max(0.0, self.stabilization_time_ms / 1000.0)
-                if stabilization_sec > 0:
-                    logger.info(
-                        "Ponto %s/%s: Delay_Medidor aplicado por %.3fs antes da leitura",
-                        idx,
-                        total_points,
-                        stabilization_sec,
-                    )
-                    time.sleep(stabilization_sec)
-                else:
-                    logger.info(
-                        "Ponto %s/%s: Delay_Medidor zerado, leitura sem espera adicional",
-                        idx,
-                        total_points,
-                    )
+                stabilization_sec = self._wait_for_measurement_stabilization(idx, total_points)
 
                 read_started = time.perf_counter()
-                tension_value = self._read_tension_value_with_retries(idx, total_points)
+                tension_value = self._read_tension_value_with_zero_retest(
+                    idx,
+                    total_points,
+                    stabilization_sec,
+                )
                 read_elapsed = time.perf_counter() - read_started
                 logger.debug(f"Tensao lida: {tension_value}")
 
@@ -167,12 +162,17 @@ class TensionMeasurementThread(QThread):
     def _read_tension_value_with_retries(self, point_index: int, total_points: int) -> str:
         """Read the tensiometer without converting communication failures into zero."""
         last_error = ""
+        zero_seen = False
         for attempt in range(1, TENSIOMETER_READ_RETRIES + 1):
             value = self.tensiometer.read_tension_value()
             if self._is_valid_tension_value(value):
                 return value
 
-            last_error = getattr(self.tensiometer, "last_error", "") or "leitura vazia"
+            if self._is_zero_tension_value(value):
+                zero_seen = True
+                last_error = "leitura zerada (0.00)"
+            else:
+                last_error = getattr(self.tensiometer, "last_error", "") or "leitura vazia"
             logger.warning(
                 "Falha na leitura do ponto %s/%s (tentativa %s/%s): %s",
                 point_index,
@@ -193,9 +193,76 @@ class TensionMeasurementThread(QThread):
                 )
                 time.sleep(TENSIOMETER_READ_RETRY_DELAY_SEC)
 
-        raise RuntimeError(
+        error_message = (
             f"Falha ao capturar medicao no ponto {point_index}/{total_points}: {last_error}"
         )
+        if zero_seen:
+            raise ZeroTensionReadError(error_message)
+        raise RuntimeError(error_message)
+
+    def _read_tension_value_with_zero_retest(
+        self,
+        point_index: int,
+        total_points: int,
+        stabilization_sec: float,
+    ) -> str:
+        """Read a point and physically retest it once if the value remains zero."""
+        try:
+            return self._read_tension_value_with_retries(point_index, total_points)
+        except ZeroTensionReadError as first_error:
+            if self._stop_requested:
+                raise RuntimeError("Medicao interrompida pelo usuario") from first_error
+
+            logger.warning(
+                "Ponto %s/%s retornou 0.00 apos %s tentativas. Retestando o ponto.",
+                point_index,
+                total_points,
+                TENSIOMETER_READ_RETRIES,
+            )
+            self.progress_updated.emit(
+                point_index,
+                total_points,
+                f"Retestando ponto {point_index}/{total_points} por leitura 0.00",
+            )
+
+            self._move_abs(z=self.z_move, feed=self.user_feed)
+            time.sleep(ZERO_TENSION_RETEST_SETTLE_SEC)
+            self._move_abs(z=self.z_height, feed=self.user_feed)
+            if stabilization_sec > 0:
+                logger.info(
+                    "Ponto %s/%s: Delay_Medidor reaplicado por %.3fs antes do reteste",
+                    point_index,
+                    total_points,
+                    stabilization_sec,
+                )
+                time.sleep(stabilization_sec)
+
+            try:
+                return self._read_tension_value_with_retries(point_index, total_points)
+            except ZeroTensionReadError as second_error:
+                raise RuntimeError(
+                    f"Falha ao capturar medicao no ponto {point_index}/{total_points} "
+                    "apos reteste automatico: leitura zerada (0.00)"
+                ) from second_error
+
+    def _wait_for_measurement_stabilization(self, point_index: int, total_points: int) -> float:
+        """Wait for the configured sensor stabilization delay and return it in seconds."""
+        stabilization_sec = max(0.0, self.stabilization_time_ms / 1000.0)
+        if stabilization_sec > 0:
+            logger.info(
+                "Ponto %s/%s: Delay_Medidor aplicado por %.3fs antes da leitura",
+                point_index,
+                total_points,
+                stabilization_sec,
+            )
+            time.sleep(stabilization_sec)
+        else:
+            logger.info(
+                "Ponto %s/%s: Delay_Medidor zerado, leitura sem espera adicional",
+                point_index,
+                total_points,
+            )
+        return stabilization_sec
 
     @staticmethod
     def _is_valid_tension_value(value: str) -> bool:
@@ -203,7 +270,15 @@ class TensionMeasurementThread(QThread):
             parsed = float(value)
         except (TypeError, ValueError):
             return False
-        return math.isfinite(parsed)
+        return math.isfinite(parsed) and parsed > 0.0
+
+    @staticmethod
+    def _is_zero_tension_value(value: str) -> bool:
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError):
+            return False
+        return math.isfinite(parsed) and parsed == 0.0
 
     def _move_abs(
         self,

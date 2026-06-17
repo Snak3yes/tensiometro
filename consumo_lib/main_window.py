@@ -478,7 +478,7 @@ class AOIControllerApp(QMainWindow):
         )
 
     def show_integration_endpoint_settings(self):
-        """Allows ADMIN users to edit only integration.endpoint_url."""
+        """Allows ADMIN users to edit API sending and endpoint_url."""
         if not (
             hasattr(self, "role_manager")
             and self.role_manager is not None
@@ -499,27 +499,46 @@ class AOIControllerApp(QMainWindow):
             "endpoint_url",
             default="",
         )
-        dialog = IntegrationEndpointDialog(str(current_endpoint or ""), self)
+        current_enabled = bool(
+            self.config_manager.get("integration", "enabled", default=True)
+        )
+        dialog = IntegrationEndpointDialog(
+            str(current_endpoint or ""),
+            current_enabled,
+            self,
+        )
 
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
 
         new_endpoint = dialog.endpoint_url()
+        new_enabled = dialog.integration_enabled()
         old_endpoint = str(current_endpoint or "").strip()
-        if new_endpoint == old_endpoint:
-            self.statusBar().showMessage("Endpoint da API sem alteracoes", 3000)
+        if new_endpoint == old_endpoint and new_enabled == current_enabled:
+            self.statusBar().showMessage("Configuracao da API sem alteracoes", 3000)
             return
 
-        self.config_manager.set("integration", "endpoint_url", value=new_endpoint)
-        if hasattr(self, "config") and self.config is not self.config_manager:
-            self.config.set("integration", "endpoint_url", value=new_endpoint)
+        if new_endpoint != old_endpoint:
+            self.config_manager.set("integration", "endpoint_url", value=new_endpoint)
+        if new_enabled != current_enabled:
+            self.config_manager.set("integration", "enabled", value=new_enabled)
 
-        logger.info("Endpoint de integracao atualizado: %s", new_endpoint)
-        self.statusBar().showMessage("Endpoint da API salvo", 3000)
+        if hasattr(self, "config") and self.config is not self.config_manager:
+            if new_endpoint != old_endpoint:
+                self.config.set("integration", "endpoint_url", value=new_endpoint)
+            if new_enabled != current_enabled:
+                self.config.set("integration", "enabled", value=new_enabled)
+
+        logger.info(
+            "Configuracao da API de integracao atualizada: enabled=%s endpoint=%s",
+            new_enabled,
+            new_endpoint,
+        )
+        self.statusBar().showMessage("Configuracao da API salva", 3000)
         QMessageBox.information(
             self,
-            "Endpoint salvo",
-            "A URL de envio dos resultados de tensao foi atualizada.",
+            "Configuracao salva",
+            "A configuracao de envio dos resultados de tensao foi atualizada.",
             QMessageBox.StandardButton.Ok,
         )
 

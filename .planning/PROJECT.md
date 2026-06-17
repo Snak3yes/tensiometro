@@ -40,3 +40,9 @@ Aplicacao desktop industrial para medicao de tensao de stencil e inspecao visual
 - Tratar `config/aoi_config.json` como configuracao local da maquina.
 - Para PLC, consultar `MAPA.txt` antes de mexer em enderecos Modbus, registradores, memorias, entradas, saidas, homing ou movimentos.
 
+## Integracao atual
+
+- Consulta de stencil: servidor final `147.1.0.100`.
+- Envio de resultado de tensao: servidor homologacao `147.1.0.85`.
+- Autenticacao DRT Digiboard: servidor homologacao `147.1.0.85`.
+- O envio de resultado pode ser desabilitado por ADMIN no dialog de configuracao da API.

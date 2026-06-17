@@ -148,6 +148,100 @@ def test_run_retries_tensiometer_read_before_recording_measurement(monkeypatch):
     assert [item["tension"] for item in measurements] == ["31.5"]
 
 
+def test_run_retries_zero_tension_before_recording_measurement(monkeypatch):
+    monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
+
+    cnc = _FakeCNC()
+    tensiometer = _FakeTensiometer(["0.00", "31.5"])
+    thread = TensionMeasurementThread(
+        cnc=cnc,
+        tensiometer=tensiometer,
+        points=[GridPoint(x=1.0, y=2.0, index=0, grid_position=(0, 0))],
+        z_height=1.5,
+        z_move=8.0,
+        user_feed=900.0,
+        stabilization_time_ms=0,
+    )
+
+    measurements = []
+    errors = []
+    thread.measurement_completed.connect(measurements.append)
+    thread.error_occurred.connect(errors.append)
+
+    thread.run()
+
+    assert errors == []
+    assert tensiometer.read_calls == 2
+    assert [item["tension"] for item in measurements] == ["31.5"]
+
+
+def test_run_physically_retests_point_when_zero_tension_persists(monkeypatch):
+    monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
+
+    cnc = _FakeCNC()
+    tensiometer = _FakeTensiometer(["0.00"] * TENSIOMETER_READ_RETRIES + ["32.5"])
+    thread = TensionMeasurementThread(
+        cnc=cnc,
+        tensiometer=tensiometer,
+        points=[GridPoint(x=1.0, y=2.0, index=0, grid_position=(0, 0))],
+        z_height=1.5,
+        z_move=8.0,
+        user_feed=900.0,
+        stabilization_time_ms=0,
+    )
+
+    measurements = []
+    errors = []
+    thread.measurement_completed.connect(measurements.append)
+    thread.error_occurred.connect(errors.append)
+
+    thread.run()
+
+    assert errors == []
+    assert tensiometer.read_calls == TENSIOMETER_READ_RETRIES + 1
+    assert [item["tension"] for item in measurements] == ["32.5"]
+    assert cnc.moves == [
+        {"z": 8.0, "feed_rate": 900.0},
+        {"x": 1.0, "y": 2.0, "z": 8.0, "feed_rate": 900.0},
+        {"z": 1.5, "feed_rate": 900.0},
+        {"z": 8.0, "feed_rate": 900.0},
+        {"z": 1.5, "feed_rate": 900.0},
+        {"z": 8.0, "feed_rate": 900.0},
+        {"z": 0.0, "feed_rate": 900.0},
+    ]
+
+
+def test_run_reports_error_when_zero_tension_persists_after_retest(monkeypatch):
+    monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
+
+    cnc = _FakeCNC()
+    tensiometer = _FakeTensiometer(["0.00"] * (TENSIOMETER_READ_RETRIES * 2))
+    thread = TensionMeasurementThread(
+        cnc=cnc,
+        tensiometer=tensiometer,
+        points=[GridPoint(x=1.0, y=2.0, index=0, grid_position=(0, 0))],
+        z_height=1.5,
+        z_move=8.0,
+        user_feed=900.0,
+        stabilization_time_ms=0,
+    )
+
+    measurements = []
+    finished_payload = []
+    errors = []
+    thread.measurement_completed.connect(measurements.append)
+    thread.finished.connect(finished_payload.append)
+    thread.error_occurred.connect(errors.append)
+
+    thread.run()
+
+    assert measurements == []
+    assert finished_payload == []
+    assert tensiometer.read_calls == TENSIOMETER_READ_RETRIES * 2
+    assert len(errors) == 1
+    assert "apos reteste automatico" in errors[0]
+
+
 def test_run_reports_error_when_tensiometer_read_never_succeeds(monkeypatch):
     monkeypatch.setattr(measurement_thread.time, "sleep", lambda _: None)
 

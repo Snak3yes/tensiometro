@@ -56,17 +56,19 @@ class TensiometerAutoCalibrationWorker(QThread):
     def run(self) -> None:
         try:
             self._ensure_plc_ready()
-            self._emit_status("Enviando pulso de home global.")
-            self._pulse_coil(HOME_ALL_COIL, 100)
-            self._wait_for_home_complete()
+
+            self._run_home_cycle("Executando home inicial.")
+
+            self._emit_status("Ligando medidor de tensao.")
+            self._pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS)
+
+            self._emit_status("Zerando medidor de tensao.")
+            self._pulse_coil(TENSIOMETER_ZERO_COIL, 100)
 
             self._emit_status(
                 f"Movendo X/Y para X={CALIBRATION_X_PULSES} Y={CALIBRATION_Y_PULSES}."
             )
             self._move_absolute_pulses({"X": CALIBRATION_X_PULSES, "Y": CALIBRATION_Y_PULSES})
-
-            self._emit_status("Ligando medidor de tensao.")
-            self._pulse_coil(TENSIOMETER_POWER_COIL, TENSIOMETER_POWER_ON_PULSE_MS)
 
             self._emit_status(f"Descendo Z para {CALIBRATION_Z_PULSES}.")
             self._move_absolute_pulses({"Z": CALIBRATION_Z_PULSES})
@@ -79,7 +81,9 @@ class TensiometerAutoCalibrationWorker(QThread):
             self._emit_status("Enviando comando de calibracao do medidor.")
             self._pulse_coil(TENSIOMETER_CALIBRATE_COIL, 100)
 
-            self._emit_status("Calibracao automatica concluida.")
+            self._run_home_cycle("Retornando para home final.")
+
+            self._emit_status("Calibracao automatica concluida. Equipamento em home.")
             self.calibration_finished.emit()
         except Exception as exc:
             logger.exception("Falha na calibracao automatica do medidor")
@@ -102,6 +106,11 @@ class TensiometerAutoCalibrationWorker(QThread):
             self.cnc.pulse_coil(coil, duration_ms)
         else:
             self.cnc._pulse_coil(coil, duration_ms)
+
+    def _run_home_cycle(self, status_message: str) -> None:
+        self._emit_status(status_message)
+        self._pulse_coil(HOME_ALL_COIL, 100)
+        self._wait_for_home_complete()
 
     def _wait_for_home_complete(self) -> None:
         if not hasattr(self.cnc, "read_coil"):
@@ -171,8 +180,9 @@ class TensiometerCalibrationDialog(QDialog):
         auto_layout = QVBoxLayout(auto_group)
         auto_layout.addWidget(
             QLabel(
-                "Fluxo fixo: Home > X/Y = 33871/34130 > Ligar medidor > "
-                "Z = 9207 > aguardar 2 s > Calibrar."
+                "Fluxo fixo: Home > ligar medidor > zerar medidor > "
+                "X/Y = 33871/34130 > Z = 9207 > aguardar 2 s > "
+                "Calibrar > Home final."
             )
         )
 
@@ -274,9 +284,13 @@ class TensiometerCalibrationDialog(QDialog):
 
     def _on_worker_finished(self) -> None:
         self.auto_start_btn.setEnabled(True)
-        self.status_label.setText("Calibracao automatica concluida.")
-        self._append_log("Calibracao automatica concluida com sucesso.")
-        QMessageBox.information(self, "Calibracao", "Calibracao automatica do medidor concluida.")
+        self.status_label.setText("Calibracao automatica concluida. Equipamento em home.")
+        self._append_log("Calibracao automatica concluida com sucesso. Equipamento em home.")
+        QMessageBox.information(
+            self,
+            "Calibracao",
+            "Calibracao automatica do medidor concluida. Equipamento em home.",
+        )
 
     def _on_worker_failed(self, error_message: str) -> None:
         self.auto_start_btn.setEnabled(True)

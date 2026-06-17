@@ -1,31 +1,33 @@
 # Recent Changes
 
-## Integracao externa de tensao
+## Build atual
 
-- Foi enviado um teste virtual aprovado para o stencil `75B01A849403741`.
-- Endpoint usado: `http://147.1.0.100:3075/sfcs-print/stencil/stencil_tensiometro`
-- Resposta do envio: HTTP `201`
-- `idstencilTensiometro`: `227`
-- Payload salvo em `tension_routines/integration_payloads/external_tension_payload_75B01A849403741_20260513_160821_446900.json`
-- Log salvo em `tension_routines/integration_send_logs/tension_send_attempts_20260513.jsonl`
+- Em 2026-06-17 foi gerado novo pacote externo com o programa e config atuais:
+  `..\tensiometro_build_20260617_config_atual`.
+- O build foi validado por existencia do executavel e conferencia do `config/aoi_config.json`
+  copiado para o pacote.
 
-## Campo de linha no payload externo
+## Integracao SFCS
 
-- `consumo_lib/services/tension_external_payload_service.py` foi ajustado para enviar sempre `"nmlinha": null`.
-- O parametro `line_name` continua aceito na assinatura para compatibilidade das chamadas atuais.
-- Foi adicionado teste em `tests/unit/test_stencil_code_normalization.py` garantindo que `nmlinha` seja `None` mesmo quando uma linha for informada.
+- Consulta de dados do stencil usa o servidor final `147.1.0.100`:
+  `http://147.1.0.100:3075/sfcs-print/stencil/{codigo_barras}`.
+- Envio de resultado de tensao permanece no servidor de homologacao `147.1.0.85`:
+  `http://147.1.0.85:3075/sfcs-print/stencil/stencil_tensiometro`.
+- Consulta de usuario/DRT tambem usa homologacao `147.1.0.85`.
+- O dialog admin de integracao agora permite ativar/desativar o envio final e aceita URL vazia quando o envio esta desabilitado.
 
-## GSD
+## Simulacao com stencil real
 
-- GSD CLI global detectado em `C:\Users\FelipeRobert-Digiboa\AppData\Roaming\npm\gsd.ps1`.
-- Versao instalada: `2.82.0`.
-- Projeto inicializado com `.gsd/`.
-- `.gsd/PREFERENCES.md` criado com `unique_milestone_ids: true`.
-- `.gitignore` atualizado para ignorar runtime local do GSD, como `gsd.db`, `runtime/`, logs e reports.
+- Codigo `32B01A642723416` foi consultado com sucesso no endpoint final.
+- Resposta incluiu `idstencil=9`, grid `3x3`, status `DISPONIVEL` e descricao `S145IKB (i3) MB`.
+- O grid `3x3` foi resolvido para o padrao local `Teste1_V14_V5`.
+- A medicao simulada aprovou 9 pontos.
+- O envio real para a rota de homologacao configurada retornou HTTP 404.
+- Com envio desabilitado em memoria, a simulacao concluiu e pulou o POST final.
 
-## Atencao
+## Medicao, relatorio e calibracao
 
-- O worktree ja tinha varias alteracoes abertas antes deste snapshot.
-- Nao reverter alteracoes existentes sem confirmacao explicita.
-- `.bg-shell/` apareceu como nao rastreado e nao foi inspecionado nem alterado neste snapshot.
-
+- Leituras `0.00` do tensiometro agora passam por retentativa e reteste fisico do ponto antes de falhar.
+- Relatorio automatico de tensao e acionado apos salvar medicao quando a opcao estiver habilitada.
+- Pastas padrao de relatorio foram ajustadas para nomes PT-BR.
+- Fluxo de calibracao automatica liga e zera o medidor apos home inicial e retorna para home no final.

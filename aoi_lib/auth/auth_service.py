@@ -82,7 +82,7 @@ class AuthService:
 
     ADMIN_OVERRIDE_PASSWORD = "administrador@@digiboard"
     DIGIBOARD_LOOKUP_URL = (
-        "http://147.1.0.100:3075/sfcs-print/tbusuario/consultar/matricula/{drt}"
+        "http://147.1.0.85:3075/sfcs-print/tbusuario/consultar/matricula/{drt}"
     )
     DIGIBOARD_TIMEOUT_SEC = 8.0
 

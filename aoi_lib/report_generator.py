@@ -51,6 +51,9 @@ from aoi_lib.runtime_paths import get_runtime_path
 
 log = logging.getLogger(__name__)
 
+MEASUREMENT_REPORT_DIR_NAME = "Relatório de medição"
+STENCIL_HISTORY_REPORT_DIR_NAME = "Histórico de Stencil"
+
 
 def _resolve_report_output_dir(output_dir: str, section: str) -> Path:
     """Resolve o diretório final do relatório, aceitando paths relativos."""
@@ -349,7 +352,10 @@ class TensionReportBuilder:
 
         # Determinar caminho de saída
         if output_path is None:
-            output_dir = _resolve_report_output_dir(self.config.output_dir, "tension")
+            output_dir = _resolve_report_output_dir(
+                self.config.output_dir,
+                MEASUREMENT_REPORT_DIR_NAME,
+            )
             timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
             stencil_part = f"_{stencil_code}" if stencil_code else ""
             filename = f"{timestamp}{stencil_part}_tension_report.pdf"
@@ -722,7 +728,10 @@ class StencilHistoryReportBuilder:
         """
         # Determinar caminho de saída
         if output_path is None:
-            output_dir = _resolve_report_output_dir(self.config.output_dir, "stencil")
+            output_dir = _resolve_report_output_dir(
+                self.config.output_dir,
+                STENCIL_HISTORY_REPORT_DIR_NAME,
+            )
             stencil_code = stencil.get('code', 'unknown')
             timestamp = datetime.now().strftime("%Y-%m-%d")
             filename = f"{stencil_code}_history_{timestamp}.pdf"

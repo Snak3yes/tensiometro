@@ -720,11 +720,68 @@ class TensionMeasurementController(QObject):
             self._mark_external_integration_skipped_for_empty_measurement(current_stencil)
 
         self._persist_measurement_session_report_data(saved_path, classified_data)
+        self._generate_auto_report_after_measurement(
+            current_stencil=current_stencil,
+            current_recipe=current_recipe,
+            tension_data=classified_data,
+            operator=operator,
+        )
 
         logger.info(f"Medição de tensão salva para stencil {current_stencil.code}")
         self.measurement_completed.emit(record)
         self.measurement_saved.emit(current_stencil.code, record)
         return record
+
+    def _generate_auto_report_after_measurement(
+        self,
+        *,
+        current_stencil: Stencil,
+        current_recipe,
+        tension_data: dict,
+        operator: Optional[str],
+    ) -> Optional[str]:
+        """Gera o PDF automaticamente quando a opcao de relatorio estiver habilitada."""
+        parent_window = getattr(self, "__dict__", {}).get("parent_window")
+        if parent_window is None:
+            try:
+                parent_window = self.parent_window
+            except RuntimeError:
+                parent_window = None
+
+        report_manager = getattr(parent_window, "report_manager_wrapper", None)
+        if report_manager is None:
+            logger.debug("Relatorio automatico ignorado: report_manager_wrapper ausente")
+            return None
+
+        try:
+            get_config = getattr(report_manager, "get_config", None)
+            report_config = get_config() if callable(get_config) else getattr(report_manager, "report_config", None)
+            if not getattr(report_config, "auto_generate_after_measurement", False):
+                return None
+
+            generate_report = getattr(report_manager, "generate_tension_report", None)
+            if not callable(generate_report):
+                logger.warning("Relatorio automatico ignorado: gerador de relatorio indisponivel")
+                return None
+
+            output_path = generate_report(
+                tension_data=tension_data,
+                stencil_code=current_stencil.code,
+                stencil_description=getattr(current_stencil, "description", ""),
+                recipe_name=self._resolve_measurement_name(current_stencil, current_recipe),
+                operator=operator,
+            )
+            if output_path:
+                logger.info("Relatorio automatico de tensao gerado: %s", output_path)
+            else:
+                logger.warning("Relatorio automatico de tensao nao foi gerado")
+            return output_path
+        except Exception:
+            logger.exception(
+                "Falha ao gerar relatorio automatico de tensao para o stencil %s",
+                current_stencil.code,
+            )
+            return None
 
     def _save_external_integration_payload(
         self,

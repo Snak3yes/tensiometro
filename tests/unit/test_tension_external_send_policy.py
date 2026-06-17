@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 from aoi_lib.recipe_manager import TensionAcceptance
@@ -117,3 +118,82 @@ def test_save_measurement_sends_nok_to_external_payload_with_approved_false():
     assert record.result == "NOK"
     controller._save_external_integration_payload.assert_called_once()
     assert controller._save_external_integration_payload.call_args.kwargs["approved"] is False
+
+
+def test_save_measurement_generates_report_when_auto_report_enabled():
+    controller = _controller()
+    report_manager = Mock()
+    report_manager.get_config.return_value = SimpleNamespace(auto_generate_after_measurement=True)
+    report_manager.generate_tension_report.return_value = "reports/tension.pdf"
+
+    controller.parent_window = SimpleNamespace(report_manager_wrapper=report_manager)
+    controller.stencil_manager_wrapper = Mock()
+    controller.stencil_manager_wrapper.add_tension_record.return_value = True
+    controller.measurement_completed = _Signal()
+    controller.measurement_saved = _Signal()
+    controller._get_global_acceptance_criteria = Mock(return_value=None)
+    controller._resolve_report_operator = Mock(return_value="operador")
+    controller._classify_measurements_by_recipe = Mock(side_effect=lambda tension_data, recipe: tension_data)
+    controller._enrich_report_tension_data = Mock(side_effect=lambda tension_data, **kwargs: tension_data)
+    controller._persist_measurement_session_report_data = Mock()
+    controller._should_send_external_integration = Mock(return_value=False)
+    controller._mark_external_integration_skipped_for_empty_measurement = Mock()
+
+    controller._save_measurement_data(
+        current_stencil=Stencil(code="ABC123", description="Stencil teste", recipe_name="3x3"),
+        current_recipe=None,
+        tension_data={
+            "measurements": [
+                {"point": 1, "tension": 33.0, "status": "OK"},
+            ],
+            "parameters": {},
+        },
+        emit_signals=False,
+    )
+
+    report_manager.generate_tension_report.assert_called_once()
+    assert report_manager.generate_tension_report.call_args.kwargs == {
+        "tension_data": {
+            "measurements": [
+                {"point": 1, "tension": 33.0, "status": "OK"},
+            ],
+            "parameters": {},
+        },
+        "stencil_code": "ABC123",
+        "stencil_description": "Stencil teste",
+        "recipe_name": "3x3",
+        "operator": "operador",
+    }
+
+
+def test_save_measurement_does_not_generate_report_when_auto_report_disabled():
+    controller = _controller()
+    report_manager = Mock()
+    report_manager.get_config.return_value = SimpleNamespace(auto_generate_after_measurement=False)
+
+    controller.parent_window = SimpleNamespace(report_manager_wrapper=report_manager)
+    controller.stencil_manager_wrapper = Mock()
+    controller.stencil_manager_wrapper.add_tension_record.return_value = True
+    controller.measurement_completed = _Signal()
+    controller.measurement_saved = _Signal()
+    controller._get_global_acceptance_criteria = Mock(return_value=None)
+    controller._resolve_report_operator = Mock(return_value=None)
+    controller._classify_measurements_by_recipe = Mock(side_effect=lambda tension_data, recipe: tension_data)
+    controller._enrich_report_tension_data = Mock(side_effect=lambda tension_data, **kwargs: tension_data)
+    controller._persist_measurement_session_report_data = Mock()
+    controller._should_send_external_integration = Mock(return_value=False)
+    controller._mark_external_integration_skipped_for_empty_measurement = Mock()
+
+    controller._save_measurement_data(
+        current_stencil=Stencil(code="ABC123"),
+        current_recipe=None,
+        tension_data={
+            "measurements": [
+                {"point": 1, "tension": 33.0, "status": "OK"},
+            ],
+            "parameters": {},
+        },
+        emit_signals=False,
+    )
+
+    report_manager.generate_tension_report.assert_not_called()

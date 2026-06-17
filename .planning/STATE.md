@@ -2,83 +2,83 @@
 
 ## Snapshot
 
-- Data: 2026-05-14
+- Data: 2026-06-17
 - Timezone: America/Manaus
-- Diretorio: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tenciometro\tensiometro`
+- Diretorio: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\tensiometro`
 - GSD CLI: `2.82.0`
 - GSD runtime local: `.gsd/`
 - GSD phase: `pre-planning`
 - GSD blockers: nenhum
-- GSD next action: criar um milestone quando houver especificacao.
+- GSD next action: manter `.planning/` e memoria sincronizados apos mudancas de integracao/build.
 
 ## Estado Git observado
 
 Arquivos modificados:
 
-- `.gitignore`
-- `AGENTS.md`
+- `aoi_lib/auth/auth_service.py`
 - `aoi_lib/config_manager.py`
-- `conductor/README.md`
-- `conductor/workflow.md`
+- `aoi_lib/report_generator.py`
+- `aoi_lib/tensiometer/measurement_thread.py`
 - `config/aoi_config.json`
 - `consumo_lib/controllers/tension_measurement_controller.py`
-- `consumo_lib/dialogs/tracking_dialog.py`
-- `consumo_lib/handlers/menu_handler.py`
+- `consumo_lib/dialogs/integration_endpoint_dialog.py`
+- `consumo_lib/dialogs/tensiometer_calibration_dialog.py`
 - `consumo_lib/main_window.py`
-- `consumo_lib/managers/measurement_pattern_manager.py`
-- `consumo_lib/services/__init__.py`
-- `consumo_lib/services/tension_external_payload_service.py`
-- `consumo_lib/widgets/stencil/identification_widget.py`
-- `tests/unit/test_stencil_code_normalization.py`
-- `tests/unit/test_stencil_flow.py`
+- `tests/unit/test_integration_endpoint_settings.py`
+- `tests/unit/test_measurement_thread.py`
 - `tests/unit/test_tension_external_send_policy.py`
+- `.planning/`
+- `.claude/projects/E--PycharmProjects-Tensiometro/memory/`
 
-Arquivos ou diretorios nao rastreados:
+Arquivos novos:
 
-- `.bg-shell/`
-- `.gsd/`
-- `consumo_lib/services/sfcs_stencil_lookup_service.py`
-- `resources/endpoint.png`
-- `tests/unit/test_measurement_pattern_grid_resolution.py`
-- `tests/unit/test_sfcs_stencil_lookup_service.py`
+- `tests/unit/test_report_output_directories.py`
+- `tests/unit/test_tensiometer_calibration_flow.py`
+- `.claude/projects/E--PycharmProjects-Tensiometro/memory/integration_measurement_api.md`
 
-Resumo do diff rastreado no momento do snapshot:
+Resumo do diff antes da atualizacao desta documentacao:
 
-- 17 arquivos alterados
-- 299 insercoes
-- 74 remocoes
+- 12 arquivos rastreados alterados
+- 2 arquivos de teste novos
 
 ## Validacoes recentes
 
-Build gerado em 2026-05-15:
+Build gerado em 2026-06-17:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\tools\build_app.ps1 -ExeName Tensiometro -PackageName tensiometro_build_20260515 -EntryPoint main.py
+python -m PyInstaller --noconfirm --clean --windowed --name Tensiometro ...
 ```
 
 Resultado:
 
-- Pacote final: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tenciometro\tensiometro_build_20260515`
-- Workpath: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\_build\tensiometro_build_20260515`
-- Dist PyInstaller: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\_dist\tensiometro_build_20260515\Tensiometro`
+- Pacote final: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\tensiometro_build_20260617_config_atual`
+- Workpath: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\_build\tensiometro_build_20260617_config_atual`
+- Dist PyInstaller: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\_dist\tensiometro_build_20260617_config_atual\Tensiometro`
+- Observacao: `tools/build_app.ps1` falhou ao chamar `pyinstaller.exe`; o build equivalente foi gerado com `python -m PyInstaller`.
 
-Comando executado apos a alteracao do payload externo:
+Configuracao validada no pacote:
+
+- `sfcs_stencil_lookup.endpoint_url`: `http://147.1.0.100:3075/sfcs-print/stencil/{codigo_barras}`
+- `integration.endpoint_url`: `http://147.1.0.85:3075/sfcs-print/stencil/stencil_tensiometro`
+- `integration.enabled`: `true`
+
+Comandos executados apos as alteracoes de integracao:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest tests\unit\test_stencil_code_normalization.py tests\unit\test_tension_external_send_policy.py -q
+python -m pytest tests/unit/test_sfcs_stencil_lookup_service.py tests/unit/test_integration_endpoint_settings.py
+python -m pytest tests/unit/test_integration_endpoint_settings.py
 ```
 
 Resultado:
 
-- 11 testes passaram
+- 10 testes passaram no conjunto lookup/integracao.
+- 6 testes passaram no conjunto do dialog de endpoint.
 
-Comando executado para validar GSD:
+Simulacao operacional:
 
-```powershell
-gsd headless --output-format json query
-```
-
-Resultado:
-
-- Sem blockers
-- Estado `pre-planning`
+- Codigo testado: `32B01A642723416`
+- Consulta em `147.1.0.100` retornou stencil `idstencil=9`, grid `3x3`, status `DISPONIVEL`.
+- Padrao local resolvido: `Teste1_V14_V5`.
+- Medicao simulada aprovada com 9 pontos.
+- Envio real para `147.1.0.85` retornou HTTP 404 para a rota configurada.
+- Simulacao com envio desabilitado em memoria concluiu sem POST final.
