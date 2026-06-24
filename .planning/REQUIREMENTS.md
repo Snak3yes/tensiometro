@@ -15,10 +15,12 @@
 - O payload externo de tensao deve enviar `nmlinha` como `null`.
 - Medicoes NOK tambem sao elegiveis para envio externo, com `aprovado: false`.
 - Medicoes sem pontos nao devem ser enviadas.
-- A consulta de stencil deve usar o endpoint final `147.1.0.100`.
+- A consulta de stencil deve usar o endpoint final `147.1.0.100` por padrao.
+- A URL de consulta de stencil deve ser alteravel por ADMIN pela interface.
+- A consulta de stencil deve permanecer sempre ativa; nao deve haver checkbox de ativar/desativar nessa tela.
 - O envio final de aprovado/reprovado deve permanecer configuravel e pode ser desabilitado por ADMIN.
-- Quando o envio estiver desabilitado, o dialog de configuracao nao deve exigir URL valida.
-- Autenticacao por DRT e envio externo devem usar homologacao `147.1.0.85` enquanto nao houver novo endpoint confirmado.
+- Quando o envio estiver desabilitado, o dialog de configuracao de envio nao deve exigir URL valida.
+- Autenticacao por DRT e envio externo seguem em homologacao `147.1.0.85` no arquivo de configuracao atual enquanto nao houver novo endpoint confirmado no codigo.
 
 ## Regras recentes de medicao
 

@@ -257,6 +257,17 @@ class MenuHandler(QObject):
         menu.addAction(integration_endpoint_action)
         self._register_action('system.integration_endpoint', integration_endpoint_action)
 
+        stencil_lookup_endpoint_action = QAction('Endpoint de Consulta de Stencil...', self.main_window)
+        stencil_lookup_endpoint_action.setToolTip(
+            'Configura a URL usada para buscar informacoes do stencil no SFCS.\n'
+            'Disponivel apenas para usuarios ADMIN.'
+        )
+        stencil_lookup_endpoint_action.triggered.connect(
+            self.main_window.show_stencil_lookup_endpoint_settings
+        )
+        menu.addAction(stencil_lookup_endpoint_action)
+        self._register_action('system.stencil_lookup_endpoint', stencil_lookup_endpoint_action)
+
         menu.addSeparator()
 
         # Configurações de Tema

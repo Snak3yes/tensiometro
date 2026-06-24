@@ -105,3 +105,11 @@ def test_resolve_recipe_name_falls_back_to_pattern_grid(monkeypatch):
     )
 
     assert service.resolve_recipe_name(record) == "Padrao 4x4"
+
+
+def test_lookup_service_is_always_enabled_even_if_legacy_config_disables_it():
+    service = SfcsStencilLookupService(
+        _Config({"sfcs_stencil_lookup": {"enabled": False}})
+    )
+
+    assert service.is_enabled() is True

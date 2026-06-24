@@ -55,9 +55,7 @@ class SfcsStencilLookupService:
         self.config = config_manager
 
     def is_enabled(self) -> bool:
-        if self.config is None:
-            return False
-        return bool(self.config.get("sfcs_stencil_lookup", "enabled", default=True))
+        return True
 
     def lookup(self, code: str) -> SfcsStencilRecord:
         normalized_code = normalize_stencil_code(code)

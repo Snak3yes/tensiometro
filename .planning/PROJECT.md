@@ -42,7 +42,9 @@ Aplicacao desktop industrial para medicao de tensao de stencil e inspecao visual
 
 ## Integracao atual
 
-- Consulta de stencil: servidor final `147.1.0.100`.
-- Envio de resultado de tensao: servidor homologacao `147.1.0.85`.
+- Consulta de stencil: servidor final `147.1.0.100` por padrao.
+- Consulta de stencil: endpoint alteravel por ADMIN em `Sistema > Endpoint de Consulta de Stencil...`.
+- Consulta de stencil: sempre ativa; configuracoes legadas `sfcs_stencil_lookup.enabled=false` sao ignoradas pelo servico.
+- Envio de resultado de tensao: servidor homologacao `147.1.0.85` no arquivo de configuracao atual.
+- Envio de resultado de tensao: endpoint e ativacao/desativacao alteraveis por ADMIN em `Sistema > Endpoint da API de Tensao...`.
 - Autenticacao DRT Digiboard: servidor homologacao `147.1.0.85`.
-- O envio de resultado pode ser desabilitado por ADMIN no dialog de configuracao da API.

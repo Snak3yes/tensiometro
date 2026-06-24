@@ -79,8 +79,9 @@ from .tension_criteria_dialog import TensionCriteriaDialog
 __all__.append('TensionCriteriaDialog')
 
 # Integration endpoint dialog
-from .integration_endpoint_dialog import IntegrationEndpointDialog
+from .integration_endpoint_dialog import IntegrationEndpointDialog, StencilLookupEndpointDialog
 __all__.append('IntegrationEndpointDialog')
+__all__.append('StencilLookupEndpointDialog')
 
 # Tracking dialog (NOVO - 2026-03-29 - substitui aba Rastreabilidade)
 from .tracking_dialog import TrackingDialog

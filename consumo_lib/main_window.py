@@ -542,6 +542,64 @@ class AOIControllerApp(QMainWindow):
             QMessageBox.StandardButton.Ok,
         )
 
+    def show_stencil_lookup_endpoint_settings(self):
+        """Allows ADMIN users to edit the SFCS stencil lookup endpoint URL."""
+        if not (
+            hasattr(self, "role_manager")
+            and self.role_manager is not None
+            and self.role_manager.get_current_role() == "admin"
+        ):
+            QMessageBox.warning(
+                self,
+                "Acesso negado",
+                "Apenas usuarios ADMIN podem alterar o endpoint de consulta do stencil.",
+                QMessageBox.StandardButton.Ok,
+            )
+            return
+
+        from consumo_lib.dialogs.integration_endpoint_dialog import StencilLookupEndpointDialog
+
+        current_endpoint = self.config_manager.get(
+            "sfcs_stencil_lookup",
+            "endpoint_url",
+            default="",
+        )
+        current_enabled = bool(
+            self.config_manager.get("sfcs_stencil_lookup", "enabled", default=True)
+        )
+        dialog = StencilLookupEndpointDialog(str(current_endpoint or ""), self)
+
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+
+        new_endpoint = dialog.endpoint_url()
+        old_endpoint = str(current_endpoint or "").strip()
+        must_enable_lookup = not current_enabled
+
+        if new_endpoint == old_endpoint and not must_enable_lookup:
+            self.statusBar().showMessage("Endpoint de consulta sem alteracoes", 3000)
+            return
+
+        if new_endpoint != old_endpoint:
+            self.config_manager.set("sfcs_stencil_lookup", "endpoint_url", value=new_endpoint)
+        if must_enable_lookup:
+            self.config_manager.set("sfcs_stencil_lookup", "enabled", value=True)
+
+        if hasattr(self, "config") and self.config is not self.config_manager:
+            if new_endpoint != old_endpoint:
+                self.config.set("sfcs_stencil_lookup", "endpoint_url", value=new_endpoint)
+            if must_enable_lookup:
+                self.config.set("sfcs_stencil_lookup", "enabled", value=True)
+
+        logger.info("Endpoint de consulta de stencil atualizado: %s", new_endpoint)
+        self.statusBar().showMessage("Endpoint de consulta salvo", 3000)
+        QMessageBox.information(
+            self,
+            "Configuracao salva",
+            "A URL de consulta das informacoes do stencil foi atualizada.",
+            QMessageBox.StandardButton.Ok,
+        )
+
     def show_theme_settings(self):
         """
         Exibe diálogo de configurações de tema.

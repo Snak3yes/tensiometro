@@ -3,7 +3,7 @@
 ## Sistema
 
 - Shell usado: PowerShell
-- Data de referencia: 2026-06-17
+- Data de referencia: 2026-06-24
 - Timezone: America/Manaus
 - Repositorio: `C:\Users\FelipeRobert-Digiboa\Documents\projetos CTD\Tensiometro\tensiometro`
 - Branch atual: `frobert/ajuste_rotina_medicao`
@@ -29,13 +29,15 @@
 - `integration.timeout_sec`: `10.0`
 - `integration.line_name`: `IMC4-LM03`
 - Comportamento atual do payload: `nmlinha` deve ser enviado como `null`, independentemente de `integration.line_name`.
+- O endpoint de envio pode ser alterado pela interface ADMIN.
 
 ## Configuracao de consulta SFCS
 
-- `sfcs_stencil_lookup.enabled`: `true`
 - `sfcs_stencil_lookup.endpoint_url`: `http://147.1.0.100:3075/sfcs-print/stencil/{codigo_barras}`
 - `sfcs_stencil_lookup.timeout_sec`: `10.0`
 - `sfcs_stencil_lookup.grid_pattern_map.3x3`: `Teste1_V14_V5`
+- A consulta SFCS agora tem endpoint alteravel pela interface ADMIN.
+- A consulta SFCS e sempre ativa no servico, mesmo se uma configuracao legada `enabled=false` existir.
 
 ## Build externo atual
 
