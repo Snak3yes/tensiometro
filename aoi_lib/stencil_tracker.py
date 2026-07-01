@@ -344,6 +344,60 @@ class StencilTracker:
         self._save_stencil(stencil)
         log.info(f"Registro de tensão adicionado para {code}: {record.result}")
 
+    def delete_tension_record(self, code: str, timestamp: str) -> bool:
+        """
+        Remove uma medição de tensão específica do histórico do stencil.
+
+        Args:
+            code: Código do stencil
+            timestamp: Timestamp ISO persistido no registro da medição
+
+        Returns:
+            True se a medição foi encontrada e removida, False caso contrário.
+        """
+        code = normalize_stencil_code(code)
+        stencil = self.get_stencil(code)
+        if not stencil:
+            raise ValueError(f"Stencil '{code}' não encontrado")
+
+        history_dir = self._get_history_dir(code)
+        if not history_dir.exists():
+            return False
+
+        target_path = None
+        deleted_record = None
+
+        for filepath in history_dir.glob("*_tension.json"):
+            try:
+                with open(filepath, "r", encoding="utf-8") as file:
+                    record_data = json.load(file)
+            except Exception as exc:
+                log.warning(f"Erro ao ler {filepath} para exclusão: {exc}")
+                continue
+
+            if record_data.get("timestamp") == timestamp:
+                target_path = filepath
+                deleted_record = record_data
+                break
+
+        if target_path is None:
+            return False
+
+        target_path.unlink()
+        self._refresh_tension_metadata(code)
+
+        get_system_change_log().log_event(
+            category="stencil",
+            action="tension_record_deleted",
+            target_type="tension_record",
+            target_id=f"{code}:{timestamp}",
+            description=f"Medição de tensão excluída: {code} em {timestamp}",
+            changes={"deleted": deleted_record},
+            metadata={"history_file": str(target_path)},
+        )
+        log.info(f"Registro de tensão removido para {code}: {timestamp}")
+        return True
+
     def get_tension_history(self, code: str, limit: int = 50) -> List[TensionRecord]:
         code = normalize_stencil_code(code)
         history_dir = self._get_history_dir(code)
@@ -361,6 +415,33 @@ class StencilTracker:
                 log.warning(f"Erro ao carregar {filepath}: {exc}")
 
         return records
+
+    def _refresh_tension_metadata(self, code: str) -> None:
+        """Recalcula metadados do stencil após alteração no histórico."""
+        code = normalize_stencil_code(code)
+        stencil = self.get_stencil(code)
+        if stencil is None:
+            return
+
+        history = self.get_tension_history(code, limit=1_000_000)
+        stencil.inspection_count = len(history)
+
+        if not history:
+            stencil.last_inspection = None
+            stencil.status = "active"
+            self._save_stencil(stencil)
+            return
+
+        latest_record = history[0]
+        stencil.last_inspection = latest_record.timestamp
+        if latest_record.result == "NOK":
+            stencil.status = "retired"
+        elif latest_record.result == "WARNING":
+            stencil.status = "warning"
+        else:
+            stencil.status = "active"
+
+        self._save_stencil(stencil)
 
     def get_trend_analysis(self, code: str, warning_low: float = None) -> TrendAnalysis:
         code = normalize_stencil_code(code)
