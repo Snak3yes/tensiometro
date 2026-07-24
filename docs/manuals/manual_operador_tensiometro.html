@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Manual do Operador - Tensiômetro</title>
+  <style>
+    @page { size: A4; margin: 16mm 14mm 18mm; }
+    * { box-sizing: border-box; }
+    body {
+      color: #1f2933;
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.46;
+      margin: 0;
+      background: #ffffff;
+    }
+    .cover {
+      min-height: 245mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-left: 9px solid #0f766e;
+      padding: 28mm 18mm;
+      background: linear-gradient(135deg, #f7fafc 0%, #ffffff 58%, #e8f4f2 100%);
+      page-break-after: always;
+    }
+    .cover .eyebrow {
+      color: #0f766e;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      font-size: 9pt;
+      margin-bottom: 16px;
+    }
+    .cover h1 {
+      color: #102a43;
+      font-size: 34pt;
+      line-height: 1.05;
+      margin: 0 0 20px;
+      border: 0;
+      padding: 0;
+    }
+    .cover .subtitle {
+      color: #52606d;
+      font-size: 13pt;
+      max-width: 145mm;
+    }
+    .cover .meta {
+      margin-top: 32px;
+      display: grid;
+      gap: 7px;
+      color: #334e68;
+      font-size: 10.5pt;
+    }
+    main { padding: 0; }
+    h1 { display: none; }
+    h2 {
+      color: #102a43;
+      font-size: 19pt;
+      line-height: 1.15;
+      margin: 22px 0 12px;
+      padding-bottom: 7px;
+      border-bottom: 2px solid #d9e2ec;
+      page-break-after: avoid;
+    }
+    h2:not(:first-of-type) { page-break-before: auto; }
+    h3 {
+      color: #243b53;
+      font-size: 13.2pt;
+      margin: 18px 0 8px;
+      page-break-after: avoid;
+    }
+    p { margin: 7px 0; }
+    ul, ol { margin: 7px 0 10px 20px; padding: 0; }
+    li { margin: 3px 0; }
+    code {
+      background: #eef2f7;
+      color: #102a43;
+      border-radius: 4px;
+      padding: 1px 4px;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 9.2pt;
+    }
+    pre {
+      background: #102a43;
+      color: #f0f4f8;
+      border-radius: 8px;
+      padding: 12px 14px;
+      overflow: hidden;
+      white-space: pre-wrap;
+      page-break-inside: avoid;
+    }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    blockquote {
+      margin: 12px 0;
+      padding: 10px 13px;
+      border-left: 5px solid #d97706;
+      background: #fff7ed;
+      color: #7c2d12;
+      border-radius: 0 7px 7px 0;
+      page-break-inside: avoid;
+    }
+    blockquote p { margin: 0; }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0 14px;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+    th {
+      background: #0f766e;
+      color: white;
+      text-align: left;
+      font-weight: 700;
+      padding: 7px 8px;
+    }
+    td {
+      border: 1px solid #d9e2ec;
+      padding: 6px 8px;
+      vertical-align: top;
+    }
+    tr:nth-child(even) td { background: #f8fafc; }
+    .toc {
+      page-break-after: always;
+      padding-top: 12mm;
+    }
+    .toc h2 { margin-top: 0; }
+    .toc a {
+      display: block;
+      color: #243b53;
+      text-decoration: none;
+      border-bottom: 1px solid #eef2f7;
+      padding: 5px 0;
+    }
+    .toc-l3 { padding-left: 14px !important; color: #52606d !important; font-size: 9.5pt; }
+    @media print {
+      a { color: inherit; }
+    }
+  </style>
+</head>
+<body>
+  <section class="cover">
+    <div class="eyebrow">Manual operacional</div>
+    <h1>Manual do Operador<br>Tensiômetro</h1>
+    <div class="subtitle">Operação diária, medição de tensão, rastreabilidade, relatórios e diagnóstico básico da rotina de stencils.</div>
+    <div class="meta">
+      <div><strong>Versão:</strong> 10/07/2026</div>
+      <div><strong>Projeto:</strong> Tensiômetro</div>
+      <div><strong>Público:</strong> operadores de produção treinados</div>
+    </div>
+  </section>
+  <section class="toc">
+    <h2>Sumário</h2>
+    <a class="toc-l2" href="#1-visão-geral">1. Visão geral</a>
+<a class="toc-l2" href="#2-responsabilidades-do-operador">2. Responsabilidades do operador</a>
+<a class="toc-l2" href="#3-cuidados-antes-de-medir">3. Cuidados antes de medir</a>
+<a class="toc-l2" href="#4-abrindo-o-sistema">4. Abrindo o sistema</a>
+<a class="toc-l2" href="#5-tela-principal">5. Tela principal</a>
+<a class="toc-l2" href="#6-conectando-a-máquina">6. Conectando a máquina</a>
+<a class="toc-l2" href="#7-medindo-um-stencil">7. Medindo um stencil</a>
+<a class="toc-l2" href="#8-interpretando-resultados">8. Interpretando resultados</a>
+<a class="toc-l2" href="#9-relatórios">9. Relatórios</a>
+<a class="toc-l2" href="#10-rastreabilidade">10. Rastreabilidade</a>
+<a class="toc-l2" href="#11-quando-parar-a-operação">11. Quando parar a operação</a>
+<a class="toc-l2" href="#12-problemas-comuns">12. Problemas comuns</a>
+<a class="toc-l2" href="#13-o-que-informar-ao-suporte">13. O que informar ao suporte</a>
+  </section>
+  <main><h1 id="manual-do-operador---tensiômetro">Manual do Operador - Tensiômetro</h1>
+<p><strong>Público-alvo:</strong> operadores de produção treinados para medir tensão de stencils. <strong>Objetivo após a leitura:</strong> operar a rotina de medição, registrar o resultado correto e saber quando chamar engenharia ou manutenção. <strong>Atualizado em:</strong> 2026-07-10</p>
+<h2 id="1-visão-geral">1. Visão geral</h2>
+<p>O Tensiômetro é o software usado para controlar a máquina de medição de tensão superficial de stencils. A aplicação movimenta o conjunto CNC, aciona o medidor AS-120N, coleta os valores de tensão e registra o histórico do stencil.</p>
+<p>A tela principal é a tela de <strong>Medição de Tensão</strong>. Ela mostra a lista de stencils, filtros de busca, status, últimas medições e um painel resumido de resultados.</p>
+<h2 id="2-responsabilidades-do-operador">2. Responsabilidades do operador</h2>
+<p>O operador deve:</p>
+<ul>
+<li>confirmar que o stencil correto está posicionado na máquina;</li>
+<li>selecionar o stencil correto na lista;</li>
+<li>iniciar a medição somente quando a máquina estiver livre e segura;</li>
+<li>acompanhar o progresso até o fim;</li>
+<li>gerar ou consultar relatórios quando necessário;</li>
+<li>parar a operação em caso de risco, peça fora de posição ou comportamento anormal.</li>
+</ul>
+<p>O operador não deve:</p>
+<ul>
+<li>alterar critérios globais de aprovação;</li>
+<li>alterar configurações de CLP, calibração, comunicação ou autenticação;</li>
+<li>criar padrões de medição sem orientação da engenharia;</li>
+<li>ignorar falhas de comunicação, leituras zeradas ou movimentos inesperados.</li>
+</ul>
+<h2 id="3-cuidados-antes-de-medir">3. Cuidados antes de medir</h2>
+<blockquote>
+<p>Atenção: nunca inicie uma medição se houver risco de colisão, stencil solto, eixo em movimento inesperado ou emergência ativa. Em situação insegura, pare a máquina e chame suporte.</p>
+</blockquote>
+<p>Antes de iniciar uma medição:</p>
+<ol>
+<li>Verifique se não há objetos soltos na área de movimento.</li>
+<li>Confirme que o stencil está limpo, apoiado e fixado corretamente.</li>
+<li>Confirme que o código do stencil corresponde ao item selecionado no software.</li>
+<li>Verifique se o medidor de tensão está fisicamente posicionado e sem dano aparente.</li>
+<li>Confirme que a máquina não está em emergência.</li>
+<li>Se houver mensagem de falha de conexão, chame engenharia ou manutenção antes de continuar.</li>
+</ol>
+<p>Em qualquer risco de colisão, movimento incorreto ou peça mal posicionada, use o recurso físico de parada de emergência da máquina.</p>
+<h2 id="4-abrindo-o-sistema">4. Abrindo o sistema</h2>
+<ol>
+<li>Inicie o aplicativo Tensiômetro.</li>
+<li>Aguarde o carregamento inicial.</li>
+<li>Faça login quando o sistema solicitar usuário e senha.</li>
+<li>Verifique se a tela principal abriu com o título de medição de tensão.</li>
+</ol>
+<p>Se o sistema estiver configurado com login automático, ele pode abrir direto no perfil padrão. Nesse caso, confirme se o perfil exibido é adequado para a operação.</p>
+<h2 id="5-tela-principal">5. Tela principal</h2>
+<p>A tela principal contém:</p>
+<ul>
+<li><strong>Busca:</strong> filtra stencils por código ou descrição.</li>
+<li><strong>Período:</strong> limita a lista por histórico recente.</li>
+<li><strong>Status:</strong> filtra por condição do stencil.</li>
+<li><strong>Lista de stencils:</strong> mostra código, descrição, status, tensão média, última medição e ações disponíveis.</li>
+<li><strong>Medir stencil:</strong> inicia a rotina de medição para o stencil selecionado.</li>
+<li><strong>Painel de detalhes:</strong> mostra informações e histórico resumido do stencil selecionado.</li>
+</ul>
+<p>Para evitar erro de rastreabilidade, sempre selecione o stencil antes de iniciar a medição.</p>
+<h2 id="6-conectando-a-máquina">6. Conectando a máquina</h2>
+<p>A conexão principal da máquina é feita pelo menu <strong>Ferramentas &gt; Conexões...</strong>.</p>
+<p>Use essa opção quando:</p>
+<ul>
+<li>o sistema informar que o CLP está desconectado;</li>
+<li>a máquina foi reiniciada;</li>
+<li>o cabo de rede foi reconectado;</li>
+<li>a aplicação foi aberta antes da máquina terminar de iniciar.</li>
+</ul>
+<p>Após conectar, retorne à tela principal e confirme que não há mensagem de falha de hardware.</p>
+<h2 id="7-medindo-um-stencil">7. Medindo um stencil</h2>
+<blockquote>
+<p>Atenção: durante a medição, não toque no stencil, no sensor ou em partes móveis. A interferência manual pode invalidar a medição e causar dano mecânico.</p>
+</blockquote>
+<p>Fluxo normal:</p>
+<ol>
+<li>Posicione e fixe o stencil na máquina.</li>
+<li>Na tela principal, localize o stencil pela busca ou pela lista.</li>
+<li>Selecione o stencil correto.</li>
+<li>Clique em <strong>Medir stencil</strong>.</li>
+<li>Confirme os dados exibidos na tela de medição.</li>
+<li>Inicie a rotina.</li>
+<li>Acompanhe o progresso ponto a ponto.</li>
+<li>Aguarde a conclusão.</li>
+<li>Verifique o resultado final.</li>
+<li>Confirme o salvamento no histórico.</li>
+</ol>
+<p>Durante a medição, o sistema movimenta os eixos, posiciona o sensor, aguarda estabilização e registra a leitura. Não mova o stencil e não interfira no sensor durante esse processo.</p>
+<h2 id="8-interpretando-resultados">8. Interpretando resultados</h2>
+<p>Os resultados são classificados conforme critérios globais definidos pela engenharia.</p>
+<table>
+<thead><tr>
+<th>Estado</th>
+<th>Significado</th>
+<th>Ação esperada</th>
+</tr></thead><tbody>
+<tr>
+<td>OK</td>
+<td>Valores dentro da faixa esperada</td>
+<td>Registrar e liberar conforme procedimento interno.</td>
+</tr>
+<tr>
+<td>Alerta</td>
+<td>Valores próximos dos limites ou com variação relevante</td>
+<td>Seguir procedimento de qualidade e, se necessário, chamar engenharia.</td>
+</tr>
+<tr>
+<td>NOK/Reprovado</td>
+<td>Valores fora dos limites definidos</td>
+<td>Não liberar sem tratativa autorizada.</td>
+</tr>
+<tr>
+<td>Erro</td>
+<td>Ponto não medido corretamente, falha de leitura ou comunicação</td>
+<td>Verificar condição da máquina e repetir somente após corrigir a causa.</td>
+</tr>
+</tbody></table>
+<p>Quando o resultado for alerta ou reprovado, siga o procedimento interno de qualidade. Não aprove manualmente um stencil fora do critério sem autorização.</p>
+<h2 id="9-relatórios">9. Relatórios</h2>
+<p>O menu <strong>Relatórios</strong> permite consultar ou gerar documentos de medição:</p>
+<ul>
+<li><strong>Relatório de Tensão:</strong> gera relatório da medição de tensão.</li>
+<li><strong>Relatório do Stencil:</strong> gera relatório do histórico do stencil selecionado.</li>
+<li><strong>Consultar por Período:</strong> consulta medições em uma faixa de datas.</li>
+<li><strong>Configurações de Relatório:</strong> opção restrita para ajuste de aparência e geração automática.</li>
+</ul>
+<p>Quando a geração automática estiver habilitada pela engenharia, o PDF pode ser criado ao fim da medição sem ação manual.</p>
+<h2 id="10-rastreabilidade">10. Rastreabilidade</h2>
+<p>Use <strong>Ferramentas &gt; Rastreabilidade...</strong> quando precisar consultar ou confirmar informações de identificação do stencil.</p>
+<p>A rastreabilidade registra medições associadas ao stencil, operador e horário. Por isso, não execute medições com usuário incorreto ou stencil selecionado incorretamente.</p>
+<h2 id="11-quando-parar-a-operação">11. Quando parar a operação</h2>
+<p>Pare a operação imediatamente quando ocorrer:</p>
+<ul>
+<li>stencil solto ou fora de posição;</li>
+<li>sensor tocando fora da área correta;</li>
+<li>movimento inesperado dos eixos;</li>
+<li>ruído mecânico anormal;</li>
+<li>leitura repetida igual a zero;</li>
+<li>falha de comunicação com CLP ou medidor;</li>
+<li>acionamento de emergência;</li>
+<li>qualquer risco ao equipamento ou ao operador.</li>
+</ul>
+<p>Depois de parar, não reinicie a rotina antes de identificar a causa.</p>
+<h2 id="12-problemas-comuns">12. Problemas comuns</h2>
+<table>
+<thead><tr>
+<th>Sintoma</th>
+<th>Ação do operador</th>
+</tr></thead><tbody>
+<tr>
+<td>CLP desconectado</td>
+<td>Abrir <strong>Ferramentas &gt; Conexões...</strong> e tentar reconectar. Se persistir, chamar manutenção.</td>
+</tr>
+<tr>
+<td>Medidor sem leitura</td>
+<td>Verificar cabo e posição do medidor. Se persistir, chamar engenharia.</td>
+</tr>
+<tr>
+<td>Leitura zero</td>
+<td>Confirmar contato do sensor e presença do stencil. Não aprovar sem validação.</td>
+</tr>
+<tr>
+<td>Stencil não aparece na lista</td>
+<td>Confirmar código. Se não estiver cadastrado, chamar engenharia.</td>
+</tr>
+<tr>
+<td>Relatório não gerado</td>
+<td>Verificar se a medição foi salva. Se persistir, chamar engenharia.</td>
+</tr>
+<tr>
+<td>Movimento não inicia</td>
+<td>Verificar emergência, conexão do CLP e permissões.</td>
+</tr>
+<tr>
+<td>Software travou</td>
+<td>Não desligar a máquina em movimento. Acione parada segura e chame suporte.</td>
+</tr>
+</tbody></table>
+<h2 id="13-o-que-informar-ao-suporte">13. O que informar ao suporte</h2>
+<p>Ao chamar engenharia, manutenção ou TI, informe:</p>
+<ul>
+<li>código do stencil;</li>
+<li>usuário logado;</li>
+<li>horário aproximado;</li>
+<li>etapa em que o problema ocorreu;</li>
+<li>mensagem exibida na tela;</li>
+<li>se a máquina estava conectada ao CLP;</li>
+<li>se o medidor estava respondendo;</li>
+<li>se houve parada de emergência.</li>
+</ul>
+<p>Essas informações reduzem o tempo de diagnóstico e ajudam a preservar a rastreabilidade.</p></main>
+</body>
+</html>

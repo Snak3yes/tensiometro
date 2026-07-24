@@ -41,8 +41,14 @@ This directory contains all project documentation, organized by purpose and audi
 
 ### manuals/
 **Audience:** Operators and maintenance staff
-**Content:** Technical manuals, hardware specifications
-**Format:** PDF files
+**Content:** Technical manuals, hardware specifications, operator procedures
+**Format:** PDF and Markdown files
+
+Current application manuals:
+- `manual_operador_tensiometro.md` - Operator procedure for daily stencil tension measurement.
+- `manual_engenharia_tensiometro.md` - Technical manual for development, engineering, maintenance, configuration, diagnostics, and release care.
+- `manual_operador_tensiometro.html` / `manual_operador_tensiometro.pdf` - Styled HTML and PDF generated from the operator manual.
+- `manual_engenharia_tensiometro.html` / `manual_engenharia_tensiometro.pdf` - Styled HTML and PDF generated from the engineering manual.
 
 ## Quick Navigation
 
@@ -52,8 +58,9 @@ This directory contains all project documentation, organized by purpose and audi
 3. Check `architecture/` for system design
 
 **For operators:**
-1. See `manuals/` for hardware documentation
-2. Check `guides/` for procedural guides
+1. Start with `manuals/manual_operador_tensiometro.md`
+2. See `manuals/` for hardware documentation
+3. Check `guides/` for procedural guides
 
 **For project status:**
 1. Review `history/BACKLOG.md` for pending tasks
