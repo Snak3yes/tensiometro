@@ -39,16 +39,10 @@ This directory contains all project documentation, organized by purpose and audi
 - `CHANGELOG_2025-12-12.md` - Version changelog
 - `REFACTORING_*.md` - Refactoring session logs (30+ files)
 
-### manuals/
-**Audience:** Operators and maintenance staff
-**Content:** Technical manuals, hardware specifications, operator procedures
-**Format:** PDF and Markdown files
-
-Current application manuals:
-- `manual_operador_tensiometro.md` - Operator procedure for daily stencil tension measurement.
-- `manual_engenharia_tensiometro.md` - Technical manual for development, engineering, maintenance, configuration, diagnostics, and release care.
-- `manual_operador_tensiometro.html` / `manual_operador_tensiometro.pdf` - Styled HTML and PDF generated from the operator manual.
-- `manual_engenharia_tensiometro.html` / `manual_engenharia_tensiometro.pdf` - Styled HTML and PDF generated from the engineering manual.
+### External articles and manuals
+**Audience:** Operators, maintenance staff, and project stakeholders
+**Content:** Articles, technical manuals, hardware specifications, and operator procedures
+**Location:** `Documentos e Builds/Arquivos fora do repositorio/Tensiometro/`, outside this repository
 
 ## Quick Navigation
 
@@ -58,8 +52,8 @@ Current application manuals:
 3. Check `architecture/` for system design
 
 **For operators:**
-1. Start with `manuals/manual_operador_tensiometro.md`
-2. See `manuals/` for hardware documentation
+1. Start with the operator manual in the external `Tensiometro/Manuais/` directory
+2. See that same directory for hardware documentation
 3. Check `guides/` for procedural guides
 
 **For project status:**
